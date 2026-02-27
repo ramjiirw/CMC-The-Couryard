@@ -415,7 +415,18 @@ function deleteRow(id) {
   renderTable(); updateStats(); populateFilter(); markUnsaved();
 }
 
+function sortResidents() {
+  residents.sort((a, b) => {
+    const numA = parseInt(a.address) || 999;
+    const numB = parseInt(b.address) || 999;
+    if (numA !== numB) return numA - numB;
+    // Same address — sort by last name then first name
+    return (a.lastName||'').localeCompare(b.lastName||'') || (a.firstName||'').localeCompare(b.firstName||'');
+  });
+}
+
 function renderTable() {
+  sortResidents();
   const filter = document.getElementById('filterSelect')?.value || '';
   const tbody = document.getElementById('tableBody');
   const list = filter ? residents.filter(r => r.address === filter) : residents;
