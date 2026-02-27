@@ -196,7 +196,8 @@
     </div>
     <div class="header-actions">
       <span class="save-status" id="saveStatus">✓ Saved</span>
-      <button class="btn btn-outline" onclick="exportCSV()">⬇ Export</button>
+      <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
       <button class="btn btn-lock" onclick="lockApp()">⬅ Return to Login</button>
     </div>
   </header>
@@ -513,6 +514,43 @@ function exportCSV() {
   a.download = 'courtyard-directory.csv';
   a.click();
   // csv silently
+}
+
+function exportPDF() {
+  collectFromDOM();
+  const rows = residents.filter(r => r.firstName||r.lastName||r.email||r.mobile);
+  const date = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+  const tableRows = rows.map(r => `
+    <tr>
+      <td>${r.address||''}</td>
+      <td>${r.firstName||''}</td>
+      <td>${r.lastName||''}</td>
+      <td>${r.mobile||''}</td>
+      <td>${r.email||''}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>CMC The Courtyard – Resident Directory</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #2a2015; margin: 2cm; }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 0.2rem; }
+    p { font-size: 10px; color: #7a6e64; margin: 0 0 1.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #2a2015; color: #c4bab0; padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    tbody td { padding: 7px 10px; border-bottom: 1px solid #e0d8ce; }
+    tbody tr:nth-child(even) { background: #f7f3ee; }
+    .footer { margin-top: 1.5rem; font-size: 9px; color: #aaa; text-align: right; }
+  </style></head><body>
+  <h1>CMC The Courtyard</h1>
+  <p>Resident Directory</p>
+  <table>
+    <thead><tr><th>Address</th><th>First Name</th><th>Last Name</th><th>Mobile</th><th>Email</th></tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+  <div class="footer">Exported ${date} · ${rows.length} residents</div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 function showToast(msg, type='success') {
