@@ -109,7 +109,7 @@
   .btn-save:hover { background: #2d5437; }
   .btn-lock { background: transparent; color: var(--stone); border: 1px solid #3a3530; font-size: 0.75rem; }
   .btn-lock:hover { background: #2a2520; color: #e07070; }
-  main { max-width: 1050px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
   .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .stat-card {
     background: var(--cream); border: 1px solid var(--border); border-radius: 8px;
@@ -144,6 +144,7 @@
   .table-scroll::-webkit-scrollbar-track { background: var(--border); border-radius: 3px; }
   .table-scroll::-webkit-scrollbar-thumb { background: var(--stone); border-radius: 3px; }
   .table-scroll table { min-width: 1050px; }
+  @media (min-width: 681px) { .table-scroll table { min-width: unset; } }
   thead th { padding: 0.9rem 0.75rem; text-align: left; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--stone); white-space: nowrap; background: var(--dark); }
   @media (min-width: 681px) { thead th { position: sticky; top: 0; z-index: 10; } }
   table { width: 100%; border-collapse: collapse; table-layout: auto; }
