@@ -3,9 +3,24 @@
 
 ---
 
+## The Directory
+
+The directory table has the following columns:
+
+| Address | First Name | Last Name | Mobile Number | Email Address |
+|---------|------------|-----------|---------------|---------------|
+
+- **Address** — dropdown showing 1 to 14 The Courtyard
+- **First Name / Last Name** — split into two separate columns
+- **Mobile Number** — shown before email
+- **Email Address**
+- Multiple residents can be added at the same address using the **＋** button on each row
+
+---
+
 ## Step 1 — Change the Password
 
-Open `courtyard-directory.html` in a text editor (Notepad works fine).
+Open `index.html` in a text editor (Notepad works fine).
 
 Find this line near the top of the `<script>` section:
 
@@ -23,12 +38,11 @@ Change `courtyard2024` to whatever password you want all residents to share. Sav
 2. Click **New repository** (the green button)
 3. Name it `courtyard-directory` — set it to **Public** — click **Create repository**
 4. Click **uploading an existing file**
-5. Drag and drop `courtyard-directory.html` into the upload area
-6. **Important:** rename the file to `index.html` before uploading (GitHub Pages looks for index.html)
-7. Click **Commit changes**
-8. Go to **Settings** → **Pages** (left sidebar)
-9. Under *Source*, select **Deploy from a branch** → branch: **main** → folder: **/ (root)**
-10. Click **Save**
+5. Drag and drop the file into the upload area — **make sure it is named `index.html`**
+6. Click **Commit changes**
+7. Go to **Settings** → **Pages** (left sidebar)
+8. Under *Source*, select **Deploy from a branch** → branch: **main** → folder: **/ (root)**
+9. Click **Save**
 
 After a minute or two, your page will be live at:
 `https://YOUR-USERNAME.github.io/courtyard-directory`
@@ -39,13 +53,18 @@ Share this link with all residents. They enter the password and can view/edit th
 
 ## Step 3 — Connect Google Sheets (makes data permanent & shared)
 
-Without this step, each person's browser saves data locally. With it, everyone shares the same live data.
+Without this step, each person's browser saves data locally only — changes won't be visible to other residents. With Google Sheets connected, everyone shares the same live data.
 
 ### 3a — Create the Google Sheet
 
 1. Go to [sheets.google.com](https://sheets.google.com) and create a new blank sheet
 2. Rename the first tab to `Residents`
-3. In row 1, add these headers: `Address` | `Name` | `Email` | `Mobile`
+3. In row 1, add these headers in this exact order:
+
+| A | B | C | D | E |
+|---|---|---|---|---|
+| Address | First Name | Last Name | Mobile | Email |
+
 4. Copy the **Sheet ID** from the URL — it's the long string between `/d/` and `/edit`:
    `https://docs.google.com/spreadsheets/d/THIS-IS-THE-ID/edit`
 
@@ -77,7 +96,7 @@ The page will now load data from the sheet automatically.
 ## Step 4 — Enable Writing back to Google Sheets (optional advanced step)
 
 Reading data from Google Sheets works with an API key alone.
-**Writing** (saving changes) requires a Google Apps Script Web App. Here's how:
+**Writing** (saving changes back to the sheet) requires a Google Apps Script Web App. Here's how:
 
 1. In your Google Sheet, go to **Extensions** → **Apps Script**
 2. Delete any existing code and paste this:
@@ -90,12 +109,12 @@ function doPost(e) {
   
   // Clear existing data (keep header row)
   const lastRow = sheet.getLastRow();
-  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, 4).clearContent();
+  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, 5).clearContent();
   
   // Write new data
   if (data.rows && data.rows.length > 0) {
-    const values = data.rows.map(r => [r.address, r.name, r.email, r.mobile]);
-    sheet.getRange(2, 1, values.length, 4).setValues(values);
+    const values = data.rows.map(r => [r.address, r.firstName, r.lastName, r.mobile, r.email]);
+    sheet.getRange(2, 1, values.length, 5).setValues(values);
   }
   
   return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
@@ -106,7 +125,7 @@ function doPost(e) {
 3. Click **Deploy** → **New deployment** → Type: **Web app**
 4. Set *Execute as*: **Me** — *Who has access*: **Anyone**
 5. Click **Deploy** → copy the **Web App URL**
-6. Open `courtyard-directory.html` in a text editor
+6. Open `index.html` in a text editor
 7. Find `CONFIG` near the top and add your web app URL:
    ```
    scriptUrl: 'YOUR-WEB-APP-URL-HERE',
@@ -120,7 +139,8 @@ function doPost(e) {
 - Data auto-saves every time you click out of a field.
 - The **💾 Save All** button forces an immediate save.
 - The **🔒 Lock** button logs you out (useful on shared devices).
-- **Export CSV** downloads a spreadsheet copy at any time.
+- **Export CSV** downloads a spreadsheet copy at any time with columns: Address, First Name, Last Name, Mobile, Email.
+- In future this can be expanded into a multi-page website by adding further pages (notices, events, maintenance etc.) to the same GitHub repository.
 
 ---
 
