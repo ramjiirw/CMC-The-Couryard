@@ -196,7 +196,6 @@
     <div class="header-actions">
       <span class="save-status" id="saveStatus">✓ Saved</span>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ Export</button>
-      <button class="btn btn-save" onclick="saveAll()">💾 Save All</button>
       <button class="btn btn-lock" onclick="lockApp()">🔒 Lock</button>
     </div>
   </header>
@@ -328,7 +327,10 @@ async function loadFromSheets() {
 function initApp() {
   if (CONFIG.scriptUrl) {
     sheetsConnected = true;
-    connectSheets();
+    // Show cached data instantly so page feels immediate
+    loadFromLocal();
+    // Then silently refresh from Google Sheets in background
+    loadFromSheets();
   } else {
     loadFromLocal();
   }
