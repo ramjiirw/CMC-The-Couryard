@@ -515,7 +515,7 @@ function updateStats() {
   const occupied = new Set(residents.filter(r=>r.address).map(r=>r.address)).size;
   document.getElementById('statResidents').textContent = named;
   document.getElementById('statAddresses').textContent = occupied;
-  document.getElementById('statEmpty').textContent = 14 - occupied;
+  // statEmpty removed
 }
 
 function populateFilter() {
