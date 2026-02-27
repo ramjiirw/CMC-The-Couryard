@@ -396,15 +396,25 @@ function setSaveStatus(saved) {
   el.className = saved ? 'save-status' : 'save-status unsaved';
 }
 
-// Auto-save on blur
+// Auto-save on blur — saves locally AND to Google Sheets
 document.addEventListener('blur', e => {
   if (e.target.matches('.cell-input,.addr-sel')) {
     collectFromDOM();
     localStorage.setItem('cyard_residents', JSON.stringify(residents));
     setSaveStatus(true); hasUnsaved = false;
     updateStats(); populateFilter();
+    if (sheetsConnected) saveToSheets();
   }
 }, true);
+
+// Warn user if they try to close/refresh with unsaved changes
+window.addEventListener('beforeunload', e => {
+  if (hasUnsaved) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    return e.returnValue;
+  }
+});
 
 // ─── TABLE ───
 function addRow(address='') {
