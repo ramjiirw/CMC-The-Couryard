@@ -343,6 +343,16 @@ function loadFromLocal() {
 // ─── HELPERS ───
 function uid() { return Math.random().toString(36).substr(2,9); }
 function blankRow(a='') { return {id:uid(), address:a, firstName:'', lastName:'', email:'', mobile:''}; }
+function formatMobile(input) {
+  // Strip everything except digits
+  let digits = input.value.replace(/\D/g, '');
+  // Format as 07506 202032 (5 digits, space, 6 digits)
+  if (digits.length > 5) {
+    digits = digits.slice(0, 5) + ' ' + digits.slice(5, 11);
+  }
+  input.value = digits;
+}
+
 function esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function collectFromDOM() {
@@ -465,7 +475,7 @@ function renderTable() {
       </td>
       <td><input class="cell-input firstname-inp" type="text" placeholder="First name" value="${esc(r.firstName)}" oninput="markUnsaved()"></td>
       <td><input class="cell-input lastname-inp" type="text" placeholder="Last name" value="${esc(r.lastName)}" oninput="markUnsaved()"></td>
-      <td><input class="cell-input mob-inp" type="tel" placeholder="07700 000000" value="${esc(r.mobile)}" oninput="markUnsaved()"></td>
+      <td><input class="cell-input mob-inp" type="tel" placeholder="07700 000000" value="${esc(r.mobile)}" oninput="formatMobile(this);markUnsaved()"></td>
       <td><input class="cell-input email-inp" type="email" placeholder="email@example.com" value="${esc(r.email)}" oninput="markUnsaved()"></td>
       <td>
         <div class="row-actions">
