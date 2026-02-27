@@ -337,9 +337,10 @@ async function loadFromSheets() {
     if (data.status !== 'ok') { showToast('Could not load data — please refresh', 'error'); loadFromLocal(); return; }
     residents = data.rows.length ? data.rows.map(r => ({id:uid(), ...r})) : [blankRow()];
     renderTable(); updateStats(); populateFilter();
+    localStorage.setItem('cyard_residents', JSON.stringify(residents));
     // loaded silently
   } catch(e) {
-    showToast('Could not load data — please refresh', 'error');
+    showToast('Could not connect to Google Sheets: ' + e.message, 'error');
     loadFromLocal();
   }
 }
