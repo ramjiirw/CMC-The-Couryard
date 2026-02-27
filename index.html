@@ -228,9 +228,9 @@
     </div>
     <div class="header-actions">
       <span class="save-status" id="saveStatus">✓ Saved</span>
+      <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">✎ Edit Entries</button>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
-      <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">✎ Edit Mode</button>
       <button class="btn btn-lock" onclick="lockApp()">⬅ Return to Login</button>
     </div>
   </header>
@@ -341,12 +341,12 @@ function toggleEditMode() {
   const btn = document.getElementById('editModeBtn');
   if (editMode) {
     document.body.classList.remove('readonly');
-    btn.textContent = '🔒 Lock Editing';
+    btn.textContent = '🔒 Lock Entries';
     btn.classList.add('active');
     resetAutoLockTimer();
   } else {
     document.body.classList.add('readonly');
-    btn.textContent = '✎ Edit Mode';
+    btn.textContent = '✎ Edit Entries';
     btn.classList.remove('active');
     clearTimeout(autoLockTimer);
   }
@@ -359,7 +359,7 @@ function resetAutoLockTimer() {
       editMode = false;
       document.body.classList.add('readonly');
       const btn = document.getElementById('editModeBtn');
-      btn.textContent = '✎ Edit Mode';
+      btn.textContent = '✎ Edit Entries';
       btn.classList.remove('active');
       showToast('Edit mode locked after inactivity', 'success');
     }
