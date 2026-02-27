@@ -140,16 +140,16 @@
   .table-card { background: white; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   thead { background: var(--dark); }
-  thead th { padding: 0.9rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em; color: var(--stone); }
+  thead th { padding: 0.9rem 0.75rem; text-align: left; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--stone); white-space: nowrap; }
   thead th:last-child { text-align: center; width: 80px; }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: #fdfaf6; }
   tbody td { padding: 0.55rem 0.75rem; vertical-align: middle; }
-  .cell-input { width: 100%; border: 1px solid transparent; border-radius: 4px; padding: 0.38rem 0.55rem; font-family: Arial, sans-serif; font-size: 12px; color: var(--dark); background: transparent; transition: all 0.15s; overflow: hidden; text-overflow: ellipsis; }
+  .cell-input { width: 100%; border: 1px solid transparent; border-radius: 4px; padding: 0.38rem 0.55rem; font-family: Arial, sans-serif; font-size: 14px; color: var(--dark); background: transparent; transition: all 0.15s; overflow: hidden; text-overflow: ellipsis; }
   .cell-input:hover:not(:focus) { border-color: var(--border); background: var(--warm); }
   .cell-input:focus { outline: none; border-color: var(--accent2); background: white; box-shadow: 0 0 0 3px rgba(196,149,106,0.12); }
-  .addr-sel { width: 100%; border: 1px solid transparent; border-radius: 4px; padding: 0.38rem 1.8rem 0.38rem 0.55rem; font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 500; color: var(--accent); background: var(--cream); cursor: pointer; transition: all 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a5c3e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; }
+  .addr-sel { width: 100%; border: 1px solid transparent; border-radius: 4px; padding: 0.38rem 1.8rem 0.38rem 0.55rem; font-family: Arial, sans-serif; font-size: 14px; font-weight: 500; color: var(--accent); background: var(--cream); cursor: pointer; transition: all 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a5c3e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; }
   .addr-sel:focus { outline: none; border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(196,149,106,0.12); }
   .row-actions { display: flex; justify-content: center; gap: 0.35rem; }
   .btn-icon { width: 26px; height: 26px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.15s; }
@@ -236,10 +236,10 @@
       <table>
         <thead>
           <tr>
-            <th style="width:160px">Address</th>
-            <th style="width:110px">First Name</th>
-            <th style="width:110px">Last Name</th>
-            <th style="width:130px">Mobile Number</th>
+            <th style="width:170px">Address</th>
+            <th style="width:120px">First Name</th>
+            <th style="width:120px">Last Name</th>
+            <th style="width:140px">Mobile Number</th>
             <th>Email Address</th>
             <th>Actions</th>
           </tr>
