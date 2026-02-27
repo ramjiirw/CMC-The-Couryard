@@ -191,7 +191,7 @@
   </header>
 
   <main>
-    <div class="setup-banner" id="setupBanner">
+    <div class="setup-banner" id="setupBanner" style="display:none">
       <div class="icon">⚙️</div>
       <div style="flex:1">
         <h3>Connect to Google Sheets — one-time setup</h3>
@@ -249,10 +249,11 @@
 // CHANGE THE PASSWORD HERE
 // ═══════════════════════════════════════
 const CONFIG = {
-  password: 'courtyard2024',  // ← Change this to your chosen password
+  password: 'cmcds',  // ← Change this to your chosen password
   sheetId: '',
   apiKey: '',
-  sheetRange: 'Residents!A2:D500'
+  sheetRange: 'Residents!A2:E500',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec'
 };
 
 const ADDRESSES = Array.from({length:14}, (_,i) => `${i+1} The Courtyard`);
@@ -287,11 +288,6 @@ function lockApp() {
 
 // ─── GOOGLE SHEETS ───
 function connectSheets() {
-  const sid = document.getElementById('sheetId').value.trim();
-  const key = document.getElementById('apiKey').value.trim();
-  if (!sid || !key) { showToast('Please enter both Sheet ID and API Key', 'error'); return; }
-  CONFIG.sheetId = sid; CONFIG.apiKey = key;
-  localStorage.setItem('cyard_sheets', JSON.stringify({sheetId:sid, apiKey:key}));
   sheetsConnected = true;
   document.getElementById('setupBanner').innerHTML = `
     <div class="icon">✅</div>
@@ -302,17 +298,13 @@ function connectSheets() {
 }
 
 async function loadFromSheets() {
-  if (!CONFIG.sheetId || !CONFIG.apiKey) return;
+  if (!CONFIG.scriptUrl) return;
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${CONFIG.sheetRange}?key=${CONFIG.apiKey}`;
+    const url = `${CONFIG.scriptUrl}?action=read`;
     const res = await fetch(url);
     const data = await res.json();
-    if (data.error) { showToast('Sheets error: ' + data.error.message, 'error'); loadFromLocal(); return; }
-    const rows = data.values || [];
-    residents = rows.filter(r => r.some(c=>c)).map(r => ({
-      id: uid(), address: r[0]||'', firstName: r[1]||'', lastName: r[2]||'', mobile: r[3]||'', email: r[4]||''
-    }));
-    if (!residents.length) residents = [blankRow()];
+    if (data.status !== 'ok') { showToast('Error loading data: ' + data.message, 'error'); loadFromLocal(); return; }
+    residents = data.rows.length ? data.rows.map(r => ({id:uid(), ...r})) : [blankRow()];
     renderTable(); updateStats(); populateFilter();
     showToast('✓ Loaded from Google Sheets', 'success');
   } catch(e) {
@@ -323,12 +315,7 @@ async function loadFromSheets() {
 
 // ─── INIT ───
 function initApp() {
-  const saved = localStorage.getItem('cyard_sheets');
-  if (saved) {
-    const c = JSON.parse(saved);
-    CONFIG.sheetId = c.sheetId; CONFIG.apiKey = c.apiKey;
-    document.getElementById('sheetId').value = c.sheetId;
-    document.getElementById('apiKey').value = c.apiKey;
+  if (CONFIG.scriptUrl) {
     sheetsConnected = true;
     connectSheets();
   } else {
@@ -365,7 +352,29 @@ function saveAll() {
   localStorage.setItem('cyard_residents', JSON.stringify(residents));
   hasUnsaved = false; setSaveStatus(true);
   updateStats(); populateFilter();
-  showToast('✓ Saved successfully', 'success');
+  if (sheetsConnected) {
+    saveToSheets();
+  } else {
+    showToast('✓ Saved locally', 'success');
+  }
+}
+
+async function saveToSheets() {
+  try {
+    showToast('Saving to Google Sheets...', 'info');
+    const res = await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({action: 'write', rows: residents})
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      showToast('✓ Saved to Google Sheets', 'success');
+    } else {
+      showToast('Error saving: ' + data.message, 'error');
+    }
+  } catch(e) {
+    showToast('Could not save to Google Sheets', 'error');
+  }
 }
 
 function markUnsaved() {
