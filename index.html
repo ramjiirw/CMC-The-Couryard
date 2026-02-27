@@ -301,7 +301,7 @@ function checkPassword() {
     var loginLogo = document.querySelector('.login-emblem');
     var headerLogo = document.getElementById('headerLogo');
     if (loginLogo && headerLogo) { headerLogo.src = loginLogo.src; headerLogo.style.display = 'block'; }
-    sessionStorage.setItem('cyard_auth','1');
+    localStorage.setItem('cyard_auth','1');
     initApp();
   } else {
     err.textContent = 'Incorrect password — please try again.';
@@ -313,7 +313,7 @@ function checkPassword() {
 }
 
 function lockApp() {
-  sessionStorage.removeItem('cyard_auth');
+  localStorage.removeItem('cyard_auth');
   document.getElementById('app').style.display = 'none';
   document.getElementById('passwordScreen').style.display = 'flex';
   document.getElementById('pwInput').value = '';
@@ -590,7 +590,7 @@ function showToast(msg, type='success') {
 }
 
 // Auto-unlock if same session
-if (sessionStorage.getItem('cyard_auth')==='1') {
+if (localStorage.getItem('cyard_auth')==='1') {
   document.getElementById('passwordScreen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   var loginLogo = document.querySelector('.login-emblem');
