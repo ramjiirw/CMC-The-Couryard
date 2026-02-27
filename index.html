@@ -109,6 +109,17 @@
   .btn-save:hover { background: #2d5437; }
   .btn-lock { background: transparent; color: var(--stone); border: 1px solid #3a3530; font-size: 0.75rem; }
   .btn-lock:hover { background: #2a2520; color: #e07070; }
+  .btn-edit { background: #4a3f35; color: var(--stone); border: 1px solid #5a4f45; font-size: 0.75rem; }
+  .btn-edit:hover { background: #5a4f45; color: var(--cream); }
+  .btn-edit.active { background: var(--accent); color: white; border-color: var(--accent); }
+  /* Read-only mode */
+  body.readonly .cell-input { pointer-events: none; border-color: transparent !important; background: transparent !important; cursor: default; }
+  body.readonly .cell-input:focus { outline: none; box-shadow: none; }
+  body.readonly .addr-sel { pointer-events: none; -webkit-appearance: none; appearance: none; cursor: default; }
+  body.readonly .btn-icon { display: none; }
+  body.readonly #addResidentBtn { display: none; }
+  body.readonly .toolbar-filter { width: 100%; }
+  body.readonly #saveStatus { display: none; }
   main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
   .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .stat-card {
@@ -219,6 +230,7 @@
       <span class="save-status" id="saveStatus">✓ Saved</span>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
+      <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">✎ Edit Mode</button>
       <button class="btn btn-lock" onclick="lockApp()">⬅ Return to Login</button>
     </div>
   </header>
@@ -250,7 +262,7 @@
           <option value="">All addresses</option>
         </select>
       </div>
-      <button class="btn btn-accent" onclick="addRow('')">+ Add Resident</button>
+      <button class="btn btn-accent" id="addResidentBtn" onclick="addRow('')">+ Add Resident</button>
     </div>
 
     <div class="table-card">
@@ -321,6 +333,42 @@ function lockApp() {
   document.getElementById('pwInput').value = '';
 }
 
+let editMode = false;
+let autoLockTimer = null;
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('editModeBtn');
+  if (editMode) {
+    document.body.classList.remove('readonly');
+    btn.textContent = '🔒 Lock Editing';
+    btn.classList.add('active');
+    resetAutoLockTimer();
+  } else {
+    document.body.classList.add('readonly');
+    btn.textContent = '✎ Edit Mode';
+    btn.classList.remove('active');
+    clearTimeout(autoLockTimer);
+  }
+}
+
+function resetAutoLockTimer() {
+  clearTimeout(autoLockTimer);
+  autoLockTimer = setTimeout(() => {
+    if (editMode) {
+      editMode = false;
+      document.body.classList.add('readonly');
+      const btn = document.getElementById('editModeBtn');
+      btn.textContent = '✎ Edit Mode';
+      btn.classList.remove('active');
+      showToast('Edit mode locked after inactivity', 'success');
+    }
+  }, 2 * 60 * 1000);
+}
+
+document.addEventListener('input', () => { if (editMode) resetAutoLockTimer(); });
+document.addEventListener('click', () => { if (editMode) resetAutoLockTimer(); });
+
 // ─── GOOGLE SHEETS ───
 function connectSheets() {
   sheetsConnected = true;
@@ -349,6 +397,8 @@ async function loadFromSheets() {
 
 // ─── INIT ───
 function initApp() {
+  // Start in read-only mode
+  document.body.classList.add('readonly');
   if (CONFIG.scriptUrl) {
     sheetsConnected = true;
     // Show cached data instantly so page feels immediate
