@@ -17,7 +17,6 @@ h1 {
     margin: 25px 0 15px 0;
 }
 
-/* Responsive container */
 .container {
     position: relative;
     width: 100%;
@@ -31,36 +30,35 @@ h1 {
     display: block;
 }
 
-/* Label styling */
-.label {
+/* Box text regions (match white box areas roughly) */
+.box {
     position: absolute;
-    width: 15%;
-    height: 4%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 0.9vw;
     font-weight: bold;
+    font-size: 0.9vw;
     color: #000;
-    transform: translate(-50%, -50%);
 }
 
-/* Positions tuned for your latest image */
-.u1  { top: 86%; left: 46%; }
-.u2  { top: 74%; left: 60%; }
-.u3  { top: 69%; left: 73%; }
-.u4  { top: 63%; left: 83%; }
-.u5  { top: 42%; left: 59%; }
-.u6  { top: 39%; left: 49%; }
-.u7  { top: 50%; left: 34%; }
-.u8  { top: 55%; left: 19%; }
-.u9  { top: 72%; left: 24%; }
-.u10 { top: 50%; left: 76%; }
-.u11 { top: 60%; left: 54%; }
-.u12 { top: 55%; left: 91%; }
-.u13 { top: 22%; left: 75%; }
-.u14 { top: 17%; left: 91%; }
+/* === BOX REGIONS === */
+/* Adjust width/height once, not every time */
+
+.u1  { top: 82%; left: 36%; width: 22%; height: 6%; }
+.u2  { top: 70%; left: 54%; width: 22%; height: 6%; }
+.u3  { top: 65%; left: 68%; width: 22%; height: 6%; }
+.u4  { top: 59%; left: 79%; width: 22%; height: 6%; }
+.u5  { top: 39%; left: 52%; width: 22%; height: 6%; }
+.u6  { top: 36%; left: 43%; width: 22%; height: 6%; }
+.u7  { top: 46%; left: 27%; width: 22%; height: 6%; }
+.u8  { top: 50%; left: 10%; width: 22%; height: 6%; }
+.u9  { top: 66%; left: 17%; width: 22%; height: 6%; }
+.u10 { top: 46%; left: 70%; width: 22%; height: 6%; }
+.u11 { top: 55%; left: 47%; width: 22%; height: 6%; }
+.u12 { top: 50%; left: 85%; width: 22%; height: 6%; }
+.u13 { top: 18%; left: 68%; width: 22%; height: 6%; }
+.u14 { top: 14%; left: 85%; width: 22%; height: 6%; }
 
 .footer {
     margin: 25px 0 40px 0;
@@ -76,20 +74,20 @@ h1 {
 <div class="container">
     <img src="cmc-courtyard-owners-base.jpg" alt="Courtyard Layout">
 
-    <div class="label u1">1. Andrew & Teresa Keay</div>
-    <div class="label u2">2. Ken Kay & Jean Francis</div>
-    <div class="label u3">3. Bruno Viegas & Ian Woodland</div>
-    <div class="label u4">4. Leah Queripel</div>
-    <div class="label u5">5. Emily Fitzsimons & Shidaa Adjin-Tettey</div>
-    <div class="label u6">6. Alan Pike</div>
-    <div class="label u7">7. Mike Tear & Bart Shaw</div>
-    <div class="label u8">8. Simon Turner & Mary Donaghy</div>
-    <div class="label u9">9. Faye Carney</div>
-    <div class="label u10">10. Malcolm & Julia Wynd</div>
-    <div class="label u11">11. Gary West & Daisy Finetto</div>
-    <div class="label u12">12. Ian & Sue Morrison</div>
-    <div class="label u13">13. Kevin Smith</div>
-    <div class="label u14">14. Carl & Christina Moore</div>
+    <div class="box u1">1. Andrew & Teresa Keay</div>
+    <div class="box u2">2. Ken Kay & Jean Francis</div>
+    <div class="box u3">3. Bruno Viegas & Ian Woodland</div>
+    <div class="box u4">4. Leah Queripel</div>
+    <div class="box u5">5. Emily Fitzsimons & Shidaa Adjin-Tettey</div>
+    <div class="box u6">6. Alan Pike</div>
+    <div class="box u7">7. Mike Tear & Bart Shaw</div>
+    <div class="box u8">8. Simon Turner & Mary Donaghy</div>
+    <div class="box u9">9. Faye Carney</div>
+    <div class="box u10">10. Malcolm & Julia Wynd</div>
+    <div class="box u11">11. Gary West & Daisy Finetto</div>
+    <div class="box u12">12. Ian & Sue Morrison</div>
+    <div class="box u13">13. Kevin Smith</div>
+    <div class="box u14">14. Carl & Christina Moore</div>
 </div>
 
 <div class="footer">
