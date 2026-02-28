@@ -116,10 +116,14 @@
   body.readonly .cell-input { pointer-events: none; border-color: transparent !important; background: transparent !important; cursor: default; }
   body.readonly .cell-input:focus { outline: none; box-shadow: none; }
   body.readonly .addr-sel { pointer-events: none; -webkit-appearance: none; appearance: none; cursor: default; }
-  body.readonly .btn-icon { display: none; }
+  body.readonly .btn-del { display: none; }
   body.readonly #addResidentBtn { display: none; }
-  body.readonly .toolbar-filter { width: 100%; }
   body.readonly #saveStatus { display: none; }
+  /* Per-row edit mode */
+  tr.row-editing .cell-input { pointer-events: auto !important; border-color: rgba(196,149,106,0.4) !important; background: rgba(255,255,255,0.05) !important; cursor: text !important; }
+  tr.row-editing .addr-sel { pointer-events: auto !important; -webkit-appearance: auto !important; appearance: auto !important; cursor: pointer !important; }
+  tr.row-editing .btn-del { display: flex !important; }
+  tr.row-editing .btn-edit-row { background: #f0f5f1; color: var(--green); }
   main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
   .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .stat-card {
@@ -174,8 +178,8 @@
   .btn-icon { width: 26px; height: 26px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.15s; }
   .btn-del { background: #fdf0f0; color: var(--red); }
   .btn-del:hover { background: #f8d8d8; }
-  .btn-dup { background: #f0f5f1; color: var(--green); }
-  .btn-dup:hover { background: #d8ebd8; }
+  .btn-edit-row { background: #f0f4ff; color: #5a7abf; }
+  .btn-edit-row:hover { background: #dce6ff; }
   .add-footer { padding: 0.8rem 1rem; background: #faf8f5; border-top: 1px solid var(--border); }
   .add-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: none; border: 1px dashed var(--stone); border-radius: 5px; padding: 0.45rem 1.1rem; color: var(--mid); font-family: Arial, sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
   .add-btn:hover { border-color: var(--accent); color: var(--accent); background: #fdf8f3; }
@@ -228,7 +232,6 @@
     </div>
     <div class="header-actions">
       <span class="save-status" id="saveStatus">✓ Saved</span>
-      <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">✎ Edit Entries</button>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
       <button class="btn btn-lock" onclick="lockApp()">⬅ Return to Login</button>
@@ -333,41 +336,45 @@ function lockApp() {
   document.getElementById('pwInput').value = '';
 }
 
-let editMode = false;
 let autoLockTimer = null;
 
-function toggleEditMode() {
-  editMode = !editMode;
-  const btn = document.getElementById('editModeBtn');
-  if (editMode) {
-    document.body.classList.remove('readonly');
-    btn.textContent = '🔒 Lock Entries';
-    btn.classList.add('active');
-    resetAutoLockTimer();
-  } else {
-    document.body.classList.add('readonly');
-    btn.textContent = '✎ Edit Entries';
-    btn.classList.remove('active');
+function toggleRowEdit(id, btn) {
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (!row) return;
+  const isEditing = row.classList.contains('row-editing');
+  if (isEditing) {
+    row.classList.remove('row-editing');
+    btn.textContent = '✎';
+    btn.title = 'Edit this resident';
     clearTimeout(autoLockTimer);
+    collectFromDOM();
+    localStorage.setItem('cyard_residents', JSON.stringify(residents));
+    setSaveStatus(true);
+    if (sheetsConnected) saveToSheets();
+  } else {
+    row.classList.add('row-editing');
+    btn.textContent = '✔';
+    btn.title = 'Save and lock this row';
+    resetAutoLockTimer(id, btn);
   }
 }
 
-function resetAutoLockTimer() {
+function resetAutoLockTimer(id, btn) {
   clearTimeout(autoLockTimer);
   autoLockTimer = setTimeout(() => {
-    if (editMode) {
-      editMode = false;
-      document.body.classList.add('readonly');
-      const btn = document.getElementById('editModeBtn');
-      btn.textContent = '✎ Edit Entries';
-      btn.classList.remove('active');
-      showToast('Edit mode locked after inactivity', 'success');
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row && row.classList.contains('row-editing')) {
+      row.classList.remove('row-editing');
+      btn.textContent = '✎';
+      btn.title = 'Edit this resident';
+      collectFromDOM();
+      localStorage.setItem('cyard_residents', JSON.stringify(residents));
+      setSaveStatus(true);
+      if (sheetsConnected) saveToSheets();
+      showToast('Row locked after inactivity', 'success');
     }
   }, 2 * 60 * 1000);
 }
-
-document.addEventListener('input', () => { if (editMode) resetAutoLockTimer(); });
-document.addEventListener('click', () => { if (editMode) resetAutoLockTimer(); });
 
 // ─── GOOGLE SHEETS ───
 function connectSheets() {
@@ -397,7 +404,7 @@ async function loadFromSheets() {
 
 // ─── INIT ───
 function initApp() {
-  // Start in read-only mode
+  // Start in read-only mode (rows locked by default)
   document.body.classList.add('readonly');
   if (CONFIG.scriptUrl) {
     sheetsConnected = true;
@@ -555,7 +562,7 @@ function renderTable() {
       <td><input class="cell-input email-inp" type="email" placeholder="email@example.com" value="${esc(r.email)}" oninput="markUnsaved()"></td>
       <td>
         <div class="row-actions">
-          <button class="btn-icon btn-dup" title="Add another resident at this address" onclick="addRow('${r.address}')">＋</button>
+          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="toggleRowEdit('${r.id}', this)">✎</button>
           <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
         </div>
       </td>
