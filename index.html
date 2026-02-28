@@ -178,7 +178,7 @@
   .btn-icon { width: 26px; height: 26px; border-radius: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.15s; }
   .btn-del { background: #fdf0f0; color: var(--red); }
   .btn-del:hover { background: #f8d8d8; }
-  .btn-edit-row { background: #f0f4ff; color: #5a7abf; }
+  .btn-edit-row { background: #f0f4ff; color: #5a7abf; padding: 0 8px; width: auto; font-size: 0.78rem; }
   .btn-edit-row:hover { background: #dce6ff; }
   .add-footer { padding: 0.8rem 1rem; background: #faf8f5; border-top: 1px solid var(--border); }
   .add-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: none; border: 1px dashed var(--stone); border-radius: 5px; padding: 0.45rem 1.1rem; color: var(--mid); font-family: Arial, sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
@@ -344,7 +344,7 @@ function toggleRowEdit(id, btn) {
   const isEditing = row.classList.contains('row-editing');
   if (isEditing) {
     row.classList.remove('row-editing');
-    btn.textContent = '✎';
+    btn.textContent = '✎ Edit';
     btn.title = 'Edit this resident';
     clearTimeout(autoLockTimer);
     collectFromDOM();
@@ -353,7 +353,7 @@ function toggleRowEdit(id, btn) {
     if (sheetsConnected) saveToSheets();
   } else {
     row.classList.add('row-editing');
-    btn.textContent = '✔';
+    btn.textContent = '✔ Done';
     btn.title = 'Save and lock this row';
     resetAutoLockTimer(id, btn);
   }
@@ -365,7 +365,7 @@ function resetAutoLockTimer(id, btn) {
     const row = document.querySelector(`tr[data-id="${id}"]`);
     if (row && row.classList.contains('row-editing')) {
       row.classList.remove('row-editing');
-      btn.textContent = '✎';
+      btn.textContent = '✎ Edit';
       btn.title = 'Edit this resident';
       collectFromDOM();
       localStorage.setItem('cyard_residents', JSON.stringify(residents));
@@ -562,7 +562,7 @@ function renderTable() {
       <td><input class="cell-input email-inp" type="email" placeholder="email@example.com" value="${esc(r.email)}" oninput="markUnsaved()"></td>
       <td>
         <div class="row-actions">
-          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="toggleRowEdit('${r.id}', this)">✎</button>
+          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="toggleRowEdit('${r.id}', this)">✎ Edit</button>
           <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
         </div>
       </td>
