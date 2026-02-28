@@ -17,18 +17,19 @@ h1 {
     margin: 30px 0 20px 0;
 }
 
+/* LOCKED IMAGE SIZE */
 .container {
     position: relative;
-    max-width: 1400px;
-    margin: auto;
+    width: 1400px;
+    margin: 0 auto;
 }
 
 .container img {
-    width: 100%;
+    width: 1400px;
     display: block;
 }
 
-/* Label styling */
+/* LABEL STYLE */
 .label {
     position: absolute;
     width: 220px;
@@ -36,34 +37,31 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
     font-size: 14px;
     font-weight: bold;
     color: #000;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
 }
 
-/* Position adjustments */
-.u1  { top: 84%; left: 47%; }
-.u2  { top: 73%; left: 60%; }
-.u3  { top: 67%; left: 73%; }
-.u4  { top: 62%; left: 83%; }
-.u5  { top: 41%; left: 59%; }
-.u6  { top: 39%; left: 49%; }
-.u7  { top: 48%; left: 34%; }
-.u8  { top: 53%; left: 19%; }
-.u9  { top: 69%; left: 24%; }
-.u10 { top: 48%; left: 76%; }
-.u11 { top: 58%; left: 54%; }
-.u12 { top: 53%; left: 91%; }
-.u13 { top: 20%; left: 75%; }
-.u14 { top: 16%; left: 91%; }
+/* === PIXEL POSITIONS (TUNE SLIGHTLY IF NEEDED) === */
+
+.u1  { top: 1000px; left: 600px; }
+.u2  { top: 850px;  left: 820px; }
+.u3  { top: 780px;  left: 960px; }
+.u4  { top: 720px;  left: 1120px; }
+.u5  { top: 470px;  left: 820px; }
+.u6  { top: 440px;  left: 680px; }
+.u7  { top: 600px;  left: 470px; }
+.u8  { top: 660px;  left: 250px; }
+.u9  { top: 900px;  left: 350px; }
+.u10 { top: 600px;  left: 1030px; }
+.u11 { top: 720px;  left: 760px; }
+.u12 { top: 660px;  left: 1240px; }
+.u13 { top: 250px;  left: 1020px; }
+.u14 { top: 200px;  left: 1240px; }
 
 .footer {
-    margin: 30px 0 40px 0;
+    margin: 40px 0;
     font-size: 14px;
-    color: #333;
 }
 </style>
 </head>
@@ -74,8 +72,6 @@ h1 {
 
 <div class="container">
     <img src="cmc-courtyard-owners-base.jpg" alt="Courtyard Layout">
-
-    <!-- Editable text below -->
 
     <div class="label u1">1. Andrew & Teresa Keay</div>
     <div class="label u2">2. Ken Kay & Jean Francis</div>
