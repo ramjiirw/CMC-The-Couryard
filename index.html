@@ -491,8 +491,8 @@ function setSaveStatus(saved) {
   const el = document.getElementById('saveStatus');
   if (saved) {
     const now = new Date();
-    const time = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-    el.textContent = `✓ Saved at ${time}`;
+    const date = now.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+    el.textContent = `✓ Saved ${date}`;
     el.className = 'save-status';
   } else {
     el.textContent = '● Unsaved changes';
