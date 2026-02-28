@@ -14,7 +14,7 @@ body {
 }
 
 h1 {
-    margin: 30px 0 10px 0;
+    margin: 30px 0 20px 0;
 }
 
 .container {
@@ -28,34 +28,40 @@ h1 {
     display: block;
 }
 
-/* Editable name labels */
+/* Label styling */
 .label {
     position: absolute;
-    width: 200px;
+    width: 220px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     font-size: 14px;
     font-weight: bold;
     color: #000;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
 }
 
-/* You will fine-tune these positions */
-.u1  { top: 82%; left: 40%; transform: translate(-50%, -50%); }
-.u2  { top: 72%; left: 55%; transform: translate(-50%, -50%); }
-.u3  { top: 66%; left: 68%; transform: translate(-50%, -50%); }
-.u4  { top: 60%; left: 78%; transform: translate(-50%, -50%); }
-.u5  { top: 38%; left: 55%; transform: translate(-50%, -50%); }
-.u6  { top: 36%; left: 45%; transform: translate(-50%, -50%); }
-.u7  { top: 45%; left: 30%; transform: translate(-50%, -50%); }
-.u8  { top: 50%; left: 15%; transform: translate(-50%, -50%); }
-.u9  { top: 66%; left: 20%; transform: translate(-50%, -50%); }
-.u10 { top: 45%; left: 72%; transform: translate(-50%, -50%); }
-.u11 { top: 55%; left: 50%; transform: translate(-50%, -50%); }
-.u12 { top: 50%; left: 88%; transform: translate(-50%, -50%); }
-.u13 { top: 18%; left: 72%; transform: translate(-50%, -50%); }
-.u14 { top: 14%; left: 88%; transform: translate(-50%, -50%); }
+/* Position adjustments */
+.u1  { top: 84%; left: 47%; }
+.u2  { top: 73%; left: 60%; }
+.u3  { top: 67%; left: 73%; }
+.u4  { top: 62%; left: 83%; }
+.u5  { top: 41%; left: 59%; }
+.u6  { top: 39%; left: 49%; }
+.u7  { top: 48%; left: 34%; }
+.u8  { top: 53%; left: 19%; }
+.u9  { top: 69%; left: 24%; }
+.u10 { top: 48%; left: 76%; }
+.u11 { top: 58%; left: 54%; }
+.u12 { top: 53%; left: 91%; }
+.u13 { top: 20%; left: 75%; }
+.u14 { top: 16%; left: 91%; }
 
 .footer {
-    margin: 25px 0 40px 0;
+    margin: 30px 0 40px 0;
     font-size: 14px;
     color: #333;
 }
@@ -69,7 +75,7 @@ h1 {
 <div class="container">
     <img src="cmc-courtyard-owners-base.jpg" alt="Courtyard Layout">
 
-    <!-- Edit only the text inside these divs when owners change -->
+    <!-- Editable text below -->
 
     <div class="label u1">1. Andrew & Teresa Keay</div>
     <div class="label u2">2. Ken Kay & Jean Francis</div>
