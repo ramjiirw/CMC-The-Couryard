@@ -393,11 +393,18 @@ function resetAutoLockTimer(id, btn) {
 // ─── TABLE ───────────────────────────────────────────────────────────
 function addRow(address='') {
   collectFromDOM();
-  residents.push(blankRow(address));
+  const newResident = blankRow(address);
+  residents.push(newResident);
   renderTable(); updateStats(); markUnsaved();
   setTimeout(() => {
-    const rows = document.querySelectorAll('#tableBody tr');
-    if (rows.length) rows[rows.length-1].querySelector('.firstname-inp').focus();
+    const newRow = document.querySelector(`tr[data-id="${newResident.id}"]`);
+    if (newRow) {
+      const editBtn = newRow.querySelector('.btn-edit-row');
+      newRow.classList.add('row-editing');
+      if (editBtn) { editBtn.textContent = '✔ Done'; editBtn.title = 'Save and lock this row'; }
+      resetAutoLockTimer(newResident.id, editBtn);
+      newRow.querySelector('.firstname-inp').focus();
+    }
   }, 40);
 }
 
