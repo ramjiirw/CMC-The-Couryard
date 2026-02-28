@@ -406,19 +406,20 @@ function showQR() {
 }
 
 function overlayLogo(ctx, size) {
-  const cx = size / 2, cy = size / 2, r = 42;
-  // White circle background
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  const cx = size / 2, cy = size / 2;
+  const rx = 46, ry = 36; // ellipse - wider than tall to suit landscape photo
+  // White ellipse background
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff'; ctx.fill();
-  // Draw logo clipped to circle
+  // Draw logo clipped to ellipse
   const logoEl = document.querySelector('.login-emblem');
   if (logoEl) {
     const img = new Image();
     img.onload = () => {
       ctx.save();
-      ctx.beginPath(); ctx.arc(cx, cy, r - 4, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx - 3, ry - 3, 0, 0, Math.PI * 2);
       ctx.clip();
-      ctx.drawImage(img, cx - (r-4), cy - (r-4), (r-4)*2, (r-4)*2);
+      ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2);
       ctx.restore();
     };
     img.src = logoEl.src;
