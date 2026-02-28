@@ -257,7 +257,7 @@
         <p style="font-size:0.8rem;color:#a08060;margin-bottom:1.2rem;">Scan to open The Courtyard<br>on your smartphone or tablet</p>
         <div style="position:relative;display:inline-block;margin-bottom:1.2rem;">
           <canvas id="qrCanvas" style="display:block;border-radius:8px;"></canvas>
-          <img id="qrLogo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;object-fit:cover;border-radius:8px;border:4px solid #fff;" src="" alt="">
+          <img id="qrLogo" style="display:none;" src="" alt="">
         </div>
         <p style="font-size:0.72rem;color:#a08060;margin-bottom:1.2rem;"></p>
         <div style="display:flex;gap:0.8rem;justify-content:center;">
@@ -403,17 +403,26 @@ function showQR() {
     }
     document.body.removeChild(tempDiv);
   }, 200);
-
-  // Set logo
-  const logoEl = document.querySelector('.login-emblem');
-  if (logoEl) document.getElementById('qrLogo').src = logoEl.src;
 }
 
 function overlayLogo(ctx, size) {
-  // White circle behind logo for clean look
   const cx = size / 2, cy = size / 2, r = 42;
+  // White circle background
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff'; ctx.fill();
+  // Draw logo clipped to circle
+  const logoEl = document.querySelector('.login-emblem');
+  if (logoEl) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r - 4, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, cx - (r-4), cy - (r-4), (r-4)*2, (r-4)*2);
+      ctx.restore();
+    };
+    img.src = logoEl.src;
+  }
 }
 
 function downloadQR() {
