@@ -118,7 +118,6 @@
   body.readonly .addr-sel { pointer-events: none; -webkit-appearance: none; appearance: none; cursor: default; }
   body.readonly .btn-del { display: none; }
   body.readonly #addResidentBtn { display: none; }
-  body.readonly #saveStatus { display: none; }
   /* Per-row edit mode */
   tr.row-editing .cell-input { pointer-events: auto !important; border-color: rgba(196,149,106,0.4) !important; background: rgba(255,255,255,0.05) !important; cursor: text !important; }
   tr.row-editing .addr-sel { pointer-events: auto !important; -webkit-appearance: auto !important; appearance: auto !important; cursor: pointer !important; }
@@ -398,7 +397,7 @@ async function loadFromSheets() {
     residents = data.rows.length ? data.rows.map(r => ({id:uid(), ...r})) : [blankRow()];
     renderTable(); updateStats(); populateFilter();
     localStorage.setItem('cyard_residents', JSON.stringify(residents));
-    // loaded silently
+    setSaveStatus(true);
   } catch(e) {
     showToast('Could not connect to Google Sheets: ' + e.message, 'error');
     loadFromLocal();
@@ -539,7 +538,10 @@ function deleteRow(id) {
   collectFromDOM();
   residents = residents.filter(r => r.id !== id);
   if (!residents.length) residents = [blankRow()];
-  renderTable(); updateStats(); populateFilter(); markUnsaved();
+  renderTable(); updateStats(); populateFilter();
+  localStorage.setItem('cyard_residents', JSON.stringify(residents));
+  setSaveStatus(true);
+  if (sheetsConnected) saveToSheets();
 }
 
 function sortResidents() {
