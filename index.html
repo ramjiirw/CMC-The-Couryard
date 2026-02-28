@@ -167,7 +167,10 @@
   thead th:last-child { text-align: center; width: 80px; }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(odd) { background: var(--cream); }
+  tbody tr:nth-child(even) { background: #f0ece6; }
   tbody tr:hover { background: #fdfaf6; }
+  tbody tr.row-editing { background: rgba(196,149,106,0.08) !important; }
   tbody td { padding: 0.55rem 0.75rem; vertical-align: middle; }
   .cell-input { width: 100%; border: 1px solid transparent; border-radius: 4px; padding: 0.38rem 0.55rem; font-family: Arial, sans-serif; font-size: 14px; color: var(--dark); background: transparent; transition: all 0.15s; overflow: hidden; text-overflow: ellipsis; }
   .cell-input:hover:not(:focus) { border-color: var(--border); background: var(--warm); }
@@ -487,8 +490,15 @@ function markUnsaved() {
 
 function setSaveStatus(saved) {
   const el = document.getElementById('saveStatus');
-  el.textContent = saved ? '✓ Saved' : '● Unsaved changes';
-  el.className = saved ? 'save-status' : 'save-status unsaved';
+  if (saved) {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    el.textContent = `✓ Saved at ${time}`;
+    el.className = 'save-status';
+  } else {
+    el.textContent = '● Unsaved changes';
+    el.className = 'save-status unsaved';
+  }
 }
 
 // Auto-save on blur — saves locally AND to Google Sheets
@@ -523,6 +533,9 @@ function addRow(address='') {
 }
 
 function deleteRow(id) {
+  const resident = residents.find(r => r.id === id);
+  const name = [resident?.firstName, resident?.lastName].filter(Boolean).join(' ') || 'this resident';
+  if (!confirm(`Remove ${name} from the directory?`)) return;
   collectFromDOM();
   residents = residents.filter(r => r.id !== id);
   if (!residents.length) residents = [blankRow()];
