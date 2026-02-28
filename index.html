@@ -233,7 +233,7 @@
         </div>
     </div>
     <div class="header-actions">
-      <span class="save-status" id="saveStatus">✓ Saved</span>
+      <span class="save-status" id="saveStatus">✓ Updated</span>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
       <button class="btn btn-lock" onclick="lockApp()">⬅ Return to Login</button>
@@ -492,7 +492,7 @@ function setSaveStatus(saved) {
   if (saved) {
     const now = new Date();
     const date = now.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
-    el.textContent = `✓ Saved ${date}`;
+    el.textContent = `✓ Updated ${date}`;
     el.className = 'save-status';
   } else {
     el.textContent = '● Unsaved changes';
