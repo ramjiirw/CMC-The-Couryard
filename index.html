@@ -212,6 +212,7 @@
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
 </head>
 <body>
 
@@ -381,28 +382,16 @@ function showQR() {
   const size = 240;
   canvas.width = size; canvas.height = size;
 
-  // Draw QR code using qrcode library onto a temp element, then copy to canvas
-  const tempDiv = document.createElement('div');
-  tempDiv.style.display = 'none';
-  document.body.appendChild(tempDiv);
-
-  new QRCode(tempDiv, {
+  QrCreator.render({
     text: window.location.href,
-    width: size, height: size,
-    colorDark: '#4a3728', colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
+    radius: 0.0,
+    ecLevel: 'H',
+    fill: '#4a3728',
+    background: '#ffffff',
+    size: size
+  }, canvas);
 
-  setTimeout(() => {
-    const qrImg = tempDiv.querySelector('img') || tempDiv.querySelector('canvas');
-    const ctx = canvas.getContext('2d');
-    if (qrImg) {
-      const img = new Image();
-      img.onload = () => { ctx.drawImage(img, 0, 0, size, size); overlayLogo(ctx, size); };
-      img.src = qrImg.src || qrImg.toDataURL();
-    }
-    document.body.removeChild(tempDiv);
-  }, 200);
+  setTimeout(() => overlayLogo(canvas.getContext('2d'), size), 50);
 }
 
 function overlayLogo(ctx, size) {
