@@ -119,7 +119,7 @@
     <a class="link-card" href="agmagenda.html">
       <div class="icon">📋</div>
       <h3>AGM Agenda</h3>
-      <p>View the upcoming AGM agenda and add items for discussion.</p>
+      <p id="agmCardDesc">Loading AGM details…</p>
     </a>
 
     <!-- ── Resident Map link ── -->
@@ -155,6 +155,39 @@
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
     document.getElementById('welcomeMsg').textContent = `${greeting} — ${day}`;
+  })();
+  // Load AGM details for card
+  (async function() {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=readAgenda');
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error();
+      const rows = data.agenda;
+      let date = '', time = '', venue = '';
+      rows.forEach(row => {
+        const key = (row[0]||'').toString().trim();
+        const val = (row[1]||'').toString().trim();
+        if (key === 'Date')  {
+          // Format date
+          const d = new Date(val);
+          date = (!isNaN(d.getTime()) && val.includes('-'))
+            ? d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
+            : val;
+        }
+        if (key === 'Time')  time  = val;
+        if (key === 'Venue') venue = val;
+      });
+      const parts = [];
+      if (date)  parts.push(date);
+      if (time)  parts.push(time);
+      if (venue) parts.push('at ' + venue);
+      const el = document.getElementById('agmCardDesc');
+      if (el) el.textContent = parts.length ? parts.join(' · ') : 'View the upcoming AGM agenda and add items for discussion.';
+    } catch(e) {
+      const el = document.getElementById('agmCardDesc');
+      if (el) el.textContent = 'View the upcoming AGM agenda and add items for discussion.';
+    }
   })();
 </script>
 
