@@ -537,6 +537,26 @@ function showQR() {
   const size = 240;
   canvas.width = size; canvas.height = size;
   QrCreator.render({ text: window.location.href, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
+  setTimeout(() => overlayLogo(canvas.getContext('2d'), size), 50);
+}
+
+function overlayLogo(ctx, size) {
+  const cx = size / 2, cy = size / 2;
+  const rx = 46, ry = 36;
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  const logoEl = document.getElementById('headerLogo');
+  if (logoEl) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx - 3, ry - 3, 0, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2);
+      ctx.restore();
+    };
+    img.src = logoEl.src;
+  }
 }
 
 function downloadQR() {
