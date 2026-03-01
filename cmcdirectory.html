@@ -536,7 +536,8 @@ function showQR() {
   const canvas = document.getElementById('qrCanvas');
   const size = 240;
   canvas.width = size; canvas.height = size;
-  QrCreator.render({ text: window.location.href, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
+  const baseUrl = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+  QrCreator.render({ text: baseUrl, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
   setTimeout(() => overlayLogo(canvas.getContext('2d'), size), 50);
 }
 
