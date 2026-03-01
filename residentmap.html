@@ -68,18 +68,18 @@
   /* Hotspots — positioned as % over the image */
   .hotspot {
     position: absolute;
-    width: 5.5%;
+    width: 8%;
     aspect-ratio: 1;
     border-radius: 50%;
     cursor: pointer;
-    background: transparent;
-    border: none;
+    background: rgba(196,149,106,0.15);
+    border: 2px solid rgba(196,149,106,0.4);
     transform: translate(-50%, -50%);
     transition: transform 0.15s;
     z-index: 10;
   }
-  .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
-  .hotspot.active { transform: translate(-50%, -50%) scale(1.2); }
+  .hotspot:hover { transform: translate(-50%, -50%) scale(1.1); background: rgba(196,149,106,0.3); }
+  .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
   .hotspot.active::after {
     content: '';
     position: absolute;
