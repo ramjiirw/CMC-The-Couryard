@@ -481,7 +481,7 @@ function populateFilter() {
   sel.innerHTML = '<option value="">All addresses</option>' +
     ADDRESSES.map(a => {
       const n = counts[a] || 0;
-      return `<option value="${a}"${cur===a?' selected':''}>${a}${n ? ` (${n})` : ''}</option>`;
+      return `<option value="${a}"${cur===a?' selected':''}>${a}</option>`;
     }).join('');
 }
 
