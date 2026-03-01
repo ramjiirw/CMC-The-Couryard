@@ -65,6 +65,38 @@
   .link-card h3 { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 0.3rem; }
   .link-card p { font-size: 0.8rem; color: var(--mid); line-height: 1.5; }
 
+  .agm-card { display: flex; flex-direction: column; gap: 0.75rem; }
+  .agm-card-top { display: flex; align-items: center; gap: 0.75rem; }
+  .agm-details {
+    background: rgba(196,149,106,0.08);
+    border: 1px solid rgba(196,149,106,0.2);
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .agm-detail-row { display: flex; align-items: baseline; gap: 0.5rem; }
+  .agm-detail-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent2);
+    flex: 0 0 72px;
+  }
+  .agm-detail-val {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .agm-cta {
+    font-size: 0.78rem;
+    color: var(--accent2);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-top: 0.1rem;
+  }
   .placeholder-card {
     background: #f8f5f0; border: 1px dashed var(--stone); border-radius: 10px;
     padding: 1.5rem 1.75rem; opacity: 0.6;
@@ -116,10 +148,17 @@
     ══════════════════════════════════════════════════════════ -->
 
     <!-- ── AGM Agenda link ── -->
-    <a class="link-card" href="agmagenda.html">
-      <div class="icon">📋</div>
-      <h3>AGM Agenda</h3>
-      <p id="agmCardDesc">Loading AGM details…</p>
+    <a class="link-card agm-card" href="agmagenda.html">
+      <div class="agm-card-top">
+        <span class="icon" style="margin:0">📋</span>
+        <h3 style="margin:0">AGM Agenda</h3>
+      </div>
+      <div class="agm-details" id="agmDetails">
+        <div class="agm-detail-row"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate">—</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">AGM Time</span><span class="agm-detail-val" id="agmTime">—</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Venue</span><span class="agm-detail-val" id="agmVenue">—</span></div>
+      </div>
+      <p class="agm-cta">View agenda &amp; submit items →</p>
     </a>
 
     <!-- ── Resident Map link ── -->
@@ -178,15 +217,11 @@
         if (key === 'Time')  time  = val;
         if (key === 'Venue') venue = val;
       });
-      const parts = [];
-      if (date)  parts.push(date);
-      if (time)  parts.push(time);
-      if (venue) parts.push('at ' + venue);
-      const el = document.getElementById('agmCardDesc');
-      if (el) el.textContent = parts.length ? parts.join(' · ') : 'View the upcoming AGM agenda and add items for discussion.';
+      if (document.getElementById('agmDate'))  document.getElementById('agmDate').textContent  = date  || '—';
+      if (document.getElementById('agmTime'))  document.getElementById('agmTime').textContent  = time  || '—';
+      if (document.getElementById('agmVenue')) document.getElementById('agmVenue').textContent = venue || '—';
     } catch(e) {
-      const el = document.getElementById('agmCardDesc');
-      if (el) el.textContent = 'View the upcoming AGM agenda and add items for discussion.';
+      // leave dashes in place
     }
   })();
 </script>
