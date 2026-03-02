@@ -8,7 +8,6 @@
 <style>
   :root {
     --cream: #f5f0e8;
-    --warm: #faf7f2;
     --stone: #b8ad9e;
     --dark: #1e1a16;
     --mid: #6b5f52;
@@ -27,10 +26,9 @@
     border-bottom: 1px solid rgba(196,149,106,0.2);
   }
   .header-brand { display: flex; align-items: center; gap: 1rem; }
-  .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
+  .header-brand h1 { color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p.sub { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-brand p.greeting { font-size: 0.78rem; color: var(--accent2); font-style: italic; margin-top: 0.2rem; }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
   .btn-back {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
     background: transparent; color: var(--stone); font-family: Arial, sans-serif;
@@ -41,17 +39,31 @@
 
   main { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
 
-  .page-header { margin-bottom: 2rem; }
+  .page-header { margin-bottom: 1.75rem; }
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
   .page-header p { color: var(--mid); line-height: 1.6; font-size: 0.88rem; }
 
+  /* Jump links */
+  .jump-nav {
+    display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;
+  }
+  .jump-link {
+    padding: 0.55rem 1.2rem; border-radius: 6px;
+    border: 1px solid rgba(196,149,106,0.4);
+    background: rgba(196,149,106,0.08);
+    color: var(--accent); font-size: 0.85rem; font-weight: 600;
+    text-decoration: none; transition: all 0.2s; letter-spacing: 0.02em;
+  }
+  .jump-link:hover { background: rgba(196,149,106,0.18); border-color: var(--accent2); color: var(--accent2); }
+
+  /* Document sections */
+  .doc-section { margin-bottom: 2rem; }
   .doc-card {
     background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
     box-shadow: var(--shadow); overflow: hidden;
   }
   .doc-card-header {
     background: var(--dark); padding: 1rem 1.5rem;
-    display: flex; align-items: center; gap: 0.75rem;
   }
   .doc-card-header h3 { color: var(--cream); font-size: 1rem; font-weight: 500; letter-spacing: 0.02em; }
 
@@ -65,23 +77,21 @@
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: rgba(196,149,106,0.06); }
-  tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; color: var(--dark); }
-  .td-name { display: flex; align-items: center; gap: 0.6rem; }
+  tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
   .doc-link { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-word; }
   .doc-link:hover { color: var(--accent2); text-decoration: underline; }
   .td-date { color: var(--mid); font-size: 0.82rem; white-space: nowrap; }
   .td-size { color: var(--stone); font-size: 0.8rem; white-space: nowrap; }
 
   .state-empty, .state-loading, .state-error {
-    padding: 3rem 1.5rem; text-align: center; color: var(--stone); font-size: 0.9rem;
+    padding: 2.5rem 1.5rem; text-align: center; color: var(--stone); font-size: 0.88rem;
   }
   .state-error { color: #a05050; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
-    display: inline-block; width: 1.5rem; height: 1.5rem;
+    display: inline-block; width: 1.4rem; height: 1.4rem;
     border: 2px solid var(--border); border-top-color: var(--accent2);
-    border-radius: 50%; animation: spin 0.7s linear infinite;
-    margin-bottom: 0.75rem;
+    border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 0.6rem;
   }
 
   @media (max-width: 600px) {
@@ -103,7 +113,7 @@
       <p class="greeting" id="welcomeMsg"></p>
     </div>
   </div>
-  <div class="header-right">
+  <div>
     <a class="btn-back" href="main.html">⬅ Back to Home</a>
   </div>
 </header>
@@ -114,14 +124,28 @@
     <p>Service charge accounts, budgets, invoices, and other financial records for CMC The Courtyard.</p>
   </div>
 
-  <div class="doc-card">
-    <div class="doc-card-header">
-      <h3>Documents</h3>
+  <!-- Jump links -->
+  <nav class="jump-nav">
+    <a class="jump-link" href="#current-account">Current Account</a>
+    <a class="jump-link" href="#other-accounts">Other Accounts</a>
+  </nav>
+
+  <!-- Current Account -->
+  <div class="doc-section" id="current-account">
+    <div class="doc-card">
+      <div class="doc-card-header"><h3>Current Account</h3></div>
+      <div id="wrap-current">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
     </div>
-    <div id="tableWrap">
-      <div class="state-loading">
-        <div class="spinner"></div>
-        <div>Loading documents…</div>
+  </div>
+
+  <!-- Other Accounts -->
+  <div class="doc-section" id="other-accounts">
+    <div class="doc-card">
+      <div class="doc-card-header"><h3>Other Accounts</h3></div>
+      <div id="wrap-other">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
     </div>
   </div>
@@ -137,9 +161,7 @@
   })();
 
   (async function () {
-    const FOLDER_KEY = 'cmcfinancedocuments';
-    const INDEX_URL  = 'cmcdocuments/index.json';
-    const wrap       = document.getElementById('tableWrap');
+    const INDEX_URL = 'cmcdocuments/index.json';
 
     function fmtDate(iso) {
       if (!iso) return '—';
@@ -154,39 +176,40 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
     function titleCase(str) {
-      return str
-        .replace(/[-_]+/g, ' ')
-        .replace(/\.pdf$/i, '')
+      return str.replace(/[-_]+/g, ' ').replace(/\.pdf$/i, '')
         .replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1));
+    }
+    function renderTable(files) {
+      if (!files.length) return '<div class="state-empty">No documents uploaded yet.</div>';
+      let rows = '';
+      files.forEach(f => {
+        rows += '<tr>' +
+          '<td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + titleCase(f.name) + '</a></td>' +
+          '<td class="td-date">' + fmtDate(f.modified) + '</td>' +
+          '<td class="td-size">' + fmtSize(f.size) + '</td>' +
+          '</tr>';
+      });
+      return '<table><thead><tr><th>Document</th><th>Date</th><th>Size</th></tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
     try {
       const res = await fetch(INDEX_URL + '?v=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const idx   = await res.json();
-      const folder = (idx.folders || []).find(f => f.key === FOLDER_KEY);
-      const files  = folder ? (folder.files || []) : [];
+      const idx = await res.json();
 
-      if (!files.length) {
-        wrap.innerHTML = '<div class="state-empty">No documents uploaded yet. Files added to <code>cmcdocuments/' + FOLDER_KEY + '/</code> will appear here automatically.</div>';
-        return;
-      }
+      const folders = idx.folders || [];
+      const findFiles = key => {
+        const f = folders.find(f => f.key === key);
+        return f ? (f.files || []) : [];
+      };
 
-      let rows = '';
-      files.forEach(f => {
-        rows += '<tr>' +
-          '<td class="td-name"><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + titleCase(f.name) + '</a></td>' +
-          '<td class="td-date">' + fmtDate(f.modified) + '</td>' +
-          '<td class="td-size">' + fmtSize(f.size) + '</td>' +
-          '</tr>';
-      });
-
-      wrap.innerHTML =
-        '<table><thead><tr><th>Document</th><th>Date</th><th>Size</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table>';
+      document.getElementById('wrap-current').innerHTML = renderTable(findFiles('cmccurrentaccount'));
+      document.getElementById('wrap-other').innerHTML   = renderTable(findFiles('cmcotheraccounts'));
 
     } catch (err) {
-      wrap.innerHTML = '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run and <code>cmcdocuments/index.json</code> exists.<br><small>' + err.message + '</small></div>';
+      const msg = '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
+      document.getElementById('wrap-current').innerHTML = msg;
+      document.getElementById('wrap-other').innerHTML   = msg;
     }
   })();
 </script>
