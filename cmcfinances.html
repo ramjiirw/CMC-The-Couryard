@@ -365,24 +365,19 @@
         var folderKey = key === 'current' ? 'cmccurrentaccount' : 'cmcotheraccounts';
         var files = findFiles(folderKey);
 
-        // For current account, default to the latest year found in filenames
-        var defaultYear = 'all';
-        if (key === 'current') {
-          var allYears = [];
-          files.forEach(function(f) {
-            extractYears(f.name).forEach(function(y) {
-              if (allYears.indexOf(y) === -1) allYears.push(y);
-            });
+        // Default to the latest year found in filenames
+        var allYears = [];
+        files.forEach(function(f) {
+          extractYears(f.name).forEach(function(y) {
+            if (allYears.indexOf(y) === -1) allYears.push(y);
           });
-          if (allYears.length) {
-            allYears.sort();
-            defaultYear = allYears[allYears.length - 1];
-          }
-        }
+        });
+        allYears.sort();
+        var defaultYear = allYears.length ? allYears[allYears.length - 1] : 'all';
 
         tableState[key] = {
           files: files,
-          sortCol: 'name', sortDir: key === 'current' ? 'desc' : 'asc',
+          sortCol: 'name', sortDir: 'desc',
           activeYear: defaultYear
         };
         renderSection(key);
