@@ -34,7 +34,6 @@
   .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
-  #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; }
   .btn-logout {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
     background: transparent; color: var(--stone); font-family: Arial, sans-serif;
@@ -118,10 +117,10 @@
     <div>
       <h1>CMC The Courtyard</h1>
       <p>Resident Portal</p>
+      <p id="welcomeMsg" style="font-size:0.78rem;color:var(--accent2);font-style:italic;margin-top:0.2rem;"></p>
     </div>
   </div>
   <div class="header-right">
-    <span id="welcomeMsg"></span>
     <button class="btn-logout" onclick="cmcLogout()">⬅ Log Out</button>
   </div>
 </header>
