@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CMC The Courtyard — Home</title>
-
-<!-- Auth guard: checks session, handles idle timeout, redirects to login if needed -->
 <script src="auth.js"></script>
-
 <style>
   :root {
     --cream: #f5f0e8;
@@ -133,7 +130,7 @@
 
   <div class="links-grid">
 
-    <!-- ── AGM Agenda link ── -->
+    <!-- AGM Agenda -->
     <a class="link-card agm-card" href="agmagenda.html">
       <div class="agm-card-top">
         <span class="icon" style="margin:0">📋</span>
@@ -147,20 +144,27 @@
       <p class="agm-cta">View agenda &amp; submit items →</p>
     </a>
 
-    <!-- ── Maintenance placeholder ── -->
+    <!-- Finance Documents -->
+    <a class="link-card" href="cmcfinances.html">
+      <div class="icon">💷</div>
+      <h3>CMC Finances</h3>
+      <p>Service charge accounts, budgets, invoices, and other financial records for The Courtyard.</p>
+    </a>
+
+    <!-- Maintenance -->
     <div class="placeholder-card">
       <h3>🔧 Maintenance</h3>
       <p>Coming soon — report issues and track maintenance requests.</p>
     </div>
 
-    <!-- ── Directory link ── -->
+    <!-- Resident Directory -->
     <a class="link-card" href="cmcdirectory.html">
       <div class="icon">👥</div>
       <h3>Resident Directory</h3>
       <p>View and manage contact details for all residents at The Courtyard.</p>
     </a>
 
-    <!-- ── Resident Map link ── -->
+    <!-- Resident Map -->
     <a class="link-card" href="residentmap.html">
       <div class="icon">🗺️</div>
       <h3>Resident Map</h3>
@@ -178,7 +182,7 @@
     const day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
     document.getElementById('welcomeMsg').textContent = `${greeting} — ${day}`;
   })();
-  // Load AGM details for card
+
   (async function() {
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
@@ -186,28 +190,20 @@
       const data = await res.json();
       if (data.status !== 'ok') throw new Error();
       const rows = data.agenda;
-      let date = '', time = '', venue = '';
       rows.forEach(row => {
         const key = (row[0]||'').toString().trim();
         const val = (row[1]||'').toString().trim();
-        if (key === 'Date')  {
-          // Format date
+        if (key === 'Date') {
           const d = new Date(val);
-          date = (!isNaN(d.getTime()) && val.includes('-'))
+          document.getElementById('agmDate').textContent = (!isNaN(d.getTime()) && val.includes('-'))
             ? d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
             : val;
         }
-        if (key === 'Time')  time  = val;
-        if (key === 'Venue') venue = val;
+        if (key === 'Time')  document.getElementById('agmTime').textContent  = val;
+        if (key === 'Venue') document.getElementById('agmVenue').textContent = val;
       });
-      if (document.getElementById('agmDate'))  document.getElementById('agmDate').textContent  = date  || '—';
-      if (document.getElementById('agmTime'))  document.getElementById('agmTime').textContent  = time  || '—';
-      if (document.getElementById('agmVenue')) document.getElementById('agmVenue').textContent = venue || '—';
-    } catch(e) {
-      // leave dashes in place
-    }
+    } catch(e) {}
   })();
 </script>
-
 </body>
 </html>
