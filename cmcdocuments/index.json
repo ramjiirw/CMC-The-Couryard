@@ -1,6 +1,11 @@
 {
   "folders": [
     {
+      "key": "cmccurrentaccount",
+      "label": "Cmccurrentaccount",
+      "files": []
+    },
+    {
       "key": "cmcotheraccounts",
       "label": "Cmcotheraccounts",
       "files": []
