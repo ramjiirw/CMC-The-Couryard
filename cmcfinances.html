@@ -363,10 +363,27 @@
 
       ['current', 'other'].forEach(function(key) {
         var folderKey = key === 'current' ? 'cmccurrentaccount' : 'cmcotheraccounts';
+        var files = findFiles(folderKey);
+
+        // For current account, default to the latest year found in filenames
+        var defaultYear = 'all';
+        if (key === 'current') {
+          var allYears = [];
+          files.forEach(function(f) {
+            extractYears(f.name).forEach(function(y) {
+              if (allYears.indexOf(y) === -1) allYears.push(y);
+            });
+          });
+          if (allYears.length) {
+            allYears.sort();
+            defaultYear = allYears[allYears.length - 1];
+          }
+        }
+
         tableState[key] = {
-          files: findFiles(folderKey),
-          sortCol: 'name', sortDir: 'asc',
-          activeYear: 'all'
+          files: files,
+          sortCol: 'name', sortDir: key === 'current' ? 'desc' : 'asc',
+          activeYear: defaultYear
         };
         renderSection(key);
       });
