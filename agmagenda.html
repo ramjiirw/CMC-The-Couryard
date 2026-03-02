@@ -33,7 +33,7 @@
   .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
-  #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; }
+  #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
   .btn-nav {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
     background: transparent; color: var(--stone); font-family: Arial, sans-serif;
@@ -456,7 +456,7 @@ function renderAgenda(rows, submissions) {
     vHtml += '</table>';
     const filled = votingRows.filter(v => v.item).length;
     document.getElementById('votingCard').style.display = 'block';
-    document.getElementById('votingHeader').textContent = 'Voting  (' + filled + ' of ' + votingRows.length + ' items)';
+    document.getElementById('votingHeader').textContent = 'Voting';
     document.getElementById('votingNote').innerHTML = vHtml;
   }
 }
