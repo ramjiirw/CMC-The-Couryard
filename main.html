@@ -63,16 +63,14 @@
 
   .agm-card { display: flex; flex-direction: column; gap: 0.75rem; }
   .agm-card-top { display: flex; align-items: center; gap: 0.75rem; }
-  .agm-card-top .icon { line-height: 1; display: flex; align-items: center; }
-  .agm-card-top h3 { line-height: 1; }
   .agm-details {
     background: rgba(196,149,106,0.08);
     border: 1px solid rgba(196,149,106,0.2);
     border-radius: 6px;
-    padding: 0.55rem 0.85rem;
+    padding: 0.65rem 0.85rem;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.35rem;
   }
   .agm-detail-row { display: flex; align-items: baseline; gap: 0.5rem; }
   .agm-detail-label {
@@ -153,10 +151,7 @@
         <h3 style="margin:0">CMC Finances</h3>
       </div>
       <div class="agm-details">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;padding:0.1rem 0;">
-          <span class="agm-detail-label" style="text-align:center;">Latest Current Account Statement</span>
-          <span class="agm-detail-val" id="finLatest" style="font-size:0.95rem;">Loading…</span>
-        </div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Statement to</span><span class="agm-detail-val" id="finLatest">Loading…</span></div>
       </div>
       <p class="agm-cta">View accounts &amp; documents →</p>
     </a>
@@ -254,41 +249,6 @@
     } catch(e) {
       document.getElementById('finLatest').textContent = '—';
     }
-  })();
-
-  // Resident Map — owner-occupier vs tenanted counts from public CSV
-  (async function() {
-    const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B85tBEixrLIGjZ0qXZWcuw7ON0I1pSmTO3OD2sALZLPVEtQmEOAfxJb1HwvZbQCECfh5/pub?gid=204434224&single=true&output=csv';
-    try {
-      const res = await fetch(CSV);
-      const text = await res.text();
-      const rows = text.trim().split('
-').slice(1); // skip header
-      let owners = 0, tenants = 0;
-      rows.forEach(row => {
-        const cols = row.split(',');
-        const tenant = (cols[2] || '').trim().replace(/^"|"$/g, '');
-        if (tenant) tenants++; else owners++;
-      });
-      document.getElementById('mapOwner').textContent = owners;
-      document.getElementById('mapTenant').textContent = tenants;
-    } catch(e) {}
-  })();
-
-  // Resident Directory — missing mobile / email counts
-  (async function() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
-    try {
-      const res = await fetch(SCRIPT_URL + '?action=read');
-      const data = await res.json();
-      if (data.status !== 'ok') throw new Error();
-      const residents = (data.residents || data.rows || data.data || [])
-        .filter(r => r.firstName || r.lastName || r.email || r.mobile);
-      const noMobile = residents.filter(r => !r.mobile || !r.mobile.toString().trim()).length;
-      const noEmail  = residents.filter(r => !r.email  || !r.email.toString().trim()).length;
-      document.getElementById('dirNoMobile').textContent = noMobile || '✓ All complete';
-      document.getElementById('dirNoEmail').textContent  = noEmail  || '✓ All complete';
-    } catch(e) {}
   })();
 </script>
 </body>
