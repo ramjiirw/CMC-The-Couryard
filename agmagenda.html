@@ -33,7 +33,7 @@
   .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
-  #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; }
+  #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; }
   .btn-nav {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
     background: transparent; color: var(--stone); font-family: Arial, sans-serif;
@@ -167,17 +167,6 @@
   }
 
   /* ── Voting section ── */
-  .voting-note {
-    background: #fdf8f3;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.9rem 1.1rem;
-    font-size: 0.8rem;
-    color: var(--mid);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-  }
-  .voting-note strong { color: var(--accent); display: block; margin-bottom: 0.3rem; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
 
   /* ── Submission form ── */
   .submit-card {
@@ -251,10 +240,10 @@
     <div>
       <h1>CMC The Courtyard</h1>
       <p>AGM Agenda</p>
+      <span id="welcomeMsg"></span>
     </div>
   </div>
   <div class="header-right">
-    <span id="welcomeMsg"></span>
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
   </div>
 </header>
@@ -278,10 +267,13 @@
     </div>
   </div>
 
-  <!-- Voting note -->
-  <div class="voting-note" id="votingNote" style="display:none">
-    <strong>Voting</strong>
-    <span id="votingText"></span>
+  <!-- Voting section -->
+  <div class="agenda-card" id="votingCard" style="display:none; margin-bottom:1.5rem;">
+    <div class="agenda-card-header" id="votingHeader">Voting</div>
+    <div id="votingProxyNote" style="background:#fdf8f3;padding:0.7rem 1.25rem;font-size:0.8rem;color:var(--mid);line-height:1.6;font-style:italic;border-bottom:1px solid var(--border);">
+      If you are unable to attend the AGM and wish to vote on the item[s] below – please give your proxy in writing via email or text message to the resident to whom you wish to give your vote with a copy to the Company Secretary prior to the meeting.
+    </div>
+    <div id="votingNote"></div>
   </div>
 
   <!-- Add agenda item -->
@@ -417,9 +409,7 @@ function renderAgenda(rows, submissions) {
     if (col0 === 'END of Meeting') { endRow = col1; return; }
     if (!col0 && col1.startsWith('Any other Business')) { aobRow = col1; return; }
     if (!col0 && col1.includes('If you are unable')) {
-      // voting note — capture it
-      document.getElementById('votingNote').style.display = 'block';
-      document.getElementById('votingText').textContent = col1;
+      // voting proxy note — handled statically in HTML
       return;
     }
 
@@ -460,12 +450,14 @@ function renderAgenda(rows, submissions) {
     let vHtml = '<table style="width:100%;border-collapse:collapse">';
     votingRows.forEach(v => {
       if (v.label) {
-        vHtml += '<tr><td style="width:80px;font-weight:700;color:var(--accent);font-size:0.82rem;padding:0.3rem 0.5rem 0.3rem 0">' + v.label + '</td><td style="font-size:0.85rem;padding:0.3rem 0">' + (v.item||'&nbsp;') + '</td></tr>';
+        vHtml += '<tr class="row-vote"><td class="vote-label" style="width:80px;padding:0.5rem 0.5rem 0.5rem 1.25rem">' + v.label + '</td><td style="font-size:0.85rem;padding:0.5rem 1rem">' + (v.item||'&nbsp;') + '</td></tr>';
       }
     });
     vHtml += '</table>';
-    document.getElementById('votingNote').style.display = 'block';
-    document.getElementById('votingNote').innerHTML = '<strong>Voting</strong>' + vHtml;
+    const filled = votingRows.filter(v => v.item).length;
+    document.getElementById('votingCard').style.display = 'block';
+    document.getElementById('votingHeader').textContent = 'Voting  (' + filled + ' of ' + votingRows.length + ' items)';
+    document.getElementById('votingNote').innerHTML = vHtml;
   }
 }
 
