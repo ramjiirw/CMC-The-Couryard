@@ -80,6 +80,7 @@
     letter-spacing: 0.06em;
     color: var(--accent2);
     flex: 0 0 72px;
+    white-space: nowrap;
   }
   .agm-detail-val {
     font-size: 0.85rem;
@@ -150,8 +151,8 @@
         <span class="icon" style="margin:0">💷</span>
         <h3 style="margin:0">CMC Finances</h3>
       </div>
-      <div class="agm-details">
-        <div class="agm-detail-row" style="flex-direction:column;align-items:flex-start;gap:0.2rem;">
+      <div class="agm-details" style="padding:0.45rem 0.85rem;">
+        <div class="agm-detail-row" style="flex-direction:column;align-items:flex-start;gap:0;">
           <span class="agm-detail-label">Latest current account statement</span>
           <span class="agm-detail-val" id="finLatest">Loading…</span>
         </div>
@@ -172,8 +173,8 @@
         <h3 style="margin:0">Resident Directory</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label">No mobile</span><span class="agm-detail-val" id="dirNoMobile">Loading…</span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">No email</span><span class="agm-detail-val" id="dirNoEmail">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Mobile</span><span class="agm-detail-val" id="dirNoMobile">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Email</span><span class="agm-detail-val" id="dirNoEmail">Loading…</span></div>
       </div>
       <p class="agm-cta">View &amp; manage contacts →</p>
     </a>
@@ -185,8 +186,8 @@
         <h3 style="margin:0">Resident Map</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label">Owner occupied</span><span class="agm-detail-val" id="mapOwner">Loading…</span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">Tenanted</span><span class="agm-detail-val" id="mapTenant">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 110px;white-space:nowrap;">Owner occupied</span><span class="agm-detail-val" id="mapOwner">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 110px;white-space:nowrap;">Tenanted</span><span class="agm-detail-val" id="mapTenant">Loading…</span></div>
       </div>
       <p class="agm-cta">View interactive map →</p>
     </a>
