@@ -253,6 +253,41 @@
       document.getElementById('finLatest').textContent = '—';
     }
   })();
+
+  // Resident Map — owner-occupier vs tenanted counts from public CSV
+  (async function() {
+    const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B85tBEixrLIGjZ0qXZWcuw7ON0I1pSmTO3OD2sALZLPVEtQmEOAfxJb1HwvZbQCECfh5/pub?gid=204434224&single=true&output=csv';
+    try {
+      const res = await fetch(CSV);
+      const text = await res.text();
+      const rows = text.trim().split('
+').slice(1); // skip header
+      let owners = 0, tenants = 0;
+      rows.forEach(row => {
+        const cols = row.split(',');
+        const tenant = (cols[2] || '').trim().replace(/^"|"$/g, '');
+        if (tenant) tenants++; else owners++;
+      });
+      document.getElementById('mapOwner').textContent = owners;
+      document.getElementById('mapTenant').textContent = tenants;
+    } catch(e) {}
+  })();
+
+  // Resident Directory — missing mobile / email counts
+  (async function() {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=read');
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error();
+      const residents = (data.residents || data.rows || data.data || [])
+        .filter(r => r.firstName || r.lastName || r.email || r.mobile);
+      const noMobile = residents.filter(r => !r.mobile || !r.mobile.toString().trim()).length;
+      const noEmail  = residents.filter(r => !r.email  || !r.email.toString().trim()).length;
+      document.getElementById('dirNoMobile').textContent = noMobile || '✓ All complete';
+      document.getElementById('dirNoEmail').textContent  = noEmail  || '✓ All complete';
+    } catch(e) {}
+  })();
 </script>
 </body>
 </html>
