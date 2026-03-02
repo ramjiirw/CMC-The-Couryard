@@ -151,7 +151,7 @@
         <h3 style="margin:0">CMC Finances</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label">Latest</span><span class="agm-detail-val" id="finLatest">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Statement to</span><span class="agm-detail-val" id="finLatest">Loading…</span></div>
       </div>
       <p class="agm-cta">View accounts &amp; documents →</p>
     </a>
@@ -225,23 +225,27 @@
       const files = folder ? (folder.files || []) : [];
       if (!files.length) { document.getElementById('finLatest').textContent = 'No statements yet'; return; }
 
-      // Extract year from filename, find the most recent
-      function extractMaxYear(name) {
-        const m = name.match(/\b(19|20)\d{2}\b/g);
-        return m ? Math.max(...m.map(Number)) : 0;
+      // Extract all dates (YYYY-MM-DD or YYYY MM DD) from a filename
+      function extractDates(name) {
+        const hyphen = [...name.matchAll(/\b((19|20)\d{2})-(\d{2})-(\d{2})\b/g)]
+          .map(m => new Date(parseInt(m[1]), parseInt(m[3])-1, parseInt(m[4])));
+        const spaced = [...name.matchAll(/\b((19|20)\d{2})\s+(\d{2})\s+(\d{2})\b/g)]
+          .map(m => new Date(parseInt(m[1]), parseInt(m[3])-1, parseInt(m[4])));
+        return [...hyphen, ...spaced].filter(d => !isNaN(d));
       }
-      function fixTitle(raw) {
-        let s = raw.replace(/\.pdf$/i, '');
-        s = s.replace(/\(([^)]+)\)/g, function(match, inner) {
-          let fixed = inner.replace(/\b(\d{4})\s+(\d{2})\s+(\d{2})\b/g, '$1-$2-$3');
-          return '(' + fixed + ')';
-        });
-        return s.replace(/\w\S*/g, function(w) { return w.charAt(0).toUpperCase() + w.slice(1); });
+      function latestDateInName(name) {
+        const dates = extractDates(name);
+        return dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : null;
       }
       const sorted = files.slice().sort(function(a, b) {
-        return extractMaxYear(b.name) - extractMaxYear(a.name) || fixTitle(b.name).localeCompare(fixTitle(a.name));
+        const da = latestDateInName(a.name), db = latestDateInName(b.name);
+        if (db && da) return db - da;
+        return db ? 1 : da ? -1 : 0;
       });
-      document.getElementById('finLatest').textContent = fixTitle(sorted[0].name);
+      const best = latestDateInName(sorted[0].name);
+      document.getElementById('finLatest').textContent = best
+        ? best.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
+        : '—';
     } catch(e) {
       document.getElementById('finLatest').textContent = '—';
     }
