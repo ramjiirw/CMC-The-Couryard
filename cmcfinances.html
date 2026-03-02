@@ -69,19 +69,21 @@
 
   /* Year filter bar */
   .year-filter {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
     padding: 0.75rem 1.5rem; background: rgba(122,92,62,0.04);
     border-bottom: 1px solid var(--border);
   }
   .year-filter label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.07em; color: var(--mid); margin-right: 0.25rem; }
-  .year-btn {
-    padding: 0.3rem 0.75rem; border-radius: 20px; border: 1px solid var(--border);
-    background: transparent; color: var(--mid); font-size: 0.8rem; cursor: pointer;
-    transition: all 0.15s; font-family: Arial, sans-serif;
+    letter-spacing: 0.07em; color: var(--mid); white-space: nowrap; }
+  .year-select {
+    padding: 0.35rem 2rem 0.35rem 0.75rem;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b5f52'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+    appearance: none; -webkit-appearance: none;
+    color: var(--accent); font-family: Arial, sans-serif; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; transition: border-color 0.15s;
   }
-  .year-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-  .year-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .year-select:hover, .year-select:focus { border-color: var(--accent2); outline: none; }
 
   /* Doc card */
   .doc-card {
@@ -271,18 +273,18 @@
         if (allYears.indexOf(y) === -1) allYears.push(y);
       });
     });
-    allYears.sort();
+    allYears.sort().reverse();
 
     var filterBar = '';
     if (allYears.length > 1) {
-      filterBar = '<div class="year-filter"><label>Filter by year:</label>' +
-        '<button class="year-btn' + (state.activeYear === 'all' ? ' active' : '') +
-        '" onclick="setYear(\'' + key + '\',\'all\')">All</button>';
+      var opts = '<option value="all">All years</option>';
       allYears.forEach(function(y) {
-        filterBar += '<button class="year-btn' + (state.activeYear === y ? ' active' : '') +
-          '" onclick="setYear(\'' + key + '\',\'' + y + '\')">' + y + '</button>';
+        opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
       });
-      filterBar += '</div>';
+      filterBar = '<div class="year-filter">' +
+        '<label for="year-select-' + key + '">Filter by year:</label>' +
+        '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
+        opts + '</select></div>';
     }
 
     /* Table */
