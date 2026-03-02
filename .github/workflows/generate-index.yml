@@ -1,1 +1,82 @@
+name: Generate PDF Index
 
+on:
+  push:
+    paths:
+      - 'cmcdocuments/**'
+
+jobs:
+  generate-index:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate PDF index JSON
+        run: |
+          python3 - <<'EOF'
+          import os
+          import json
+
+          root = 'cmcdocuments'
+          folders = []
+
+          def scan_folder(key, path):
+            files = []
+            if not os.path.isdir(path):
+              return files
+            for f in sorted(os.listdir(path)):
+              if f.lower().endswith('.pdf'):
+                full = os.path.join(path, f)
+                files.append({
+                  "name": f,
+                  "path": full,
+                  "size": os.path.getsize(full),
+                  "modified": __import__('datetime').datetime.utcfromtimestamp(
+                    os.path.getmtime(full)).strftime('%Y-%m-%dT%H:%M:%SZ')
+                })
+            return files
+
+          for top in sorted(os.listdir(root)):
+            top_path = os.path.join(root, top)
+            if not os.path.isdir(top_path):
+              continue
+            has_subfolders = any(
+              os.path.isdir(os.path.join(top_path, x))
+              for x in os.listdir(top_path)
+            )
+            if has_subfolders:
+              for sub in sorted(os.listdir(top_path)):
+                sub_path = os.path.join(top_path, sub)
+                if os.path.isdir(sub_path):
+                  folders.append({
+                    "key": sub,
+                    "label": sub.replace('-', ' ').replace('_', ' ').title(),
+                    "files": scan_folder(sub, sub_path)
+                  })
+            else:
+              folders.append({
+                "key": top,
+                "label": top.replace('-', ' ').replace('_', ' ').title(),
+                "files": scan_folder(top, top_path)
+              })
+
+          index = {"folders": folders}
+
+          with open(os.path.join(root, 'index.json'), 'w') as out:
+            json.dump(index, out, indent=2)
+
+          print("Generated index.json:")
+          print(json.dumps(index, indent=2))
+          EOF
+
+      - name: Commit updated index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cmcdocuments/index.json
+          git diff --staged --quiet || git commit -m "Auto-update PDF index"
+          git push
