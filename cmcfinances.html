@@ -212,7 +212,7 @@
     var now = new Date(), h = now.getHours();
     var g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
     var day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
-    document.getElementById('welcomeMsg').textContent = g + ' — ' + day;
+    document.getElementById('welcomeMsg').textContent = (g + ' — ' + day).toUpperCase();
   })();
 
   /* Toggle panels */
