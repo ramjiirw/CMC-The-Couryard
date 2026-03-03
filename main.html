@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CMC The Courtyard — Home</title>
 <script src="auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
 <style>
   :root {
     --cream: #f5f0e8;
@@ -55,9 +57,7 @@
     padding: 1.5rem 1.75rem; box-shadow: var(--shadow);
     text-decoration: none; color: inherit; display: block;
     transition: all 0.2s; position: relative; z-index: 1;
-    cursor: pointer;
   }
-  .link-card * { pointer-events: none; }
   .link-card:hover { border-color: var(--accent2); box-shadow: 0 6px 28px rgba(122,92,62,0.15); transform: translateY(-2px); }
   .link-card .icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
   .link-card h3 { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 0.3rem; }
@@ -122,8 +122,24 @@
   </div>
   <div class="header-right">
     <button class="btn-logout" onclick="cmcLogout()">⬅ Log Out</button>
+    <button class="btn-logout" onclick="showQR()" style="margin-right:0.5rem;">⬡ QR Code</button>
   </div>
 </header>
+
+<!-- QR Modal -->
+<div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;text-align:center;max-width:320px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin-bottom:0.3rem;font-size:1.1rem;color:#4a3728;">CMC The Courtyard</h3>
+    <p style="font-size:0.8rem;color:#a08060;margin-bottom:1.2rem;">Scan to open The Courtyard<br>on your smartphone or tablet</p>
+    <div style="position:relative;display:inline-block;margin-bottom:1.2rem;">
+      <canvas id="qrCanvas" style="display:block;border-radius:8px;"></canvas>
+    </div>
+    <div style="display:flex;gap:0.8rem;justify-content:center;">
+      <button class="btn-logout" onclick="downloadQR()">⬇ Download</button>
+      <button class="btn-logout" onclick="document.getElementById('qrModal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
 
 <main>
   <div class="welcome-block">
@@ -284,7 +300,45 @@
     }
   })();
 
-  // Resident Map — owner-occupier vs tenanted counts from public CSV
+  // ─── QR CODE ─────────────────────────────────────────────────────────
+  function showQR() {
+    const modal = document.getElementById('qrModal');
+    modal.style.display = 'flex';
+    const canvas = document.getElementById('qrCanvas');
+    const size = 240;
+    canvas.width = size; canvas.height = size;
+    const baseUrl = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+    QrCreator.render({ text: baseUrl, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
+    setTimeout(() => overlayLogo(canvas.getContext('2d'), size), 50);
+  }
+
+  function overlayLogo(ctx, size) {
+    const cx = size / 2, cy = size / 2;
+    const rx = 46, ry = 36;
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    const logoEl = document.getElementById('headerLogo');
+    if (logoEl) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.save();
+        ctx.beginPath(); ctx.ellipse(cx, cy, rx - 3, ry - 3, 0, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2);
+        ctx.restore();
+      };
+      img.src = logoEl.src;
+    }
+  }
+
+  function downloadQR() {
+    const canvas = document.getElementById('qrCanvas');
+    const a = document.createElement('a');
+    a.download = 'CMC-Courtyard-QR.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  }
+
   (async function() {
     const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B85tBEixrLIGjZ0qXZWcuw7ON0I1pSmTO3OD2sALZLPVEtQmEOAfxJb1HwvZbQCECfh5/pub?gid=204434224&single=true&output=csv';
     try {
