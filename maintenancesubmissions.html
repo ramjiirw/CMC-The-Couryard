@@ -13,7 +13,7 @@
     --dark: #1e1a16; --mid: #6b5f52; --accent: #7a5c3e;
     --accent2: #c4956a; --green: #3d6b4a; --green-light: #e8f2eb;
     --border: #ddd5c8; --shadow: 0 4px 24px rgba(30,26,22,0.10);
-    --blue: #2c5f8a;
+    --blue: #3d6b4a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
@@ -59,7 +59,7 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent2); }
   .form-group textarea { resize: vertical; min-height: 80px; }
   .btn-submit { background: var(--blue); color: white; border: none; border-radius: 5px; padding: 0.65rem 1.5rem; font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-  .btn-submit:hover { background: #1e4266; }
+  .btn-submit:hover { background: #2d5238; }
   .btn-submit:disabled { background: var(--stone); cursor: not-allowed; }
   .submit-msg { font-size: 0.82rem; padding: 0.6rem 0.9rem; border-radius: 5px; display: none; }
   .submit-msg.success { background: #e8f2eb; color: var(--green); border: 1px solid #c8e2ce; display: block; }
@@ -138,7 +138,7 @@
       <div class="form-row">
         <div class="form-group" style="flex:0 0 200px;">
           <label>Your Address</label>
-          <select id="addressSelect"><option value="">- Select address -</option></select>
+          <select id="addressSelect"><option value="">Select your address</option></select>
         </div>
         <div class="form-group" style="flex:0 0 200px;">
           <label>Category</label>
@@ -245,6 +245,7 @@ function renderIssues() {
   html += '<th class="col-date hide-sm">Date Added</th>';
   html += '<th class="col-status">Status</th>';
   html += '<th class="col-update hide-sm">Updates</th>';
+  html += '<th class="col-date hide-sm">Date Resolved</th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
     html += '<tr>';
@@ -255,6 +256,7 @@ function renderIssues() {
     html += '<td class="col-date hide-sm">' + fmtDate(r.dateAdded) + '</td>';
     html += '<td class="col-status">' + statusBadge(r.status) + '</td>';
     html += '<td class="col-update hide-sm">' + (r.updates||'') + '</td>';
+    html += '<td class="col-date hide-sm">' + fmtDate(r.dateResolved) + '</td>';
     html += '</tr>';
   });
   html += '</tbody></table>';
