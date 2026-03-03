@@ -211,10 +211,12 @@ async function loadIssues() {
   }
 }
 
-function statusBadge(s) {
+function statusBadge(s, dateResolved) {
+  console.log('statusBadge called - s:', s, 'dateResolved:', dateResolved);
+  if (dateResolved) return '<span class="badge badge-done">Resolved</span>';
   const v = (s||'').toLowerCase();
   if (v.includes('progress')) return '<span class="badge badge-progress">In Progress</span>';
-  if (v.includes('complet'))  return '<span class="badge badge-done">Completed</span>';
+  if (v.includes('resolv'))   return '<span class="badge badge-done">Resolved</span>';
   return '<span class="badge badge-new">New</span>';
 }
 
@@ -255,7 +257,7 @@ function renderIssues() {
     html += '<td>' + (r.category||'') + '</td>';
     html += '<td>' + (r.description||'') + '</td>';
     html += '<td class="col-date">' + fmtDate(r.dateAdded) + '</td>';
-    html += '<td class="col-status">' + statusBadge(r.status) + '</td>';
+    html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
     html += '<td class="col-update">' + (r.updates||'') + '</td>';
     html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
     html += '</tr>';
