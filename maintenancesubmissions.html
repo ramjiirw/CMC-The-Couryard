@@ -218,7 +218,13 @@ function statusBadge(s) {
 
 function fmtDate(v) {
   if (!v) return '';
-  const d = new Date(v);
+  var s = String(v);
+  var dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmy) {
+    var d = new Date(dmy[3], dmy[2] - 1, dmy[1]);
+    return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  }
+  var d = new Date(v);
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
