@@ -22,7 +22,7 @@
   .header-brand h1 { font-family: Arial,sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; flex-direction: row; align-items: center; gap: 0.5rem; }
-  .btn-logout { padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530; background: transparent; color: var(--stone); font-family: Arial,sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
+  .btn-logout { padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530; background: transparent; color: var(--stone); font-family: Arial,sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
   .btn-logout:hover { background: #2a2520; color: var(--accent2); }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
   main { max-width: 980px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
@@ -82,8 +82,7 @@
     </div>
   </div>
   <div class="header-right">
-    <button class="btn-logout" onclick="showQR()" style="margin-right:0.5rem;">⬡ QR Code</button>
-    <button class="btn-logout" onclick="cmcLogout()">⬅ Log Out</button>
+    <a href="main.html" class="btn-logout">&#8592; Back to Home</a>
   </div>
 </header>
 
