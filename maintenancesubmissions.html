@@ -22,7 +22,7 @@
   .header-brand h1 { font-family: Arial,sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
   .header-right { display: flex; flex-direction: row; align-items: center; gap: 0.5rem; }
-  .btn-logout { padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530; background: transparent; color: var(--stone); font-family: Arial,sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
+  .btn-logout { padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530; background: transparent; color: var(--stone); font-family: Arial,sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; }
   .btn-logout:hover { background: #2a2520; color: var(--accent2); }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
   main { max-width: 980px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
@@ -82,7 +82,8 @@
     </div>
   </div>
   <div class="header-right">
-    <a href="main.html" class="btn-logout">&#8592; Back to Home</a>
+    <button class="btn-logout" onclick="showQR()" style="margin-right:0.5rem;">⬡ QR Code</button>
+    <button class="btn-logout" onclick="cmcLogout()">⬅ Log Out</button>
   </div>
 </header>
 
@@ -203,6 +204,7 @@ async function loadIssues() {
     const data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message || '');
     allIssues = data.issues || [];
+    console.log('Issues loaded:', JSON.stringify(allIssues));
     renderIssues();
   } catch(e) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">Could not load issues - please refresh.</div>';
@@ -218,13 +220,7 @@ function statusBadge(s) {
 
 function fmtDate(v) {
   if (!v) return '';
-  var s = String(v);
-  var dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (dmy) {
-    var d = new Date(dmy[3], dmy[2] - 1, dmy[1]);
-    return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
-  }
-  var d = new Date(v);
+  const d = new Date(v);
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
