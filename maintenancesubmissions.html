@@ -297,7 +297,8 @@ function checkAdmin() {
   }
 }
 
-let openRow = null; // index of currently expanded row
+let openRow = null;  // index of currently expanded row
+let isDirty = false; // true only if user has changed something in the open panel
 
 function toggleRow(i) {
   if (!isAdmin) return;
@@ -312,17 +313,23 @@ function collapseRow(i) {
   const ep = document.getElementById('ep_' + i);
   if (ep) ep.style.display = 'none';
   if (openRow === i) openRow = null;
+  isDirty = false;
 }
 
 function onUpdateInput(i) {
+  isDirty = true;
   const statusSel = document.getElementById('s_' + i);
   if (statusSel && statusSel.value === 'New') {
     statusSel.value = 'In Progress';
   }
 }
 
+function onStatusChange() {
+  isDirty = true;
+}
+
 function exitAdmin() {
-  if (openRow !== null) {
+  if (openRow !== null && isDirty) {
     document.getElementById('unsavedModal').classList.add('open');
     return;
   }
@@ -333,6 +340,7 @@ function confirmExitAdmin() {
   closeUnsavedModal();
   isAdmin = false;
   openRow = null;
+  isDirty = false;
   document.getElementById('adminBar').style.display = 'none';
   document.getElementById('adminBtn').style.color = '';
   renderIssues();
@@ -355,6 +363,7 @@ async function saveRow(rowIndex, i) {
     const data = await res.json();
     if (data.status === 'ok') {
       btn.textContent = 'Saved ✓'; btn.style.background = '#3d6b4a';
+      isDirty = false; openRow = null;
       setTimeout(() => loadIssues(), 800);
     } else throw new Error();
   } catch(e) {
@@ -549,7 +558,7 @@ function renderIssues() {
     if (isAdmin) {
       html += '<tr class="admin-expand-row" id="ep_' + i + '" style="display:none;"><td colspan="9">';
       html += '<div class="expand-panel">';
-      html += '<div><label>Status</label><select id="s_' + i + '">';
+      html += '<div><label>Status</label><select id="s_' + i + '" onchange="onStatusChange()">';
       ['New','In Progress','Resolved'].forEach(s => {
         html += '<option' + ((r.status||'') === s ? ' selected' : '') + '>' + s + '</option>';
       });
