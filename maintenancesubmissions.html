@@ -25,7 +25,7 @@
   .btn-logout { padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530; background: transparent; color: var(--stone); font-family: Arial,sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; text-decoration: none; display: inline-block; }
   .btn-logout:hover { background: #2a2520; color: var(--accent2); }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
-  main { max-width: 980px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
   .page-title { margin-bottom: 1.5rem; }
   .page-title h2 { font-size: 1.4rem; font-weight: 500; color: var(--accent); }
   .page-title p { color: var(--mid); font-size: 0.85rem; margin-top: 0.3rem; }
@@ -297,15 +297,14 @@ function fmtDate(v) {
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
-let sortCol = 'dateAdded';
-let sortDir = 'desc';
+let dateDir = 'desc';
 
-function sortBy(col) {
-  if (sortCol === col) {
-    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortCol = col;
-    sortDir = col === 'dateAdded' ? 'desc' : 'asc';
+function toggleDateSort() {
+  dateDir = dateDir === 'desc' ? 'asc' : 'desc';
+  const th = document.querySelector('th.sortable');
+  if (th) {
+    th.classList.toggle('asc', dateDir === 'asc');
+    th.classList.toggle('desc', dateDir === 'desc');
   }
   renderIssues();
 }
@@ -327,39 +326,24 @@ function renderIssues() {
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     return matchS && matchC;
   }).slice().sort((a, b) => {
-    let av = a[sortCol] || '';
-    let bv = b[sortCol] || '';
-    if (sortCol === 'dateAdded' || sortCol === 'dateResolved') {
-      av = av ? new Date(av) : new Date(0);
-      bv = bv ? new Date(bv) : new Date(0);
-      return sortDir === 'asc' ? av - bv : bv - av;
-    }
-    if (sortCol === 'issueNumber') {
-      return sortDir === 'asc' ? (Number(av)||0) - (Number(bv)||0) : (Number(bv)||0) - (Number(av)||0);
-    }
-    return sortDir === 'asc' ? av.toString().localeCompare(bv.toString()) : bv.toString().localeCompare(av.toString());
+    const av = a.dateAdded ? new Date(a.dateAdded) : new Date(0);
+    const bv = b.dateAdded ? new Date(b.dateAdded) : new Date(0);
+    return dateDir === 'asc' ? av - bv : bv - av;
   });
   document.getElementById('issueCount').textContent = list.length;
   if (!list.length) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
   }
-  const cols = [
-    { key:'issueNumber', label:'#',            cls:'col-num'    },
-    { key:'address',     label:'Address',      cls:'col-addr'   },
-    { key:'category',    label:'Category',     cls:''           },
-    { key:'description', label:'Description',  cls:''           },
-    { key:'dateAdded',   label:'Date Added',   cls:'col-date'   },
-    { key:'status',      label:'Status',       cls:'col-status' },
-    { key:'updates',     label:'Updates',      cls:'col-update' },
-    { key:'dateResolved',label:'Date Resolved',cls:'col-date'   },
-  ];
   let html = '<table><thead><tr>';
-  cols.forEach(col => {
-    const sortCls = sortCol === col.key ? (sortDir === 'asc' ? ' asc' : ' desc') : '';
-    html += `<th class="sortable${sortCls} ${col.cls}" onclick="sortBy('${col.key}')">`;
-    html += col.label + '<span class="sort-icon"></span></th>';
-  });
+  html += '<th class="col-num">#</th>';
+  html += '<th class="col-addr">Address</th>';
+  html += '<th>Category</th>';
+  html += '<th>Description</th>';
+  html += '<th class="col-date sortable ' + dateDir + '" onclick="toggleDateSort()">Date Added<span class="sort-icon"></span></th>';
+  html += '<th class="col-status">Status</th>';
+  html += '<th class="col-update">Updates</th>';
+  html += '<th class="col-date">Date Resolved</th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
     html += '<tr>';
