@@ -111,10 +111,29 @@
   .admin-bar button { padding: 0.3rem 0.9rem; border-radius: 5px; border: none; background: var(--accent2); color: white; font-family: Arial,sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
   .admin-bar button:hover { background: var(--accent); }
   .admin-pill { background: rgba(196,149,106,0.2); color: var(--accent2); border-radius: 8px; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.5rem; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.5rem; }
-  .inline-select { padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-family: Arial,sans-serif; font-size: 0.82rem; background: white; color: var(--dark); }
-  .inline-input { padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-family: Arial,sans-serif; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
-  .btn-save { background: var(--green); color: white; border: none; border-radius: 4px; padding: 0.25rem 0.7rem; font-family: Arial,sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  /* admin expand panel */
+  tr.admin-clickable { cursor: pointer; }
+  tr.admin-clickable:hover td { background: rgba(196,149,106,0.06); }
+  tr.admin-expand-row td { padding: 0; }
+  .expand-panel {
+    background: #2a2520; border-top: 2px solid var(--accent2);
+    padding: 1rem 1.25rem; display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
+  }
+  .expand-panel label { color: var(--stone); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 0.3rem; }
+  .expand-panel select { padding: 0.4rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.88rem; min-width: 140px; }
+  .expand-panel textarea { padding: 0.4rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.88rem; width: 340px; height: 70px; resize: vertical; }
+  .expand-panel .ep-actions { display: flex; gap: 0.6rem; align-items: center; margin-left: auto; align-self: flex-end; }
+  .btn-save { background: var(--green); color: white; border: none; border-radius: 5px; padding: 0.45rem 1.1rem; font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .btn-save:hover { background: #2d5238; }
+  .btn-cancel-edit { background: #3a3530; color: var(--stone); border: none; border-radius: 5px; padding: 0.45rem 0.9rem; font-family: Arial,sans-serif; font-size: 0.85rem; cursor: pointer; }
+  .btn-cancel-edit:hover { background: #4a4540; }
+  /* unsaved warning modal */
+  #unsavedModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; }
+  #unsavedModal.open { display:flex; }
+  .unsaved-box { background:var(--card); border-radius:12px; padding:1.5rem 2rem; max-width:340px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.35); text-align:center; }
+  .unsaved-box h3 { color:var(--accent); margin:0 0 0.5rem; font-size:1rem; }
+  .unsaved-box p { color:var(--mid); font-size:0.85rem; margin:0 0 1.2rem; }
+  .unsaved-box .ub-btns { display:flex; gap:0.7rem; justify-content:center; }
   @media (max-width: 640px) {
     header { padding: 1rem; }
     .fab { bottom: 1rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
@@ -198,6 +217,18 @@
     <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
   </div>
 
+<!-- Unsaved changes modal -->
+<div id="unsavedModal">
+  <div class="unsaved-box">
+    <h3>⚠️ Unsaved Changes</h3>
+    <p>You have an open edit panel with unsaved changes. What would you like to do?</p>
+    <div class="ub-btns">
+      <button class="btn-save" onclick="confirmExitAdmin()">Exit Without Saving</button>
+      <button class="btn-cancel-edit" onclick="closeUnsavedModal()">Go Back</button>
+    </div>
+  </div>
+</div>
+
 </main>
 
 
@@ -266,11 +297,49 @@ function checkAdmin() {
   }
 }
 
+let openRow = null; // index of currently expanded row
+
+function toggleRow(i) {
+  if (!isAdmin) return;
+  if (openRow === i) { collapseRow(i); return; }
+  if (openRow !== null) collapseRow(openRow);
+  openRow = i;
+  const ep = document.getElementById('ep_' + i);
+  if (ep) ep.style.display = '';
+}
+
+function collapseRow(i) {
+  const ep = document.getElementById('ep_' + i);
+  if (ep) ep.style.display = 'none';
+  if (openRow === i) openRow = null;
+}
+
+function onUpdateInput(i) {
+  const statusSel = document.getElementById('s_' + i);
+  if (statusSel && statusSel.value === 'New') {
+    statusSel.value = 'In Progress';
+  }
+}
+
 function exitAdmin() {
+  if (openRow !== null) {
+    document.getElementById('unsavedModal').classList.add('open');
+    return;
+  }
+  confirmExitAdmin();
+}
+
+function confirmExitAdmin() {
+  closeUnsavedModal();
   isAdmin = false;
+  openRow = null;
   document.getElementById('adminBar').style.display = 'none';
   document.getElementById('adminBtn').style.color = '';
   renderIssues();
+}
+
+function closeUnsavedModal() {
+  document.getElementById('unsavedModal').classList.remove('open');
 }
 
 async function saveRow(rowIndex, i) {
@@ -462,11 +531,11 @@ function renderIssues() {
   html += '<th class="col-status">Status</th>';
   html += '<th class="col-update">Updates</th>';
   html += '<th class="col-date">Date Resolved</th>';
-  if (isAdmin) html += '<th style="width:80px;">Save</th>';
+  if (isAdmin) html += '<th style="width:40px;"></th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
     const isResolved = (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved;
-    html += '<tr class="' + (isResolved ? 'row-resolved' : '') + '">';
+    html += '<tr class="' + (isResolved ? 'row-resolved' : '') + (isAdmin ? ' admin-clickable' : '') + '" ' + (isAdmin ? 'onclick="toggleRow(' + i + ')"' : '') + '>';
     html += '<td class="col-num">' + (r.issueNumber || (i+1)) + '.</td>';
     html += '<td class="col-addr">' + (r.address||'') + '</td>';
     html += '<td>' + (r.category||'') + '</td>';
@@ -475,17 +544,22 @@ function renderIssues() {
     html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
     html += '<td class="col-update">' + (r.updates||'') + '</td>';
     html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
+    if (isAdmin) html += '<td style="text-align:center;color:var(--stone);font-size:0.85rem;cursor:pointer;">✏️</td>';
+    html += '</tr>';
     if (isAdmin) {
-      html += '<td style="white-space:nowrap;vertical-align:middle;">';
-      html += '<select class="inline-select" id="s_' + i + '">';
+      html += '<tr class="admin-expand-row" id="ep_' + i + '" style="display:none;"><td colspan="9">';
+      html += '<div class="expand-panel">';
+      html += '<div><label>Status</label><select id="s_' + i + '">';
       ['New','In Progress','Resolved'].forEach(s => {
         html += '<option' + ((r.status||'') === s ? ' selected' : '') + '>' + s + '</option>';
       });
-      html += '</select></td>';
-      html += '<td><input class="inline-input" id="u_' + i + '" value="' + (r.updates||'').replace(/"/g,'&quot;') + '"></td>';
-      html += '<td><button class="btn-save" id="b_' + i + '" onclick="saveRow(' + r.rowIndex + ',' + i + ')">Save</button></td>';
+      html += '</select></div>';
+      html += '<div style="flex:1;"><label>Update Note</label><textarea id="u_' + i + '" oninput="onUpdateInput(' + i + ')">' + (r.updates||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
+      html += '<div class="ep-actions">';
+      html += '<button class="btn-cancel-edit" onclick="collapseRow(' + i + ')">Cancel</button>';
+      html += '<button class="btn-save" id="b_' + i + '" onclick="saveRow(' + r.rowIndex + ',' + i + ')">Save</button>';
+      html += '</div></div></td></tr>';
     }
-    html += '</tr>';
   });
   html += '</tbody></table>';
   document.getElementById('issuesBody').innerHTML = html;
