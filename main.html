@@ -231,26 +231,6 @@
   })();
 
   (async function() {
-    async function loadMaintenanceCounts() {
-      try {
-        const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error();
-        const issues = data.issues || [];
-        const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
-        const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
-        const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
-        document.getElementById('mntNew').textContent      = newCount;
-        document.getElementById('mntProgress').textContent = progressCount;
-        document.getElementById('mntResolved').textContent = resolvedCount;
-      } catch(e) {
-        document.getElementById('mntNew').textContent = '—';
-        document.getElementById('mntProgress').textContent = '—';
-        document.getElementById('mntResolved').textContent = '—';
-      }
-    }
-    loadMaintenanceCounts();
-
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
       const res = await fetch(SCRIPT_URL + '?action=readAgenda');
@@ -311,26 +291,6 @@
 
   // Resident Directory — missing mobile / email counts
   (async function() {
-    async function loadMaintenanceCounts() {
-      try {
-        const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error();
-        const issues = data.issues || [];
-        const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
-        const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
-        const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
-        document.getElementById('mntNew').textContent      = newCount;
-        document.getElementById('mntProgress').textContent = progressCount;
-        document.getElementById('mntResolved').textContent = resolvedCount;
-      } catch(e) {
-        document.getElementById('mntNew').textContent = '—';
-        document.getElementById('mntProgress').textContent = '—';
-        document.getElementById('mntResolved').textContent = '—';
-      }
-    }
-    loadMaintenanceCounts();
-
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
       const res = await fetch(SCRIPT_URL + '?action=read');
@@ -345,6 +305,27 @@
     } catch(e) {
       document.getElementById('dirNoMobile').textContent = '—';
       document.getElementById('dirNoEmail').textContent  = '—';
+    }
+  })();
+
+  // Maintenance counts
+  (async function() {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    try {
+      const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error();
+      const issues = data.issues || [];
+      const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
+      const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
+      const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
+      document.getElementById('mntNew').textContent      = newCount;
+      document.getElementById('mntProgress').textContent = progressCount;
+      document.getElementById('mntResolved').textContent = resolvedCount;
+    } catch(e) {
+      document.getElementById('mntNew').textContent = '—';
+      document.getElementById('mntProgress').textContent = '—';
+      document.getElementById('mntResolved').textContent = '—';
     }
   })();
 
