@@ -388,6 +388,12 @@ function statusBadge(s, dateResolved) {
 
 function fmtDate(v) {
   if (!v) return '';
+  // Parse dd/MM/yyyy explicitly to avoid JS treating it as MM/dd/yyyy
+  const parts = v.split('/');
+  if (parts.length === 3) {
+    const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  }
   const d = new Date(v);
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
@@ -430,8 +436,9 @@ function renderIssues() {
     const matchA = !af || (r.address||'').toLowerCase() === af;
     return matchS && matchC && matchA;
   }).slice().sort((a, b) => {
-    const av = a.dateAdded ? new Date(a.dateAdded) : new Date(0);
-    const bv = b.dateAdded ? new Date(b.dateAdded) : new Date(0);
+    const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); return p.length===3 ? new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])) : new Date(v); };
+    const av = parseD(a.dateAdded);
+    const bv = parseD(b.dateAdded);
     return dateDir === 'asc' ? av - bv : bv - av;
   });
   document.getElementById('issueCount').textContent = list.length;
