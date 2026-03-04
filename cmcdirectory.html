@@ -154,6 +154,39 @@
     .header-actions { gap: 0.4rem; }
     .btn { font-size: 0.72rem; padding: 0.5rem 0.7rem; }
   }
+
+  /* ── Mobile edit modal ── */
+  .mobile-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 500;
+    align-items: flex-end; justify-content: center;
+  }
+  .mobile-modal-overlay.open { display: flex; }
+  .mobile-modal {
+    background: var(--cream); border-radius: 16px 16px 0 0;
+    padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 520px;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+    animation: slideUp 0.28s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .mobile-modal h3 { font-size: 1rem; color: var(--accent); margin-bottom: 1.1rem; font-weight: 600; }
+  .modal-field { margin-bottom: 0.85rem; }
+  .modal-field label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--mid); margin-bottom: 0.3rem; }
+  .modal-field input, .modal-field select {
+    width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.95rem; font-family: Arial, sans-serif;
+    background: white; color: var(--dark);
+  }
+  .modal-field input:focus, .modal-field select:focus {
+    outline: none; border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(196,149,106,0.15);
+  }
+  .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+  .modal-actions button { flex: 1; padding: 0.75rem; border-radius: 6px;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; }
+  .btn-modal-save { background: var(--accent); color: white; }
+  .btn-modal-cancel { background: transparent; color: var(--mid); border: 1px solid var(--border) !important; }
   footer {
     background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
     padding: 0.9rem 2.5rem; display: flex; align-items: center; justify-content: center;
@@ -162,6 +195,35 @@
   footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
   footer p > span:first-child { color: var(--accent2); }
   footer #footerYear { color: var(--stone); }
+  /* ── Print stylesheet ── */
+  @media print {
+    @page { size: A4 landscape; margin: 1.2cm; }
+    header, .stats-row, .toolbar, .add-footer, footer,
+    .toast, .mobile-modal-overlay, #qrModal,
+    .btn-del, .btn-edit-row, .row-actions { display: none !important; }
+    body { background: white; font-size: 10pt; color: #2a2015; }
+    main { max-width: 100%; margin: 0; padding: 0; }
+    .table-card { border: none; box-shadow: none; border-radius: 0; }
+    .table-scroll { overflow: visible; }
+    .table-scroll table { min-width: unset; width: 100%; }
+    thead th {
+      background: #2a2015 !important; color: #c4bab0 !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      font-size: 8.5pt; padding: 6px 8px;
+    }
+    tbody td { font-size: 9.5pt; padding: 5px 8px; border-bottom: 1px solid #e0d8ce; }
+    tbody tr:nth-child(even) { background: #f7f3ee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cell-input, .addr-sel {
+      border: none !important; background: transparent !important;
+      box-shadow: none !important; padding: 0 !important;
+      font-size: 9.5pt; pointer-events: none;
+    }
+    .print-header { display: block !important; margin-bottom: 0.6cm; }
+    .print-header h1 { font-size: 16pt; font-weight: 600; color: #2a2015; margin: 0 0 2px; }
+    .print-header p { font-size: 8pt; color: #7a6e64; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+    .print-footer { display: block !important; margin-top: 0.5cm; font-size: 8pt; color: #aaa; text-align: right; }
+  }
+  .print-header, .print-footer { display: none; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
@@ -186,6 +248,11 @@
 </header>
 
 <main>
+  <!-- Print-only header -->
+  <div class="print-header">
+    <h1>CMC The Courtyard</h1>
+    <p>Resident Directory</p>
+  </div>
   <!-- QR Modal -->
   <div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;padding:2rem;text-align:center;max-width:320px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.25);">
@@ -233,9 +300,29 @@
       </table>
     </div>
   </div>
+  <div class="print-footer" id="printFooter"></div>
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- Mobile edit modal -->
+<div class="mobile-modal-overlay" id="mobileModalOverlay">
+  <div class="mobile-modal">
+    <h3 id="mobileModalTitle">Edit Resident</h3>
+    <div class="modal-field">
+      <label>Address</label>
+      <select id="mModal_address"></select>
+    </div>
+    <div class="modal-field"><label>First Name</label><input type="text" id="mModal_firstName" placeholder="First name"></div>
+    <div class="modal-field"><label>Last Name</label><input type="text" id="mModal_lastName" placeholder="Last name"></div>
+    <div class="modal-field"><label>Mobile</label><input type="tel" id="mModal_mobile" placeholder="07700 000000"></div>
+    <div class="modal-field"><label>Email</label><input type="email" id="mModal_email" placeholder="email@example.com"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeMobileModal()">Cancel</button>
+      <button class="btn-modal-save" onclick="saveMobileModal()">✔ Save</button>
+    </div>
+  </div>
+</div>
 
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
@@ -297,15 +384,14 @@ async function loadFromSheets() {
 async function saveToSheets() {
   if (!CONFIG.scriptUrl) return;
   try {
-    // Apps Script requires Content-Type: text/plain to avoid CORS preflight,
-    // and redirect:follow so the POST follows the Apps Script redirect.
+    // Strip empty rows before sending to sheet
+    const rowsToSave = residents.filter(r => r.firstName.trim() || r.lastName.trim() || r.email.trim() || r.mobile.trim());
     await fetch(CONFIG.scriptUrl, {
       method: 'POST',
       redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'write', rows: residents })
+      body: JSON.stringify({ action: 'write', rows: rowsToSave })
     });
-    // No-throw: Apps Script may return opaque response; treat reaching here as success
   } catch(e) {
     showToast('Could not save — please try again', 'error');
   }
@@ -371,9 +457,10 @@ document.addEventListener('blur', e => {
 }, true);
 
 window.addEventListener('beforeunload', e => {
-  if (hasUnsaved) {
+  const editing = document.querySelectorAll('tr.row-editing').length > 0;
+  if (hasUnsaved || editing) {
     e.preventDefault();
-    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    e.returnValue = 'You have unsaved changes. Click Done on the row before leaving.';
     return e.returnValue;
   }
 });
@@ -497,7 +584,7 @@ function renderTable() {
       </td>
       <td>
         <div class="row-actions">
-          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="toggleRowEdit('${r.id}', this)">✎ Edit</button>
+          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="isMobile() ? openMobileModal('${r.id}') : toggleRowEdit('${r.id}', this)">✎ Edit</button>
           <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
         </div>
       </td>
@@ -617,6 +704,64 @@ function showToast(msg, type='success') {
 }
 
 // ─── START ───────────────────────────────────────────────────────────
+// ─── PRINT ───────────────────────────────────────────────────────────
+function printDirectory() {
+  collectFromDOM();
+  const date = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  const count = residents.filter(r => r.firstName || r.lastName).length;
+  document.getElementById('printFooter').textContent = `Printed ${date} · ${count} residents`;
+  window.print();
+}
+
+// ─── MOBILE MODAL ────────────────────────────────────────────────────
+let mobileEditId = null;
+
+function isMobile() { return window.innerWidth <= 680; }
+
+function openMobileModal(id) {
+  const r = residents.find(x => x.id === id);
+  if (!r) return;
+  mobileEditId = id;
+  const sel = document.getElementById('mModal_address');
+  sel.innerHTML = '<option value="">— Select address —</option>' +
+    ADDRESSES.map(a => `<option value="${a}"${r.address===a?' selected':''}>${a}</option>`).join('');
+  document.getElementById('mModal_firstName').value = r.firstName || '';
+  document.getElementById('mModal_lastName').value  = r.lastName  || '';
+  document.getElementById('mModal_mobile').value    = r.mobile    || '';
+  document.getElementById('mModal_email').value     = r.email     || '';
+  document.getElementById('mobileModalTitle').textContent =
+    (r.firstName || r.lastName) ? `Edit — ${[r.firstName, r.lastName].filter(Boolean).join(' ')}` : 'Add Resident';
+  document.getElementById('mobileModalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('mModal_firstName').focus(), 50);
+}
+
+function closeMobileModal() {
+  document.getElementById('mobileModalOverlay').classList.remove('open');
+  mobileEditId = null;
+}
+
+function saveMobileModal() {
+  if (!mobileEditId) return;
+  const r = residents.find(x => x.id === mobileEditId);
+  if (!r) return;
+  r.address   = document.getElementById('mModal_address').value;
+  r.firstName = document.getElementById('mModal_firstName').value.trim();
+  r.lastName  = document.getElementById('mModal_lastName').value.trim();
+  r.mobile    = document.getElementById('mModal_mobile').value.trim();
+  r.email     = document.getElementById('mModal_email').value.trim();
+  closeMobileModal();
+  hasUnsaved = false;
+  localStorage.setItem('cyard_residents', JSON.stringify(residents));
+  renderTable(); updateStats(); populateFilter();
+  setSaveStatus(true);
+  if (sheetsConnected) saveToSheets();
+  showToast('Saved successfully', 'success');
+}
+
+document.getElementById('mobileModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeMobileModal();
+});
+
 initApp();
 </script>
 </body>
