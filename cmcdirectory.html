@@ -287,7 +287,6 @@
   <button class="abtn" onclick="copyAllNumbers()">&#128222; Copy Numbers</button>
   <button class="abtn" onclick="showMissingData()">&#9888; Missing Data</button>
   <button class="abtn" onclick="showOccupancy()">&#127968; Occupancy</button>
-  <button class="abtn abtn-muted" onclick="showChangePassword()">&#128272; Change Password</button>
   <button class="abtn abtn-exit" onclick="exitAdmin()">Exit Admin</button>
 </div>
 
@@ -923,36 +922,7 @@ function showOccupancy() {
   openAdminModal('🏘 Occupancy Summary', body);
 }
 
-// ─── CHANGE PASSWORD ──────────────────────────────────────────────────
-function showChangePassword() {
-  const body = `
-    <div class="modal-field">
-      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Current Password</label>
-      <input type="password" id="cpCurrent" placeholder="Current password">
-    </div>
-    <div class="modal-field">
-      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">New Password</label>
-      <input type="password" id="cpNew" placeholder="New password">
-    </div>
-    <div class="modal-field">
-      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Confirm New Password</label>
-      <input type="password" id="cpConfirm" placeholder="Confirm new password">
-    </div>
-    <div id="cpErr" style="color:var(--red);font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
-  openAdminModal('🔑 Change Admin Password', body, 'Update Password', () => {
-    const cur     = document.getElementById('cpCurrent').value;
-    const newPw   = document.getElementById('cpNew').value;
-    const confirm = document.getElementById('cpConfirm').value;
-    const err     = document.getElementById('cpErr');
-    err.style.display = 'none';
-    if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
-    if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
-    if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
-    ADMIN_PASSWORD = newPw;
-    closeAdminModal();
-    showToast('Password updated successfully', 'success');
-  });
-}
+
 
 // ─── PRINT ───────────────────────────────────────────────────────────
 function printDirectory() {
