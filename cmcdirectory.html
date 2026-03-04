@@ -663,14 +663,21 @@ function exportPDF() {
     .save-btn {
       position: fixed; bottom: 1.5rem; right: 1.5rem;
       background: #2a2015; color: #f5f0e8;
-      border: none; border-radius: 6px;
-      padding: 0.65rem 1.2rem; font-size: 0.85rem;
-      font-family: Arial, sans-serif; font-weight: 500;
+      border: none; border-radius: 8px;
+      padding: 0.75rem 1.4rem; font-size: 0.95rem;
+      font-family: Arial, sans-serif; font-weight: 600;
       letter-spacing: 0.03em; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
       transition: background 0.2s;
     }
     .save-btn:hover { background: #4a3728; }
+    @media (max-width: 680px) {
+      .save-btn {
+        bottom: 1rem; right: 1rem; left: 1rem;
+        width: calc(100% - 2rem); text-align: center;
+        padding: 1rem; font-size: 1.05rem; border-radius: 10px;
+      }
+    }
     @media print { .save-btn { display: none; } }
   </style></head><body>
   <button class="save-btn" onclick="window.print()">⬇ Save as PDF</button>
