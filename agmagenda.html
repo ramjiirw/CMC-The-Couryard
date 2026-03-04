@@ -168,24 +168,35 @@
 
   /* ── Voting section ── */
 
-  /* ── Submission form ── */
-  .submit-card {
-    background: white;
-    border: 1px solid #c8e2ce;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
+  /* ── Floating button + modal ── */
+  .fab {
+    position: fixed; bottom: 1.8rem; right: 1.8rem; z-index: 500;
+    background: var(--green); color: white; border: none; border-radius: 50px;
+    padding: 0.75rem 1.4rem; font-family: Arial, sans-serif; font-size: 0.9rem;
+    font-weight: 600; cursor: pointer; box-shadow: 0 4px 18px rgba(61,107,74,0.45);
+    display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s, transform 0.15s;
   }
-  .submit-card-header {
-    background: var(--green);
-    padding: 0.75rem 1.25rem;
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  .fab:hover { background: #2d5238; transform: translateY(-2px); }
+  .report-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 900; align-items: center; justify-content: center; padding: 1rem;
   }
-  .submit-form { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+  .report-modal-overlay.open { display: flex; }
+  .report-modal {
+    background: white; border-radius: 12px; width: 100%; max-width: 620px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25); overflow: hidden;
+  }
+  .report-modal-header {
+    background: var(--green); padding: 0.85rem 1.25rem; color: white;
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; display: flex; align-items: center; justify-content: space-between;
+  }
+  .report-modal-close {
+    background: none; border: none; color: white; font-size: 1.3rem;
+    cursor: pointer; line-height: 1; padding: 0 0.2rem;
+  }
+  .report-modal-close:hover { opacity: 0.7; }
+  .submit-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
   .form-row { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
   .form-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 180px; }
   .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -203,7 +214,7 @@
     outline: none;
     border-color: var(--accent2);
   }
-  .form-group textarea { resize: vertical; min-height: 70px; }
+  .form-group textarea { resize: vertical; min-height: 80px; }
   .btn-submit {
     background: var(--green);
     color: white;
@@ -215,7 +226,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
-    align-self: flex-end;
   }
   .btn-submit:hover { background: #2d5238; }
   .btn-submit:disabled { background: var(--stone); cursor: not-allowed; }
@@ -229,6 +239,7 @@
     header { padding: 1rem; }
     .meeting-card { grid-template-columns: 1fr; gap: 0.25rem; }
     .meeting-label { margin-top: 0.5rem; }
+    .fab { bottom: 1rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
   }
 </style>
 </head>
@@ -276,12 +287,21 @@
     <div id="votingNote"></div>
   </div>
 
-  <!-- Add agenda item -->
-  <div class="submit-card">
-    <div class="submit-card-header">➕ Add an Agenda Item</div>
-    <div class="submit-form">
+</main>
+
+<!-- Floating Add Agenda Item Button -->
+<button class="fab" onclick="openAgendaModal()">➕ Add an Agenda Item</button>
+
+<!-- Add Agenda Item Modal -->
+<div class="report-modal-overlay" id="agendaModal">
+  <div class="report-modal">
+    <div class="report-modal-header">
+      <span>➕ Add an Agenda Item</span>
+      <button class="report-modal-close" onclick="closeAgendaModal()">&#x2715;</button>
+    </div>
+    <div class="submit-body">
       <div class="form-row">
-        <div class="form-group" style="flex:0 0 200px">
+        <div class="form-group" style="flex:0 0 200px;">
           <label>Your Address</label>
           <select id="addressSelect">
             <option value="">— Select your address —</option>
@@ -292,13 +312,13 @@
           <textarea id="itemText" placeholder="Describe the item you'd like to raise…"></textarea>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; justify-content:flex-end;">
         <div id="submitMsg" class="submit-msg"></div>
         <button class="btn-submit" id="submitBtn" onclick="submitItem()">Submit Item</button>
       </div>
     </div>
   </div>
-</main>
+</div>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
@@ -461,15 +481,21 @@ function renderAgenda(rows, submissions) {
   }
 }
 
+// ── Modal open/close ──────────────────────────────────────────────────────
+function openAgendaModal() {
+  document.getElementById('agendaModal').classList.add('open');
+}
+function closeAgendaModal() {
+  document.getElementById('agendaModal').classList.remove('open');
+  document.getElementById('submitMsg').className = 'submit-msg';
+  document.getElementById('submitMsg').style.display = 'none';
+}
+
 // ── Submit resident item ───────────────────────────────────────────────────
 async function submitItem() {
   const address = document.getElementById('addressSelect').value;
   const item = document.getElementById('itemText').value.trim();
-  const msg = document.getElementById('submitMsg');
   const btn = document.getElementById('submitBtn');
-
-  msg.className = 'submit-msg';
-  msg.style.display = 'none';
 
   if (!address) { showMsg('error', 'Please select your address.'); return; }
   if (!item)    { showMsg('error', 'Please enter an agenda item.'); return; }
@@ -487,7 +513,8 @@ async function submitItem() {
       showMsg('success', 'Your item has been added to the agenda.');
       document.getElementById('itemText').value = '';
       document.getElementById('addressSelect').value = '';
-      setTimeout(() => loadAgenda(), 1000); // refresh agenda
+      setTimeout(closeAgendaModal, 2000);
+      setTimeout(() => loadAgenda(), 1000);
     } else {
       throw new Error(data.message);
     }
@@ -503,6 +530,7 @@ function showMsg(type, text) {
   const msg = document.getElementById('submitMsg');
   msg.textContent = text;
   msg.className = 'submit-msg ' + type;
+  setTimeout(() => { msg.className = 'submit-msg'; msg.style.display = 'none'; }, 5000);
 }
 
 loadAddresses();
