@@ -81,7 +81,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--accent2);
-    flex: 0 0 72px;
+    flex: 0 0 90px;
     white-space: nowrap;
   }
   .agm-detail-val {
@@ -166,11 +166,15 @@
     <!-- Maintenance -->
     <a class="link-card agm-card" href="maintenancesubmissions.html">
       <div class="agm-card-top">
-        <span class="icon" style="margin:0">&#128295;</span>
-        <h3 style="margin:0">Issues &amp; Site Maintenance</h3>
+        <span class="icon" style="margin:0">🔧</span>
+        <h3 style="margin:0">Maintenance &amp; Site Issues</h3>
       </div>
-      <p style="font-size:0.8rem;color:var(--mid);line-height:1.5;">Report issues with communal areas, car parks, lighting and grounds. Track the status of open requests.</p>
-      <p class="agm-cta">View &amp; report issues &rarr;</p>
+      <div class="agm-details">
+        <div class="agm-detail-row"><span class="agm-detail-label">New</span><span class="agm-detail-val" id="mntNew">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">In Progress</span><span class="agm-detail-val" id="mntProgress">Loading…</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Resolved</span><span class="agm-detail-val" id="mntResolved">Loading…</span></div>
+      </div>
+      <p class="agm-cta">View &amp; report issues →</p>
     </a>
 
     <!-- Resident Directory -->
@@ -227,6 +231,26 @@
   })();
 
   (async function() {
+    async function loadMaintenanceCounts() {
+      try {
+        const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error();
+        const issues = data.issues || [];
+        const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
+        const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
+        const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
+        document.getElementById('mntNew').textContent      = newCount;
+        document.getElementById('mntProgress').textContent = progressCount;
+        document.getElementById('mntResolved').textContent = resolvedCount;
+      } catch(e) {
+        document.getElementById('mntNew').textContent = '—';
+        document.getElementById('mntProgress').textContent = '—';
+        document.getElementById('mntResolved').textContent = '—';
+      }
+    }
+    loadMaintenanceCounts();
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
       const res = await fetch(SCRIPT_URL + '?action=readAgenda');
@@ -287,6 +311,26 @@
 
   // Resident Directory — missing mobile / email counts
   (async function() {
+    async function loadMaintenanceCounts() {
+      try {
+        const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error();
+        const issues = data.issues || [];
+        const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
+        const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
+        const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
+        document.getElementById('mntNew').textContent      = newCount;
+        document.getElementById('mntProgress').textContent = progressCount;
+        document.getElementById('mntResolved').textContent = resolvedCount;
+      } catch(e) {
+        document.getElementById('mntNew').textContent = '—';
+        document.getElementById('mntProgress').textContent = '—';
+        document.getElementById('mntResolved').textContent = '—';
+      }
+    }
+    loadMaintenanceCounts();
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
       const res = await fetch(SCRIPT_URL + '?action=read');
