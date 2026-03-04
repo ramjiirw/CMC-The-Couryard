@@ -277,7 +277,7 @@ function renderIssues() {
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
     html += '<tr>';
-    html += '<td class="col-num">' + (i+1) + '.</td>';
+    html += '<td class="col-num">' + (r.issueNumber || (i+1)) + '.</td>';
     html += '<td class="col-addr">' + (r.address||'') + '</td>';
     html += '<td>' + (r.category||'') + '</td>';
     html += '<td>' + (r.description||'') + '</td>';
