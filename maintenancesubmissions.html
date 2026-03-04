@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- ============================================================
+     ADMIN PASSWORD: see const ADMIN_PASSWORD in <script> below
+     Current password: cmcds
+     ============================================================ -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -52,6 +56,8 @@
   td { padding: 0.65rem 1rem; font-size: 0.84rem; border-bottom: 1px solid #f0ebe3; vertical-align: top; }
   tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--warm); }
+  tbody tr.row-resolved td { opacity: 0.45; }
+  tbody tr.row-resolved:hover td { opacity: 0.65; background: var(--warm); }
   .col-num  { width: 36px; color: var(--stone); font-weight: 600; font-size: 0.78rem; }
   .col-addr { width: 130px; color: var(--mid); font-size: 0.8rem; }
   .col-date { width: 100px; color: var(--mid); font-size: 0.78rem; }
@@ -99,6 +105,16 @@
     cursor: pointer; line-height: 1; padding: 0 0.2rem;
   }
   .report-modal-close:hover { opacity: 0.7; }
+  .admin-bar { background: #2a2520; padding: 0.5rem 1.25rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .admin-bar label { color: var(--stone); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .admin-bar input { padding: 0.3rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.82rem; width: 160px; }
+  .admin-bar button { padding: 0.3rem 0.9rem; border-radius: 5px; border: none; background: var(--accent2); color: white; font-family: Arial,sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+  .admin-bar button:hover { background: var(--accent); }
+  .admin-pill { background: rgba(196,149,106,0.2); color: var(--accent2); border-radius: 8px; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.5rem; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.5rem; }
+  .inline-select { padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-family: Arial,sans-serif; font-size: 0.82rem; background: white; color: var(--dark); }
+  .inline-input { padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-family: Arial,sans-serif; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
+  .btn-save { background: var(--green); color: white; border: none; border-radius: 4px; padding: 0.25rem 0.7rem; font-family: Arial,sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-save:hover { background: #2d5238; }
   @media (max-width: 640px) {
     header { padding: 1rem; }
     .fab { bottom: 1rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
@@ -117,6 +133,13 @@
     </div>
   </div>
   <div class="header-right">
+    <button class="btn-logout" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login">&#128274;</button>
+    <div id="adminLoginBox" style="display:none;position:absolute;top:4.5rem;right:1.5rem;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+      <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
+      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin()">
+      <button onclick="checkAdmin()" style="width:100%;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+      <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-top:0.4rem;display:none;">Incorrect password</div>
+    </div>
     <a href="main.html" class="btn-logout">&#8592; Back to Home</a>
   </div>
 </header>
@@ -137,6 +160,11 @@
 </div>
 
 
+<div class="admin-bar" id="adminBar" style="display:none;">
+  <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
+  <button onclick="exitAdmin()" style="background:#3a3530;margin-left:auto;">Exit Admin</button>
+</div>
+
 <main>
   <div class="page-title">
     <h2>&#128295; Maintenance &amp; Site Issues</h2>
@@ -144,9 +172,12 @@
   </div>
 
   <div class="card">
-    <div class="card-header">&#128203; Issue Log <span class="count-pill" id="issueCount">-</span></div>
+    <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span class="count-pill" id="issueCount">-</span><span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span></div>
     <div class="filter-bar">
       <label>Filter:</label>
+      <select id="filterAddr" onchange="renderIssues()">
+        <option value="">All Addresses</option>
+      </select>
       <select id="filterStatus" onchange="renderIssues()">
         <option value="">All Statuses</option>
         <option value="new">New</option>
@@ -212,6 +243,57 @@
 </div>
 
 <script>
+const ADMIN_PASSWORD = 'cmcds';
+let isAdmin = false;
+
+function toggleAdminLogin() {
+  const box = document.getElementById('adminLoginBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'block') document.getElementById('adminPwInput').focus();
+}
+
+function checkAdmin() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminBar').style.display = 'flex';
+    document.getElementById('adminBtn').style.color = 'var(--accent2)';
+    document.getElementById('adminPwInput').value = '';
+    renderIssues();
+  } else {
+    document.getElementById('adminErr').style.display = 'block';
+  }
+}
+
+function exitAdmin() {
+  isAdmin = false;
+  document.getElementById('adminBar').style.display = 'none';
+  document.getElementById('adminBtn').style.color = '';
+  renderIssues();
+}
+
+async function saveRow(rowIndex, i) {
+  const status  = document.getElementById('s_' + i).value;
+  const updates = document.getElementById('u_' + i).value;
+  const btn     = document.getElementById('b_' + i);
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    const res  = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex, status, updates })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      btn.textContent = 'Saved ✓'; btn.style.background = '#3d6b4a';
+      setTimeout(() => loadIssues(), 800);
+    } else throw new Error();
+  } catch(e) {
+    btn.textContent = 'Error'; btn.style.background = '#c0392b';
+    setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; btn.style.background = ''; }, 2000);
+  }
+}
+
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 
 (function() {
@@ -251,6 +333,18 @@ async function loadIssues() {
     if (data.status !== 'ok') throw new Error(data.message || '');
     allIssues = data.issues || [];
     await syncResolveDates(allIssues);
+    // Populate address filter
+    const addrSel = document.getElementById('filterAddr');
+    const addrs = [...new Set(allIssues.map(r => r.address).filter(Boolean))].sort((a,b) => {
+      const na = parseInt((a.match(/\d+/)||[0])[0]);
+      const nb = parseInt((b.match(/\d+/)||[0])[0]);
+      return na - nb || a.localeCompare(b);
+    });
+    addrs.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      addrSel.appendChild(o);
+    });
     renderIssues();
   } catch(e) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">Could not load issues - please refresh.</div>';
@@ -321,23 +415,33 @@ function closeReportModal() {
 function clearFilters() {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterCat').value = '';
+  document.getElementById('filterAddr').value = '';
   renderIssues();
 }
 
 function renderIssues() {
   const sf = document.getElementById('filterStatus').value;
   const cf = document.getElementById('filterCat').value.toLowerCase();
+  const af = document.getElementById('filterAddr').value.toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
     const matchS = !sf || sv.includes(sf);
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
-    return matchS && matchC;
+    const matchA = !af || (r.address||'').toLowerCase() === af;
+    return matchS && matchC && matchA;
   }).slice().sort((a, b) => {
     const av = a.dateAdded ? new Date(a.dateAdded) : new Date(0);
     const bv = b.dateAdded ? new Date(b.dateAdded) : new Date(0);
     return dateDir === 'asc' ? av - bv : bv - av;
   });
   document.getElementById('issueCount').textContent = list.length;
+  const newCount      = allIssues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
+  const progressCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
+  const resolvedCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
+  document.getElementById('statusBadges').innerHTML =
+    (newCount      ? '<span class="badge badge-new">'      + newCount      + ' New</span>' : '') +
+    (progressCount ? '<span class="badge badge-progress">' + progressCount + ' In Progress</span>' : '') +
+    (resolvedCount ? '<span class="badge badge-done">'     + resolvedCount + ' Resolved</span>' : '');
   if (!list.length) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
@@ -351,9 +455,11 @@ function renderIssues() {
   html += '<th class="col-status">Status</th>';
   html += '<th class="col-update">Updates</th>';
   html += '<th class="col-date">Date Resolved</th>';
+  if (isAdmin) html += '<th style="width:80px;">Save</th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
-    html += '<tr>';
+    const isResolved = (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved;
+    html += '<tr class="' + (isResolved ? 'row-resolved' : '') + '">';
     html += '<td class="col-num">' + (r.issueNumber || (i+1)) + '.</td>';
     html += '<td class="col-addr">' + (r.address||'') + '</td>';
     html += '<td>' + (r.category||'') + '</td>';
@@ -362,6 +468,16 @@ function renderIssues() {
     html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
     html += '<td class="col-update">' + (r.updates||'') + '</td>';
     html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
+    if (isAdmin) {
+      html += '<td style="white-space:nowrap;vertical-align:middle;">';
+      html += '<select class="inline-select" id="s_' + i + '">';
+      ['New','In Progress','Resolved'].forEach(s => {
+        html += '<option' + ((r.status||'') === s ? ' selected' : '') + '>' + s + '</option>';
+      });
+      html += '</select></td>';
+      html += '<td><input class="inline-input" id="u_' + i + '" value="' + (r.updates||'').replace(/"/g,'&quot;') + '"></td>';
+      html += '<td><button class="btn-save" id="b_' + i + '" onclick="saveRow(' + r.rowIndex + ',' + i + ')">Save</button></td>';
+    }
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -445,6 +561,7 @@ function showQR() {
 
 loadAddresses();
 loadIssues();
+setInterval(() => { loadIssues(); }, 60000);
 </script>
 </body>
 </html>
