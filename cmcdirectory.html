@@ -267,8 +267,11 @@
     <button class="btn btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login">&#128274;</button>
     <div id="adminLoginBox" style="display:none;position:absolute;top:4.5rem;right:1.5rem;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
       <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
-      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin()">
-      <button onclick="checkAdmin()" style="width:100%;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin();if(event.key==='Escape')toggleAdminLogin()">
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="toggleAdminLogin()" style="flex:1;padding:0.4rem;background:#3a3530;color:var(--stone);border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Cancel</button>
+        <button onclick="checkAdmin()" style="flex:2;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+      </div>
       <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-top:0.4rem;display:none;">Incorrect password</div>
     </div>
     <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
@@ -786,7 +789,22 @@ let isAdmin = false;
 function toggleAdminLogin() {
   const box = document.getElementById('adminLoginBox');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  if (box.style.display === 'block') document.getElementById('adminPwInput').focus();
+  if (box.style.display === 'block') {
+    document.getElementById('adminPwInput').focus();
+    document.getElementById('adminErr').style.display = 'none';
+    document.getElementById('adminPwInput').value = '';
+    // Close if clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        const box = document.getElementById('adminLoginBox');
+        const btn = document.getElementById('adminBtn');
+        if (!box.contains(e.target) && e.target !== btn) {
+          box.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
 }
 
 function checkAdmin() {
