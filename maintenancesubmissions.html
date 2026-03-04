@@ -105,14 +105,6 @@
     cursor: pointer; line-height: 1; padding: 0 0.2rem;
   }
   .report-modal-close:hover { opacity: 0.7; }
-  /* Expandable rows */
-  tbody tr.data-row { cursor: pointer; }
-  tbody tr.data-row:hover td { background: var(--warm); }
-  tr.expand-row td { padding: 0; border-bottom: 2px solid var(--border); }
-  .expand-panel { background: #faf7f2; padding: 1rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem 1.5rem; }
-  .expand-field label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mid); display: block; margin-bottom: 0.2rem; }
-  .expand-field p { font-size: 0.84rem; color: var(--dark); margin: 0; }
-  .expand-field.full { grid-column: 1 / -1; }
   .admin-bar { background: #2a2520; padding: 0.5rem 1.25rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
   .admin-bar label { color: var(--stone); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
   .admin-bar input { padding: 0.3rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.82rem; width: 160px; }
@@ -412,33 +404,6 @@ function toggleDateSort() {
   renderIssues();
 }
 
-function toggleRow(i, numCols) {
-  const existing = document.getElementById('expand_' + i);
-  if (existing) { existing.remove(); return; }
-  // Close any other open panels
-  document.querySelectorAll('tr.expand-row').forEach(r => r.remove());
-  const r = allIssues_filtered[i];
-  if (!r) return;
-  const tr = document.getElementById('row_' + i);
-  const expRow = document.createElement('tr');
-  expRow.className = 'expand-row';
-  expRow.id = 'expand_' + i;
-  expRow.innerHTML = `<td colspan="${numCols}">
-    <div class="expand-panel">
-      <div class="expand-field"><label>Address</label><p>${r.address||'—'}</p></div>
-      <div class="expand-field"><label>Category</label><p>${r.category||'—'}</p></div>
-      <div class="expand-field"><label>Date Added</label><p>${fmtDate(r.dateAdded)||'—'}</p></div>
-      <div class="expand-field"><label>Status</label><p>${r.status||'—'}</p></div>
-      <div class="expand-field"><label>Date Resolved</label><p>${fmtDate(r.dateResolved)||'—'}</p></div>
-      <div class="expand-field full"><label>Description</label><p>${r.description||'—'}</p></div>
-      <div class="expand-field full"><label>Updates</label><p>${r.updates||'—'}</p></div>
-    </div>
-  </td>`;
-  tr.insertAdjacentElement('afterend', expRow);
-}
-
-let allIssues_filtered = [];
-
 function openReportModal() {
   document.getElementById('reportModal').classList.add('open');
 }
@@ -469,7 +434,6 @@ function renderIssues() {
     const bv = b.dateAdded ? new Date(b.dateAdded) : new Date(0);
     return dateDir === 'asc' ? av - bv : bv - av;
   });
-  allIssues_filtered = list;
   document.getElementById('issueCount').textContent = list.length;
   const newCount      = allIssues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
   const progressCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
@@ -495,8 +459,7 @@ function renderIssues() {
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
     const isResolved = (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved;
-    const numCols = isAdmin ? 11 : 8;
-    html += '<tr id="row_' + i + '" class="data-row ' + (isResolved ? 'row-resolved' : '') + '" onclick="toggleRow(' + i + ',' + numCols + ')">';
+    html += '<tr class="' + (isResolved ? 'row-resolved' : '') + '">';
     html += '<td class="col-num">' + (r.issueNumber || (i+1)) + '.</td>';
     html += '<td class="col-addr">' + (r.address||'') + '</td>';
     html += '<td>' + (r.category||'') + '</td>';
