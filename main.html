@@ -189,7 +189,6 @@
         <div class="agm-detail-row"><span class="agm-detail-label">AGM Time</span><span class="agm-detail-val" id="agmTime"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
         <div class="agm-detail-row"><span class="agm-detail-label">Venue</span><span class="agm-detail-val" id="agmVenue"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
-      <p class="last-updated" id="agmUpdated"></p>
       <p class="agm-cta">View agenda &amp; submit items →</p>
     </a>
 
@@ -204,7 +203,6 @@
         <div class="agm-detail-row"><span class="agm-detail-label">In Progress</span><span class="agm-detail-val" id="mntProgress"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
         <div class="agm-detail-row"><span class="agm-detail-label">Resolved</span><span class="agm-detail-val" id="mntResolved"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
-      <p class="last-updated" id="mntUpdated"></p>
       <p class="agm-cta">View &amp; report issues →</p>
     </a>
 
@@ -268,8 +266,6 @@
       if (!res.ok) throw new Error('offline');
       const data = await res.json();
       if (data.status !== 'ok') throw new Error();
-      const agmNow = new Date();
-      document.getElementById('agmUpdated').textContent = 'Updated ' + agmNow.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
       const rows = data.agenda;
       rows.forEach(row => {
         const key = (row[0]||'').toString().trim();
@@ -372,14 +368,10 @@
       const badge = document.getElementById('mntBadge');
       if (recentCount > 0) { badge.textContent = recentCount + ' JUST IN'; badge.style.display = 'inline-block'; }
       else badge.style.display = 'none';
-      // Last updated
-      const now = new Date();
-      document.getElementById('mntUpdated').textContent = 'Updated ' + now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
     } catch(e) {
       document.getElementById('mntNew').textContent = '—';
       document.getElementById('mntProgress').textContent = '—';
       document.getElementById('mntResolved').textContent = '—';
-      document.getElementById('mntUpdated').innerHTML = '<span class="offline-msg">⚠ Unable to connect — please try again</span>';
     }
   })();
 
