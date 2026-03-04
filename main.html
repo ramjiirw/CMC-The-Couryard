@@ -21,7 +21,7 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -40,7 +40,7 @@
   }
   .btn-logout:hover { background: #2a2520; color: #c4956a; }
 
-  main { max-width: 900px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 900px; width: 100%; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
 
   .welcome-block { margin-bottom: 2.5rem; }
   .welcome-block h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.5rem; }
@@ -136,6 +136,13 @@
     header { padding: 1rem; }
     main { padding: 1.5rem 1rem 4rem; }
   }
+  footer {
+    background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
+    padding: 0.9rem 2.5rem; display: flex; align-items: center; justify-content: center;
+    margin-top: auto;
+  }
+  footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
+  footer span { color: var(--accent2); }
 </style>
 </head>
 <body>
@@ -257,6 +264,7 @@
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
     document.getElementById('welcomeMsg').textContent = `${greeting} — ${day}`;
+    document.getElementById('footerYear').textContent = now.getFullYear();
   })();
 
   (async function() {
@@ -439,5 +447,8 @@
     }
   })();
 </script>
+<footer>
+  <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; Resident Portal &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+</footer>
 </body>
 </html>
