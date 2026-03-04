@@ -351,8 +351,10 @@ function closeUnsavedModal() {
 }
 
 async function saveRow(rowIndex, i) {
-  const status  = document.getElementById('s_' + i).value;
-  const updates = document.getElementById('u_' + i).value;
+  let status    = document.getElementById('s_' + i).value;
+  const updates = document.getElementById('u_' + i).value.trim();
+  // If updates cleared and status is In Progress, revert to New
+  if (!updates && status === 'In Progress') status = 'New';
   const btn     = document.getElementById('b_' + i);
   btn.textContent = 'Saving…'; btn.disabled = true;
   try {
