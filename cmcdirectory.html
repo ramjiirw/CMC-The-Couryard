@@ -868,7 +868,7 @@ function copyAllNumbers() {
   if (!numbers.length) { showToast('No numbers found', 'error'); return; }
   const text = numbers.join('\n');
   navigator.clipboard.writeText(text).then(() => {
-    showToast(`✓ ${numbers.length} numbers copied to clipboard`, 'success');
+    showToast(`${numbers.length} numbers copied to clipboard`, 'success');
   }).catch(() => {
     openAdminModal('Mobile Numbers', `<p>Copy the numbers below:</p><textarea style="width:100%;height:160px;font-family:Arial,sans-serif;font-size:0.82rem;padding:0.5rem;border:1px solid var(--border);border-radius:5px;" readonly>${text}</textarea>`);
   });
