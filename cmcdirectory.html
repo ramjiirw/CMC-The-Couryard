@@ -889,7 +889,7 @@ function showMissingData() {
     if (noEmail.length) body += `<p><strong>No email address:</strong></p>${noEmail.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}<br><br>`;
     if (noMobile.length) body += `<p><strong>No mobile number:</strong></p>${noMobile.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}`;
   }
-  openAdminModal('&#9888; Missing Contact Data', body);
+  openAdminModal('⚠️ Missing Contact Data', body);
 }
 
 // ─── OCCUPANCY ────────────────────────────────────────────────────────
@@ -902,7 +902,7 @@ function showOccupancy() {
     <p style="margin-top:0.8rem;"><strong>Occupied:</strong></p>
     ${[...occupied].sort((a,b)=>parseInt(a)-parseInt(b)).map(a=>`<span class="tag">${a}</span>`).join('')}
     ${vacant.length ? `<p style="margin-top:0.8rem;"><strong>Vacant:</strong></p>${vacant.map(a=>`<span class="tag vacant">${a}</span>`).join('')}` : ''}`;
-  openAdminModal('&#127968; Occupancy Summary', body);
+  openAdminModal('🏘 Occupancy Summary', body);
 }
 
 // ─── CHANGE PASSWORD ──────────────────────────────────────────────────
@@ -921,7 +921,7 @@ function showChangePassword() {
       <input type="password" id="cpConfirm" placeholder="Confirm new password">
     </div>
     <div id="cpErr" style="color:var(--red);font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
-  openAdminModal('&#128272; Change Admin Password', body, 'Update Password', () => {
+  openAdminModal('🔑 Change Admin Password', body, 'Update Password', () => {
     const cur     = document.getElementById('cpCurrent').value;
     const newPw   = document.getElementById('cpNew').value;
     const confirm = document.getElementById('cpConfirm').value;
