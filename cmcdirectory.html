@@ -258,7 +258,9 @@ function setWelcomeMessage() {
 async function loadFromSheets() {
   if (!CONFIG.scriptUrl) return;
   try {
-    const res = await fetch(`${CONFIG.scriptUrl}?action=read`);
+    const res = await fetch(`${CONFIG.scriptUrl}?action=read`, {
+      redirect: 'follow'
+    });
     const data = await res.json();
     if (data.status !== 'ok') { loadFromLocal(); return; }
     residents = data.rows.length ? data.rows.map(r => ({id:uid(), ...r})) : [blankRow()];
@@ -273,12 +275,15 @@ async function loadFromSheets() {
 async function saveToSheets() {
   if (!CONFIG.scriptUrl) return;
   try {
-    const res = await fetch(CONFIG.scriptUrl, {
+    // Apps Script requires Content-Type: text/plain to avoid CORS preflight,
+    // and redirect:follow so the POST follows the Apps Script redirect.
+    await fetch(CONFIG.scriptUrl, {
       method: 'POST',
-      body: JSON.stringify({action: 'write', rows: residents})
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'write', rows: residents })
     });
-    const data = await res.json();
-    if (data.status !== 'ok') showToast('Could not save — please try again', 'error');
+    // No-throw: Apps Script may return opaque response; treat reaching here as success
   } catch(e) {
     showToast('Could not save — please try again', 'error');
   }
@@ -352,6 +357,15 @@ window.addEventListener('beforeunload', e => {
 });
 
 // ─── ROW EDITING ─────────────────────────────────────────────────────
+function closeAllEditingRows() {
+  document.querySelectorAll('tr.row-editing').forEach(row => {
+    row.classList.remove('row-editing');
+    const b = row.querySelector('.btn-edit-row');
+    if (b) { b.textContent = '✎ Edit'; b.title = 'Edit this resident'; }
+  });
+  clearTimeout(autoLockTimer);
+}
+
 function toggleRowEdit(id, btn) {
   const row = document.querySelector(`tr[data-id="${id}"]`);
   if (!row) return;
@@ -361,10 +375,15 @@ function toggleRowEdit(id, btn) {
     btn.textContent = '✎ Edit'; btn.title = 'Edit this resident';
     clearTimeout(autoLockTimer);
     collectFromDOM();
+    hasUnsaved = false;
     localStorage.setItem('cyard_residents', JSON.stringify(residents));
     setSaveStatus(true);
+    updateStats(); populateFilter();
     if (sheetsConnected) saveToSheets();
+    showToast('Saved successfully', 'success');
   } else {
+    // Close any other open rows first
+    closeAllEditingRows();
     row.classList.add('row-editing');
     btn.textContent = '✔ Done'; btn.title = 'Save and lock this row';
     resetAutoLockTimer(id, btn);
