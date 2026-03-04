@@ -228,7 +228,25 @@
     .print-footer { display: block !important; margin-top: 0.5cm; font-size: 8pt; color: #aaa; text-align: right; }
   }
   .print-header, .print-footer { display: none; }
-  .admin-bar { background: #2a2520; padding: 0.5rem 1.25rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .admin-bar { background: #2a2520; padding: 0.6rem 1.25rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .abtn { padding: 0.3rem 0.85rem; border-radius: 5px; border: none; font-family: Arial,sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; background: var(--accent); color: white; transition: background 0.15s; }
+  .abtn:hover { background: #6a4c30; }
+  .abtn-muted { background: #3a3530; color: var(--stone); }
+  .abtn-muted:hover { background: #4a4540; color: var(--cream); }
+  .abtn-exit { background: transparent; color: var(--stone); border: 1px solid #3a3530 !important; margin-left: auto; }
+  .abtn-exit:hover { background: #3a3530; color: var(--cream); }
+  /* Admin modals */
+  .admin-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:600; align-items:center; justify-content:center; }
+  .admin-modal-overlay.open { display:flex; }
+  .admin-modal { background:var(--cream); border-radius:12px; padding:1.5rem; width:90%; max-width:440px; box-shadow:0 8px 40px rgba(0,0,0,0.3); }
+  .admin-modal h3 { font-size:1rem; color:var(--accent); margin-bottom:1rem; }
+  .admin-modal p { font-size:0.85rem; color:var(--mid); margin-bottom:0.5rem; line-height:1.5; }
+  .admin-modal .tag { display:inline-block; background:rgba(122,92,62,0.12); color:var(--accent); border-radius:4px; padding:0.15rem 0.5rem; font-size:0.78rem; margin:0.15rem; }
+  .admin-modal .tag.warn { background:rgba(139,58,58,0.1); color:var(--red); }
+  .admin-modal .tag.vacant { background:rgba(184,173,158,0.2); color:var(--mid); }
+  .admin-modal-actions { display:flex; gap:0.6rem; margin-top:1.2rem; justify-content:flex-end; }
+  .admin-modal input { width:100%; padding:0.5rem 0.7rem; border:1px solid var(--border); border-radius:5px; font-family:Arial,sans-serif; font-size:0.9rem; margin-bottom:0.6rem; }
+  .admin-modal input:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
@@ -261,8 +279,13 @@
 
 <div class="admin-bar" id="adminBar" style="display:none;">
   <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
-  <button onclick="emailAll()" style="background:var(--accent);color:white;border:none;border-radius:5px;padding:0.3rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#9993; Email All</button>
-  <button onclick="exitAdmin()" style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.3rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;margin-left:auto;">Exit Admin</button>
+  <button class="abtn" onclick="emailAll()">&#9993; Email All</button>
+  <button class="abtn" onclick="showEmailAddress()">&#9993; Email Address</button>
+  <button class="abtn" onclick="copyAllNumbers()">&#128222; Copy Numbers</button>
+  <button class="abtn" onclick="showMissingData()">&#9888; Missing Data</button>
+  <button class="abtn" onclick="showOccupancy()">&#127968; Occupancy</button>
+  <button class="abtn abtn-muted" onclick="showChangePassword()">&#128272; Change Password</button>
+  <button class="abtn abtn-exit" onclick="exitAdmin()">Exit Admin</button>
 </div>
 
 <main>
@@ -320,6 +343,18 @@
   </div>
   <div class="print-footer" id="printFooter"></div>
 </main>
+
+<!-- Admin modals -->
+<div class="admin-modal-overlay" id="adminModalOverlay">
+  <div class="admin-modal" id="adminModalInner">
+    <h3 id="adminModalTitle"></h3>
+    <div id="adminModalBody"></div>
+    <div class="admin-modal-actions">
+      <button class="abtn abtn-muted" onclick="closeAdminModal()">Close</button>
+      <button class="abtn" id="adminModalActionBtn" style="display:none"></button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -745,7 +780,7 @@ function showToast(msg, type='success') {
 
 // ─── START ───────────────────────────────────────────────────────────
 // ─── ADMIN ───────────────────────────────────────────────────────────
-const ADMIN_PASSWORD = 'cmcds';
+let ADMIN_PASSWORD = 'cmcds';
 let isAdmin = false;
 
 function toggleAdminLogin() {
@@ -771,18 +806,134 @@ function exitAdmin() {
   isAdmin = false;
   document.getElementById('adminBar').style.display = 'none';
   document.getElementById('adminBtn').style.color = '';
+  closeAdminModal();
 }
 
+// ─── ADMIN MODAL HELPERS ──────────────────────────────────────────────
+function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
+  document.getElementById('adminModalTitle').textContent = title;
+  document.getElementById('adminModalBody').innerHTML = bodyHTML;
+  const btn = document.getElementById('adminModalActionBtn');
+  if (actionLabel && actionFn) {
+    btn.textContent = actionLabel;
+    btn.onclick = actionFn;
+    btn.style.display = 'inline-block';
+  } else {
+    btn.style.display = 'none';
+  }
+  document.getElementById('adminModalOverlay').classList.add('open');
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModalOverlay').classList.remove('open');
+}
+
+document.getElementById('adminModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAdminModal();
+});
+
+// ─── EMAIL ALL ────────────────────────────────────────────────────────
 function emailAll() {
   collectFromDOM();
-  const emails = residents
-    .map(r => r.email.trim())
-    .filter(e => e && e.includes('@'));
-  if (!emails.length) {
-    showToast('No email addresses found', 'error');
-    return;
-  }
+  const emails = residents.map(r => r.email.trim()).filter(e => e && e.includes('@'));
+  if (!emails.length) { showToast('No email addresses found', 'error'); return; }
   window.location.href = 'mailto:' + emails.join(';');
+}
+
+// ─── EMAIL ADDRESS ────────────────────────────────────────────────────
+function showEmailAddress() {
+  const counts = {};
+  residents.forEach(r => { if (r.address) counts[r.address] = (counts[r.address]||0) + 1; });
+  const occupied = ADDRESSES.filter(a => counts[a]);
+  const body = `
+    <p>Select an address to email its residents:</p>
+    <select id="emailAddrSel" style="width:100%;padding:0.5rem 0.7rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-top:0.4rem;">
+      <option value="">— Choose address —</option>
+      ${occupied.map(a => `<option value="${a}">${a}</option>`).join('')}
+    </select>`;
+  openAdminModal('Email Address', body, '✉ Open Email', () => {
+    const addr = document.getElementById('emailAddrSel').value;
+    if (!addr) { showToast('Please select an address', 'error'); return; }
+    const emails = residents.filter(r => r.address === addr && r.email.trim()).map(r => r.email.trim());
+    if (!emails.length) { showToast('No emails for that address', 'error'); return; }
+    window.location.href = 'mailto:' + emails.join(';');
+    closeAdminModal();
+  });
+}
+
+// ─── COPY ALL NUMBERS ─────────────────────────────────────────────────
+function copyAllNumbers() {
+  collectFromDOM();
+  const numbers = residents.map(r => r.mobile.trim()).filter(Boolean);
+  if (!numbers.length) { showToast('No numbers found', 'error'); return; }
+  const text = numbers.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`✓ ${numbers.length} numbers copied to clipboard`, 'success');
+  }).catch(() => {
+    openAdminModal('Mobile Numbers', `<p>Copy the numbers below:</p><textarea style="width:100%;height:160px;font-family:Arial,sans-serif;font-size:0.82rem;padding:0.5rem;border:1px solid var(--border);border-radius:5px;" readonly>${text}</textarea>`);
+  });
+}
+
+// ─── MISSING DATA ─────────────────────────────────────────────────────
+function showMissingData() {
+  collectFromDOM();
+  const named = residents.filter(r => r.firstName || r.lastName);
+  const noEmail  = named.filter(r => !r.email.trim());
+  const noMobile = named.filter(r => !r.mobile.trim());
+  const name = r => [r.firstName, r.lastName].filter(Boolean).join(' ') + (r.address ? ` (${r.address})` : '');
+
+  let body = '';
+  if (!noEmail.length && !noMobile.length) {
+    body = '<p style="color:var(--green);">&#10003; All residents have complete contact details.</p>';
+  } else {
+    if (noEmail.length) body += `<p><strong>No email address:</strong></p>${noEmail.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}<br><br>`;
+    if (noMobile.length) body += `<p><strong>No mobile number:</strong></p>${noMobile.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}`;
+  }
+  openAdminModal('&#9888; Missing Contact Data', body);
+}
+
+// ─── OCCUPANCY ────────────────────────────────────────────────────────
+function showOccupancy() {
+  collectFromDOM();
+  const occupied = new Set(residents.filter(r => r.firstName||r.lastName).map(r => r.address).filter(Boolean));
+  const vacant = ADDRESSES.filter(a => !occupied.has(a));
+  const body = `
+    <p><strong>${occupied.size}</strong> of 14 addresses occupied &nbsp;·&nbsp; <strong>${vacant.length}</strong> vacant</p>
+    <p style="margin-top:0.8rem;"><strong>Occupied:</strong></p>
+    ${[...occupied].sort((a,b)=>parseInt(a)-parseInt(b)).map(a=>`<span class="tag">${a}</span>`).join('')}
+    ${vacant.length ? `<p style="margin-top:0.8rem;"><strong>Vacant:</strong></p>${vacant.map(a=>`<span class="tag vacant">${a}</span>`).join('')}` : ''}`;
+  openAdminModal('&#127968; Occupancy Summary', body);
+}
+
+// ─── CHANGE PASSWORD ──────────────────────────────────────────────────
+function showChangePassword() {
+  const body = `
+    <div class="modal-field">
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Current Password</label>
+      <input type="password" id="cpCurrent" placeholder="Current password">
+    </div>
+    <div class="modal-field">
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">New Password</label>
+      <input type="password" id="cpNew" placeholder="New password">
+    </div>
+    <div class="modal-field">
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Confirm New Password</label>
+      <input type="password" id="cpConfirm" placeholder="Confirm new password">
+    </div>
+    <div id="cpErr" style="color:var(--red);font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
+  openAdminModal('&#128272; Change Admin Password', body, 'Update Password', () => {
+    const cur     = document.getElementById('cpCurrent').value;
+    const newPw   = document.getElementById('cpNew').value;
+    const confirm = document.getElementById('cpConfirm').value;
+    const err     = document.getElementById('cpErr');
+    err.style.display = 'none';
+    if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
+    if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
+    if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+    ADMIN_PASSWORD = newPw;
+    closeAdminModal();
+    showToast('Password updated successfully', 'success');
+  });
 }
 
 // ─── PRINT ───────────────────────────────────────────────────────────
