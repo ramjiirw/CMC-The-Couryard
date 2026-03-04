@@ -203,9 +203,37 @@ async function loadIssues() {
     const data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message || '');
     allIssues = data.issues || [];
+    await syncResolveDates(allIssues);
     renderIssues();
   } catch(e) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">Could not load issues - please refresh.</div>';
+  }
+}
+
+async function syncResolveDates(issues) {
+  const today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'2-digit'});
+  for (const r of issues) {
+    const isResolved = (r.status||'').toLowerCase().includes('resolv');
+    const hasDate    = !!(r.dateResolved && r.dateResolved.toString().trim());
+    if (isResolved && !hasDate) {
+      // Status is Resolved but no date — write today's date
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: r.rowIndex, dateResolved: today })
+        });
+        r.dateResolved = today;
+      } catch(e) { console.warn('Could not write resolve date for row', r.rowIndex); }
+    } else if (!isResolved && hasDate) {
+      // Status is New/In Progress but has a date — clear it
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: r.rowIndex, dateResolved: '' })
+        });
+        r.dateResolved = '';
+      } catch(e) { console.warn('Could not clear resolve date for row', r.rowIndex); }
+    }
   }
 }
 
