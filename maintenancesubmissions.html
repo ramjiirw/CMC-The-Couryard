@@ -466,10 +466,14 @@ function statusBadge(s, dateResolved) {
 
 function fmtDate(v) {
   if (!v) return '';
-  // Parse dd/MM/yyyy explicitly to avoid JS treating it as MM/dd/yyyy
   const parts = v.split('/');
   if (parts.length === 3) {
-    const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    const day  = parseInt(parts[0], 10);
+    const mon  = parseInt(parts[1], 10) - 1;
+    let   yr   = parseInt(parts[2], 10);
+    // Handle 2-digit year: 26 → 2026
+    if (yr < 100) yr += 2000;
+    const d = new Date(yr, mon, day);
     return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
   }
   const d = new Date(v);
@@ -514,7 +518,7 @@ function renderIssues() {
     const matchA = !af || (r.address||'').toLowerCase() === af;
     return matchS && matchC && matchA;
   }).slice().sort((a, b) => {
-    const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); return p.length===3 ? new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])) : new Date(v); };
+    const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); if (p.length===3) { let yr=parseInt(p[2],10); if(yr<100)yr+=2000; return new Date(yr, parseInt(p[1],10)-1, parseInt(p[0],10)); } return new Date(v); };
     const av = parseD(a.dateAdded);
     const bv = parseD(b.dateAdded);
     return dateDir === 'asc' ? av - bv : bv - av;
