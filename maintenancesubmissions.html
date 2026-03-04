@@ -162,6 +162,7 @@
         <option>Farmhouse</option>
         <option>Other</option>
       </select>
+      <button onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;">&#x2715; Clear Filters</button>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -315,6 +316,12 @@ function openReportModal() {
 function closeReportModal() {
   document.getElementById('reportModal').classList.remove('open');
   document.getElementById('submitMsg').className = 'submit-msg';
+}
+
+function clearFilters() {
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterCat').value = '';
+  renderIssues();
 }
 
 function renderIssues() {
