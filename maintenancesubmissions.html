@@ -39,6 +39,10 @@
   .count-pill { background: rgba(196,149,106,0.25); color: var(--accent2); border-radius: 10px; font-size: 0.7rem; padding: 0.1rem 0.5rem; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; }
   th { background: var(--warm); padding: 0.6rem 1rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mid); text-align: left; border-bottom: 1px solid var(--border); }
+  .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; padding: 0.6rem 1.25rem; background: var(--warm); border-bottom: 1px solid var(--border); }
+  .filter-bar label { font-size: 0.72rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
+  .filter-bar select { padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.82rem; background: white; color: var(--dark); cursor: pointer; }
+  .filter-bar select:focus { outline: none; border-color: var(--accent2); }
   th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
   th.sortable:hover { color: var(--accent); }
   th.sortable .sort-icon { margin-left: 0.3rem; font-size: 0.65rem; opacity: 0.4; }
@@ -134,16 +138,31 @@
 
 
 <main>
-  <div class="page-title" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-    <div>
-      <h2>&#128295; Maintenance &amp; Site Issues</h2>
-      <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents.</p>
-    </div>
-    <button class="btn-submit" onclick="openReportModal()" style="white-space:nowrap;margin-top:0.2rem;">&#10133; Report an Issue</button>
+  <div class="page-title">
+    <h2>&#128295; Maintenance &amp; Site Issues</h2>
+    <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents.</p>
   </div>
 
   <div class="card">
     <div class="card-header">&#128203; Issue Log <span class="count-pill" id="issueCount">-</span></div>
+    <div class="filter-bar">
+      <label>Filter:</label>
+      <select id="filterStatus" onchange="renderIssues()">
+        <option value="">All Statuses</option>
+        <option value="new">New</option>
+        <option value="progress">In Progress</option>
+        <option value="resolv">Resolved</option>
+      </select>
+      <select id="filterCat" onchange="renderIssues()">
+        <option value="">All Categories</option>
+        <option>Waste &amp; Recycling</option>
+        <option>Lighting</option>
+        <option>Car Parks</option>
+        <option>Grounds &amp; Common Areas</option>
+        <option>Farmhouse</option>
+        <option>Other</option>
+      </select>
+    </div>
     <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
   </div>
 
@@ -300,7 +319,14 @@ function closeReportModal() {
 }
 
 function renderIssues() {
-  let list = allIssues.slice().sort((a, b) => {
+  const sf = document.getElementById('filterStatus').value;
+  const cf = document.getElementById('filterCat').value.toLowerCase();
+  let list = allIssues.filter(r => {
+    const sv = (r.status||'').toLowerCase();
+    const matchS = !sf || sv.includes(sf);
+    const matchC = !cf || (r.category||'').toLowerCase() === cf;
+    return matchS && matchC;
+  }).slice().sort((a, b) => {
     let av = a[sortCol] || '';
     let bv = b[sortCol] || '';
     if (sortCol === 'dateAdded' || sortCol === 'dateResolved') {
@@ -313,7 +339,7 @@ function renderIssues() {
     }
     return sortDir === 'asc' ? av.toString().localeCompare(bv.toString()) : bv.toString().localeCompare(av.toString());
   });
-  document.getElementById('issueCount').textContent = allIssues.length;
+  document.getElementById('issueCount').textContent = list.length;
   if (!list.length) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
