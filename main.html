@@ -368,7 +368,7 @@
         return (now24 - added) <= 24 * 60 * 60 * 1000;
       }).length;
       const badge = document.getElementById('mntBadge');
-      if (recentCount > 0) { badge.textContent = recentCount + ' NEW'; badge.style.display = 'inline-block'; }
+      if (recentCount > 0) { badge.textContent = recentCount + ' JUST IN'; badge.style.display = 'inline-block'; }
       else badge.style.display = 'none';
       // Last updated
       const now = new Date();
