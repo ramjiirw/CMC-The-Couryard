@@ -613,7 +613,7 @@ function showToast(msg, type='success') {
   t.innerHTML = `<span style="font-size:1rem;opacity:0.9">${icon}</span> ${msg}`;
   t.className = `toast ${type} show`;
   clearTimeout(t._t);
-  t._t = setTimeout(() => t.className = `toast ${type}`, 2000);
+  t._t = setTimeout(() => t.className = `toast ${type}`, 3000);
 }
 
 // ─── START ───────────────────────────────────────────────────────────
