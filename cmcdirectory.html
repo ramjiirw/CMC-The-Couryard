@@ -157,6 +157,14 @@
     .header-actions { gap: 0.4rem; }
     .btn { font-size: 0.72rem; padding: 0.5rem 0.7rem; }
   }
+  footer {
+    background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
+    padding: 0.9rem 2.5rem; display: flex; align-items: center; justify-content: center;
+    margin-top: auto;
+  }
+  footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
+  footer p > span:first-child { color: var(--accent2); }
+  footer #footerYear { color: var(--stone); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
@@ -231,6 +239,11 @@
 </main>
 
 <div class="toast" id="toast"></div>
+
+<footer>
+  <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+</footer>
+<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 
 <script>
 // ════════════════════════════════════════
