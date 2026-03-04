@@ -142,7 +142,8 @@
     margin-top: auto;
   }
   footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
-  footer span { color: var(--accent2); }
+  footer p > span:first-child { color: var(--accent2); }
+  footer #footerYear { color: var(--stone); }
 </style>
 </head>
 <body>
@@ -264,7 +265,6 @@
     const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
     document.getElementById('welcomeMsg').textContent = `${greeting} — ${day}`;
-    document.getElementById('footerYear').textContent = now.getFullYear();
   })();
 
   (async function() {
@@ -448,7 +448,8 @@
   })();
 </script>
 <footer>
-  <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; Resident Portal &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+  <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
 </footer>
+  <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 </body>
 </html>
