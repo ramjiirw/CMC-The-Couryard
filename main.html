@@ -357,9 +357,18 @@
       document.getElementById('mntNew').textContent      = newCount;
       document.getElementById('mntProgress').textContent = progressCount;
       document.getElementById('mntResolved').textContent = resolvedCount;
-      // Unread badge
+      // Badge — count issues added in the last 24 hours
+      const now24 = new Date();
+      const recentCount = issues.filter(r => {
+        if (!r.dateAdded) return false;
+        // dateAdded comes as dd/MM/yyyy
+        const parts = r.dateAdded.split('/');
+        if (parts.length < 3) return false;
+        const added = new Date(parts[2], parts[1] - 1, parts[0]);
+        return (now24 - added) <= 24 * 60 * 60 * 1000;
+      }).length;
       const badge = document.getElementById('mntBadge');
-      if (newCount > 0) { badge.textContent = newCount + ' NEW'; badge.style.display = 'inline-block'; }
+      if (recentCount > 0) { badge.textContent = recentCount + ' NEW'; badge.style.display = 'inline-block'; }
       else badge.style.display = 'none';
       // Last updated
       const now = new Date();
