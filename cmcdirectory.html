@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- ============================================================
+     ADMIN PASSWORD: see const ADMIN_PASSWORD in <script> below
+     Current password: cmcds
+     ============================================================ -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -224,6 +228,7 @@
     .print-footer { display: block !important; margin-top: 0.5cm; font-size: 8pt; color: #aaa; text-align: right; }
   }
   .print-header, .print-footer { display: none; }
+  .admin-bar { background: #2a2520; padding: 0.5rem 1.25rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
@@ -241,11 +246,24 @@
   </div>
   <div class="header-actions">
     <span class="save-status" id="saveStatus"></span>
+    <button class="btn btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login">&#128274;</button>
+    <div id="adminLoginBox" style="display:none;position:absolute;top:4.5rem;right:1.5rem;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+      <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
+      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin()">
+      <button onclick="checkAdmin()" style="width:100%;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+      <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-top:0.4rem;display:none;">Incorrect password</div>
+    </div>
     <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
     <button class="btn btn-outline" onclick="exportPDF()">⬇ Export PDF</button>
     <button class="btn btn-lock" onclick="window.location.href='main.html'">⬅ Back to Home</button>
   </div>
 </header>
+
+<div class="admin-bar" id="adminBar" style="display:none;">
+  <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
+  <button onclick="emailAll()" style="background:var(--accent);color:white;border:none;border-radius:5px;padding:0.3rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#9993; Email All</button>
+  <button onclick="exitAdmin()" style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.3rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;margin-left:auto;">Exit Admin</button>
+</div>
 
 <main>
   <!-- Print-only header -->
@@ -716,6 +734,47 @@ function showToast(msg, type='success') {
 }
 
 // ─── START ───────────────────────────────────────────────────────────
+// ─── ADMIN ───────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = 'cmcds';
+let isAdmin = false;
+
+function toggleAdminLogin() {
+  const box = document.getElementById('adminLoginBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'block') document.getElementById('adminPwInput').focus();
+}
+
+function checkAdmin() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminBar').style.display = 'flex';
+    document.getElementById('adminBtn').style.color = 'var(--accent2)';
+    document.getElementById('adminPwInput').value = '';
+  } else {
+    document.getElementById('adminErr').style.display = 'block';
+  }
+}
+
+function exitAdmin() {
+  isAdmin = false;
+  document.getElementById('adminBar').style.display = 'none';
+  document.getElementById('adminBtn').style.color = '';
+}
+
+function emailAll() {
+  collectFromDOM();
+  const emails = residents
+    .map(r => r.email.trim())
+    .filter(e => e && e.includes('@'));
+  if (!emails.length) {
+    showToast('No email addresses found', 'error');
+    return;
+  }
+  window.location.href = 'mailto:' + emails.join(';');
+}
+
 // ─── PRINT ───────────────────────────────────────────────────────────
 function printDirectory() {
   collectFromDOM();
