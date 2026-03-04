@@ -642,13 +642,25 @@ function exportPDF() {
     tbody td { padding: 6px 10px; border-bottom: 1px solid #e0d8ce; font-size: 11pt; }
     tbody tr:nth-child(even) { background: #f7f3ee; }
     .footer { margin-top: 1rem; font-size: 9pt; color: #aaa; text-align: right; }
+    .save-btn {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: #2a2015; color: #f5f0e8;
+      border: none; border-radius: 6px;
+      padding: 0.65rem 1.2rem; font-size: 0.85rem;
+      font-family: Arial, sans-serif; font-weight: 500;
+      letter-spacing: 0.03em; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      transition: background 0.2s;
+    }
+    .save-btn:hover { background: #4a3728; }
+    @media print { .save-btn { display: none; } }
   </style></head><body>
+  <button class="save-btn" onclick="window.print()">⬇ Save as PDF</button>
   <h1>CMC The Courtyard</h1>
   <p class="sub">Resident Directory</p>
   <table><thead><tr><th>Address</th><th>First Name</th><th>Last Name</th><th>Mobile</th><th>Email</th></tr></thead>
   <tbody>${tableRows}</tbody></table>
   <div class="footer">Exported ${date} · ${rows.length} residents</div>
-  <script>window.onload=function(){setTimeout(function(){window.print();},500);};<\/script>
   </body></html>`;
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
