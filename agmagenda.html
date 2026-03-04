@@ -535,6 +535,7 @@ function showMsg(type, text) {
 
 loadAddresses();
 loadAgenda();
+setInterval(() => { loadAgenda(); }, 60000);
 </script>
 
 </body>
