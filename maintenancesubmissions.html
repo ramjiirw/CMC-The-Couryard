@@ -164,7 +164,7 @@
     </div>
   </div>
   <div class="header-right">
-    <button class="btn btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login">&#128274;</button>
+    <button class="btn btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
     <div id="adminLoginBox" style="display:none;position:absolute;top:4.5rem;right:1.5rem;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
       <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
       <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin();if(event.key==='Escape')toggleAdminLogin()">
@@ -196,6 +196,7 @@
 
 <div class="admin-bar" id="adminBar" style="display:none;">
   <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
+  <button onclick="showChangePassword()" style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.3rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">&#128272; Change Password</button>
   <button onclick="exitAdmin()" style="background:#3a3530;margin-left:auto;">Exit Admin</button>
 </div>
 
@@ -289,8 +290,30 @@
 </div>
 
 <script>
-const ADMIN_PASSWORD = 'cmcds';
+let ADMIN_PASSWORD = null;
 let isAdmin = false;
+
+async function fetchAdminPassword() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=readSettings', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok' && data.password) {
+      ADMIN_PASSWORD = data.password;
+      document.getElementById('adminBtn').style.display = '';
+    }
+  } catch(e) {
+    console.warn('Could not load admin password from sheet');
+  }
+}
+
+async function saveAdminPassword(newPassword) {
+  await fetch(SCRIPT_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'writePassword', password: newPassword })
+  });
+}
 
 function toggleAdminLogin() {
   const box = document.getElementById('adminLoginBox');
@@ -355,6 +378,46 @@ function onUpdateInput(i) {
 
 function onStatusChange() {
   isDirty = true;
+}
+
+function showChangePassword() {
+  const existing = document.getElementById('changePwOverlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'changePwOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:600;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:var(--cream);border-radius:12px;padding:1.5rem;width:90%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,0.3);">
+      <h3 style="font-size:1rem;color:var(--accent);margin-bottom:1rem;">🔑 Change Admin Password</h3>
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a6e64;display:block;margin-bottom:0.3rem;">Current Password</label>
+      <input type="password" id="cpCurrent" placeholder="Current password" style="width:100%;padding:0.5rem 0.7rem;border:1px solid #d8cfc4;border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-bottom:0.7rem;box-sizing:border-box;">
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a6e64;display:block;margin-bottom:0.3rem;">New Password</label>
+      <input type="password" id="cpNew" placeholder="New password" style="width:100%;padding:0.5rem 0.7rem;border:1px solid #d8cfc4;border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-bottom:0.7rem;box-sizing:border-box;">
+      <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a6e64;display:block;margin-bottom:0.3rem;">Confirm New Password</label>
+      <input type="password" id="cpConfirm" placeholder="Confirm new password" style="width:100%;padding:0.5rem 0.7rem;border:1px solid #d8cfc4;border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-bottom:0.5rem;box-sizing:border-box;">
+      <div id="cpErr" style="color:#b05050;font-size:0.78rem;display:none;margin-bottom:0.5rem;"></div>
+      <div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:0.8rem;">
+        <button onclick="document.getElementById('changePwOverlay').remove()" style="padding:0.45rem 1rem;background:#3a3530;color:#b8ad9e;border:none;border-radius:5px;font-family:Arial,sans-serif;cursor:pointer;">Cancel</button>
+        <button onclick="doChangePassword()" style="padding:0.45rem 1rem;background:var(--accent);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Update Password</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('cpCurrent').focus(), 50);
+}
+
+async function doChangePassword() {
+  const cur     = document.getElementById('cpCurrent').value;
+  const newPw   = document.getElementById('cpNew').value;
+  const confirm = document.getElementById('cpConfirm').value;
+  const err     = document.getElementById('cpErr');
+  err.style.display = 'none';
+  if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
+  if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
+  if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+  ADMIN_PASSWORD = newPw;
+  await saveAdminPassword(newPw);
+  document.getElementById('changePwOverlay').remove();
+  showToast('Password updated successfully', 'success');
 }
 
 function exitAdmin() {
@@ -685,6 +748,7 @@ function showQR() {
   }
 
 loadAddresses();
+fetchAdminPassword();
 loadIssues();
 setInterval(() => { loadIssues(); }, 60000);
 </script>
@@ -692,5 +756,16 @@ setInterval(() => { loadIssues(); }, 60000);
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
 </footer>
 <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
+<div id="toast" style="position:fixed;bottom:2rem;right:2rem;background:#2a2015;color:#f5f0e8;padding:0.75rem 1.25rem;border-radius:6px;font-size:0.83rem;box-shadow:0 4px 20px rgba(0,0,0,0.35);transform:translateY(100px);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.4,0.64,1);z-index:9999;display:flex;align-items:center;gap:0.5rem;pointer-events:none;" id="toastEl"></div>
+<script>
+function showToast(msg, type) {
+  const t = document.getElementById('toastEl');
+  const icon = type === 'success' ? '✓' : '✕';
+  t.innerHTML = `<span style="font-size:1rem;opacity:0.9">${icon}</span> ${msg}`;
+  t.style.transform = 'translateY(0)'; t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.style.transform = 'translateY(100px)'; t.style.opacity = '0'; }, 3000);
+}
+</script>
 </body>
 </html>
