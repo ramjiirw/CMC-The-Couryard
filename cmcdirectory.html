@@ -897,14 +897,15 @@ function showMissingData() {
   const named = residents.filter(r => r.firstName || r.lastName);
   const noEmail  = named.filter(r => !r.email.trim());
   const noMobile = named.filter(r => !r.mobile.trim());
-  const name = r => [r.firstName, r.lastName].filter(Boolean).join(' ') + (r.address ? ` (${r.address})` : '');
+  const label = r => [r.firstName, r.lastName].filter(Boolean).join(' ') + (r.address ? ` — ${r.address}` : '');
+  const listHTML = items => '<ul style="margin:0.4rem 0 1rem;padding:0;list-style:none;">' + items.map(r => '<li style="padding:0.35rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;color:var(--dark);">' + label(r) + '</li>').join('') + '</ul>';
 
   let body = '';
   if (!noEmail.length && !noMobile.length) {
     body = '<p style="color:var(--green);">&#10003; All residents have complete contact details.</p>';
   } else {
-    if (noEmail.length) body += `<p><strong>No email address:</strong></p>${noEmail.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}<br><br>`;
-    if (noMobile.length) body += `<p><strong>No mobile number:</strong></p>${noMobile.map(r=>`<span class="tag warn">${name(r)}</span>`).join('')}`;
+    if (noEmail.length) body += '<p style="font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);margin-bottom:0.2rem;">No email address</p>' + listHTML(noEmail);
+    if (noMobile.length) body += '<p style="font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);margin-bottom:0.2rem;">No mobile number</p>' + listHTML(noMobile);
   }
   openAdminModal('⚠️ Missing Contact Data', body);
 }
@@ -914,11 +915,10 @@ function showOccupancy() {
   collectFromDOM();
   const occupied = new Set(residents.filter(r => r.firstName||r.lastName).map(r => r.address).filter(Boolean));
   const vacant = ADDRESSES.filter(a => !occupied.has(a));
-  const body = `
-    <p><strong>${occupied.size}</strong> of 14 addresses occupied &nbsp;·&nbsp; <strong>${vacant.length}</strong> vacant</p>
-    <p style="margin-top:0.8rem;"><strong>Occupied:</strong></p>
-    ${[...occupied].sort((a,b)=>parseInt(a)-parseInt(b)).map(a=>`<span class="tag">${a}</span>`).join('')}
-    ${vacant.length ? `<p style="margin-top:0.8rem;"><strong>Vacant:</strong></p>${vacant.map(a=>`<span class="tag vacant">${a}</span>`).join('')}` : ''}`;
+  const rowStyle = 'padding:0.35rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;';
+  const occupiedList = [...occupied].sort((a,b)=>parseInt(a)-parseInt(b)).map(a => '<li style="' + rowStyle + 'color:var(--dark);">&#10003; ' + a + '</li>').join('');
+  const vacantList = vacant.map(a => '<li style="' + rowStyle + 'color:#b05050;">&#9675; ' + a + '</li>').join('');
+  const body = '<p style="margin-bottom:1rem;"><strong>' + occupied.size + '</strong> of 14 occupied &nbsp;·&nbsp; <strong>' + vacant.length + '</strong> vacant</p><ul style="margin:0;padding:0;list-style:none;">' + occupiedList + vacantList + '</ul>';
   openAdminModal('🏘 Occupancy Summary', body);
 }
 
