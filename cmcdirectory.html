@@ -128,7 +128,7 @@
   .add-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: none; border: 1px dashed var(--stone); border-radius: 5px; padding: 0.45rem 1.1rem; color: var(--mid); font-family: Arial, sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
   .add-btn:hover { border-color: var(--accent); color: var(--accent); background: #fdf8f3; }
   .toast {
-    position: fixed; bottom: 2rem; right: 2rem;
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
     background: #2a2015; color: var(--cream);
     padding: 0.75rem 1.25rem; border-radius: 6px;
     font-size: 0.83rem; font-weight: 400; letter-spacing: 0.03em;
@@ -138,8 +138,7 @@
     z-index: 9999; display: flex; align-items: center; gap: 0.5rem;
     max-width: 300px; border: none; pointer-events: none;
   }
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   .toast.error { background: #2a1515; }
 
   @media (max-width: 680px) {
@@ -853,15 +852,15 @@ function showChangePassword() {
   const body = `
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Current Password</label>
-      <input type="password" id="cpCurrent" placeholder="Current password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
+      <input type="password" id="cpCurrent" placeholder="Current password">
     </div>
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">New Password</label>
-      <input type="password" id="cpNew" placeholder="New password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
+      <input type="password" id="cpNew" placeholder="New password">
     </div>
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Confirm New Password</label>
-      <input type="password" id="cpConfirm" placeholder="Confirm new password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
+      <input type="password" id="cpConfirm" placeholder="Confirm new password">
     </div>
     <div id="cpErr" style="color:#b05050;font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
   openAdminModal('🔑 Change Admin Password', body, 'Update Password', async () => {
