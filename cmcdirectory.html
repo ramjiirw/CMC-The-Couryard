@@ -852,15 +852,15 @@ function showChangePassword() {
   const body = `
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Current Password</label>
-      <input type="password" id="cpCurrent" placeholder="Current password">
+      <input type="password" id="cpCurrent" placeholder="Current password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
     </div>
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">New Password</label>
-      <input type="password" id="cpNew" placeholder="New password">
+      <input type="password" id="cpNew" placeholder="New password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
     </div>
     <div class="modal-field">
       <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);display:block;margin-bottom:0.3rem;">Confirm New Password</label>
-      <input type="password" id="cpConfirm" placeholder="Confirm new password">
+      <input type="password" id="cpConfirm" placeholder="Confirm new password" onkeydown="if(event.key==='Enter')document.getElementById('adminModalActionBtn').click()">
     </div>
     <div id="cpErr" style="color:#b05050;font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
   openAdminModal('🔑 Change Admin Password', body, 'Update Password', async () => {
