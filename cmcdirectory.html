@@ -138,7 +138,8 @@
     z-index: 9999; display: flex; align-items: center; gap: 0.5rem;
     max-width: 300px; border: none; pointer-events: none;
   }
-  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
   .toast.error { background: #2a1515; }
 
   @media (max-width: 680px) {
@@ -899,6 +900,16 @@ function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
     btn.style.display = 'none';
   }
   document.getElementById('adminModalOverlay').classList.add('open');
+  setTimeout(() => {
+    document.querySelectorAll('#adminModalInner input').forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const btn = document.getElementById('adminModalActionBtn');
+          if (btn && btn.style.display !== 'none') btn.click();
+        }
+      });
+    });
+  }, 50);
 }
 
 function closeAdminModal() {
