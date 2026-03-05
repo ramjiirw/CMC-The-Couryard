@@ -869,12 +869,13 @@ function showChangePassword() {
     const confirm = document.getElementById('cpConfirm').value;
     const err     = document.getElementById('cpErr');
     err.style.display = 'none';
-    if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
+    const currentPw = ADMIN_PASSWORD;
+    if (cur !== currentPw) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
     if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
     if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+    closeAdminModal();
     ADMIN_PASSWORD = newPw;
     await saveAdminPassword(newPw);
-    closeAdminModal();
     showToast('Password updated successfully', 'success');
   });
 }
