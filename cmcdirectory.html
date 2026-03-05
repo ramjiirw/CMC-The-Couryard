@@ -854,7 +854,7 @@ function emailAll() {
   collectFromDOM();
   const emails = residents.map(r => r.email.trim()).filter(e => e && e.includes('@'));
   if (!emails.length) { showToast('No email addresses found', 'error'); return; }
-  window.location.href = 'mailto:' + emails.join(',');
+  window.location.href = 'mailto:' + emails.join(';');
 }
 
 // ─── EMAIL ADDRESS ────────────────────────────────────────────────────
@@ -873,7 +873,7 @@ function showEmailAddress() {
     if (!addr) { showToast('Please select an address', 'error'); return; }
     const emails = residents.filter(r => r.address === addr && r.email.trim()).map(r => r.email.trim());
     if (!emails.length) { showToast('No emails for that address', 'error'); return; }
-    window.location.href = 'mailto:' + emails.join(',');
+    window.location.href = 'mailto:' + emails.join(';');
     closeAdminModal();
   });
 }
