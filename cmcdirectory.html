@@ -897,8 +897,7 @@ function showMissingData() {
   const named = residents.filter(r => r.firstName || r.lastName);
   const noEmail  = named.filter(r => !r.email.trim());
   const noMobile = named.filter(r => !r.mobile.trim());
-  const label = r => [r.firstName, r.lastName].filter(Boolean).join(' ') + (r.address ? ` — ${r.address}` : '');
-  const listHTML = items => '<ul style="margin:0.4rem 0 1rem;padding:0;list-style:none;">' + items.map(r => '<li style="padding:0.35rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;color:var(--dark);">' + label(r) + '</li>').join('') + '</ul>';
+  const listHTML = items => '<ul style="margin:0.4rem 0 1rem;padding:0;list-style:none;">' + items.map(r => '<li style="padding:0.35rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;display:flex;gap:0.75rem;"><span style="width:140px;flex-shrink:0;color:var(--mid);font-size:0.78rem;padding-top:0.05rem;">' + (r.address||'—') + '</span><span style="color:var(--dark);">' + ([r.firstName,r.lastName].filter(Boolean).join(' ')||'—') + '</span></li>').join('') + '</ul>';
 
   let body = '';
   if (!noEmail.length && !noMobile.length) {
