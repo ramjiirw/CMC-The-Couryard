@@ -283,7 +283,9 @@
 <div class="admin-bar" id="adminBar" style="display:none;">
   <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
   <button class="abtn" onclick="emailAll()">&#9993; Email All</button>
+  <button class="abtn abtn-muted" onclick="emailAllMobile()">📱 Email All (Mobile)</button>
   <button class="abtn" onclick="showEmailAddress()">&#9993; Email Address</button>
+  <button class="abtn abtn-muted" onclick="showEmailAddressMobile()">📱 Email Address (Mobile)</button>
   <button class="abtn" onclick="copyAllNumbers()">&#128222; Copy Numbers</button>
   <button class="abtn" onclick="showMissingData()">&#9888; Missing Data</button>
   <button class="abtn" onclick="showOccupancy()">&#127968; Occupancy</button>
@@ -785,6 +787,13 @@ function showToast(msg, type='success') {
 let ADMIN_PASSWORD = 'cmcds';
 let isAdmin = false;
 
+function emailAllMobile() {
+  collectFromDOM();
+  const emails = residents.map(r => r.email.trim()).filter(e => e && e.includes('@'));
+  if (!emails.length) { showToast('No email addresses found', 'error'); return; }
+  window.location.href = 'mailto:' + emails.join(',');
+}
+
 function toggleAdminLogin() {
   const box = document.getElementById('adminLoginBox');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
@@ -858,6 +867,26 @@ function emailAll() {
 }
 
 // ─── EMAIL ADDRESS ────────────────────────────────────────────────────
+function showEmailAddressMobile() {
+  const counts = {};
+  residents.forEach(r => { if (r.address) counts[r.address] = (counts[r.address]||0) + 1; });
+  const occupied = ADDRESSES.filter(a => counts[a]);
+  const body = `
+    <p>Select an address to email its residents:</p>
+    <select id="emailAddrSelMob" style="width:100%;padding:0.5rem 0.7rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-top:0.4rem;">
+      <option value="">— Choose address —</option>
+      ${occupied.map(a => `<option value="${a}">${a}</option>`).join('')}
+    </select>`;
+  openAdminModal('📱 Email Address (Mobile)', body, '✉ Open Email', () => {
+    const addr = document.getElementById('emailAddrSelMob').value;
+    if (!addr) { showToast('Please select an address', 'error'); return; }
+    const emails = residents.filter(r => r.address === addr && r.email.trim()).map(r => r.email.trim());
+    if (!emails.length) { showToast('No emails for that address', 'error'); return; }
+    window.location.href = 'mailto:' + emails.join(',');
+    closeAdminModal();
+  });
+}
+
 function showEmailAddress() {
   const counts = {};
   residents.forEach(r => { if (r.address) counts[r.address] = (counts[r.address]||0) + 1; });
