@@ -239,15 +239,21 @@
   .btn-toggle {
     display: flex; align-items: center; justify-content: space-between;
     width: 100%; padding: 0.75rem 1.25rem;
-    background: var(--accent); color: var(--cream);
-    border: none; border-radius: 10px;
+    background: var(--dark); color: var(--cream);
+    border: none; border-radius: 10px 10px 0 0;
     font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
     letter-spacing: 0.06em; text-transform: uppercase;
     cursor: pointer; transition: background 0.2s; margin-bottom: 0;
   }
-  .btn-toggle:hover { background: #6a4e33; }
-  .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; opacity: 0.7; }
+  .btn-toggle:hover { background: #2a2520; }
+  .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .btn-toggle.open .chevron { transform: rotate(90deg); }
+  .btn-toggle.open .toggle-hint .hint-text { display: none; }
+  .btn-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .btn-toggle.open .toggle-hint .hint-open { display: none; }
+  .btn-toggle.open .toggle-hint .hint-close { display: inline; }
+  .btn-toggle:not(.open) .toggle-hint .hint-close { display: none; }
   .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
   .collapsible-panel.open { max-height: 8000px; }
   .doc-card {
@@ -331,7 +337,12 @@
   <!-- AGM Documents -->
   <div class="agenda-card" style="margin-bottom: 1.5rem;">
     <button class="btn-toggle" id="toggle-agmdocs" onclick="toggleDocs()" aria-expanded="false">
-      <span>📄 AGM Documents</span><span class="chevron">▶</span>
+      <span>📄 AGM Documents</span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-agmdocs">
       <div id="wrap-agmdocs"><div class="loading">Loading documents…</div></div>
