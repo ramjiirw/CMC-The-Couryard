@@ -69,7 +69,10 @@
   .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.05em; }
   .form-group input, .form-group select, .form-group textarea { padding: 0.55rem 0.8rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.85rem; color: var(--dark); background: var(--cream); transition: border-color 0.2s; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent2); }
-  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-group textarea { resize: vertical; min-height: 160px; }
+  @media (max-width: 640px) {
+    .form-group textarea { min-height: 220px; }
+  }
   .btn-submit { background: var(--blue); color: white; border: none; border-radius: 5px; padding: 0.65rem 1.5rem; font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
   .btn-submit:hover { background: #2d5238; }
   .btn-submit:disabled { background: var(--stone); cursor: not-allowed; }
@@ -121,7 +124,7 @@
   }
   .expand-panel label { color: var(--stone); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 0.3rem; }
   .expand-panel select { padding: 0.4rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.88rem; min-width: 140px; }
-  .expand-panel textarea { padding: 0.4rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.88rem; width: 340px; height: 70px; resize: vertical; }
+  .expand-panel textarea { padding: 0.4rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.88rem; width: 100%; min-height: 140px; resize: vertical; }
   .expand-panel .ep-actions { display: flex; gap: 0.6rem; align-items: center; margin-left: auto; align-self: flex-end; }
   .btn-save { background: var(--green); color: white; border: none; border-radius: 5px; padding: 0.45rem 1.1rem; font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .btn-save:hover { background: #2d5238; }
