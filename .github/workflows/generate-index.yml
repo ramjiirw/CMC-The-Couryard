@@ -29,7 +29,7 @@ jobs:
             if not os.path.isdir(path):
               return files
             for f in sorted(os.listdir(path)):
-              if os.path.isfile(os.path.join(path, f)) and not f.startswith('.'):
+              if f.lower().endswith('.pdf'):
                 full = os.path.join(path, f)
                 files.append({
                   "name": f,
