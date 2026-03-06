@@ -235,6 +235,47 @@
 
   .loading { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.82rem; }
 
+  /* ── Documents section ── */
+  .btn-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0.75rem 1.25rem;
+    background: var(--accent); color: var(--cream);
+    border: none; border-radius: 10px;
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s; margin-bottom: 0;
+  }
+  .btn-toggle:hover { background: #6a4e33; }
+  .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; opacity: 0.7; }
+  .btn-toggle.open .chevron { transform: rotate(90deg); }
+  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+  .collapsible-panel.open { max-height: 8000px; }
+  .doc-card {
+    background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow); overflow: hidden; margin-top: 0.6rem;
+  }
+  .doc-table { width: 100%; border-collapse: collapse; }
+  .doc-table thead th {
+    background: rgba(122,92,62,0.07); padding: 0.7rem 1.5rem;
+    text-align: left; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--mid);
+    border-bottom: 1px solid var(--border); user-select: none; cursor: pointer; white-space: nowrap;
+  }
+  .doc-table thead th:hover { color: var(--accent); }
+  .doc-table thead th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 0.7rem; }
+  .doc-table thead th.sort-asc  .sort-icon::after { content: ' ▲'; opacity: 1; }
+  .doc-table thead th.sort-desc .sort-icon::after { content: ' ▼'; opacity: 1; }
+  .doc-table thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: ' ⇅'; }
+  .doc-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .doc-table tbody tr:last-child { border-bottom: none; }
+  .doc-table tbody tr:hover { background: rgba(196,149,106,0.06); }
+  .doc-table tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
+  .doc-link { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-word; }
+  .doc-link:hover { color: var(--accent2); text-decoration: underline; }
+  .td-date { color: var(--mid); font-size: 0.82rem; white-space: nowrap; }
+  .state-empty { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; font-style: italic; }
+  .state-error { padding: 1rem 1.5rem; color: #c0392b; font-size: 0.85rem; }
+
   @media (max-width: 640px) {
     header { padding: 1rem; }
     .meeting-card { grid-template-columns: 1fr; gap: 0.25rem; }
@@ -285,6 +326,16 @@
       If you are unable to attend the AGM and wish to vote on the item[s] below – please give your proxy in writing via email or text message to the resident to whom you wish to give your vote with a copy to the Company Secretary prior to the meeting.
     </div>
     <div id="votingNote"></div>
+  </div>
+
+  <!-- AGM Documents -->
+  <div class="agenda-card" style="margin-bottom: 1.5rem;">
+    <button class="btn-toggle" id="toggle-agmdocs" onclick="toggleDocs()" aria-expanded="false">
+      <span>📄 AGM Documents</span><span class="chevron">▶</span>
+    </button>
+    <div class="collapsible-panel" id="panel-agmdocs">
+      <div id="wrap-agmdocs"><div class="loading">Loading documents…</div></div>
+    </div>
   </div>
 
 </main>
@@ -536,6 +587,85 @@ function showMsg(type, text) {
 loadAddresses();
 loadAgenda();
 setInterval(() => { loadAgenda(); }, 60000);
+
+// ── AGM Documents ─────────────────────────────────────────────────────────────
+var agmDocState = { files: [], sortCol: 'name', sortDir: 'asc' };
+
+function toggleDocs() {
+  var btn   = document.getElementById('toggle-agmdocs');
+  var panel = document.getElementById('panel-agmdocs');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+
+function fixDocTitle(raw) {
+  return raw.replace(/\.pdf$/i, '').replace(/\w\S*/g, function(w) {
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  });
+}
+
+function fmtDocDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+}
+
+function renderDocs() {
+  var state = agmDocState;
+  var wrap  = document.getElementById('wrap-agmdocs');
+  if (!state.files.length) {
+    wrap.innerHTML = '<div class="state-empty">No documents have been uploaded yet.</div>';
+    return;
+  }
+  var sorted = state.files.slice().sort(function(a, b) {
+    if (state.sortCol === 'name') {
+      var va = fixDocTitle(a.name).toLowerCase(), vb = fixDocTitle(b.name).toLowerCase();
+      return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    } else {
+      var va = a.modified ? new Date(a.modified).getTime() : 0;
+      var vb = b.modified ? new Date(b.modified).getTime() : 0;
+      return state.sortDir === 'asc' ? va - vb : vb - va;
+    }
+  });
+  function thCls(col) {
+    if (col !== state.sortCol) return '';
+    return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
+  }
+  var rows = sorted.map(function(f) {
+    return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
+      fixDocTitle(f.name) + '</a></td>' +
+      '<td class="td-date">' + fmtDocDate(f.modified) + '</td></tr>';
+  }).join('');
+  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
+    '<th class="' + thCls('name') + '" onclick="reSortDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
+    '<th class="' + thCls('date') + '" onclick="reSortDocs(\'date\')">Date<span class="sort-icon"></span></th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function reSortDocs(col) {
+  if (agmDocState.sortCol === col) {
+    agmDocState.sortDir = agmDocState.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    agmDocState.sortCol = col; agmDocState.sortDir = 'asc';
+  }
+  renderDocs();
+}
+
+(async function loadAgmDocs() {
+  var INDEX_URL = 'cmcdocuments/index.json';
+  try {
+    var res = await fetch(INDEX_URL + '?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var idx = await res.json();
+    var folder = (idx.folders || []).find(function(f) { return f.key === 'agmdocuments'; });
+    agmDocState.files = folder ? (folder.files || []) : [];
+    renderDocs();
+  } catch(err) {
+    document.getElementById('wrap-agmdocs').innerHTML =
+      '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
+  }
+})();
 </script>
 
 </body>
