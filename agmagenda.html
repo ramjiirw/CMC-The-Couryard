@@ -630,8 +630,16 @@ function fmtDocDate(iso) {
 function renderDocs() {
   var state = agmDocState;
   var wrap  = document.getElementById('wrap-agmdocs');
+
+  // Update header count
+  var count = state.files.length;
+  var headerSpan = document.querySelector('#toggle-agmdocs span:first-child');
+  if (headerSpan) {
+    headerSpan.textContent = '📄 AGM Documents' + (count > 0 ? ' (' + count + ')' : '');
+  }
+
   if (!state.files.length) {
-    wrap.innerHTML = '<div class="state-empty">No documents have been uploaded yet.</div>';
+    wrap.innerHTML = '<div class="state-empty">No documents have been uploaded yet — check back soon.</div>';
     return;
   }
   var sorted = state.files.slice().sort(function(a, b) {
