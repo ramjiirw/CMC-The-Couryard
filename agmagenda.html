@@ -215,6 +215,10 @@
     border-color: var(--accent2);
   }
   .form-group textarea { resize: vertical; min-height: 140px; }
+  @media (max-width: 640px) {
+    .form-group textarea { min-height: 200px; }
+    .form-row { flex-direction: column; }
+  }
   .btn-submit {
     background: var(--green);
     color: white;
