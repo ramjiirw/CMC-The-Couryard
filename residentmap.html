@@ -30,7 +30,7 @@
   .header-brand { display: flex; align-items: center; gap: 1rem; }
   .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+  .header-right { display: flex; flex-direction: row; align-items: center; gap: 0.6rem; position: relative; }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
   .btn-nav {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
@@ -236,7 +236,7 @@
       <span id="welcomeMsg"></span>
     </div>
   </div>
-  <div class="header-right" style="display:flex;align-items:center;gap:0.6rem;position:relative;">
+  <div class="header-right">
     <button class="btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
     <div id="adminLoginBox" style="display:none;position:absolute;top:3.2rem;right:0;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
