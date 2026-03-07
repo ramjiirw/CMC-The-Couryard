@@ -189,6 +189,62 @@
     .legend { flex: none; width: 100%; }
     header { padding: 1rem; }
   }
+
+  /* ── Admin styles ── */
+  .admin-bar {
+    background: #2a2520; border-bottom: 1px solid rgba(196,149,106,0.2);
+    padding: 0.55rem 2.5rem; display: none; align-items: center;
+    gap: 0.6rem; flex-wrap: wrap;
+  }
+  .abtn {
+    padding: 0.35rem 0.85rem; border-radius: 5px; border: 1px solid rgba(196,149,106,0.35);
+    background: transparent; color: var(--accent2); font-family: Arial,sans-serif;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .abtn:hover { background: rgba(196,149,106,0.15); }
+  .abtn-exit { border-color: rgba(192,57,43,0.4); color: #e74c3c; }
+  .abtn-exit:hover { background: rgba(192,57,43,0.15); }
+  .admin-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 2000;
+    align-items: center; justify-content: center;
+  }
+  .admin-modal-overlay.open { display: flex; }
+  .admin-modal-inner {
+    background: #fff; border-radius: 14px; padding: 2rem;
+    max-width: 420px; width: 90%; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  }
+  .admin-modal-inner h3 {
+    font-size: 1.1rem; color: var(--accent); margin-bottom: 1.2rem; font-weight: 600;
+  }
+  .modal-field { margin-bottom: 0.9rem; }
+  .modal-field label {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--mid); display: block; margin-bottom: 0.3rem;
+  }
+  .modal-field input, .modal-field select {
+    width: 100%; padding: 0.5rem 0.7rem; border: 1px solid var(--border);
+    border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.9rem; color: var(--dark);
+  }
+  .modal-field input:focus, .modal-field select:focus {
+    outline: none; border-color: var(--accent2);
+  }
+  .modal-actions { display: flex; gap: 0.6rem; margin-top: 1.2rem; justify-content: flex-end; }
+  .modal-btn {
+    padding: 0.5rem 1.2rem; border-radius: 5px; border: none;
+    font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  }
+  .modal-btn-primary { background: var(--accent2); color: #fff; }
+  .modal-btn-primary:hover { background: var(--accent); }
+  .modal-btn-cancel { background: #eee; color: var(--mid); }
+  .modal-btn-cancel:hover { background: #ddd; }
+  .legend-edit-btn {
+    display: none; margin-left: 0.4rem; padding: 0.15rem 0.5rem;
+    font-size: 0.65rem; border-radius: 4px; border: 1px solid rgba(122,92,62,0.3);
+    background: transparent; color: var(--accent); cursor: pointer;
+  }
+  .legend-edit-btn:hover { background: rgba(122,92,62,0.1); }
+  body.admin-mode .legend-edit-btn { display: inline-block; }
 </style>
 </head>
 <body>
@@ -202,10 +258,40 @@
       <span id="welcomeMsg"></span>
     </div>
   </div>
-  <div class="header-right">
+  <div class="header-right" style="position:relative;">
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
+    <button id="adminBtn" onclick="toggleAdminLogin()" style="display:none;background:none;border:none;cursor:pointer;color:var(--stone);font-size:1.3rem;padding:0.3rem;line-height:1;transition:color 0.2s;" title="Admin login">🔒</button>
+    <div id="adminLoginBox" style="display:none;position:absolute;top:4.5rem;right:0;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+      <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
+      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;" onkeydown="if(event.key==='Enter')checkAdmin();if(event.key==='Escape')toggleAdminLogin()">
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="checkAdmin()" style="flex:2;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+        <button onclick="toggleAdminLogin()" style="flex:1;padding:0.4rem;background:#3a3530;color:var(--stone);border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Cancel</button>
+      </div>
+      <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-top:0.4rem;display:none;">Incorrect password</div>
+    </div>
   </div>
 </header>
+
+<!-- Admin bar -->
+<div class="admin-bar" id="adminBar">
+  <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">🔒 Admin Mode</span>
+  <button class="abtn" onclick="openEditModal(null)">✎ Edit Property</button>
+  <button class="abtn" onclick="showChangePassword()">🔑 Change Password</button>
+  <button class="abtn abtn-exit" onclick="exitAdmin()">Exit Admin</button>
+</div>
+
+<!-- Admin modal -->
+<div class="admin-modal-overlay" id="adminModalOverlay">
+  <div class="admin-modal-inner" id="adminModalInner">
+    <h3 id="adminModalTitle"></h3>
+    <div id="adminModalBody"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeAdminModal()">Cancel</button>
+      <button class="modal-btn modal-btn-primary" id="adminModalActionBtn"></button>
+    </div>
+  </div>
+</div>
 
 <main>
   <div class="page-title">
@@ -291,7 +377,7 @@ function buildLegend(data) {
     <div class="legend-row" data-num="${r.num}" onclick="selectProperty(${r.num})">
       <div class="legend-num">${r.num}</div>
       <div class="legend-info">
-        <div class="legend-owner">${r.owner}</div>
+        <div class="legend-owner">${r.owner} <button class="legend-edit-btn" onclick="event.stopPropagation();openEditModal(${r.num})">✎ Edit</button></div>
         <div class="legend-tenant">${tenantDisplay(r)}</div>
       </div>
     </div>
@@ -339,6 +425,214 @@ document.querySelectorAll('.hotspot').forEach(h => {
   h.addEventListener('click', () => selectProperty(parseInt(h.dataset.num)));
 });
 
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+const CONFIG = { scriptUrl: 'YOUR_APPS_SCRIPT_URL_HERE' };
+let ADMIN_PASSWORD = '';
+let isAdmin = false;
+
+async function fetchAdminPassword() {
+  try {
+    const res = await fetch(`${CONFIG.scriptUrl}?action=readSettings`, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok' && data.password) {
+      ADMIN_PASSWORD = data.password;
+      document.getElementById('adminBtn').style.display = '';
+    }
+  } catch(e) {
+    console.warn('Could not load admin password from sheet');
+  }
+}
+
+function toggleAdminLogin() {
+  const box = document.getElementById('adminLoginBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  if (box.style.display === 'block') {
+    document.getElementById('adminPwInput').focus();
+    document.getElementById('adminErr').style.display = 'none';
+    document.getElementById('adminPwInput').value = '';
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        const box = document.getElementById('adminLoginBox');
+        const btn = document.getElementById('adminBtn');
+        if (!box.contains(e.target) && e.target !== btn) {
+          box.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
+}
+
+function checkAdmin() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminBar').style.display = 'flex';
+    document.getElementById('adminBtn').style.color = 'var(--accent2)';
+    document.getElementById('adminPwInput').value = '';
+    document.body.classList.add('admin-mode');
+  } else {
+    document.getElementById('adminErr').style.display = 'block';
+  }
+}
+
+function exitAdmin() {
+  isAdmin = false;
+  document.getElementById('adminBar').style.display = 'none';
+  document.getElementById('adminBtn').style.color = '';
+  document.body.classList.remove('admin-mode');
+}
+
+function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
+  document.getElementById('adminModalTitle').textContent = title;
+  document.getElementById('adminModalBody').innerHTML = bodyHTML;
+  const btn = document.getElementById('adminModalActionBtn');
+  if (actionLabel && actionFn) {
+    btn.textContent = actionLabel;
+    btn.onclick = actionFn;
+    btn.style.display = 'inline-block';
+  } else {
+    btn.style.display = 'none';
+  }
+  document.getElementById('adminModalOverlay').classList.add('open');
+  setTimeout(() => {
+    document.querySelectorAll('#adminModalInner input').forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const btn = document.getElementById('adminModalActionBtn');
+          if (btn && btn.style.display !== 'none') btn.click();
+        }
+      });
+    });
+  }, 50);
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModalOverlay').classList.remove('open');
+}
+
+document.getElementById('adminModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAdminModal();
+});
+
+function openEditModal(preselectedNum) {
+  const options = residents.map(r =>
+    `<option value="${r.num}" ${r.num === preselectedNum ? 'selected' : ''}>${r.num} — ${r.address}</option>`
+  ).join('');
+
+  const body = `
+    <div class="modal-field">
+      <label>Property</label>
+      <select id="editPropSelect" onchange="onEditPropChange()">
+        <option value="">— select property —</option>
+        ${options}
+      </select>
+    </div>
+    <div class="modal-field" id="editAddressRow" style="display:none;">
+      <label>Address</label>
+      <div id="editAddressLabel" style="font-size:0.9rem;color:var(--mid);padding:0.3rem 0;"></div>
+    </div>
+    <div class="modal-field">
+      <label>Owner</label>
+      <input type="text" id="editOwner" placeholder="Owner name">
+    </div>
+    <div class="modal-field">
+      <label>Tenant (leave blank if owner-occupied, or enter "Tenant" / tenant name)</label>
+      <input type="text" id="editTenant" placeholder="Tenant name or blank">
+    </div>
+    <div id="editErr" style="color:#b05050;font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
+
+  openAdminModal('✎ Edit Property', body, 'Save Changes', savePropertyEdit);
+
+  if (preselectedNum) {
+    setTimeout(() => onEditPropChange(), 50);
+  }
+}
+
+function onEditPropChange() {
+  const num = parseInt(document.getElementById('editPropSelect').value);
+  const r = residents.find(x => x.num === num);
+  if (!r) {
+    document.getElementById('editAddressRow').style.display = 'none';
+    return;
+  }
+  document.getElementById('editAddressRow').style.display = '';
+  document.getElementById('editAddressLabel').textContent = r.address;
+  document.getElementById('editOwner').value = r.owner;
+  document.getElementById('editTenant').value = r.tenant;
+}
+
+async function savePropertyEdit() {
+  const num = parseInt(document.getElementById('editPropSelect').value);
+  const err = document.getElementById('editErr');
+  err.style.display = 'none';
+  if (!num) { err.textContent = 'Please select a property.'; err.style.display = 'block'; return; }
+
+  const r = residents.find(x => x.num === num);
+  if (!r) return;
+  const newOwner  = document.getElementById('editOwner').value.trim();
+  const newTenant = document.getElementById('editTenant').value.trim();
+  if (!newOwner) { err.textContent = 'Owner cannot be blank.'; err.style.display = 'block'; return; }
+
+  // Update locally immediately
+  r.owner  = newOwner;
+  r.tenant = newTenant;
+  buildLegend(residents);
+
+  // Write back to sheet
+  try {
+    await fetch(CONFIG.scriptUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'updateResidentMap', address: r.address, owner: newOwner, tenant: newTenant })
+    });
+  } catch(e) {
+    console.warn('Could not save to sheet:', e);
+  }
+
+  closeAdminModal();
+}
+
+function showChangePassword() {
+  const body = `
+    <div class="modal-field">
+      <label>Current Password</label>
+      <input type="password" id="cpCurrent" placeholder="Current password">
+    </div>
+    <div class="modal-field">
+      <label>New Password</label>
+      <input type="password" id="cpNew" placeholder="New password">
+    </div>
+    <div class="modal-field">
+      <label>Confirm New Password</label>
+      <input type="password" id="cpConfirm" placeholder="Confirm new password">
+    </div>
+    <div id="cpErr" style="color:#b05050;font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
+  openAdminModal('🔑 Change Admin Password', body, 'Update Password', async () => {
+    const cur     = document.getElementById('cpCurrent').value;
+    const newPw   = document.getElementById('cpNew').value;
+    const confirm = document.getElementById('cpConfirm').value;
+    const err     = document.getElementById('cpErr');
+    err.style.display = 'none';
+    if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
+    if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
+    if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+    ADMIN_PASSWORD = newPw;
+    try {
+      await fetch(CONFIG.scriptUrl, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'writePassword', password: newPw })
+      });
+    } catch(e) { console.warn('Could not save password:', e); }
+    closeAdminModal();
+  });
+}
+
+fetchAdminPassword();
 
 loadData();
 </script>
