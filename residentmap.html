@@ -189,6 +189,40 @@
     .legend { flex: none; width: 100%; }
     header { padding: 1rem; }
   }
+
+  /* ── Admin ─────────────────────────────────────────────────────────── */
+  .btn-lock { background:transparent; color:var(--stone); border:1px solid #3a3530; font-size:0.75rem; padding:0.35rem 0.75rem; border-radius:6px; cursor:pointer; font-family:Arial,sans-serif; transition:background 0.2s, color 0.2s; }
+  .btn-lock:hover { background:#2a2520; color:var(--accent2); }
+  .admin-bar { background:#2a2520; padding:0.6rem 1.25rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; }
+  .abtn { padding:0.35rem 0.9rem; border-radius:6px; border:none; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; background:var(--accent2); color:#fff; }
+  .abtn-muted { background:#3a3530; color:var(--stone); }
+  .abtn-exit { background:#7a3030; color:#fff; }
+  .abtn:hover { opacity:0.88; }
+
+  /* Admin modals */
+  .admin-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:600; align-items:center; justify-content:center; }
+  .admin-modal-overlay.open { display:flex; }
+  .admin-modal { background:var(--cream); border-radius:12px; padding:1.5rem; width:92%; max-width:520px; max-height:85vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.3); }
+  .admin-modal h3 { font-size:1rem; color:var(--accent); margin-bottom:1rem; }
+  .admin-modal-actions { display:flex; gap:0.6rem; margin-top:1.2rem; justify-content:flex-end; }
+  .admin-modal input, .admin-modal select { width:100%; padding:0.5rem 0.7rem; border:1px solid var(--border); border-radius:5px; font-family:Arial,sans-serif; font-size:0.9rem; margin-bottom:0.6rem; box-sizing:border-box; }
+  .admin-modal input:focus, .admin-modal select:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  .modal-field label { display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); margin-bottom:0.3rem; }
+  .modal-field { margin-bottom:0.75rem; }
+
+  /* Edit table inside admin modal */
+  .edit-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .edit-table th { background:rgba(122,92,62,0.12); color:var(--accent); padding:0.5rem 0.6rem; text-align:left; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border); }
+  .edit-table td { padding:0.45rem 0.6rem; border-bottom:1px solid rgba(184,173,158,0.25); vertical-align:middle; }
+  .edit-table tr:last-child td { border-bottom:none; }
+  .edit-table td input { width:100%; border:1px solid transparent; background:transparent; padding:0.25rem 0.4rem; font-family:Arial,sans-serif; font-size:0.82rem; border-radius:4px; color:var(--dark); }
+  .edit-table td input:focus { border-color:var(--accent2); background:#fff; outline:none; }
+  .addr-cell { color:var(--mid); font-weight:600; white-space:nowrap; }
+
+  .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:#2a2520; color:var(--cream); padding:0.65rem 1.3rem; border-radius:8px; font-size:0.85rem; z-index:999; opacity:0; transition:all 0.3s; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.success { background:#2d5a3d; }
+  .toast.error { background:#7a3030; }
 </style>
 </head>
 <body>
@@ -202,10 +236,44 @@
       <span id="welcomeMsg"></span>
     </div>
   </div>
-  <div class="header-right">
+  <div class="header-right" style="display:flex;align-items:center;gap:0.6rem;position:relative;">
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
+    <button class="btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
+    <div id="adminLoginBox" style="display:none;position:absolute;top:3.2rem;right:0;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+      <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
+      <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')checkAdmin();if(event.key==='Escape')toggleAdminLogin()">
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="checkAdmin()" style="flex:2;padding:0.4rem;background:var(--accent2);color:white;border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Login</button>
+        <button onclick="toggleAdminLogin()" style="flex:1;padding:0.4rem;background:#3a3530;color:var(--stone);border:none;border-radius:5px;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;">Cancel</button>
+      </div>
+      <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-top:0.4rem;display:none;">Incorrect password</div>
+    </div>
   </div>
 </header>
+
+<!-- Admin bar (shown when logged in) -->
+<div class="admin-bar" id="adminBar" style="display:none;">
+  <span style="color:var(--accent2);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">&#128274; Admin Mode</span>
+  <button class="abtn" onclick="showEditTable()">&#9998; Edit Residents</button>
+  <button class="abtn abtn-muted" onclick="showChangePassword()">&#128272; Change Password</button>
+  <button class="abtn abtn-exit" onclick="exitAdmin()">Exit Admin</button>
+  <span id="adminAutoLockMsg" style="color:var(--stone);font-size:0.72rem;margin-left:auto;"></span>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Admin modal overlay -->
+<div class="admin-modal-overlay" id="adminModalOverlay">
+  <div class="admin-modal" id="adminModalInner">
+    <h3 id="adminModalTitle"></h3>
+    <div id="adminModalBody"></div>
+    <div class="admin-modal-actions">
+      <button class="abtn abtn-muted" onclick="closeAdminModal()">Close</button>
+      <button class="abtn" id="adminModalActionBtn" style="display:none;"></button>
+    </div>
+  </div>
+</div>
 
 <main>
   <div class="page-title">
@@ -248,6 +316,11 @@
 </main>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+// Set your Apps Script URL here (same script as the directory, or a new one
+// that handles 'readSettings', 'writePassword', 'readResidentMap', 'updateResidentMap' actions)
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B85tBEixrLIGjZ0qXZWcuw7ON0I1pSmTO3OD2sALZLPVEtQmEOAfxJb1HwvZbQCECfh5/pub?gid=204434224&single=true&output=csv';
 
 let activeNum = null;
@@ -314,7 +387,6 @@ async function loadData() {
 
 // ── Interaction ───────────────────────────────────────────────────────────────
 function selectProperty(num) {
-  // Clear previous
   document.querySelectorAll('.hotspot').forEach(h => h.classList.remove('active'));
   document.querySelectorAll('.legend-row').forEach(r => r.classList.remove('active'));
 
@@ -339,8 +411,246 @@ document.querySelectorAll('.hotspot').forEach(h => {
   h.addEventListener('click', () => selectProperty(parseInt(h.dataset.num)));
 });
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  clearTimeout(t._t);
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  t._t = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
 
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+let ADMIN_PASSWORD = null;
+let isAdmin = false;
+let autoLockTimer = null;
+const AUTO_LOCK_MS = 5 * 60 * 1000; // 5 minutes
+
+async function fetchAdminPassword() {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=readSettings`, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok' && data.password) {
+      ADMIN_PASSWORD = data.password;
+      document.getElementById('adminBtn').style.display = '';
+    }
+  } catch(e) {
+    console.warn('Could not load admin password from sheet');
+  }
+}
+
+async function saveAdminPassword(newPassword) {
+  await fetch(SCRIPT_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'writePassword', password: newPassword })
+  });
+}
+
+function toggleAdminLogin() {
+  const box = document.getElementById('adminLoginBox');
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    document.getElementById('adminPwInput').focus();
+    document.getElementById('adminErr').style.display = 'none';
+    document.getElementById('adminPwInput').value = '';
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        const box = document.getElementById('adminLoginBox');
+        const btn = document.getElementById('adminBtn');
+        if (!box.contains(e.target) && e.target !== btn) {
+          box.style.display = 'none';
+          document.removeEventListener('click', handler);
+        }
+      });
+    }, 0);
+  }
+}
+
+function checkAdmin() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminBar').style.display = 'flex';
+    document.getElementById('adminBtn').style.color = 'var(--accent2)';
+    document.getElementById('adminPwInput').value = '';
+    resetAutoLock();
+  } else {
+    document.getElementById('adminErr').style.display = 'block';
+  }
+}
+
+function resetAutoLock() {
+  clearTimeout(autoLockTimer);
+  let remaining = AUTO_LOCK_MS;
+  const tick = () => {
+    remaining -= 10000;
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    const msg = document.getElementById('adminAutoLockMsg');
+    if (msg) msg.textContent = `Auto-lock in ${mins}:${String(secs).padStart(2,'0')}`;
+    if (remaining <= 0) { exitAdmin(); return; }
+    autoLockTimer = setTimeout(tick, 10000);
+  };
+  autoLockTimer = setTimeout(tick, 10000);
+}
+
+function exitAdmin() {
+  isAdmin = false;
+  clearTimeout(autoLockTimer);
+  document.getElementById('adminBar').style.display = 'none';
+  document.getElementById('adminBtn').style.color = '';
+  closeAdminModal();
+  showToast('Admin session ended', 'success');
+}
+
+// ── Admin modal helpers ────────────────────────────────────────────────────────
+function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
+  document.getElementById('adminModalTitle').textContent = title;
+  document.getElementById('adminModalBody').innerHTML = bodyHTML;
+  const btn = document.getElementById('adminModalActionBtn');
+  if (actionLabel && actionFn) {
+    btn.textContent = actionLabel;
+    btn.onclick = actionFn;
+    btn.style.display = 'inline-block';
+  } else {
+    btn.style.display = 'none';
+  }
+  document.getElementById('adminModalOverlay').classList.add('open');
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModalOverlay').classList.remove('open');
+}
+
+// ── Change Password ────────────────────────────────────────────────────────────
+function showChangePassword() {
+  const body = `
+    <div class="modal-field">
+      <label>Current Password</label>
+      <input type="password" id="cpCurrent" placeholder="Current password">
+    </div>
+    <div class="modal-field">
+      <label>New Password</label>
+      <input type="password" id="cpNew" placeholder="New password">
+    </div>
+    <div class="modal-field">
+      <label>Confirm New Password</label>
+      <input type="password" id="cpConfirm" placeholder="Confirm new password">
+    </div>
+    <div id="cpErr" style="color:#b05050;font-size:0.78rem;display:none;margin-top:0.3rem;"></div>`;
+  openAdminModal('🔑 Change Admin Password', body, 'Update Password', async () => {
+    const cur     = document.getElementById('cpCurrent').value;
+    const newPw   = document.getElementById('cpNew').value;
+    const confirm = document.getElementById('cpConfirm').value;
+    const err     = document.getElementById('cpErr');
+    err.style.display = 'none';
+    if (cur !== ADMIN_PASSWORD) { err.textContent = 'Current password is incorrect'; err.style.display = 'block'; return; }
+    if (!newPw) { err.textContent = 'New password cannot be empty'; err.style.display = 'block'; return; }
+    if (newPw !== confirm) { err.textContent = 'Passwords do not match'; err.style.display = 'block'; return; }
+    closeAdminModal();
+    ADMIN_PASSWORD = newPw;
+    await saveAdminPassword(newPw);
+    showToast('Password updated successfully', 'success');
+  });
+}
+
+// ── Edit Residents Table ───────────────────────────────────────────────────────
+// Working copy of residents while editing
+let editDraft = [];
+
+function showEditTable() {
+  resetAutoLock();
+  // Deep-copy current residents into draft
+  editDraft = residents.map(r => ({ ...r }));
+
+  const rows = editDraft.map((r, i) => `
+    <tr>
+      <td class="addr-cell">${r.address}</td>
+      <td><input type="text" id="eo_${i}" value="${escHtml(r.owner)}" placeholder="Owner name" oninput="editDraft[${i}].owner=this.value;resetAutoLock()"></td>
+      <td><input type="text" id="et_${i}" value="${escHtml(r.tenant)}" placeholder="Tenant / blank" oninput="editDraft[${i}].tenant=this.value;resetAutoLock()"></td>
+    </tr>`).join('');
+
+  const body = `
+    <p style="font-size:0.8rem;color:var(--mid);margin-bottom:0.75rem;">
+      Edit owner and tenant names below. Address is fixed. Leave Tenant blank for owner-occupied.
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="edit-table">
+        <thead><tr><th>Address</th><th>Owner</th><th>Tenant</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div id="saveErr" style="color:#b05050;font-size:0.78rem;margin-top:0.6rem;display:none;"></div>`;
+
+  openAdminModal('✎ Edit Residents', body, '💾 Save to Sheet', saveEditTable);
+}
+
+async function saveEditTable() {
+  const btn = document.getElementById('adminModalActionBtn');
+  const errEl = document.getElementById('saveErr');
+  if (errEl) errEl.style.display = 'none';
+
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    if (errEl) { errEl.textContent = 'Apps Script URL not configured — set SCRIPT_URL in the page source.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  // Find rows that actually changed
+  const changed = editDraft.filter((r, i) => {
+    const orig = residents[i];
+    return !orig || r.owner !== orig.owner || r.tenant !== orig.tenant;
+  });
+
+  if (changed.length === 0) {
+    closeAdminModal();
+    showToast('No changes to save', 'success');
+    return;
+  }
+
+  btn.textContent = `⏳ Saving 0/${changed.length}…`;
+  btn.disabled = true;
+
+  try {
+    let saved = 0;
+    for (const r of changed) {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'updateResidentMap', address: r.address, owner: r.owner, tenant: r.tenant })
+      });
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(`Row "${r.address}": ${data.message}`);
+      saved++;
+      btn.textContent = `⏳ Saving ${saved}/${changed.length}…`;
+    }
+
+    // Update live data and rebuild legend
+    residents = editDraft.map(r => ({ ...r }));
+    buildLegend(residents);
+    closeAdminModal();
+    showToast(`${saved} row${saved !== 1 ? 's' : ''} saved to sheet ✓`, 'success');
+  } catch(e) {
+    if (errEl) { errEl.textContent = 'Save failed: ' + e.message; errEl.style.display = 'block'; }
+    showToast('Save failed — see modal for details', 'error');
+  } finally {
+    btn.textContent = '💾 Save to Sheet';
+    btn.disabled = false;
+  }
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
+fetchAdminPassword();
 </script>
 
 </body>
