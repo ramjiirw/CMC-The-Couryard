@@ -19,7 +19,7 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -30,7 +30,7 @@
   .header-brand { display: flex; align-items: center; gap: 1rem; }
   .header-brand h1 { font-family: Arial, sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
-  .header-right { display: flex; flex-direction: row; align-items: center; gap: 0.6rem; position: relative; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; position: relative; }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
   .btn-nav {
     padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
@@ -235,13 +235,13 @@
   .badge-vacant { background:rgba(184,86,10,0.1); color:#b8560a; border:1px solid rgba(184,86,10,0.25); }
 
   /* Timestamp */
-  .data-timestamp { font-size:0.68rem; color:var(--stone); opacity:0.75; letter-spacing:0.03em; margin-top:0.15rem; }
+
 
   .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:#2a2520; color:var(--cream); padding:0.65rem 1.3rem; border-radius:8px; font-size:0.85rem; z-index:999; opacity:0; transition:all 0.3s; pointer-events:none; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   .toast.success { background:#2d5a3d; }
   .toast.error { background:#7a3030; }
-  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.2); padding:0.9rem 2.5rem; display:flex; align-items:center; justify-content:center; margin-top:auto; }
+  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.2); padding:0.9rem 2.5rem; display:flex; align-items:center; justify-content:center; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   footer p > span:first-child { color:var(--accent2); }
 </style>
@@ -255,9 +255,7 @@
       <h1>CMC The Courtyard</h1>
       <p>Resident Map</p>
       <span id="welcomeMsg"></span>
-      <div class="data-timestamp" id="dataTimestamp"></div>
     </div>
-  </div>
   <div class="header-right">
     <button class="btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
@@ -429,12 +427,6 @@ async function loadData() {
     residents = parseCSV(text);
     residents.sort((a, b) => a.num - b.num);
     buildLegend(residents);
-    // Set timestamp to today's date
-    const tsEl = document.getElementById('dataTimestamp');
-    if (tsEl) {
-      const today = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
-      tsEl.textContent = `Data updated: ${today}`;
-    }
   } catch(e) {
     document.getElementById('legendList').innerHTML =
       '<div class="error-msg">Could not load resident data. Please try refreshing.</div>';
