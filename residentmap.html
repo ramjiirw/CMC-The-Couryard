@@ -237,8 +237,8 @@
     </div>
   </div>
   <div class="header-right" style="display:flex;align-items:center;gap:0.6rem;position:relative;">
-    <a href="main.html" class="btn-nav">⬅ Back to Home</a>
     <button class="btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
+    <a href="main.html" class="btn-nav">⬅ Back to Home</a>
     <div id="adminLoginBox" style="display:none;position:absolute;top:3.2rem;right:0;background:var(--dark);border:1px solid #3a3530;border-radius:8px;padding:1rem;z-index:200;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
       <label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;display:block;margin-bottom:0.4rem;">Admin Password</label>
       <input type="password" id="adminPwInput" placeholder="Enter password..." style="width:100%;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.6rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')checkAdmin();if(event.key==='Escape')toggleAdminLogin()">
