@@ -302,6 +302,7 @@ function showPanel(id) {
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'residents' && !editDraft.length) loadResidents();
   resetAutoLock();
 }
 
