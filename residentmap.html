@@ -211,11 +211,14 @@
   .modal-field { margin-bottom:0.75rem; }
 
   /* Edit table inside admin modal */
-  .edit-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .edit-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
   .edit-table th { background:rgba(122,92,62,0.12); color:var(--accent); padding:0.5rem 0.6rem; text-align:left; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border); }
-  .edit-table td { padding:0.45rem 0.6rem; border-bottom:1px solid rgba(184,173,158,0.25); vertical-align:middle; }
+  .edit-table th:nth-child(1) { width:32%; }
+  .edit-table th:nth-child(2) { width:34%; }
+  .edit-table th:nth-child(3) { width:34%; }
+  .edit-table td { padding:0.45rem 0.6rem; border-bottom:1px solid rgba(184,173,158,0.25); vertical-align:middle; overflow:hidden; }
   .edit-table tr:last-child td { border-bottom:none; }
-  .edit-table td input { width:100%; border:1px solid transparent; background:transparent; padding:0.25rem 0.4rem; font-family:Arial,sans-serif; font-size:0.82rem; border-radius:4px; color:var(--dark); }
+  .edit-table td input { width:100%; border:1px solid transparent; background:transparent; padding:0.25rem 0.4rem; font-family:Arial,sans-serif; font-size:0.82rem; border-radius:4px; color:var(--dark); box-sizing:border-box; min-width:0; }
   .edit-table td input:focus { border-color:var(--accent2); background:#fff; outline:none; }
   .addr-cell { color:var(--mid); font-weight:600; white-space:nowrap; }
 
@@ -612,7 +615,7 @@ async function saveEditTable() {
     return;
   }
 
-  btn.textContent = `⏳ Saving 0/${changed.length}…`;
+  btn.textContent = `⏳ Saving 1 of ${changed.length}`;
   btn.disabled = true;
 
   try {
@@ -627,7 +630,7 @@ async function saveEditTable() {
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(`Row "${r.address}": ${data.message}`);
       saved++;
-      btn.textContent = `⏳ Saving ${saved}/${changed.length}…`;
+      btn.textContent = `⏳ Saving ${saved} of ${changed.length}`;
     }
 
     // Update live data and rebuild legend
