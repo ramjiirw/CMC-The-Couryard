@@ -292,7 +292,7 @@ function loadResidents() {
   fetch(SCRIPT_URL + '?action=readResidentMap')
     .then(function(r){ return r.json(); })
     .then(function(d){
-      residents = d.residents || [];
+      residents = d.residents || d.rows || [];
       editDraft = residents.map(function(r){ return Object.assign({}, r); });
       renderTable();
     })
