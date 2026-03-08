@@ -155,12 +155,12 @@
     <button id="sidebarToggle" title="Toggle menu">&#10094;</button>
     <nav class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-label">Residents</div>
-      <div class="sidebar-link active" data-panel="residents" id="nav-residents">Edit Residents</div>
+      <div class="sidebar-link" data-panel="residents" id="nav-residents">Edit Residents</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Password</div>
     </nav>
     <main class="admin-content">
-      <div class="admin-panel active" id="panel-residents">
+      <div class="admin-panel" id="panel-residents">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;gap:0.75rem;flex-wrap:wrap;">
           <div>
             <div class="panel-title">Edit Residents</div>
@@ -262,7 +262,6 @@ function showDashboard() {
   document.getElementById('adminScreen').style.display = 'flex';
   document.getElementById('lockBtn').style.display = '';
   startAutoLock();
-  loadResidents();
 }
 
 function lockAdmin() {
