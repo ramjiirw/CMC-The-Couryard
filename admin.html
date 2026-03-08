@@ -107,7 +107,7 @@
       <input type="password" id="adminPwInput" placeholder="Enter admin password">
     </div>
     <div class="pw-error" id="adminPwError"></div>
-    <button class="login-btn" id="loginBtn">ENTER ADMIN</button>
+    <button class="login-btn" id="loginBtn" disabled style="opacity:0.45;cursor:not-allowed;">ENTER ADMIN</button>
     <a href="main.html" class="back-link">&larr; Back to Resident Portal</a>
   </div>
 </div>
@@ -186,10 +186,23 @@ var lockInterval = null, lockDeadline = 0;
 var toastTimer = null;
 
 function fetchAdminPassword() {
+  var btn = document.getElementById('loginBtn');
+  var inp = document.getElementById('adminPwInput');
+  inp.placeholder = 'Loading...';
   fetch(SCRIPT_URL + '?action=readSettings')
     .then(function(r){ return r.json(); })
-    .then(function(d){ if (d.password) adminPassword = d.password; })
-    .catch(function(){});
+    .then(function(d){
+      if (d.password) adminPassword = d.password;
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      inp.placeholder = 'Enter admin password';
+      inp.focus();
+    })
+    .catch(function(){
+      inp.placeholder = 'Enter admin password';
+      document.getElementById('adminPwError').textContent = 'Could not reach server — check connection.';
+    });
 }
 
 function doAdminLogin() {
@@ -220,10 +233,7 @@ function lockAdmin() {
   sessionStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY + '_ts');
   clearInterval(lockInterval);
-  document.getElementById('adminScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = '';
-  document.getElementById('adminPwInput').value = '';
-  document.getElementById('adminPwError').textContent = '';
+  window.location.href = 'main.html';
 }
 
 (function(){
@@ -238,7 +248,7 @@ function startAutoLock() {
   lockDeadline = Date.now() + LOCK_MINS * 60000;
   lockInterval = setInterval(function() {
     var rem = lockDeadline - Date.now();
-    if (rem <= 0) { clearInterval(lockInterval); lockAdmin(); return; }
+    if (rem <= 0) { clearInterval(lockInterval); sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY + '_ts'); window.location.href = 'main.html'; return; }
     var m = Math.floor(rem / 60000);
     var s = Math.floor((rem % 60000) / 1000);
     document.getElementById('lockCountdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
