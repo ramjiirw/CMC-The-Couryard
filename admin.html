@@ -45,7 +45,7 @@
   .abtn-danger { background:rgba(139,58,58,0.1); color:#b05050; border:1px solid rgba(139,58,58,0.22); }
   .abtn-danger:hover { background:rgba(139,58,58,0.2); }
   #lockBtn {
-    position: fixed; bottom: 1.4rem; right: 1.4rem; z-index: 500;
+    position: fixed; bottom: 4.5rem; right: 1.4rem; z-index: 500;
     background: var(--dark); color: rgba(184,173,158,0.75);
     border: 1px solid rgba(196,149,106,0.3); border-radius: 999px;
     padding: 0.55rem 1.1rem; font-family: Arial, sans-serif;
@@ -189,7 +189,7 @@
 <div id="toast"></div>
 
 <!-- Floating lock pill -->
-<button id="lockBtn">&#128274; Lock &mdash; Back to Resident Portal</button>
+<button id="lockBtn" style="display:none;">&#128274; Lock &mdash; Back to Resident Portal</button>
 
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
@@ -241,6 +241,7 @@ function doAdminLogin() {
 function showDashboard() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminScreen').style.display = 'flex';
+  document.getElementById('lockBtn').style.display = '';
   startAutoLock();
   loadResidents();
 }
