@@ -242,6 +242,10 @@
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   .toast.success { background:#2d5a3d; }
   .toast.error { background:#7a3030; }
+  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.2); padding:0.9rem 2.5rem; display:flex; align-items:center; justify-content:center; margin-top:auto; }
+  footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
+  footer p > span:first-child { color:var(--accent2); }
+  footer #footerYear { color:var(--stone); }
 </style>
 </head>
 <body>
@@ -749,6 +753,11 @@ function closeCellEdit(save) {
     </div>
   </div>
 </div>
+
+<footer>
+  <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT MAP &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+</footer>
+<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 
 </body>
 </html>
