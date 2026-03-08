@@ -193,7 +193,8 @@
   /* ── Admin ─────────────────────────────────────────────────────────── */
   .btn-lock { background:transparent; color:var(--stone); border:1px solid #3a3530; font-size:0.75rem; padding:0.35rem 0.75rem; border-radius:6px; cursor:pointer; font-family:Arial,sans-serif; transition:background 0.2s, color 0.2s; }
   .btn-lock:hover { background:#2a2520; color:var(--accent2); }
-  .admin-bar { background:#2a2520; padding:0.6rem 1.25rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; }
+  .admin-bar { background:#2a2520; padding:0.6rem 1.25rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; position:fixed; top:0; left:0; right:0; z-index:300; }
+  body.admin-active { padding-top: 48px; }
   .abtn { padding:0.35rem 0.9rem; border-radius:6px; border:none; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; background:var(--accent2); color:#fff; }
   .abtn-muted { background:#3a3530; color:var(--stone); }
   .abtn-exit { background:#7a3030; color:#fff; }
@@ -256,6 +257,7 @@
       <p>Resident Map</p>
       <span id="welcomeMsg"></span>
     </div>
+  </div>
   <div class="header-right">
     <button class="btn-lock" id="adminBtn" onclick="toggleAdminLogin()" title="Admin login" style="display:none;">&#128274;</button>
     <a href="main.html" class="btn-nav">⬅ Back to Home</a>
@@ -524,6 +526,7 @@ function checkAdmin() {
     isAdmin = true;
     document.getElementById('adminLoginBox').style.display = 'none';
     document.getElementById('adminBar').style.display = 'flex';
+    document.body.classList.add('admin-active');
     document.getElementById('adminBtn').style.color = 'var(--accent2)';
     document.getElementById('adminPwInput').value = '';
     resetAutoLock();
@@ -551,6 +554,7 @@ function exitAdmin() {
   isAdmin = false;
   clearTimeout(autoLockTimer);
   document.getElementById('adminBar').style.display = 'none';
+  document.body.classList.remove('admin-active');
   document.getElementById('adminBtn').style.color = '';
   closeAdminModal();
   showToast('Admin session ended', 'success');
