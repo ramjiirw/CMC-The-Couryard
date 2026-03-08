@@ -125,7 +125,25 @@
   .admin-footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.2); padding:0.9rem 2.5rem; display:flex; align-items:center; justify-content:center; }
   .admin-footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   .admin-footer span:first-child { color:var(--accent2); }
+
+  /* Contact tools modal */
+  .ct-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:600; align-items:center; justify-content:center; }
+  .ct-modal-overlay.open { display:flex; }
+  .ct-modal { background:var(--cream); border-radius:12px; padding:1.5rem; width:90%; max-width:440px; box-shadow:0 8px 40px rgba(0,0,0,0.3); max-height:80vh; overflow-y:auto; }
+  .ct-modal h3 { font-size:1rem; color:var(--accent); margin-bottom:1rem; }
+  .ct-modal p { font-size:0.85rem; color:var(--mid); margin-bottom:0.5rem; line-height:1.5; }
+  .ct-modal ul { margin:0; padding:0; list-style:none; }
+  .ct-modal-actions { display:flex; gap:0.6rem; margin-top:1.2rem; justify-content:flex-end; }
+  .ct-modal input, .ct-modal select { width:100%; padding:0.5rem 0.7rem; border:1px solid var(--border,#d4c9bb); border-radius:5px; font-family:Arial,sans-serif; font-size:0.9rem; margin-bottom:0.6rem; background:#fff; }
+  .ct-modal input:focus, .ct-modal select:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  .ct-tool-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:1.5rem; }
+  .ct-tool-btn { display:flex; flex-direction:column; align-items:flex-start; gap:0.4rem; padding:1rem 1.1rem; background:rgba(196,149,106,0.08); border:1px solid rgba(196,149,106,0.2); border-radius:10px; cursor:pointer; transition:all 0.15s; text-align:left; }
+  .ct-tool-btn:hover { background:rgba(196,149,106,0.15); border-color:var(--accent2); }
+  .ct-tool-btn .icon { font-size:1.3rem; }
+  .ct-tool-btn .label { font-size:0.8rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em; }
+  .ct-tool-btn .desc { font-size:0.72rem; color:var(--stone); line-height:1.3; }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
 </head>
 <body>
 
@@ -161,6 +179,8 @@
       <div class="sidebar-link sidebar-home" data-panel="welcome" id="nav-welcome">&#8962; Admin Home</div>
       <div class="sidebar-label">Residents</div>
       <div class="sidebar-link" data-panel="residents" id="nav-residents">Edit Residents</div>
+      <div class="sidebar-label">Contact Tools</div>
+      <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Password</div>
     </nav>
@@ -193,6 +213,42 @@
         <div id="residentsTableWrap"><div class="state-msg"><div class="spinner"></div>Loading residents...</div></div>
 
       </div>
+
+      <div class="admin-panel" id="panel-contacttools">
+        <div class="panel-title">Contact Tools</div>
+        <div class="panel-desc">Email residents, copy numbers, export the directory, check missing data, and more.</div>
+        <div class="ct-tool-grid">
+          <button class="ct-tool-btn" onclick="ctEmailAll()"><span class="icon">&#9993;</span><span class="label">Email All</span><span class="desc">Open mail client with all resident emails</span></button>
+          <button class="ct-tool-btn" onclick="ctEmailAllMobile()"><span class="icon">📱</span><span class="label">Email All (Mobile)</span><span class="desc">Comma-separated for mobile mail apps</span></button>
+          <button class="ct-tool-btn" onclick="ctEmailAddress()"><span class="icon">&#9993;</span><span class="label">Email Address</span><span class="desc">Email all residents at one address</span></button>
+          <button class="ct-tool-btn" onclick="ctEmailAddressMobile()"><span class="icon">📱</span><span class="label">Email Address (Mobile)</span><span class="desc">Mobile-friendly address email</span></button>
+          <button class="ct-tool-btn" onclick="ctCopyNumbers()"><span class="icon">&#128222;</span><span class="label">Copy Numbers</span><span class="desc">Copy all mobile numbers to clipboard</span></button>
+          <button class="ct-tool-btn" onclick="ctMissingData()"><span class="icon">&#9888;</span><span class="label">Missing Data</span><span class="desc">Residents with no email or mobile</span></button>
+          <button class="ct-tool-btn" onclick="ctOccupancy()"><span class="icon">&#127968;</span><span class="label">Occupancy</span><span class="desc">See occupied and vacant addresses</span></button>
+          <button class="ct-tool-btn" onclick="ctExportCSV()"><span class="icon">&#11123;</span><span class="label">Export CSV</span><span class="desc">Download directory as spreadsheet</span></button>
+          <button class="ct-tool-btn" onclick="ctExportPDF()"><span class="icon">&#11123;</span><span class="label">Export PDF</span><span class="desc">Open printable directory view</span></button>
+          <button class="ct-tool-btn" onclick="ctShowQR()"><span class="icon">&#9638;</span><span class="label">QR Code</span><span class="desc">Generate &amp; download directory QR</span></button>
+        </div>
+        <div id="qrOutputCT" style="display:none;margin-top:1.5rem;flex-direction:column;align-items:flex-start;gap:1rem;">
+          <div style="background:#fff;padding:1.2rem;border-radius:12px;display:inline-block;box-shadow:0 2px 12px rgba(0,0,0,0.12);">
+            <canvas id="adminQrCanvas"></canvas>
+          </div>
+          <button class="abtn abtn-muted" onclick="adminDownloadQR()">&#11123; Download PNG</button>
+        </div>
+      </div>
+
+      <!-- Contact Tools modal -->
+      <div class="ct-modal-overlay" id="ctModalOverlay">
+        <div class="ct-modal" id="ctModalInner">
+          <h3 id="ctModalTitle"></h3>
+          <div id="ctModalBody"></div>
+          <div class="ct-modal-actions">
+            <button class="abtn abtn-muted" onclick="closeCTModal()">Close</button>
+            <button class="abtn abtn-primary" id="ctModalActionBtn" style="display:none;"></button>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-panel" id="panel-changepw">
         <div class="panel-title">Change Admin Password</div>
         <div class="panel-desc">Update the password used to access this admin portal.</div>
@@ -571,6 +627,209 @@ sidebarToggle.addEventListener('click', function(e) {
   sidebarToggle.style.left = collapsed ? '0' : '200px';
   resetAutoLock();
 });
+
+// ─── CONTACT TOOLS ───────────────────────────────────────────────────
+const ADDRESSES_CT = Array.from({length:14}, (_,i) => `${i+1} The Courtyard`);
+let ctResidents = [];
+
+async function ctLoadResidents() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=read', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok' && data.rows) { ctResidents = data.rows; return true; }
+  } catch(e) {}
+  showToast('Could not load resident data', 'error');
+  return false;
+}
+
+// ── Modal helpers ──
+function openCTModal(title, bodyHTML, actionLabel, actionFn) {
+  document.getElementById('ctModalTitle').textContent = title;
+  document.getElementById('ctModalBody').innerHTML = bodyHTML;
+  const btn = document.getElementById('ctModalActionBtn');
+  if (actionLabel && actionFn) {
+    btn.textContent = actionLabel;
+    btn.onclick = actionFn;
+    btn.style.display = 'inline-block';
+  } else { btn.style.display = 'none'; }
+  document.getElementById('ctModalOverlay').classList.add('open');
+  setTimeout(() => {
+    document.querySelectorAll('#ctModalInner input').forEach(inp => {
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const b = document.getElementById('ctModalActionBtn'); if (b && b.style.display !== 'none') b.click(); } });
+    });
+  }, 50);
+}
+function closeCTModal() { document.getElementById('ctModalOverlay').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('ctModalOverlay').addEventListener('click', function(e) { if (e.target === this) closeCTModal(); });
+});
+
+// ── Email All ──
+async function ctEmailAll() {
+  if (!await ctLoadResidents()) return;
+  const emails = ctResidents.map(r => (r.email||'').trim()).filter(e => e.includes('@'));
+  if (!emails.length) { showToast('No email addresses found', 'error'); return; }
+  window.location.href = 'mailto:' + emails.join(';');
+}
+
+async function ctEmailAllMobile() {
+  if (!await ctLoadResidents()) return;
+  const emails = ctResidents.map(r => (r.email||'').trim()).filter(e => e.includes('@'));
+  if (!emails.length) { showToast('No email addresses found', 'error'); return; }
+  window.location.href = 'mailto:' + emails.join(',');
+}
+
+// ── Email Address ──
+async function ctEmailAddress() {
+  if (!await ctLoadResidents()) return;
+  const counts = {};
+  ctResidents.forEach(r => { if (r.address) counts[r.address] = (counts[r.address]||0) + 1; });
+  const occupied = ADDRESSES_CT.filter(a => counts[a]);
+  const body = `<p>Select an address to email its residents:</p>
+    <select id="ctEmailAddrSel" style="width:100%;padding:0.5rem 0.7rem;border:1px solid #d4c9bb;border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-top:0.4rem;">
+      <option value="">— Choose address —</option>
+      ${occupied.map(a => `<option value="${a}">${a}</option>`).join('')}
+    </select>`;
+  openCTModal('✉ Email Address', body, '✉ Open Email', () => {
+    const addr = document.getElementById('ctEmailAddrSel').value;
+    if (!addr) { showToast('Please select an address', 'error'); return; }
+    const emails = ctResidents.filter(r => r.address === addr && (r.email||'').trim()).map(r => r.email.trim());
+    if (!emails.length) { showToast('No emails for that address', 'error'); return; }
+    window.location.href = 'mailto:' + emails.join(';');
+    closeCTModal();
+  });
+}
+
+async function ctEmailAddressMobile() {
+  if (!await ctLoadResidents()) return;
+  const counts = {};
+  ctResidents.forEach(r => { if (r.address) counts[r.address] = (counts[r.address]||0) + 1; });
+  const occupied = ADDRESSES_CT.filter(a => counts[a]);
+  const body = `<p>Select an address to email its residents:</p>
+    <select id="ctEmailAddrMobSel" style="width:100%;padding:0.5rem 0.7rem;border:1px solid #d4c9bb;border-radius:5px;font-family:Arial,sans-serif;font-size:0.9rem;margin-top:0.4rem;">
+      <option value="">— Choose address —</option>
+      ${occupied.map(a => `<option value="${a}">${a}</option>`).join('')}
+    </select>`;
+  openCTModal('📱 Email Address (Mobile)', body, '✉ Open Email', () => {
+    const addr = document.getElementById('ctEmailAddrMobSel').value;
+    if (!addr) { showToast('Please select an address', 'error'); return; }
+    const emails = ctResidents.filter(r => r.address === addr && (r.email||'').trim()).map(r => r.email.trim());
+    if (!emails.length) { showToast('No emails for that address', 'error'); return; }
+    window.location.href = 'mailto:' + emails.join(',');
+    closeCTModal();
+  });
+}
+
+// ── Copy Numbers ──
+async function ctCopyNumbers() {
+  if (!await ctLoadResidents()) return;
+  const numbers = ctResidents.map(r => (r.mobile||'').trim()).filter(Boolean);
+  if (!numbers.length) { showToast('No numbers found', 'error'); return; }
+  const text = numbers.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`${numbers.length} numbers copied to clipboard`, 'success');
+  }).catch(() => {
+    openCTModal('Mobile Numbers', `<p>Copy the numbers below:</p><textarea style="width:100%;height:160px;font-family:Arial,sans-serif;font-size:0.82rem;padding:0.5rem;border:1px solid #d4c9bb;border-radius:5px;" readonly>${text}</textarea>`);
+  });
+}
+
+// ── Missing Data ──
+async function ctMissingData() {
+  if (!await ctLoadResidents()) return;
+  const named = ctResidents.filter(r => r.firstName || r.lastName);
+  const noEmail  = named.filter(r => !(r.email||'').trim());
+  const noMobile = named.filter(r => !(r.mobile||'').trim());
+  const listHTML = items => '<ul style="margin:0.4rem 0 1rem;padding:0;list-style:none;">' + items.map(r =>
+    '<li style="padding:0.35rem 0;border-bottom:1px solid #e0d8ce;font-size:0.85rem;display:flex;gap:0.75rem;">' +
+    '<span style="width:140px;flex-shrink:0;color:#6b5f52;font-size:0.78rem;">' + (r.address||'—') + '</span>' +
+    '<span style="color:#1e1a16;">' + ([r.firstName,r.lastName].filter(Boolean).join(' ')||'—') + '</span></li>'
+  ).join('') + '</ul>';
+  let body = '';
+  if (!noEmail.length && !noMobile.length) {
+    body = '<p style="color:green;">✓ All residents have complete contact details.</p>';
+  } else {
+    if (noEmail.length) body += '<p style="font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;margin-bottom:0.2rem;">No email address</p>' + listHTML(noEmail);
+    if (noMobile.length) body += '<p style="font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;margin-bottom:0.2rem;">No mobile number</p>' + listHTML(noMobile);
+  }
+  openCTModal('⚠️ Missing Contact Data', body);
+}
+
+// ── Occupancy ──
+async function ctOccupancy() {
+  if (!await ctLoadResidents()) return;
+  const occupied = new Set(ctResidents.filter(r => r.firstName||r.lastName).map(r => r.address).filter(Boolean));
+  const vacant = ADDRESSES_CT.filter(a => !occupied.has(a));
+  const rowStyle = 'padding:0.35rem 0;border-bottom:1px solid #e0d8ce;font-size:0.85rem;';
+  const occupiedList = [...occupied].sort((a,b)=>parseInt(a)-parseInt(b)).map(a => '<li style="'+rowStyle+'color:#1e1a16;">✓ '+a+'</li>').join('');
+  const vacantList = vacant.map(a => '<li style="'+rowStyle+'color:#b05050;">○ '+a+'</li>').join('');
+  const body = '<p style="margin-bottom:1rem;"><strong>' + occupied.size + '</strong> of 14 occupied &nbsp;·&nbsp; <strong>' + vacant.length + '</strong> vacant</p><ul style="margin:0;padding:0;list-style:none;">' + occupiedList + vacantList + '</ul>';
+  openCTModal('🏘 Occupancy Summary', body);
+}
+
+// ── Export CSV ──
+async function ctExportCSV() {
+  showToast('Loading residents…');
+  if (!await ctLoadResidents()) return;
+  const headers = ['Address','First Name','Last Name','Mobile','Email'];
+  const lines = [headers, ...ctResidents.filter(r => r.firstName||r.lastName||r.email||r.mobile)
+    .map(r => [r.address,r.firstName,r.lastName,r.mobile,r.email])]
+    .map(r => r.map(c => '"'+(c||'').replace(/"/g,'""')+'"').join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines.join('\n'));
+  a.download = 'courtyard-directory.csv';
+  a.click();
+  showToast('Downloaded ' + (lines.length - 1) + ' residents', 'success');
+}
+
+// ── Export PDF ──
+async function ctExportPDF() {
+  showToast('Loading residents…');
+  if (!await ctLoadResidents()) return;
+  const date = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+  const filtered = ctResidents.filter(r => r.firstName||r.lastName||r.email||r.mobile);
+  const tableRows = filtered.map(r =>
+    '<tr><td>'+(r.address||'')+'</td><td>'+(r.firstName||'')+'</td><td>'+(r.lastName||'')+'</td><td>'+(r.mobile||'')+'</td><td>'+(r.email||'')+'</td></tr>'
+  ).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>CMC The Courtyard – Resident Directory</title>
+  <style>
+    @page{size:A4 landscape;margin:1cm;}body{font-family:Arial,sans-serif;font-size:11pt;color:#2a2015;margin:0.5cm;}
+    h1{font-size:20pt;font-weight:600;margin:0 0 0.1rem;}p.sub{font-size:10pt;color:#7a6e64;margin:0 0 0.8rem;text-transform:uppercase;letter-spacing:0.05em;}
+    table{width:100%;border-collapse:collapse;}thead th{background:#2a2015;color:#c4bab0;padding:8px 10px;text-align:left;font-size:10pt;text-transform:uppercase;}
+    tbody td{padding:6px 10px;border-bottom:1px solid #e0d8ce;font-size:11pt;}tbody tr:nth-child(even){background:#f7f3ee;}
+    .footer{margin-top:1rem;font-size:9pt;color:#aaa;text-align:right;}
+    .save-btn{position:fixed;bottom:1.5rem;right:1.5rem;background:#2a2015;color:#f5f0e8;border:none;border-radius:6px;padding:0.7rem 1.3rem;font-size:0.88rem;font-family:Arial,sans-serif;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+    .save-btn:hover{background:#4a3728;}@media print{.save-btn{display:none;}}
+  </style></head><body>
+  <button class="save-btn" onclick="window.print()">⬇ Save as PDF</button>
+  <h1>CMC The Courtyard</h1><p class="sub">Resident Directory</p>
+  <table><thead><tr><th>Address</th><th>First Name</th><th>Last Name</th><th>Mobile</th><th>Email</th></tr></thead>
+  <tbody>${tableRows}</tbody></table>
+  <div class="footer">Exported ${date} · ${filtered.length} residents</div>
+  </body></html>`;
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+}
+
+// ── QR Code ──
+function ctShowQR() {
+  const output = document.getElementById('qrOutputCT');
+  output.style.display = 'flex';
+  const canvas = document.getElementById('adminQrCanvas');
+  const size = 240;
+  canvas.width = size; canvas.height = size;
+  const url = window.location.href.replace(/\/[^\/]*$/, '/cmcdirectory.html');
+  QrCreator.render({ text: url, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
+  output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function adminDownloadQR() {
+  const canvas = document.getElementById('adminQrCanvas');
+  const a = document.createElement('a');
+  a.download = 'CMC-Courtyard-Directory-QR.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
 </script>
 </body>
 </html>
