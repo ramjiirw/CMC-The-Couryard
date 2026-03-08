@@ -44,20 +44,8 @@
   .abtn-primary:hover { opacity:0.88; transform:translateY(-1px); }
   .abtn-danger { background:rgba(139,58,58,0.1); color:#b05050; border:1px solid rgba(139,58,58,0.22); }
   .abtn-danger:hover { background:rgba(139,58,58,0.2); }
-  #lockBtn {
-    position: fixed; bottom: 4.5rem; right: 1.4rem; z-index: 500;
-    background: var(--dark); color: rgba(184,173,158,0.75);
-    border: 1px solid rgba(196,149,106,0.3); border-radius: 999px;
-    padding: 0.55rem 1.1rem; font-family: Arial, sans-serif;
-    font-size: 0.75rem; letter-spacing: 0.04em; cursor: pointer;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-    transition: all 0.2s; opacity: 0.7;
-  }
-  #lockBtn:hover {
-    background: rgba(139,58,58,0.85); color: #f5e8e8;
-    border-color: rgba(139,58,58,0.6); opacity: 1;
-    transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,0,0,0.4);
-  }
+  #lockBtn { transition: all 0.2s; }
+  #lockBtn:hover { background: rgba(139,58,58,0.85) !important; color: #f5e8e8 !important; border-color: rgba(139,58,58,0.6) !important; }
   .admin-body { display:flex; flex:1; }
   .admin-sidebar { width:200px; background:var(--dark); border-right:1px solid rgba(196,149,106,0.15); padding:1.2rem 0; flex-shrink:0; transition:width 0.25s ease; overflow:hidden; position:relative; }
   .admin-sidebar.collapsed { width:0; padding:0; border-right:none; }
@@ -149,6 +137,7 @@
     </div>
     <div class="admin-header-right">
       <span class="lock-info">Auto-lock in <span id="lockCountdown">5:00</span></span>
+      <button id="lockBtn" style="display:none;">&#128274; Lock &mdash; Back to Resident Portal</button>
     </div>
   </header>
   <div class="admin-body">
@@ -208,7 +197,6 @@
 <div id="toast"></div>
 
 <!-- Floating lock pill -->
-<button id="lockBtn" style="display:none;">&#128274; Lock &mdash; Back to Resident Portal</button>
 
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
