@@ -223,6 +223,8 @@
   .edit-cell-btn { width:100%; text-align:left; background:rgba(122,92,62,0.07); border:1px solid rgba(122,92,62,0.2); border-radius:5px; padding:0.35rem 0.5rem; font-family:Arial,sans-serif; font-size:0.82rem; color:var(--dark); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
   .edit-cell-btn:hover { background:rgba(122,92,62,0.15); border-color:var(--accent2); }
   .edit-cell-empty { color:#aaa; font-style:italic; }
+  .edit-table tr.row-changed td { background:rgba(122,92,62,0.08); }
+  .edit-table tr.row-changed td.addr-cell::after { content:' ●'; color:var(--accent2); font-size:0.65rem; vertical-align:middle; }
   /* Cell edit popup */
   #cellEditPopup { display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
   #cellEditPopup.open { display:flex; }
@@ -541,6 +543,15 @@ function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
 }
 
 function closeAdminModal() {
+  // If Edit Residents is open and rows have been changed, confirm before closing
+  const hasChanges = editDraft.length > 0 && editDraft.some((r, i) => {
+    const orig = residents[i];
+    return !orig || r.owner !== orig.owner || r.tenant !== orig.tenant;
+  });
+  if (hasChanges && document.querySelector('.edit-table')) {
+    if (!confirm('You have unsaved changes. Close without saving?')) return;
+  }
+  editDraft = [];
   document.getElementById('adminModalOverlay').classList.remove('open');
 }
 
@@ -672,6 +683,26 @@ fetchAdminPassword();
 // ── Cell edit popup ──────────────────────────────────────────────
 let _cepIdx = null, _cepField = null;
 
+function toTitleCase(str) {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function autoCapitalise() {
+  const ta = document.getElementById('cepTextarea');
+  const pos = ta.selectionStart;
+  ta.value = toTitleCase(ta.value);
+  ta.setSelectionRange(pos, pos);
+}
+
+function clearCepTenant() {
+  document.getElementById('cepTextarea').value = '';
+}
+
+function markRowChanged(idx) {
+  const row = document.querySelector(`#eo_${idx}`)?.closest('tr');
+  if (row) row.classList.add('row-changed');
+}
+
 function openCellEdit(idx, field) {
   _cepIdx = idx; _cepField = field;
   const r = editDraft[idx];
@@ -680,6 +711,7 @@ function openCellEdit(idx, field) {
   document.getElementById('cepLabel').textContent = 'Edit ' + label;
   document.getElementById('cepAddr').textContent = r.address;
   document.getElementById('cepHint').textContent = field === 'tenant' ? 'Leave blank if owner-occupied.' : '';
+  document.getElementById('cepClearBtn').style.display = field === 'tenant' ? 'inline-flex' : 'none';
   const ta = document.getElementById('cepTextarea');
   ta.value = val;
   document.getElementById('cellEditPopup').classList.add('open');
@@ -695,6 +727,7 @@ function closeCellEdit(save) {
     const btnId = (_cepField === 'owner' ? 'eo_' : 'et_') + _cepIdx;
     const btn = document.getElementById(btnId);
     if (btn) btn.innerHTML = val ? escHtml(val) : '<span class="edit-cell-empty">' + (_cepField === 'owner' ? 'Owner name' : 'Tenant / blank') + '</span>';
+    markRowChanged(_cepIdx);
     resetAutoLock();
   }
   document.getElementById('cellEditPopup').classList.remove('open');
@@ -707,9 +740,10 @@ function closeCellEdit(save) {
   <div class="cep-box">
     <div class="cep-label" id="cepLabel">Edit Owner</div>
     <div class="cep-addr" id="cepAddr"></div>
-    <textarea id="cepTextarea" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();closeCellEdit(true);}if(event.key==='Escape')closeCellEdit(false);"></textarea>
+    <textarea id="cepTextarea" oninput="autoCapitalise()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();closeCellEdit(true);}if(event.key==='Escape')closeCellEdit(false);"></textarea>
     <div class="cep-hint" id="cepHint"></div>
     <div class="cep-btns">
+      <button class="abtn abtn-muted" id="cepClearBtn" onclick="clearCepTenant()" style="display:none;margin-right:auto;">Clear Tenant</button>
       <button class="abtn abtn-muted" onclick="closeCellEdit(false)">Cancel</button>
       <button class="abtn abtn-primary" onclick="closeCellEdit(true)">OK</button>
     </div>
