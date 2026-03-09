@@ -143,7 +143,6 @@
   .ct-tool-btn .label { font-size:0.8rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em; }
   .ct-tool-btn .desc { font-size:0.72rem; color:var(--stone); line-height:1.3; }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
 </head>
 <body>
 
@@ -227,7 +226,6 @@
           <button class="ct-tool-btn" onclick="ctOccupancy()"><span class="icon">&#127968;</span><span class="label">Occupancy</span><span class="desc">See occupied and vacant addresses</span></button>
           <button class="ct-tool-btn" onclick="ctExportCSV()"><span class="icon">&#11123;</span><span class="label">Export CSV</span><span class="desc">Download directory as spreadsheet</span></button>
           <button class="ct-tool-btn" onclick="ctExportPDF()"><span class="icon">&#11123;</span><span class="label">Export PDF</span><span class="desc">Open printable directory view</span></button>
-          <button class="ct-tool-btn" onclick="ctShowQR()"><span class="icon">&#9638;</span><span class="label">QR Code</span><span class="desc">Generate &amp; download directory QR</span></button>
         </div>
         <div id="qrOutputCT" style="display:none;margin-top:1.5rem;flex-direction:column;align-items:flex-start;gap:1rem;">
           <div style="background:#fff;padding:1.2rem;border-radius:12px;display:inline-block;box-shadow:0 2px 12px rgba(0,0,0,0.12);">
@@ -407,6 +405,7 @@ document.addEventListener('click', resetAutoLock);
 document.addEventListener('keydown', resetAutoLock);
 
 function showPanel(id) {
+  if (id === 'contacttools') ctPreload();
   document.querySelectorAll('.admin-panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
@@ -632,11 +631,36 @@ sidebarToggle.addEventListener('click', function(e) {
 const ADDRESSES_CT = Array.from({length:14}, (_,i) => `${i+1} The Courtyard`);
 let ctResidents = [];
 
-async function ctLoadResidents() {
+// Pre-load residents silently when the Contact Tools panel is shown
+let ctLoaded = false;
+let ctLoading = false;
+
+async function ctPreload() {
+  if (ctLoaded || ctLoading) return;
+  ctLoading = true;
   try {
     const res = await fetch(SCRIPT_URL + '?action=read', { redirect: 'follow' });
     const data = await res.json();
-    if (data.status === 'ok' && data.rows) { ctResidents = data.rows; return true; }
+    if (data.status === 'ok' && data.rows) {
+      ctResidents = data.rows;
+      ctLoaded = true;
+    }
+  } catch(e) {}
+  ctLoading = false;
+}
+
+async function ctLoadResidents() {
+  if (ctLoaded) return true;
+  // Not yet loaded — fetch now and show a brief spinner toast
+  showToast('Loading…');
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=read', { redirect: 'follow' });
+    const data = await res.json();
+    if (data.status === 'ok' && data.rows) {
+      ctResidents = data.rows;
+      ctLoaded = true;
+      return true;
+    }
   } catch(e) {}
   showToast('Could not load resident data', 'error');
   return false;
@@ -810,25 +834,7 @@ async function ctExportPDF() {
   w.document.write(html); w.document.close();
 }
 
-// ── QR Code ──
-function ctShowQR() {
-  const output = document.getElementById('qrOutputCT');
-  output.style.display = 'flex';
-  const canvas = document.getElementById('adminQrCanvas');
-  const size = 240;
-  canvas.width = size; canvas.height = size;
-  const url = window.location.href.replace(/\/[^\/]*$/, '/cmcdirectory.html');
-  QrCreator.render({ text: url, radius: 0.0, ecLevel: 'H', fill: '#4a3728', background: '#ffffff', size: size }, canvas);
-  output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
 
-function adminDownloadQR() {
-  const canvas = document.getElementById('adminQrCanvas');
-  const a = document.createElement('a');
-  a.download = 'CMC-Courtyard-Directory-QR.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-}
 
 </script>
 </body>
