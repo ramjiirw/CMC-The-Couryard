@@ -37,27 +37,7 @@
   }
   .btn-back:hover { background: #2a2520; color: var(--accent2); }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  main { max-width: 960px; width: 100%; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
-=======
   main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
->>>>>>> Stashed changes
-=======
-  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
->>>>>>> Stashed changes
-=======
-  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
->>>>>>> Stashed changes
-=======
-  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
->>>>>>> Stashed changes
-=======
-  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
->>>>>>> Stashed changes
 
   .page-header { margin-bottom: 1.75rem; }
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
@@ -187,10 +167,10 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Servicing Records</h3>
 
-    <button class="btn-toggle" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="false">
+    <button class="btn-toggle open" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="true">
       <span class="chevron">▶</span> Bio Filter Servicing Records
     </button>
-    <div class="collapsible-panel" id="panel-servicing">
+    <div class="collapsible-panel open" id="panel-servicing">
       <div class="doc-card" id="card-servicing">
         <div id="wrap-servicing">
           <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
@@ -203,10 +183,10 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Documentation</h3>
 
-    <button class="btn-toggle" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="false">
+    <button class="btn-toggle open" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="true">
       <span class="chevron">▶</span> Bio Filter Documentation
     </button>
-    <div class="collapsible-panel" id="panel-docs">
+    <div class="collapsible-panel open" id="panel-docs">
       <div class="doc-card" id="card-docs">
         <div id="wrap-docs">
           <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
@@ -288,27 +268,7 @@
     allYears.sort().reverse();
 
     var filterBar = '';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     if (allYears.length >= 1) {
-=======
-    if (allYears.length > 1) {
->>>>>>> Stashed changes
-=======
-    if (allYears.length > 1) {
->>>>>>> Stashed changes
-=======
-    if (allYears.length > 1) {
->>>>>>> Stashed changes
-=======
-    if (allYears.length > 1) {
->>>>>>> Stashed changes
-=======
-    if (allYears.length > 1) {
->>>>>>> Stashed changes
       var opts = '<option value="all">All years</option>';
       allYears.forEach(function(y) {
         opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
@@ -336,27 +296,7 @@
       });
 
       tableHtml = '<table>' +
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         '<thead><tr><th class="sortable sort-desc">Document<span class="sort-icon"></span></th></tr></thead>' +
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
@@ -383,27 +323,7 @@
       });
 
       tableHtml = '<table>' +
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         '<thead><tr><th class="sortable sort-asc">Document<span class="sort-icon"></span></th></tr></thead>' +
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
-=======
-        '<thead><tr><th>Document</th></tr></thead>' +
->>>>>>> Stashed changes
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
