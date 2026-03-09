@@ -299,14 +299,14 @@
       filterBar = '<div class="year-filter">' +
         '<label for="year-select-' + key + '">Filter by year:</label>' +
         '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
-        opts + '</select></div>';
+        opts + '</select>' +
+        '<label for="search-' + key + '" style="margin-left:1rem;">Search:</label>' +
+        '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
+        'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
+        '</div>';
     }
 
-    var searchBar = '<div class="search-bar">' +
-      '<label for="search-' + key + '">Search:</label>' +
-      '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
-      'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
-      '</div>';
+    var searchBar = '';
 
     var tableHtml;
     if (!files.length) {
@@ -330,7 +330,7 @@
         '</table>';
     }
 
-    wrap.innerHTML = filterBar + searchBar + tableHtml;
+    wrap.innerHTML = filterBar + tableHtml;
   }
 
   function renderDocs(key) {
@@ -346,7 +346,7 @@
       });
     }
 
-    var searchBar = '<div class="search-bar">' +
+    var searchBar = '<div class="year-filter">' +
       '<label for="search-' + key + '">Search:</label>' +
       '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
       'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
