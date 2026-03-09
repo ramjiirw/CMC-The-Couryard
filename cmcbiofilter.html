@@ -37,7 +37,11 @@
   }
   .btn-back:hover { background: #2a2520; color: var(--accent2); }
 
+<<<<<<< Updated upstream
   main { max-width: 960px; width: 100%; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
+=======
+  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
+>>>>>>> Stashed changes
 
   .page-header { margin-bottom: 1.75rem; }
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
@@ -268,7 +272,11 @@
     allYears.sort().reverse();
 
     var filterBar = '';
+<<<<<<< Updated upstream
     if (allYears.length >= 1) {
+=======
+    if (allYears.length > 1) {
+>>>>>>> Stashed changes
       var opts = '<option value="all">All years</option>';
       allYears.forEach(function(y) {
         opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
@@ -296,7 +304,11 @@
       });
 
       tableHtml = '<table>' +
+<<<<<<< Updated upstream
         '<thead><tr><th class="sortable sort-desc">Document<span class="sort-icon"></span></th></tr></thead>' +
+=======
+        '<thead><tr><th>Document</th></tr></thead>' +
+>>>>>>> Stashed changes
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
@@ -323,7 +335,11 @@
       });
 
       tableHtml = '<table>' +
+<<<<<<< Updated upstream
         '<thead><tr><th class="sortable sort-asc">Document<span class="sort-icon"></span></th></tr></thead>' +
+=======
+        '<thead><tr><th>Document</th></tr></thead>' +
+>>>>>>> Stashed changes
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
