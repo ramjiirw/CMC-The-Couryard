@@ -17,7 +17,7 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -37,7 +37,7 @@
   }
   .btn-back:hover { background: #2a2520; color: var(--accent2); }
 
-  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; flex: 1; }
+  main { max-width: 960px; margin: 3rem auto; padding: 0 1.5rem 4rem; min-height: calc(100vh - 260px); }
 
   .page-header { margin-bottom: 1.75rem; }
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
@@ -167,10 +167,10 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Servicing Records</h3>
 
-    <button class="btn-toggle open" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="true">
+    <button class="btn-toggle" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="false">
       <span class="chevron">▶</span> Bio Filter Servicing Records
     </button>
-    <div class="collapsible-panel open" id="panel-servicing">
+    <div class="collapsible-panel" id="panel-servicing">
       <div class="doc-card" id="card-servicing">
         <div id="wrap-servicing">
           <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
@@ -183,10 +183,10 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Documentation</h3>
 
-    <button class="btn-toggle open" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="true">
+    <button class="btn-toggle" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="false">
       <span class="chevron">▶</span> Bio Filter Documentation
     </button>
-    <div class="collapsible-panel open" id="panel-docs">
+    <div class="collapsible-panel" id="panel-docs">
       <div class="doc-card" id="card-docs">
         <div id="wrap-docs">
           <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
