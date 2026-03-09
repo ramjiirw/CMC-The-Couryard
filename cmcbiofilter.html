@@ -267,7 +267,34 @@
     var state = tableState[key];
     var wrap  = document.getElementById('wrap-' + key);
 
-    /* Filter by year then search */
+    /* First render — build the full structure */
+    if (!wrap.querySelector('.table-area')) {
+      var allYears = [];
+      state.files.forEach(function(f) {
+        extractYears(f.name).forEach(function(y) {
+          if (allYears.indexOf(y) === -1) allYears.push(y);
+        });
+      });
+      allYears.sort().reverse();
+
+      var controls = '';
+      if (allYears.length >= 1) {
+        var opts = '<option value="all">All years</option>';
+        allYears.forEach(function(y) {
+          opts += '<option value="' + y + '">' + y + '</option>';
+        });
+        controls = '<div class="year-filter">' +
+          '<label for="year-select-' + key + '">Filter by year:</label>' +
+          '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
+          opts + '</select>' +
+          '<label for="search-' + key + '" style="margin-left:1rem;">Search:</label>' +
+          '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
+          '</div>';
+      }
+      wrap.innerHTML = controls + '<div class="table-area"></div>';
+    }
+
+    /* Filter */
     var files = state.files;
     if (state.activeYear !== 'all') {
       files = files.filter(function(f) {
@@ -281,63 +308,40 @@
       });
     }
 
-    /* Year filter bar */
-    var allYears = [];
-    state.files.forEach(function(f) {
-      extractYears(f.name).forEach(function(y) {
-        if (allYears.indexOf(y) === -1) allYears.push(y);
-      });
-    });
-    allYears.sort().reverse();
-
-    var filterBar = '';
-    if (allYears.length >= 1) {
-      var opts = '<option value="all">All years</option>';
-      allYears.forEach(function(y) {
-        opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
-      });
-      filterBar = '<div class="year-filter">' +
-        '<label for="year-select-' + key + '">Filter by year:</label>' +
-        '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
-        opts + '</select>' +
-        '<label for="search-' + key + '" style="margin-left:1rem;">Search:</label>' +
-        '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
-        'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
-        '</div>';
-    }
-
-    var searchBar = '';
-
+    /* Update only the table area */
     var tableHtml;
     if (!files.length) {
       tableHtml = '<div class="state-empty">No documents match this filter.</div>';
     } else {
-      /* Sort newest-first by leading date in filename */
       var sorted = files.slice().sort(function(a, b) {
         var da = extractLeadingDate(a.name) || a.name;
         var db = extractLeadingDate(b.name) || b.name;
         return db.localeCompare(da);
       });
-
       var rows = '';
       sorted.forEach(function(f) {
         rows += '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td></tr>';
       });
-
       tableHtml = '<table>' +
         '<thead><tr><th class="sortable sort-desc">Document<span class="sort-icon"></span></th></tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-        '</table>';
+        '<tbody>' + rows + '</tbody></table>';
     }
-
-    wrap.innerHTML = filterBar + tableHtml;
+    wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
   function renderDocs(key) {
     var state = tableState[key];
     var wrap  = document.getElementById('wrap-' + key);
 
-    /* Filter by search */
+    /* First render — build the full structure */
+    if (!wrap.querySelector('.table-area')) {
+      wrap.innerHTML = '<div class="year-filter">' +
+        '<label for="search-' + key + '">Search:</label>' +
+        '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
+        '</div><div class="table-area"></div>';
+    }
+
+    /* Filter */
     var files = state.files;
     if (state.search) {
       var q = state.search.toLowerCase();
@@ -346,35 +350,25 @@
       });
     }
 
-    var searchBar = '<div class="year-filter">' +
-      '<label for="search-' + key + '">Search:</label>' +
-      '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
-      'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
-      '</div>';
-
+    /* Update only the table area */
     var tableHtml;
     if (!state.files.length) {
       tableHtml = '<div class="state-empty">No documentation uploaded yet.</div>';
     } else if (!files.length) {
       tableHtml = '<div class="state-empty">No documents match this search.</div>';
     } else {
-      /* Sort A-Z by name */
       var sorted = files.slice().sort(function(a, b) {
         return fixTitle(a.name).toLowerCase().localeCompare(fixTitle(b.name).toLowerCase());
       });
-
       var rows = '';
       sorted.forEach(function(f) {
         rows += '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td></tr>';
       });
-
       tableHtml = '<table>' +
         '<thead><tr><th class="sortable sort-asc">Document<span class="sort-icon"></span></th></tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-        '</table>';
+        '<tbody>' + rows + '</tbody></table>';
     }
-
-    wrap.innerHTML = searchBar + tableHtml;
+    wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
   function setYear(key, year) {
