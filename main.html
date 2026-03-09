@@ -292,7 +292,11 @@
         <span class="icon" style="margin:0">⚙️</span>
         <h3 style="margin:0">CMC Bio Filter</h3>
       </div>
-      <p>View Bio Filter Servicing and documentation →</p>
+      <div class="agm-details">
+        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest bio filter servicing record</span></div>
+        <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="bioLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+      </div>
+      <p class="agm-cta">View Bio Filter Servicing and documentation →</p>
     </a>
 
   </div>
@@ -380,6 +384,36 @@
         : '—';
     } catch(e) {
       document.getElementById('finLatest').textContent = '—';
+    }
+  })();
+
+  // Load latest Bio Filter servicing record for Bio Filter card
+  (async function() {
+    try {
+      const res = await fetch('cmcdocuments/index.json?v=' + Date.now());
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const folders = idx.folders || [];
+      const folder = folders.find(f => f.key === 'cmcbiofilerservicing');
+      const files = folder ? (folder.files || []) : [];
+      if (!files.length) { document.getElementById('bioLatest').textContent = 'No records yet'; return; }
+
+      // Extract leading YYYY-MM-DD from filename
+      function leadingDate(name) {
+        const m = name.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m ? new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3])) : null;
+      }
+      const sorted = files.slice().sort(function(a, b) {
+        const da = leadingDate(a.name), db = leadingDate(b.name);
+        if (db && da) return db - da;
+        return db ? 1 : da ? -1 : 0;
+      });
+      const best = leadingDate(sorted[0].name);
+      document.getElementById('bioLatest').textContent = best
+        ? best.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
+        : '—';
+    } catch(e) {
+      document.getElementById('bioLatest').textContent = '—';
     }
   })();
 
