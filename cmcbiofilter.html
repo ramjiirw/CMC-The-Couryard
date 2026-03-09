@@ -268,7 +268,7 @@
     allYears.sort().reverse();
 
     var filterBar = '';
-    if (allYears.length > 1) {
+    if (allYears.length >= 1) {
       var opts = '<option value="all">All years</option>';
       allYears.forEach(function(y) {
         opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
@@ -296,7 +296,7 @@
       });
 
       tableHtml = '<table>' +
-        '<thead><tr><th>Document</th></tr></thead>' +
+        '<thead><tr><th class="sortable sort-desc">Document<span class="sort-icon"></span></th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
@@ -323,7 +323,7 @@
       });
 
       tableHtml = '<table>' +
-        '<thead><tr><th>Document</th></tr></thead>' +
+        '<thead><tr><th class="sortable sort-asc">Document<span class="sort-icon"></span></th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table>';
     }
