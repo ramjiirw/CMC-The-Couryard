@@ -82,6 +82,21 @@
   }
   .year-select:hover, .year-select:focus { border-color: var(--accent2); outline: none; }
 
+  .search-bar {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1.5rem; background: rgba(122,92,62,0.04);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-bar label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--mid); white-space: nowrap; }
+  .search-input {
+    flex: 1; padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--cream); color: var(--accent); font-family: Arial, sans-serif;
+    font-size: 0.85rem; transition: border-color 0.15s; outline: none;
+  }
+  .search-input:focus, .search-input:hover { border-color: var(--accent2); }
+  .search-input::placeholder { color: var(--stone); font-style: italic; }
+
   .doc-card {
     background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
     box-shadow: var(--shadow); overflow: hidden; margin-top: 0.6rem;
@@ -252,11 +267,17 @@
     var state = tableState[key];
     var wrap  = document.getElementById('wrap-' + key);
 
-    /* Filter by year */
+    /* Filter by year then search */
     var files = state.files;
     if (state.activeYear !== 'all') {
       files = files.filter(function(f) {
         return extractYears(f.name).indexOf(state.activeYear) !== -1;
+      });
+    }
+    if (state.search) {
+      var q = state.search.toLowerCase();
+      files = files.filter(function(f) {
+        return fixTitle(f.name).toLowerCase().indexOf(q) !== -1;
       });
     }
 
@@ -281,6 +302,12 @@
         opts + '</select></div>';
     }
 
+    var searchBar = '<div class="search-bar">' +
+      '<label for="search-' + key + '">Search:</label>' +
+      '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
+      'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
+      '</div>';
+
     var tableHtml;
     if (!files.length) {
       tableHtml = '<div class="state-empty">No documents match this filter.</div>';
@@ -303,19 +330,36 @@
         '</table>';
     }
 
-    wrap.innerHTML = filterBar + tableHtml;
+    wrap.innerHTML = filterBar + searchBar + tableHtml;
   }
 
   function renderDocs(key) {
     var state = tableState[key];
     var wrap  = document.getElementById('wrap-' + key);
 
+    /* Filter by search */
+    var files = state.files;
+    if (state.search) {
+      var q = state.search.toLowerCase();
+      files = files.filter(function(f) {
+        return fixTitle(f.name).toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    var searchBar = '<div class="search-bar">' +
+      '<label for="search-' + key + '">Search:</label>' +
+      '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" ' +
+      'value="' + (state.search || '') + '" oninput="setSearch(\'' + key + '\',this.value)">' +
+      '</div>';
+
     var tableHtml;
     if (!state.files.length) {
       tableHtml = '<div class="state-empty">No documentation uploaded yet.</div>';
+    } else if (!files.length) {
+      tableHtml = '<div class="state-empty">No documents match this search.</div>';
     } else {
       /* Sort A-Z by name */
-      var sorted = state.files.slice().sort(function(a, b) {
+      var sorted = files.slice().sort(function(a, b) {
         return fixTitle(a.name).toLowerCase().localeCompare(fixTitle(b.name).toLowerCase());
       });
 
@@ -330,12 +374,18 @@
         '</table>';
     }
 
-    wrap.innerHTML = tableHtml;
+    wrap.innerHTML = searchBar + tableHtml;
   }
 
   function setYear(key, year) {
     tableState[key].activeYear = year;
     renderServicing(key);
+  }
+
+  function setSearch(key, val) {
+    tableState[key].search = val;
+    if (key === 'servicing') renderServicing(key);
+    else renderDocs(key);
   }
 
   /* Load index */
@@ -354,12 +404,14 @@
 
       tableState['servicing'] = {
         files: findFiles('cmcbiofilerservicing'),
-        activeYear: 'all'
+        activeYear: 'all',
+        search: ''
       };
       renderServicing('servicing');
 
       tableState['docs'] = {
-        files: findFiles('cmcbiofilterdocumentation')
+        files: findFiles('cmcbiofilterdocumentation'),
+        search: ''
       };
       renderDocs('docs');
 
