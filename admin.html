@@ -252,15 +252,23 @@
       <div class="admin-panel" id="panel-maintenance">
         <div class="panel-title">Maintenance Issues</div>
         <div class="panel-desc">View and manage all submitted maintenance requests. Click ✏️ to update status or add notes.</div>
-        <div style="display:flex;gap:0.7rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-          <label style="font-size:0.78rem;color:var(--mid);">Filter:</label>
-          <select id="mntFilterStatus" style="background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;cursor:pointer;">
-            <option value="All">All</option>
-            <option value="New">New</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <button class="abtn" id="mntRefreshBtn" style="margin-left:auto;font-size:0.75rem;padding:0.3rem 0.8rem;">&#8635; Refresh</button>
+        <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <label style="font-size:0.75rem;color:var(--mid);white-space:nowrap;">Status:</label>
+            <select id="mntFilterStatus" style="background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;cursor:pointer;">
+              <option value="All">All</option>
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <button id="mntClearStatus" onclick="document.getElementById('mntFilterStatus').value='All';mntApplyFilters();" style="display:none;background:none;border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;color:var(--mid);cursor:pointer;">&#x2715; Clear</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem;flex:1;min-width:160px;">
+            <label style="font-size:0.75rem;color:var(--mid);white-space:nowrap;">Search:</label>
+            <input id="mntSearch" type="text" placeholder="Address, category, description..." style="flex:1;background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;min-width:0;">
+            <button id="mntClearSearch" onclick="document.getElementById('mntSearch').value='';mntApplyFilters();" style="display:none;background:none;border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;color:var(--mid);cursor:pointer;">&#x2715; Clear</button>
+          </div>
+          <button class="abtn" id="mntRefreshBtn" style="font-size:0.75rem;padding:0.3rem 0.8rem;white-space:nowrap;">&#8635; Refresh</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;">
           <div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues…</div>
@@ -608,14 +616,38 @@ var mntAllIssues = [];
 var mntLoaded = false;
 var mntRefreshTimer = null;
 
+function mntFmtDate(v) {
+  if (!v) return '';
+  var parts = v.split('/');
+  if (parts.length === 3) {
+    var day = parseInt(parts[0], 10);
+    var mon = parseInt(parts[1], 10) - 1;
+    var yr  = parseInt(parts[2], 10);
+    if (yr < 100) yr += 2000;
+    var d = new Date(yr, mon, day);
+    return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  }
+  var d2 = new Date(v);
+  return isNaN(d2) ? v : d2.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+}
+
 function mntStatusBadge(status) {
   var s = (status || 'New').trim();
   var color = s === 'Resolved' ? 'var(--green)' : s === 'In Progress' ? '#c8851a' : '#c0392b';
   return '<span style="display:inline-block;padding:0.15rem 0.55rem;border-radius:20px;font-size:0.7rem;font-weight:700;background:' + color + '22;color:' + color + ';border:1px solid ' + color + '44;">' + escHtml(s) + '</span>';
 }
 
+function mntApplyFilters() {
+  // Show/hide clear buttons
+  var statusVal = document.getElementById('mntFilterStatus').value;
+  var searchVal = document.getElementById('mntSearch').value;
+  document.getElementById('mntClearStatus').style.display = (statusVal !== 'All') ? '' : 'none';
+  document.getElementById('mntClearSearch').style.display = searchVal ? '' : 'none';
+  renderMaintenanceTable();
+}
+
 function loadMaintenanceIssues(silent) {
-  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues…</div>';
+  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues\u2026</div>';
   fetch(SCRIPT_URL + '?action=readMaintenance')
     .then(function(r){ return r.json(); })
     .then(function(d) {
@@ -628,55 +660,62 @@ function loadMaintenanceIssues(silent) {
 }
 
 function renderMaintenanceTable() {
-  var filter = document.getElementById('mntFilterStatus').value;
+  var statusFilter = document.getElementById('mntFilterStatus').value;
+  var searchFilter = (document.getElementById('mntSearch').value || '').toLowerCase().trim();
+
   var issues = mntAllIssues.filter(function(r) {
-    if (filter === 'All') return true;
-    return (r.status || 'New') === filter;
+    var matchStatus = (statusFilter === 'All') || ((r.status || 'New') === statusFilter);
+    if (!matchStatus) return false;
+    if (!searchFilter) return true;
+    var haystack = ((r.address||'') + ' ' + (r.category||'') + ' ' + (r.description||'') + ' ' + (r.updates||'')).toLowerCase();
+    return haystack.indexOf(searchFilter) !== -1;
   });
 
   if (!issues.length) {
-    document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">No issues found.</div>';
+    document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">No issues match this filter.</div>';
     return;
   }
 
-  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
-  html += '<thead><tr style="border-bottom:1px solid var(--border);color:var(--mid);text-align:left;">';
-  html += '<th style="padding:0.5rem 0.4rem;">#</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Address</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Category</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Description</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Submitted</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Status</th>';
-  html += '<th style="padding:0.5rem 0.4rem;">Update Note</th>';
-  html += '<th style="padding:0.5rem 0.4rem;"></th>';
+  var thStyle = 'padding:0.6rem 0.7rem;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--mid);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;';
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">';
+  html += '<thead><tr>';
+  html += '<th style="' + thStyle + 'width:32px;">#</th>';
+  html += '<th style="' + thStyle + 'width:120px;">Address</th>';
+  html += '<th style="' + thStyle + 'width:140px;">Category</th>';
+  html += '<th style="' + thStyle + '">Description</th>';
+  html += '<th style="' + thStyle + 'width:100px;">Submitted</th>';
+  html += '<th style="' + thStyle + 'width:110px;">Status</th>';
+  html += '<th style="' + thStyle + '">Update Note</th>';
+  html += '<th style="' + thStyle + 'width:36px;"></th>';
   html += '</tr></thead><tbody>';
 
   issues.forEach(function(row, i) {
-    var rowIdx = mntAllIssues.indexOf(row);
-    html += '<tr id="mnt-row-' + i + '" style="border-bottom:1px solid rgba(196,149,106,0.1);transition:background 0.15s;" onmouseover="this.style.background=\'rgba(196,149,106,0.04)\'" onmouseout="this.style.background=\'\'">';
-    html += '<td style="padding:0.5rem 0.4rem;color:var(--mid);">' + (rowIdx + 1) + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;">' + escHtml(row.address || '') + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;">' + escHtml(row.category || '') + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escHtml(row.description || '') + '">' + escHtml(row.description || '') + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;white-space:nowrap;">' + escHtml(row.dateSubmitted || row.date || '') + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;">' + mntStatusBadge(row.status) + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mid);">' + escHtml(row.updates || row.updateNote || '') + '</td>';
-    html += '<td style="padding:0.5rem 0.4rem;"><button onclick="toggleMntEdit(' + i + ',' + rowIdx + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.6;" title="Edit">✏️</button></td>';
+    var actualRowIndex = row.rowIndex;
+    var tdStyle = 'padding:0.65rem 0.7rem;border-bottom:1px solid rgba(196,149,106,0.08);vertical-align:top;font-size:0.9rem;';
+    html += '<tr id="mnt-row-' + i + '" style="transition:background 0.12s;" onmouseover="this.style.background=\'rgba(196,149,106,0.04)\'" onmouseout="this.style.background=\'\'">';
+    html += '<td style="' + tdStyle + 'color:var(--mid);font-size:0.75rem;">' + (row.issueNumber || (i+1)) + '</td>';
+    html += '<td style="' + tdStyle + '">' + escHtml(row.address || '') + '</td>';
+    html += '<td style="' + tdStyle + '">' + escHtml(row.category || '') + '</td>';
+    html += '<td style="' + tdStyle + '">' + escHtml(row.description || '') + '</td>';
+    html += '<td style="' + tdStyle + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
+    html += '<td style="' + tdStyle + '">' + mntStatusBadge(row.status) + '</td>';
+    html += '<td style="' + tdStyle + 'color:var(--mid);">' + escHtml(row.updates || '') + '</td>';
+    html += '<td style="' + tdStyle + 'text-align:center;"><button onclick="toggleMntEdit(' + i + ',' + actualRowIndex + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.55;padding:0;" title="Edit">\u270f\ufe0f</button></td>';
     html += '</tr>';
     // Expand edit row
     html += '<tr id="mnt-edit-' + i + '" style="display:none;background:rgba(196,149,106,0.04);">';
-    html += '<td colspan="8" style="padding:0.8rem 1rem;">';
+    html += '<td colspan="8" style="padding:0.8rem 1rem;border-bottom:1px solid rgba(196,149,106,0.12);">';
     html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">';
-    html += '<div style="flex:0 0 auto;"><label style="font-size:0.73rem;color:var(--mid);display:block;margin-bottom:0.3rem;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" style="background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.35rem 0.7rem;font-size:0.82rem;">';
+    html += '<div style="flex:0 0 auto;"><label style="font-size:0.78rem;color:var(--mid);display:block;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;">Status</label>';
+    html += '<select id="mnt-status-' + i + '" style="background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.4rem 0.8rem;font-size:0.9rem;">'
     ['New','In Progress','Resolved'].forEach(function(s){
       html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
     });
     html += '</select></div>';
-    html += '<div style="flex:1;min-width:200px;"><label style="font-size:0.73rem;color:var(--mid);display:block;margin-bottom:0.3rem;">Update Note</label>';
-    html += '<textarea id="mnt-note-' + i + '" rows="2" style="width:100%;background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.35rem 0.6rem;font-size:0.82rem;resize:vertical;">' + escHtml(row.updates || row.updateNote || '') + '</textarea></div>';
+    html += '<div style="flex:1;min-width:220px;"><label style="font-size:0.78rem;color:var(--mid);display:block;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;">Update Note</label>';
+    html += '<textarea id="mnt-note-' + i + '" rows="5" style="width:100%;background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.4rem 0.6rem;font-size:0.9rem;resize:vertical;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
     html += '<div style="display:flex;gap:0.5rem;align-items:flex-end;padding-bottom:0.1rem;">';
-    html += '<button class="abtn abtn-primary" onclick="saveMaintenanceRow(' + rowIdx + ',' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Save</button>';
+    html += '<button class="abtn abtn-primary" id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Save</button>';
     html += '<button class="abtn" onclick="collapseMaintenanceRow(' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Cancel</button>';
     html += '</div></div></td></tr>';
   });
@@ -685,10 +724,9 @@ function renderMaintenanceTable() {
   document.getElementById('mntTableWrap').innerHTML = html;
 }
 
-function toggleMntEdit(i, rowIdx) {
+function toggleMntEdit(i, actualRowIndex) {
   var editRow = document.getElementById('mnt-edit-' + i);
   var isVisible = editRow.style.display !== 'none';
-  // Collapse all open edit rows first
   document.querySelectorAll('[id^="mnt-edit-"]').forEach(function(r){ r.style.display='none'; });
   if (!isVisible) editRow.style.display = '';
   resetAutoLock();
@@ -699,44 +737,55 @@ function collapseMaintenanceRow(i) {
   if (editRow) editRow.style.display = 'none';
 }
 
-function saveMaintenanceRow(rowIndex, uiIndex) {
+async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   var statusEl = document.getElementById('mnt-status-' + uiIndex);
-  var noteEl = document.getElementById('mnt-note-' + uiIndex);
+  var noteEl   = document.getElementById('mnt-note-' + uiIndex);
+  var saveBtn  = document.getElementById('mnt-save-' + uiIndex);
   if (!statusEl) return;
+
   var newStatus = statusEl.value;
-  var newNote = noteEl ? noteEl.value : '';
+  var newNote   = noteEl ? noteEl.value.trim() : '';
 
-  statusEl.disabled = true;
-  if (noteEl) noteEl.disabled = true;
+  if (saveBtn) { saveBtn.textContent = 'Saving\u2026'; saveBtn.disabled = true; }
 
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: rowIndex, status: newStatus, updates: newNote })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(d) {
-    if (d.success || d.status === 'ok') {
-      // Update local data
-      if (mntAllIssues[rowIndex]) {
-        mntAllIssues[rowIndex].status = newStatus;
-        mntAllIssues[rowIndex].updates = newNote;
-        mntAllIssues[rowIndex].updateNote = newNote;
+  try {
+    var res  = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: actualRowIndex, status: newStatus, updates: newNote })
+    });
+    var data = await res.json();
+    if (data.status === 'ok') {
+      // Auto-sync resolve date just like the source page does
+      var today = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'2-digit'});
+      var isResolved = newStatus.toLowerCase().includes('resolv');
+      // Find the row in mntAllIssues by rowIndex
+      var rowObj = null;
+      for (var k = 0; k < mntAllIssues.length; k++) {
+        if (mntAllIssues[k].rowIndex == actualRowIndex) { rowObj = mntAllIssues[k]; break; }
+      }
+      if (rowObj) {
+        var hadDate = !!(rowObj.dateResolved && rowObj.dateResolved.toString().trim());
+        if (isResolved && !hadDate) {
+          await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: actualRowIndex, dateResolved: today }) });
+          rowObj.dateResolved = today;
+        } else if (!isResolved && hadDate) {
+          await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: actualRowIndex, dateResolved: '' }) });
+          rowObj.dateResolved = '';
+        }
+        rowObj.status  = newStatus;
+        rowObj.updates = newNote;
       }
       collapseMaintenanceRow(uiIndex);
       renderMaintenanceTable();
       loadWelcomeStats();
       showToast('Issue updated.', 'success');
     } else {
-      showToast('Save failed: ' + (d.error || 'Unknown error'), 'error');
-      statusEl.disabled = false;
-      if (noteEl) noteEl.disabled = false;
+      throw new Error(data.message || 'Unknown error');
     }
-  })
-  .catch(function() {
-    showToast('Network error. Please try again.', 'error');
-    statusEl.disabled = false;
-    if (noteEl) noteEl.disabled = false;
-  });
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+    if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
+  }
   resetAutoLock();
 }
 
@@ -766,7 +815,8 @@ function loadWelcomeStats() {
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
 document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
-document.getElementById('mntFilterStatus').addEventListener('change', renderMaintenanceTable);
+document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
+document.getElementById('mntSearch').addEventListener('input', mntApplyFilters);
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
