@@ -319,7 +319,7 @@
         if (key === 'other') {
           filterBar += '<label style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
             '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
-            '<button class="btn-clear" onclick="clearSearch(\'' + key + '\')">Clear</button>';
+            '<button class="btn-clear" id="search-clear-' + key + '" style="display:none" onclick="clearSearch(\'' + key + '\')">Clear</button>';
         }
         filterBar += '</div>';
       }
@@ -407,6 +407,8 @@
 
   function setSearch(key, val) {
     tableState[key].search = val;
+    var clr = document.getElementById('search-clear-' + key);
+    if (clr) clr.style.display = val ? '' : 'none';
     renderSection(key);
   }
 
@@ -414,6 +416,8 @@
     tableState[key].search = '';
     var inp = document.getElementById('search-' + key);
     if (inp) inp.value = '';
+    var clr = document.getElementById('search-clear-' + key);
+    if (clr) clr.style.display = 'none';
     renderSection(key);
   }
 
