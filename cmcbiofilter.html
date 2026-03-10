@@ -58,13 +58,18 @@
     background: rgba(196,149,106,0.10); color: var(--accent);
     font-family: Arial, sans-serif; font-size: 0.9rem; font-weight: 600;
     cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-bottom: 0.5rem;
+    width: 320px;
   }
   .btn-toggle:hover { background: rgba(196,149,106,0.22); border-color: var(--accent2); color: var(--accent2); }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .btn-toggle.open .chevron { transform: rotate(90deg); }
+  thead th { position: relative; }
   .th-count {
-    display: inline-block; margin-left: 0.4rem;
-    font-size: 0.7rem; color: var(--stone); font-weight: 400;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 1.5rem; height: 1.5rem; padding: 0 0.45rem;
+    background: var(--accent); color: var(--cream);
+    border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+    position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%);
   }
 
   .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
@@ -335,7 +340,8 @@
         rows += '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td></tr>';
       });
       var sortClass = asc ? 'sort-asc' : 'sort-desc';
-      tableHtml = '<table><thead><tr><th class="sortable ' + sortClass + '" onclick="toggleSort(\'' + key + '\')">Document <span class="th-count">' + files.length + '</span><span class="sort-icon"></span></th></tr></thead>' +
+      tableHtml = '<table><thead><tr><th class="sortable ' + sortClass + '" onclick="toggleSort(\'' + key + '\')">' +
+        'Document<span class="sort-icon"></span><span class="th-count">' + files.length + '</span></th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table>';
     }
     wrap.querySelector('.table-area').innerHTML = tableHtml;
@@ -379,7 +385,8 @@
         rows += '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td></tr>';
       });
       var sortClass = asc ? 'sort-asc' : 'sort-desc';
-      tableHtml = '<table><thead><tr><th class="sortable ' + sortClass + '" onclick="toggleSort(\'' + key + '\')">Document <span class="th-count">' + files.length + '</span><span class="sort-icon"></span></th></tr></thead>' +
+      tableHtml = '<table><thead><tr><th class="sortable ' + sortClass + '" onclick="toggleSort(\'' + key + '\')">' +
+        'Document<span class="sort-icon"></span><span class="th-count">' + files.length + '</span></th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table>';
     }
     wrap.querySelector('.table-area').innerHTML = tableHtml;
