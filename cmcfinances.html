@@ -61,7 +61,7 @@
     cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-bottom: 0.5rem;
     width: 320px;
   }
-  .btn-toggle:hover { background: rgba(196,149,106,0.22); border-color: var(--accent2); color: var(--accent2); }
+  .btn-toggle:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .btn-toggle.open .chevron { transform: rotate(90deg); }
 
@@ -189,18 +189,16 @@
   <div class="finance-section">
     <h3 class="section-heading">Bank Statements</h3>
 
-    <button class="btn-toggle" id="toggle-current" onclick="togglePanel('current')" aria-expanded="false">
+    <button class="btn-toggle" id="toggle-current" onclick="togglePanel('current')" aria-expanded="false" disabled>
       <span class="chevron">▶</span> Current Account Bank Statements
     </button>
     <div class="collapsible-panel" id="panel-current">
       <div class="doc-card" id="card-current">
-        <div id="wrap-current">
-          <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
-        </div>
+        <div id="wrap-current"></div>
       </div>
     </div>
 
-    <button class="btn-toggle" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false" style="margin-top:0.6rem;">
+    <button class="btn-toggle" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false" style="margin-top:0.6rem;" disabled>
       <span class="chevron">▶</span> Other Accounts Bank Statements
     </button>
     <div class="collapsible-panel" id="panel-other">
@@ -392,6 +390,7 @@
           search: key === 'other' ? '' : undefined
         };
         renderSection(key);
+        document.getElementById('toggle-' + key).disabled = false;
       });
 
     } catch(err) {
