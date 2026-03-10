@@ -66,8 +66,8 @@
   .btn-toggle.open .chevron { transform: rotate(90deg); }
 
   /* Collapsible */
-  .collapsible-panel { overflow: hidden; max-height: 0; background: var(--cream); }
-  .collapsible-panel.open { max-height: 8000px; }
+  .collapsible-panel { overflow: hidden; max-height: 0; background: var(--cream); padding: 0; }
+  .collapsible-panel.open { max-height: 8000px; padding: 0.6rem 0 0; }
   @media (max-width: 1024px) {
     .collapsible-panel { transition: max-height 0.35s ease; }
   }
@@ -93,7 +93,7 @@
   /* Doc card */
   .doc-card {
     background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
-    box-shadow: var(--shadow); overflow: hidden; margin-top: 0.6rem;
+    box-shadow: var(--shadow); overflow: hidden;
   }
 
   table { width: 100%; border-collapse: collapse; }
