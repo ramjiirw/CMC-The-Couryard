@@ -66,8 +66,11 @@
   .btn-toggle.open .chevron { transform: rotate(90deg); }
 
   /* Collapsible */
-  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; background: var(--cream); }
+  .collapsible-panel { overflow: hidden; max-height: 0; background: var(--cream); }
   .collapsible-panel.open { max-height: 8000px; }
+  @media (max-width: 1024px) {
+    .collapsible-panel { transition: max-height 0.35s ease; }
+  }
 
   /* Year filter bar */
   .year-filter {
