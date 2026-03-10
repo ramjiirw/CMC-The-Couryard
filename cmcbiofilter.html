@@ -61,6 +61,7 @@
     width: 320px;
   }
   .btn-toggle:hover { background: rgba(196,149,106,0.22); border-color: var(--accent2); color: var(--accent2); }
+  .btn-toggle:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .btn-toggle.open .chevron { transform: rotate(90deg); }
   thead th { position: relative; }
@@ -72,8 +73,11 @@
     position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%);
   }
 
-  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
-  .collapsible-panel.open { max-height: 8000px; }
+  .collapsible-panel { overflow: hidden; max-height: 0; background: var(--cream); }
+  .collapsible-panel.open { max-height: 8000px; padding: 0.6rem 0 0; }
+  @media (max-width: 1024px) {
+    .collapsible-panel { transition: max-height 0.35s ease; }
+  }
 
   .year-filter {
     display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
@@ -82,15 +86,32 @@
   }
   .year-filter label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.07em; color: var(--mid); white-space: nowrap; }
-  .year-select {
-    padding: 0.35rem 2rem 0.35rem 0.75rem;
+  /* Custom dropdown (replaces native select to avoid OS white flash) */
+  .custom-select { position: relative; display: inline-block; }
+  .custom-select-btn {
+    display: inline-flex; align-items: center; justify-content: space-between;
+    width: 110px; padding: 0.35rem 0.65rem 0.35rem 0.75rem;
     border-radius: 6px; border: 1px solid var(--border);
-    background: var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b5f52'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
-    appearance: none; -webkit-appearance: none;
-    color: var(--accent); font-family: Arial, sans-serif; font-size: 0.85rem;
-    font-weight: 600; cursor: pointer; transition: border-color 0.15s;
+    background: var(--cream); color: var(--accent);
+    font-family: Arial, sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.15s; user-select: none;
   }
-  .year-select:hover, .year-select:focus { border-color: var(--accent2); outline: none; }
+  .custom-select-btn:hover { border-color: var(--accent2); }
+  .cs-arrow { font-size: 0.6rem; opacity: 0.6; transition: transform 0.2s; margin-left: 0.3rem; }
+  .custom-select.open .cs-arrow { transform: rotate(180deg); }
+  .custom-select-list {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0;
+    min-width: 110px; background: var(--cream); border: 1px solid var(--border);
+    border-radius: 6px; box-shadow: 0 4px 16px rgba(30,26,22,0.12);
+    z-index: 200; list-style: none; padding: 0.25rem 0; margin: 0;
+  }
+  .custom-select.open .custom-select-list { display: block; }
+  .custom-select-list li {
+    padding: 0.4rem 0.75rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--accent); cursor: pointer;
+  }
+  .custom-select-list li:hover { background: rgba(196,149,106,0.12); }
+  .custom-select-list li.selected { color: var(--accent2); }
 
   .search-bar {
     display: flex; align-items: center; gap: 0.75rem;
@@ -199,7 +220,7 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Servicing Records</h3>
 
-    <button class="btn-toggle" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="false">
+    <button class="btn-toggle" id="toggle-servicing" onclick="togglePanel('servicing')" aria-expanded="false" disabled>
       <span class="chevron">▶</span> Bio Filter Servicing Records
     </button>
     <div class="collapsible-panel" id="panel-servicing">
@@ -215,7 +236,7 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Documentation</h3>
 
-    <button class="btn-toggle" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="false">
+    <button class="btn-toggle" id="toggle-docs" onclick="togglePanel('docs')" aria-expanded="false" disabled>
       <span class="chevron">▶</span> Bio Filter Documentation
     </button>
     <div class="collapsible-panel" id="panel-docs">
@@ -295,15 +316,20 @@
 
       var controls = '';
       if (allYears.length >= 1) {
-        var opts = '<option value="all">All years</option>';
-        allYears.forEach(function(y) { opts += '<option value="' + y + '">' + y + '</option>'; });
+        var items = '<li data-value="all" class="selected" onclick="setYear(\'' + key + '\',\'all\',this)">All years</li>';
+        allYears.forEach(function(y) { items += '<li data-value="' + y + '" onclick="setYear(\'' + key + '\',\'' + y + '\',this)">' + y + '</li>'; });
         controls = '<div class="year-filter">' +
-          '<label for="year-select-' + key + '">Filter by year:</label>' +
-          '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' + opts + '</select>' +
-          '<button class="btn-clear" onclick="clearYear(\'' + key + '\')">Clear</button>' +
+          '<label>Filter by year:</label>' +
+          '<div class="custom-select" id="cs-' + key + '">' +
+            '<div class="custom-select-btn" onclick="toggleCustomSelect(\'' + key + '\')">' +
+              '<span id="cs-label-' + key + '">All years</span><span class="cs-arrow">▼</span>' +
+            '</div>' +
+            '<ul class="custom-select-list">' + items + '</ul>' +
+          '</div>' +
+          '<button class="btn-clear" id="cs-clear-' + key + '" style="display:none" onclick="clearYear(\'' + key + '\')">Clear</button>' +
           '<label for="search-' + key + '" style="margin-left:0.5rem;">Search:</label>' +
           '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
-          '<button class="btn-clear" onclick="clearSearch(\'' + key + '\')">Clear</button>' +
+          '<button class="btn-clear" id="search-clear-' + key + '" style="display:none" onclick="clearSearch(\'' + key + '\')">Clear</button>' +
           '</div>';
       }
       wrap.innerHTML = controls + '<div class="table-area"></div>';
@@ -356,7 +382,7 @@
       wrap.innerHTML = '<div class="year-filter">' +
         '<label for="search-' + key + '">Search:</label>' +
         '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
-        '<button class="btn-clear" onclick="clearSearch(\'' + key + '\')">Clear</button>' +
+        '<button class="btn-clear" id="search-clear-' + key + '" style="display:none" onclick="clearSearch(\'' + key + '\')">Clear</button>' +
         '</div><div class="table-area"></div>';
     }
 
@@ -392,20 +418,48 @@
     wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
-  function setYear(key, year) {
+  function toggleCustomSelect(key) {
+    var cs = document.getElementById('cs-' + key);
+    if (!cs) return;
+    var isOpen = cs.classList.toggle('open');
+    if (isOpen) {
+      document.addEventListener('click', function handler(e) {
+        if (!cs.contains(e.target)) { cs.classList.remove('open'); document.removeEventListener('click', handler); }
+      });
+    }
+  }
+
+  function setYear(key, year, el) {
     tableState[key].activeYear = year;
+    /* update label */
+    var lbl = document.getElementById('cs-label-' + key);
+    if (lbl) lbl.textContent = year === 'all' ? 'All years' : year;
+    /* update selected class */
+    var cs = document.getElementById('cs-' + key);
+    if (cs) cs.querySelectorAll('li').forEach(function(li) { li.classList.toggle('selected', li.dataset.value === year); });
+    /* close dropdown */
+    if (cs) cs.classList.remove('open');
+    /* show/hide year clear */
+    var clr = document.getElementById('cs-clear-' + key);
+    if (clr) clr.style.display = year !== 'all' ? '' : 'none';
     renderServicing(key);
   }
 
   function clearYear(key) {
     tableState[key].activeYear = 'all';
-    var sel = document.getElementById('year-select-' + key);
-    if (sel) sel.value = 'all';
+    var lbl = document.getElementById('cs-label-' + key);
+    if (lbl) lbl.textContent = 'All years';
+    var cs = document.getElementById('cs-' + key);
+    if (cs) cs.querySelectorAll('li').forEach(function(li) { li.classList.toggle('selected', li.dataset.value === 'all'); });
+    var clr = document.getElementById('cs-clear-' + key);
+    if (clr) clr.style.display = 'none';
     renderServicing(key);
   }
 
   function setSearch(key, val) {
     tableState[key].search = val;
+    var clr = document.getElementById('search-clear-' + key);
+    if (clr) clr.style.display = val ? '' : 'none';
     if (key === 'servicing') renderServicing(key);
     else renderDocs(key);
   }
@@ -414,6 +468,8 @@
     tableState[key].search = '';
     var inp = document.getElementById('search-' + key);
     if (inp) inp.value = '';
+    var clr = document.getElementById('search-clear-' + key);
+    if (clr) clr.style.display = 'none';
     if (key === 'servicing') renderServicing(key);
     else renderDocs(key);
   }
@@ -452,6 +508,9 @@
         sortAsc: true
       };
       renderDocs('docs');
+
+      document.getElementById('toggle-servicing').disabled = false;
+      document.getElementById('toggle-docs').disabled = false;
 
     } catch(err) {
       var msg = '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
