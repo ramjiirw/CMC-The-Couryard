@@ -66,7 +66,7 @@
   .btn-toggle.open .chevron { transform: rotate(90deg); }
 
   /* Collapsible */
-  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; background: var(--cream); }
   .collapsible-panel.open { max-height: 8000px; }
 
   /* Year filter bar */
@@ -144,6 +144,7 @@
 
   .state-empty, .state-loading, .state-error {
     padding: 2.5rem 1.5rem; text-align: center; color: var(--stone); font-size: 0.88rem;
+    background: var(--cream);
   }
   .state-error { color: #a05050; }
   @keyframes spin { to { transform: rotate(360deg); } }
