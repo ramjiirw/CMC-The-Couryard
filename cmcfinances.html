@@ -17,7 +17,8 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
+  html { overflow-y: scroll; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; overflow-x: hidden; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -58,6 +59,7 @@
     background: rgba(196,149,106,0.10); color: var(--accent);
     font-family: Arial, sans-serif; font-size: 0.9rem; font-weight: 600;
     cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-bottom: 0.5rem;
+    width: 320px;
   }
   .btn-toggle:hover { background: rgba(196,149,106,0.22); border-color: var(--accent2); color: var(--accent2); }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
@@ -111,7 +113,14 @@
   tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
   .doc-link { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-word; }
   .doc-link:hover { color: var(--accent2); text-decoration: underline; }
-  .td-date { color: var(--mid); font-size: 0.82rem; white-space: nowrap; }
+  thead th { position: relative; }
+  .th-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 1.5rem; height: 1.5rem; padding: 0 0.45rem;
+    background: var(--accent); color: var(--cream);
+    border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+    position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%);
+  }
 
   .placeholder-card {
     background: rgba(196,149,106,0.04); border: 1.5px dashed var(--border);
@@ -134,7 +143,6 @@
   @media (max-width: 600px) {
     header { padding: 1rem; }
     main { padding: 1.5rem 1rem 4rem; }
-    thead th:nth-child(2), tbody td:nth-child(2) { display: none; }
   }
 </style>
 </head>
@@ -175,7 +183,7 @@
       </div>
     </div>
 
-    <button class="btn-toggle" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false" style="margin-top:0.9rem;">
+    <button class="btn-toggle" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false">
       <span class="chevron">▶</span> Other Accounts Bank Statements
     </button>
     <div class="collapsible-panel" id="panel-other">
@@ -246,19 +254,33 @@
   /* State per section */
   var tableState = {};
 
-  function fmtDate(iso) {
-    if (!iso) return '—';
-    var d = new Date(iso);
-    if (isNaN(d)) return iso;
-    return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
-  }
-
   function renderSection(key) {
     var state = tableState[key];
-    var card  = document.getElementById('card-' + key);
     var wrap  = document.getElementById('wrap-' + key);
 
-    /* Filter by year */
+    /* First render — build filter bar once */
+    if (!wrap.querySelector('.table-area')) {
+      var allYears = [];
+      state.files.forEach(function(f) {
+        extractYears(f.name).forEach(function(y) {
+          if (allYears.indexOf(y) === -1) allYears.push(y);
+        });
+      });
+      allYears.sort().reverse();
+
+      var filterBar = '';
+      if (allYears.length > 1) {
+        var opts = '<option value="all">All years</option>';
+        allYears.forEach(function(y) { opts += '<option value="' + y + '">' + y + '</option>'; });
+        filterBar = '<div class="year-filter">' +
+          '<label for="year-select-' + key + '">Filter by year:</label>' +
+          '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
+          opts + '</select></div>';
+      }
+      wrap.innerHTML = filterBar + '<div class="table-area"></div>';
+    }
+
+    /* Filter */
     var files = state.files;
     if (state.activeYear !== 'all') {
       files = files.filter(function(f) {
@@ -266,69 +288,28 @@
       });
     }
 
-    /* Year filter bar — build from all files (not filtered) */
-    var allYears = [];
-    state.files.forEach(function(f) {
-      extractYears(f.name).forEach(function(y) {
-        if (allYears.indexOf(y) === -1) allYears.push(y);
-      });
+    /* Sort — name only */
+    var asc = state.sortDir === 'asc';
+    var sorted = files.slice().sort(function(a, b) {
+      var va = fixTitle(a.name).toLowerCase();
+      var vb = fixTitle(b.name).toLowerCase();
+      return asc ? va.localeCompare(vb) : vb.localeCompare(va);
     });
-    allYears.sort().reverse();
 
-    var filterBar = '';
-    if (allYears.length > 1) {
-      var opts = '<option value="all">All years</option>';
-      allYears.forEach(function(y) {
-        opts += '<option value="' + y + '"' + (state.activeYear === y ? ' selected' : '') + '>' + y + '</option>';
-      });
-      filterBar = '<div class="year-filter">' +
-        '<label for="year-select-' + key + '">Filter by year:</label>' +
-        '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
-        opts + '</select></div>';
-    }
-
-    /* Table */
     var tableHtml;
     if (!files.length) {
       tableHtml = '<div class="state-empty">No documents match this filter.</div>';
     } else {
-      /* Sort */
-      var sorted = files.slice().sort(function(a, b) {
-        var va, vb;
-        if (state.sortCol === 'name') {
-          va = fixTitle(a.name).toLowerCase();
-          vb = fixTitle(b.name).toLowerCase();
-          return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-        } else {
-          va = a.modified ? new Date(a.modified).getTime() : 0;
-          vb = b.modified ? new Date(b.modified).getTime() : 0;
-          return state.sortDir === 'asc' ? va - vb : vb - va;
-        }
-      });
-
-      function thCls(col) {
-        if (col !== state.sortCol) return 'sortable';
-        return 'sortable ' + (state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
-      }
-
+      var sortClass = asc ? 'sort-asc' : 'sort-desc';
       var rows = '';
       sorted.forEach(function(f) {
-        rows += '<tr>' +
-          '<td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td>' +
-          '<td class="td-date">' + fmtDate(f.modified) + '</td>' +
-          '</tr>';
+        rows += '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + fixTitle(f.name) + '</a></td></tr>';
       });
-
-      tableHtml = '<table>' +
-        '<thead><tr>' +
-          '<th class="' + thCls('name') + '" onclick="reSort(\'' + key + '\',\'name\')">Document<span class="sort-icon"></span></th>' +
-          '<th class="' + thCls('date') + '" onclick="reSort(\'' + key + '\',\'date\')">Date<span class="sort-icon"></span></th>' +
-        '</tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-        '</table>';
+      tableHtml = '<table><thead><tr>' +
+        '<th class="sortable ' + sortClass + '" onclick="reSort(\'' + key + '\')">Document<span class="sort-icon"></span><span class="th-count">' + files.length + '</span></th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>';
     }
-
-    wrap.innerHTML = filterBar + tableHtml;
+    wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
   function setYear(key, year) {
@@ -336,14 +317,9 @@
     renderSection(key);
   }
 
-  function reSort(key, col) {
+  function reSort(key) {
     var s = tableState[key];
-    if (s.sortCol === col) {
-      s.sortDir = s.sortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-      s.sortCol = col;
-      s.sortDir = 'asc';
-    }
+    s.sortDir = s.sortDir === 'asc' ? 'desc' : 'asc';
     renderSection(key);
   }
 
@@ -367,7 +343,7 @@
 
         tableState[key] = {
           files: files,
-          sortCol: 'name', sortDir: 'desc',
+          sortDir: 'desc',
           activeYear: 'all'
         };
         renderSection(key);
