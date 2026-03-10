@@ -252,23 +252,23 @@
       <div class="admin-panel" id="panel-maintenance">
         <div class="panel-title">Maintenance Issues</div>
         <div class="panel-desc">View and manage all submitted maintenance requests. Click ✏️ to update status or add notes.</div>
-        <div style="display:flex;gap:0.6rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:0.4rem;">
-            <label style="font-size:0.75rem;color:var(--mid);white-space:nowrap;">Status:</label>
-            <select id="mntFilterStatus" style="background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;cursor:pointer;">
+        <div style="display:flex;gap:0.7rem;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);white-space:nowrap;">Status</label>
+            <select id="mntFilterStatus" style="font-family:Arial,sans-serif;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.35rem 0.7rem;font-size:0.85rem;cursor:pointer;">
               <option value="All">All</option>
               <option value="New">New</option>
               <option value="In Progress">In Progress</option>
               <option value="Resolved">Resolved</option>
             </select>
-            <button id="mntClearStatus" onclick="document.getElementById('mntFilterStatus').value='All';mntApplyFilters();" style="display:none;background:none;border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;color:var(--mid);cursor:pointer;">&#x2715; Clear</button>
+            <button id="mntClearStatus" onclick="document.getElementById('mntFilterStatus').value='All';mntApplyFilters();" style="display:none;background:rgba(122,92,62,0.08);border:1px solid rgba(122,92,62,0.22);border-radius:4px;padding:0.25rem 0.6rem;font-size:0.75rem;font-family:Arial,sans-serif;color:var(--accent);cursor:pointer;">&#x2715; Clear</button>
           </div>
-          <div style="display:flex;align-items:center;gap:0.4rem;flex:1;min-width:160px;">
-            <label style="font-size:0.75rem;color:var(--mid);white-space:nowrap;">Search:</label>
-            <input id="mntSearch" type="text" placeholder="Address, category, description..." style="flex:1;background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;min-width:0;">
-            <button id="mntClearSearch" onclick="document.getElementById('mntSearch').value='';mntApplyFilters();" style="display:none;background:none;border:1px solid var(--border);border-radius:4px;padding:0.2rem 0.5rem;font-size:0.72rem;color:var(--mid);cursor:pointer;">&#x2715; Clear</button>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex:1;min-width:180px;">
+            <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);white-space:nowrap;">Search</label>
+            <input id="mntSearch" type="text" placeholder="Address, category, description…" style="flex:1;font-family:Arial,sans-serif;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.35rem 0.7rem;font-size:0.85rem;min-width:0;">
+            <button id="mntClearSearch" onclick="document.getElementById('mntSearch').value='';mntApplyFilters();" style="display:none;background:rgba(122,92,62,0.08);border:1px solid rgba(122,92,62,0.22);border-radius:4px;padding:0.25rem 0.6rem;font-size:0.75rem;font-family:Arial,sans-serif;color:var(--accent);cursor:pointer;">&#x2715; Clear</button>
           </div>
-          <button class="abtn" id="mntRefreshBtn" style="font-size:0.75rem;padding:0.3rem 0.8rem;white-space:nowrap;">&#8635; Refresh</button>
+          <button class="abtn" id="mntRefreshBtn" style="font-size:0.78rem;padding:0.38rem 0.9rem;white-space:nowrap;">&#8635; Refresh</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;">
           <div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues…</div>
@@ -647,15 +647,17 @@ function mntApplyFilters() {
 }
 
 function loadMaintenanceIssues(silent) {
-  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues\u2026</div>';
+  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.9rem;padding:1rem 0;">Loading issues…</div>';
   fetch(SCRIPT_URL + '?action=readMaintenance')
     .then(function(r){ return r.json(); })
     .then(function(d) {
+      if (!d || (d.status && d.status !== 'ok')) throw new Error(d && d.message ? d.message : 'Bad response');
       mntAllIssues = d.rows || d.issues || [];
       renderMaintenanceTable();
     })
-    .catch(function() {
-      document.getElementById('mntTableWrap').innerHTML = '<div style="color:#c0392b;font-size:0.82rem;padding:1rem 0;">Failed to load issues.</div>';
+    .catch(function(e) {
+      console.error('Maintenance load error:', e);
+      document.getElementById('mntTableWrap').innerHTML = '<div style="color:#c0392b;font-size:0.9rem;padding:1rem 0;">Failed to load issues: ' + (e.message||'network error') + '</div>';
     });
 }
 
@@ -707,13 +709,13 @@ function renderMaintenanceTable() {
     html += '<td colspan="8" style="padding:0.8rem 1rem;border-bottom:1px solid rgba(196,149,106,0.12);">';
     html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">';
     html += '<div style="flex:0 0 auto;"><label style="font-size:0.78rem;color:var(--mid);display:block;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" style="background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.4rem 0.8rem;font-size:0.9rem;">'
+    html += '<select id="mnt-status-' + i + '" style="font-family:Arial,sans-serif;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.4rem 0.8rem;font-size:0.9rem;">'
     ['New','In Progress','Resolved'].forEach(function(s){
       html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
     });
     html += '</select></div>';
     html += '<div style="flex:1;min-width:220px;"><label style="font-size:0.78rem;color:var(--mid);display:block;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;">Update Note</label>';
-    html += '<textarea id="mnt-note-' + i + '" rows="5" style="width:100%;background:var(--warm);color:var(--dark);border:1px solid var(--border);border-radius:5px;padding:0.4rem 0.6rem;font-size:0.9rem;resize:vertical;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
+    html += '<textarea id="mnt-note-' + i + '" rows="5" style="font-family:Arial,sans-serif;width:100%;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.4rem 0.6rem;font-size:0.9rem;resize:vertical;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
     html += '<div style="display:flex;gap:0.5rem;align-items:flex-end;padding-bottom:0.1rem;">';
     html += '<button class="abtn abtn-primary" id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Save</button>';
     html += '<button class="abtn" onclick="collapseMaintenanceRow(' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Cancel</button>';
