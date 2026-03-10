@@ -709,7 +709,7 @@ function renderMaintenanceTable() {
     html += '<td colspan="8" style="padding:0.8rem 1rem;border-bottom:1px solid rgba(196,149,106,0.12);">';
     html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">';
     html += '<div style="flex:0 0 auto;"><label style="font-size:0.78rem;color:var(--mid);display:block;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.04em;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" style="font-family:Arial,sans-serif;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.4rem 0.8rem;font-size:0.9rem;">'
+    html += '<select id="mnt-status-' + i + '" style="font-family:Arial,sans-serif;background:#fff;color:var(--dark);border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.4rem 0.8rem;font-size:0.9rem;">'+'';
     ['New','In Progress','Resolved'].forEach(function(s){
       html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
     });
@@ -747,6 +747,8 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
 
   var newStatus = statusEl.value;
   var newNote   = noteEl ? noteEl.value.trim() : '';
+  // Mirror source page: if note cleared and status is In Progress, revert to New
+  if (!newNote && newStatus === 'In Progress') newStatus = 'New';
 
   if (saveBtn) { saveBtn.textContent = 'Saving\u2026'; saveBtn.disabled = true; }
 
