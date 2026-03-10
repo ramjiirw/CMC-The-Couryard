@@ -180,6 +180,8 @@
       <div class="sidebar-link" data-panel="residents" id="nav-residents">Edit Residents</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
+      <div class="sidebar-label">Maintenance</div>
+      <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Password</div>
     </nav>
@@ -244,6 +246,24 @@
             <button class="abtn abtn-muted" onclick="closeCTModal()">Close</button>
             <button class="abtn abtn-primary" id="ctModalActionBtn" style="display:none;"></button>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-maintenance">
+        <div class="panel-title">Maintenance Issues</div>
+        <div class="panel-desc">View and manage all submitted maintenance requests. Click ✏️ to update status or add notes.</div>
+        <div style="display:flex;gap:0.7rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+          <label style="font-size:0.78rem;color:var(--mid);">Filter:</label>
+          <select id="mntFilterStatus" style="background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.3rem 0.6rem;font-size:0.8rem;cursor:pointer;">
+            <option value="All">All</option>
+            <option value="New">New</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+          <button class="abtn" id="mntRefreshBtn" style="margin-left:auto;font-size:0.75rem;padding:0.3rem 0.8rem;">&#8635; Refresh</button>
+        </div>
+        <div id="mntTableWrap" style="overflow-x:auto;">
+          <div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues…</div>
         </div>
       </div>
 
@@ -410,6 +430,14 @@ function showPanel(id) {
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'maintenance') {
+    if (!mntLoaded) { mntLoaded = true; loadMaintenanceIssues(); }
+    clearInterval(mntRefreshTimer);
+    mntRefreshTimer = setInterval(function(){ loadMaintenanceIssues(true); }, 60000);
+  } else {
+    clearInterval(mntRefreshTimer);
+    mntRefreshTimer = null;
+  }
   if (id === 'residents' && !editDraft.length) loadResidents();
   if (window.innerWidth <= 600) {
     adminSidebar.classList.add('collapsed');
@@ -575,6 +603,143 @@ function showToast(msg, type) {
 document.getElementById('loginBtn').addEventListener('click', doAdminLogin);
 document.getElementById('adminPwInput').addEventListener('keydown', function(e){ if(e.key==='Enter') doAdminLogin(); });
 document.getElementById('lockBtn').addEventListener('click', lockAdmin);
+// ── MAINTENANCE PANEL ───────────────────────────────────────────────────────
+var mntAllIssues = [];
+var mntLoaded = false;
+var mntRefreshTimer = null;
+
+function mntStatusBadge(status) {
+  var s = (status || 'New').trim();
+  var color = s === 'Resolved' ? 'var(--green)' : s === 'In Progress' ? '#c8851a' : '#c0392b';
+  return '<span style="display:inline-block;padding:0.15rem 0.55rem;border-radius:20px;font-size:0.7rem;font-weight:700;background:' + color + '22;color:' + color + ';border:1px solid ' + color + '44;">' + escHtml(s) + '</span>';
+}
+
+function loadMaintenanceIssues(silent) {
+  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">Loading issues…</div>';
+  fetch(SCRIPT_URL + '?action=readMaintenance')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      mntAllIssues = d.rows || d.issues || [];
+      renderMaintenanceTable();
+    })
+    .catch(function() {
+      document.getElementById('mntTableWrap').innerHTML = '<div style="color:#c0392b;font-size:0.82rem;padding:1rem 0;">Failed to load issues.</div>';
+    });
+}
+
+function renderMaintenanceTable() {
+  var filter = document.getElementById('mntFilterStatus').value;
+  var issues = mntAllIssues.filter(function(r) {
+    if (filter === 'All') return true;
+    return (r.status || 'New') === filter;
+  });
+
+  if (!issues.length) {
+    document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1rem 0;">No issues found.</div>';
+    return;
+  }
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
+  html += '<thead><tr style="border-bottom:1px solid var(--border);color:var(--mid);text-align:left;">';
+  html += '<th style="padding:0.5rem 0.4rem;">#</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Address</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Category</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Description</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Submitted</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Status</th>';
+  html += '<th style="padding:0.5rem 0.4rem;">Update Note</th>';
+  html += '<th style="padding:0.5rem 0.4rem;"></th>';
+  html += '</tr></thead><tbody>';
+
+  issues.forEach(function(row, i) {
+    var rowIdx = mntAllIssues.indexOf(row);
+    html += '<tr id="mnt-row-' + i + '" style="border-bottom:1px solid rgba(196,149,106,0.1);transition:background 0.15s;" onmouseover="this.style.background=\'rgba(196,149,106,0.04)\'" onmouseout="this.style.background=\'\'">';
+    html += '<td style="padding:0.5rem 0.4rem;color:var(--mid);">' + (rowIdx + 1) + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;">' + escHtml(row.address || '') + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;">' + escHtml(row.category || '') + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escHtml(row.description || '') + '">' + escHtml(row.description || '') + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;white-space:nowrap;">' + escHtml(row.dateSubmitted || row.date || '') + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;">' + mntStatusBadge(row.status) + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mid);">' + escHtml(row.updates || row.updateNote || '') + '</td>';
+    html += '<td style="padding:0.5rem 0.4rem;"><button onclick="toggleMntEdit(' + i + ',' + rowIdx + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.6;" title="Edit">✏️</button></td>';
+    html += '</tr>';
+    // Expand edit row
+    html += '<tr id="mnt-edit-' + i + '" style="display:none;background:rgba(196,149,106,0.04);">';
+    html += '<td colspan="8" style="padding:0.8rem 1rem;">';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">';
+    html += '<div style="flex:0 0 auto;"><label style="font-size:0.73rem;color:var(--mid);display:block;margin-bottom:0.3rem;">Status</label>';
+    html += '<select id="mnt-status-' + i + '" style="background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.35rem 0.7rem;font-size:0.82rem;">';
+    ['New','In Progress','Resolved'].forEach(function(s){
+      html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div style="flex:1;min-width:200px;"><label style="font-size:0.73rem;color:var(--mid);display:block;margin-bottom:0.3rem;">Update Note</label>';
+    html += '<textarea id="mnt-note-' + i + '" rows="2" style="width:100%;background:var(--dark);color:var(--stone);border:1px solid var(--border);border-radius:5px;padding:0.35rem 0.6rem;font-size:0.82rem;resize:vertical;">' + escHtml(row.updates || row.updateNote || '') + '</textarea></div>';
+    html += '<div style="display:flex;gap:0.5rem;align-items:flex-end;padding-bottom:0.1rem;">';
+    html += '<button class="abtn abtn-primary" onclick="saveMaintenanceRow(' + rowIdx + ',' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Save</button>';
+    html += '<button class="abtn" onclick="collapseMaintenanceRow(' + i + ')" style="font-size:0.78rem;padding:0.35rem 0.9rem;">Cancel</button>';
+    html += '</div></div></td></tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('mntTableWrap').innerHTML = html;
+}
+
+function toggleMntEdit(i, rowIdx) {
+  var editRow = document.getElementById('mnt-edit-' + i);
+  var isVisible = editRow.style.display !== 'none';
+  // Collapse all open edit rows first
+  document.querySelectorAll('[id^="mnt-edit-"]').forEach(function(r){ r.style.display='none'; });
+  if (!isVisible) editRow.style.display = '';
+  resetAutoLock();
+}
+
+function collapseMaintenanceRow(i) {
+  var editRow = document.getElementById('mnt-edit-' + i);
+  if (editRow) editRow.style.display = 'none';
+}
+
+function saveMaintenanceRow(rowIndex, uiIndex) {
+  var statusEl = document.getElementById('mnt-status-' + uiIndex);
+  var noteEl = document.getElementById('mnt-note-' + uiIndex);
+  if (!statusEl) return;
+  var newStatus = statusEl.value;
+  var newNote = noteEl ? noteEl.value : '';
+
+  statusEl.disabled = true;
+  if (noteEl) noteEl.disabled = true;
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: rowIndex, status: newStatus, updates: newNote })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d) {
+    if (d.success || d.status === 'ok') {
+      // Update local data
+      if (mntAllIssues[rowIndex]) {
+        mntAllIssues[rowIndex].status = newStatus;
+        mntAllIssues[rowIndex].updates = newNote;
+        mntAllIssues[rowIndex].updateNote = newNote;
+      }
+      collapseMaintenanceRow(uiIndex);
+      renderMaintenanceTable();
+      loadWelcomeStats();
+      showToast('Issue updated.', 'success');
+    } else {
+      showToast('Save failed: ' + (d.error || 'Unknown error'), 'error');
+      statusEl.disabled = false;
+      if (noteEl) noteEl.disabled = false;
+    }
+  })
+  .catch(function() {
+    showToast('Network error. Please try again.', 'error');
+    statusEl.disabled = false;
+    if (noteEl) noteEl.disabled = false;
+  });
+  resetAutoLock();
+}
+
 function loadWelcomeStats() {
   // Resident count
   if (residents.length) {
@@ -585,7 +750,7 @@ function loadWelcomeStats() {
     .then(function(r){ return r.json(); })
     .then(function(d) {
       var rows = d.rows || d.issues || [];
-      var open = rows.filter(function(r){ return !r.resolved && r.resolved !== 'true' && r.resolved !== true; }).length;
+      var open = rows.filter(function(r){ return (r.status || 'New') !== 'Resolved'; }).length;
       var closed = rows.length - open;
       document.getElementById('statOpen').textContent = open;
       document.getElementById('statClosed').textContent = closed;
@@ -601,6 +766,8 @@ function loadWelcomeStats() {
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
 document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
+document.getElementById('mntFilterStatus').addEventListener('change', renderMaintenanceTable);
+document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
   el.addEventListener('click', function(){ showPanel(el.dataset.panel); });
