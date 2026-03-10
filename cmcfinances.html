@@ -313,7 +313,8 @@
             '<div class="custom-select" id="cs-' + key + '">' +
               '<div class="custom-select-btn" onclick="toggleCustomSelect(\'' + key + '\')"><span id="cs-label-' + key + '">All years</span><span class="cs-arrow">▼</span></div>' +
               '<ul class="custom-select-list">' + items + '</ul>' +
-            '</div>';
+            '</div>' +
+            '<button class="btn-clear" id="cs-clear-' + key + '" onclick="clearYear(\'' + key + '\')" style="display:none">Clear</button>';
         }
         if (key === 'other') {
           filterBar += '<label style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
@@ -378,7 +379,6 @@
 
   function setYear(key, year, el) {
     tableState[key].activeYear = year;
-    /* Update label and selected state */
     var cs = document.getElementById('cs-' + key);
     if (cs) {
       cs.classList.remove('open');
@@ -386,6 +386,22 @@
       cs.querySelectorAll('li').forEach(function(li) { li.classList.remove('selected'); });
       if (el) el.classList.add('selected');
     }
+    var clearBtn = document.getElementById('cs-clear-' + key);
+    if (clearBtn) clearBtn.style.display = year === 'all' ? 'none' : '';
+    renderSection(key);
+  }
+
+  function clearYear(key) {
+    var cs = document.getElementById('cs-' + key);
+    if (cs) {
+      document.getElementById('cs-label-' + key).textContent = 'All years';
+      cs.querySelectorAll('li').forEach(function(li) { li.classList.remove('selected'); });
+      var first = cs.querySelector('li');
+      if (first) first.classList.add('selected');
+    }
+    var clearBtn = document.getElementById('cs-clear-' + key);
+    if (clearBtn) clearBtn.style.display = 'none';
+    tableState[key].activeYear = 'all';
     renderSection(key);
   }
 
