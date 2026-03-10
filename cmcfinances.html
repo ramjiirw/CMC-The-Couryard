@@ -80,15 +80,34 @@
   }
   .year-filter label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.07em; color: var(--mid); white-space: nowrap; }
-  .year-select {
-    padding: 0.35rem 2rem 0.35rem 0.75rem;
-    border-radius: 6px; border: 1px solid var(--border);
-    background: var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b5f52'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
-    appearance: none; -webkit-appearance: none;
-    color: var(--accent); font-family: Arial, sans-serif; font-size: 0.85rem;
-    font-weight: 600; cursor: pointer; transition: border-color 0.15s;
+
+  /* Custom year dropdown */
+  .custom-select { position: relative; display: inline-block; }
+  .custom-select-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--cream); color: var(--accent); font-family: Arial, sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: border-color 0.15s;
+    white-space: nowrap; user-select: none;
   }
-  .year-select:hover, .year-select:focus { border-color: var(--accent2); outline: none; }
+  .custom-select-btn:hover { border-color: var(--accent2); }
+  .custom-select-btn .cs-arrow { font-size: 0.6rem; opacity: 0.6; transition: transform 0.2s; }
+  .custom-select.open .custom-select-btn { border-color: var(--accent2); }
+  .custom-select.open .cs-arrow { transform: rotate(180deg); }
+  .custom-select-list {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0;
+    background: var(--cream); border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(30,26,22,0.12); z-index: 100; min-width: 100%;
+    overflow: hidden;
+  }
+  .custom-select.open .custom-select-list { display: block; }
+  .custom-select-list li {
+    list-style: none; padding: 0.45rem 0.85rem; font-family: Arial, sans-serif;
+    font-size: 0.85rem; color: var(--accent); cursor: pointer; font-weight: 500;
+    transition: background 0.12s;
+  }
+  .custom-select-list li:hover { background: rgba(196,149,106,0.12); }
+  .custom-select-list li.selected { font-weight: 700; color: var(--accent2); }
 
   /* Doc card */
   .doc-card {
@@ -287,14 +306,16 @@
       if (allYears.length > 1 || key === 'other') {
         filterBar = '<div class="year-filter">';
         if (allYears.length > 1) {
-          var opts = '<option value="all">All years</option>';
-          allYears.forEach(function(y) { opts += '<option value="' + y + '">' + y + '</option>'; });
-          filterBar += '<label for="year-select-' + key + '">Filter by year:</label>' +
-            '<select class="year-select" id="year-select-' + key + '" onchange="setYear(\'' + key + '\',this.value)">' +
-            opts + '</select>';
+          var items = '<li class="selected" onclick="setYear(\'' + key + '\',\'all\',this)">All years</li>';
+          allYears.forEach(function(y) { items += '<li onclick="setYear(\'' + key + '\',\'' + y + '\',this)">' + y + '</li>'; });
+          filterBar += '<label>Filter by year:</label>' +
+            '<div class="custom-select" id="cs-' + key + '">' +
+              '<div class="custom-select-btn" onclick="toggleCustomSelect(\'' + key + '\')"><span id="cs-label-' + key + '">All years</span><span class="cs-arrow">▼</span></div>' +
+              '<ul class="custom-select-list">' + items + '</ul>' +
+            '</div>';
         }
         if (key === 'other') {
-          filterBar += '<label for="search-' + key + '" style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
+          filterBar += '<label style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
             '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
             '<button class="btn-clear" onclick="clearSearch(\'' + key + '\')">Clear</button>';
         }
@@ -342,8 +363,28 @@
     wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
-  function setYear(key, year) {
+  function toggleCustomSelect(key) {
+    var cs = document.getElementById('cs-' + key);
+    if (cs) cs.classList.toggle('open');
+  }
+
+  document.addEventListener('click', function(e) {
+    ['current','other'].forEach(function(key) {
+      var cs = document.getElementById('cs-' + key);
+      if (cs && !cs.contains(e.target)) cs.classList.remove('open');
+    });
+  });
+
+  function setYear(key, year, el) {
     tableState[key].activeYear = year;
+    /* Update label and selected state */
+    var cs = document.getElementById('cs-' + key);
+    if (cs) {
+      cs.classList.remove('open');
+      document.getElementById('cs-label-' + key).textContent = el ? el.textContent : year;
+      cs.querySelectorAll('li').forEach(function(li) { li.classList.remove('selected'); });
+      if (el) el.classList.add('selected');
+    }
     renderSection(key);
   }
 
