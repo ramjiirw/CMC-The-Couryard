@@ -292,6 +292,11 @@
     var open = panel.classList.toggle('open');
     btn.classList.toggle('open', open);
     btn.setAttribute('aria-expanded', open);
+    if (open) {
+      setTimeout(function() {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
   }
 
   /* Fix display title: replace spaces in YYYY MM DD date patterns with hyphens */
