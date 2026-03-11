@@ -81,6 +81,17 @@
   .admin-content { flex:1; padding:1.8rem; padding-bottom:6rem; overflow-y:auto; }
   .admin-panel { visibility:hidden; position:absolute; pointer-events:none; opacity:0; }
   .admin-panel.active { visibility:visible; position:relative; pointer-events:auto; opacity:1; }
+  .mnt-cs { position:relative; display:inline-block; }
+  .mnt-cs-btn { display:inline-flex; align-items:center; justify-content:space-between; gap:0.5rem; min-width:130px; padding:0.3rem 0.7rem; border-radius:5px; border:1px solid #b8ad9e; background:#faf7f2; color:#1e1a16; font-family:Arial,sans-serif; font-size:0.82rem; cursor:pointer; white-space:nowrap; user-select:none; transition:border-color 0.15s; }
+  .mnt-cs-btn:hover { border-color:#7a5c3e; }
+  .mnt-cs.open .mnt-cs-btn { border-color:#c4956a; }
+  .mnt-cs-arrow { font-size:0.55rem; opacity:0.5; transition:transform 0.2s; }
+  .mnt-cs.open .mnt-cs-arrow { transform:rotate(180deg); }
+  .mnt-cs-list { display:none; position:absolute; top:calc(100% + 3px); left:0; background:#fff; border:1px solid #c8bfb4; border-radius:6px; box-shadow:0 4px 16px rgba(30,26,22,0.12); z-index:200; min-width:100%; overflow:hidden; }
+  .mnt-cs.open .mnt-cs-list { display:block; }
+  .mnt-cs-list li { list-style:none; padding:0.4rem 0.85rem; font-family:Arial,sans-serif; font-size:0.82rem; color:#1e1a16; cursor:pointer; white-space:nowrap; transition:background 0.1s; }
+  .mnt-cs-list li:hover { background:#faf7f2; }
+  .mnt-cs-list li.mnt-cs-sel { font-weight:700; color:#c4956a; }
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
   .res-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
@@ -260,18 +271,37 @@
         <!-- Filter bar -->
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
           <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
-          <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
-            <option value="">All Addresses</option>
-          </select>
-          <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
-            <option value="">All Statuses</option>
-            <option value="New">New</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
-            <option value="">All Categories</option>
-          </select>
+
+          <div class="mnt-cs" id="mnt-cs-addr">
+            <div class="mnt-cs-btn" onclick="mntCsToggle('addr')"><span id="mnt-cs-label-addr">All Addresses</span><span class="mnt-cs-arrow">▼</span></div>
+            <ul class="mnt-cs-list" id="mnt-cs-list-addr">
+              <li class="mnt-cs-sel" onclick="mntCsSet('addr','',this)">All Addresses</li>
+            </ul>
+          </div>
+
+          <div class="mnt-cs" id="mnt-cs-status">
+            <div class="mnt-cs-btn" onclick="mntCsToggle('status')"><span id="mnt-cs-label-status">All Statuses</span><span class="mnt-cs-arrow">▼</span></div>
+            <ul class="mnt-cs-list">
+              <li class="mnt-cs-sel" onclick="mntCsSet('status','',this)">All Statuses</li>
+              <li onclick="mntCsSet('status','New',this)">New</li>
+              <li onclick="mntCsSet('status','In Progress',this)">In Progress</li>
+              <li onclick="mntCsSet('status','Resolved',this)">Resolved</li>
+            </ul>
+          </div>
+
+          <div class="mnt-cs" id="mnt-cs-cat">
+            <div class="mnt-cs-btn" onclick="mntCsToggle('cat')"><span id="mnt-cs-label-cat">All Categories</span><span class="mnt-cs-arrow">▼</span></div>
+            <ul class="mnt-cs-list">
+              <li class="mnt-cs-sel" onclick="mntCsSet('cat','',this)">All Categories</li>
+              <li onclick="mntCsSet('cat','Car Parks',this)">Car Parks</li>
+              <li onclick="mntCsSet('cat','Farmhouse',this)">Farmhouse</li>
+              <li onclick="mntCsSet('cat','Grounds &amp; Common Areas',this)">Grounds &amp; Common Areas</li>
+              <li onclick="mntCsSet('cat','Lighting',this)">Lighting</li>
+              <li onclick="mntCsSet('cat','Other',this)">Other</li>
+              <li onclick="mntCsSet('cat','Waste &amp; Recycling',this)">Waste &amp; Recycling</li>
+            </ul>
+          </div>
+
           <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
@@ -627,6 +657,32 @@ var mntLoaded = false;
 var mntRefreshTimer = null;
 var mntSortCol = 'dateAdded';
 var mntSortDir = 'desc';
+var mntFilter = { addr: '', status: '', cat: '' };
+
+function mntCsToggle(key) {
+  var el = document.getElementById('mnt-cs-' + key);
+  var wasOpen = el.classList.contains('open');
+  // close all
+  document.querySelectorAll('.mnt-cs').forEach(function(c){ c.classList.remove('open'); });
+  if (!wasOpen) el.classList.add('open');
+}
+
+function mntCsSet(key, val, li) {
+  mntFilter[key] = val;
+  var el = document.getElementById('mnt-cs-' + key);
+  el.classList.remove('open');
+  document.getElementById('mnt-cs-label-' + key).textContent = li.textContent;
+  el.querySelectorAll('li').forEach(function(l){ l.classList.remove('mnt-cs-sel'); });
+  li.classList.add('mnt-cs-sel');
+  renderMaintenanceTable();
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.mnt-cs')) {
+    document.querySelectorAll('.mnt-cs').forEach(function(c){ c.classList.remove('open'); });
+  }
+});
 
 function mntFmtDate(v) {
   if (!v) return '';
@@ -667,9 +723,14 @@ function mntStatusBadge(status, dateResolved) {
 function mntApplyFilters() { renderMaintenanceTable(); }
 
 function mntClearFilters() {
-  document.getElementById('mntFilterStatus').value = '';
-  document.getElementById('mntFilterCat').value = '';
-  document.getElementById('mntFilterAddr').value = '';
+  mntFilter = { addr: '', status: '', cat: '' };
+  ['addr','status','cat'].forEach(function(key) {
+    var el = document.getElementById('mnt-cs-' + key);
+    if (!el) return;
+    el.querySelectorAll('li').forEach(function(l){ l.classList.remove('mnt-cs-sel'); });
+    var first = el.querySelector('li');
+    if (first) { first.classList.add('mnt-cs-sel'); document.getElementById('mnt-cs-label-' + key).textContent = first.textContent; }
+  });
   renderMaintenanceTable();
 }
 
@@ -697,9 +758,9 @@ function mntSortIcon(col) {
 }
 
 function renderMaintenanceTable() {
-  var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
-  var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
-  var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+  var statusFilter = mntFilter.status.toLowerCase().trim();
+  var catFilter    = mntFilter.cat.toLowerCase().trim();
+  var addrFilter   = mntFilter.addr.toLowerCase().trim();
 
   var issues = mntAllIssues.filter(function(r) {
     var st = (r.status || 'New').toLowerCase();
@@ -803,36 +864,17 @@ function renderMaintenanceTable() {
 }
 
 function mntPopulateDropdowns() {
-  if (!mntAllIssues.length) return; // nothing cached yet, leave as-is
-  var addrs = {}, cats = {}, statuses = {};
-  mntAllIssues.forEach(function(r){
-    if (r.address)  addrs[r.address]  = 1;
-    if (r.category) cats[r.category]  = 1;
-    var s = r.dateResolved ? 'Resolved' : (r.status || 'New');
-    if (s.toLowerCase().indexOf('resolv')  >= 0) statuses['Resolved']    = 1;
-    else if (s.toLowerCase().indexOf('progress') >= 0) statuses['In Progress'] = 1;
-    else statuses['New'] = 1;
+  if (!mntAllIssues.length) return;
+  var addrs = {};
+  mntAllIssues.forEach(function(r){ if (r.address) addrs[r.address] = 1; });
+  var list = document.getElementById('mnt-cs-list-addr');
+  if (!list) return;
+  var curAddr = mntFilter.addr;
+  list.innerHTML = '<li class="' + (!curAddr ? 'mnt-cs-sel' : '') + '" onclick="mntCsSet(\'addr\',\'\',this)">All Addresses</li>';
+  Object.keys(addrs).sort().forEach(function(a) {
+    list.innerHTML += '<li class="' + (curAddr === a ? 'mnt-cs-sel' : '') + '" onclick="mntCsSet(\'addr\',\'' + escHtml(a) + '\',this)">' + escHtml(a) + '</li>';
   });
-
-  var addrSel = document.getElementById('mntFilterAddr');
-  var curAddr = addrSel.value;
-  addrSel.innerHTML = '<option value="">All Addresses</option>';
-  Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
-  if (curAddr) addrSel.value = curAddr;
-
-  var statusSel = document.getElementById('mntFilterStatus');
-  var curStatus = statusSel.value;
-  statusSel.innerHTML = '<option value="">All Statuses</option>';
-  ['New','In Progress','Resolved'].forEach(function(s){
-    if (statuses[s]) statusSel.innerHTML += '<option value="' + s + '">' + s + '</option>';
-  });
-  if (curStatus) statusSel.value = curStatus;
-
-  var catSel = document.getElementById('mntFilterCat');
-  var curCat = catSel.value;
-  catSel.innerHTML = '<option value="">All Categories</option>';
-  Object.keys(cats).sort().forEach(function(c){ catSel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
-  if (curCat) catSel.value = curCat;
+  if (curAddr) document.getElementById('mnt-cs-label-addr').textContent = curAddr;
 }
 
 function loadMaintenanceIssues(silent) {
