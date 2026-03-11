@@ -79,8 +79,8 @@
   .sidebar-link.active { background:rgba(196,149,106,0.1); color:var(--accent2); border-left-color:var(--accent2); }
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
   .admin-content { flex:1; padding:1.8rem; padding-bottom:6rem; overflow-y:auto; }
-  .admin-panel { display:none; }
-  .admin-panel.active { display:block; }
+  .admin-panel { visibility:hidden; position:absolute; pointer-events:none; opacity:0; }
+  .admin-panel.active { visibility:visible; position:relative; pointer-events:auto; opacity:1; }
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
   .res-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
