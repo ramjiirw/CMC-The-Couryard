@@ -374,6 +374,7 @@ function showDashboard() {
   startAutoLock();
   loadResidents();
   loadWelcomeStats();
+  loadMaintenanceIssues(true); // preload in background so data is ready when tab is clicked
 }
 
 function lockAdmin() {
@@ -445,9 +446,11 @@ function showPanel(id) {
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
-      // Show skeleton immediately so panel doesn't look blank
-      document.getElementById('mntTableWrap').innerHTML = '<div style="padding:1.5rem;"><div style="height:14px;background:#e8e0d5;border-radius:4px;margin-bottom:0.8rem;width:60%;opacity:0.6;"></div><div style="height:14px;background:#e8e0d5;border-radius:4px;margin-bottom:0.8rem;width:80%;opacity:0.5;"></div><div style="height:14px;background:#e8e0d5;border-radius:4px;width:45%;opacity:0.4;"></div></div>';
       loadMaintenanceIssues();
+    } else {
+      // Data already preloaded — render instantly
+      mntPopulateDropdowns();
+      renderMaintenanceTable();
     }
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = setInterval(function(){ loadMaintenanceIssues(true); }, 60000);
@@ -801,34 +804,39 @@ function renderMaintenanceTable() {
   document.getElementById('mntTableWrap').innerHTML = html;
 }
 
+function mntPopulateDropdowns() {
+  var addrs = {}, cats = {};
+  mntAllIssues.forEach(function(r){
+    if (r.address)  addrs[r.address]  = 1;
+    if (r.category) cats[r.category]  = 1;
+  });
+  var addrSel = document.getElementById('mntFilterAddr');
+  var curAddr = addrSel.value;
+  addrSel.innerHTML = '<option value="">All Addresses</option>';
+  Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
+  if (curAddr) addrSel.value = curAddr;
+
+  var catSel = document.getElementById('mntFilterCat');
+  var curCat = catSel.value;
+  catSel.innerHTML = '<option value="">All Categories</option>';
+  Object.keys(cats).sort().forEach(function(c){ catSel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
+  if (curCat) catSel.value = curCat;
+}
+
 function loadMaintenanceIssues(silent) {
-  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.84rem;padding:1.5rem;">Loading issues…</div>';
+  if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>';
   fetch(SCRIPT_URL + '?action=readMaintenance')
     .then(function(r){ return r.json(); })
     .then(function(d) {
       if (!d || (d.status && d.status !== 'ok')) throw new Error(d && d.message ? d.message : 'Bad response');
       mntAllIssues = d.rows || d.issues || [];
-      // Populate address and category dropdowns
-      var addrs = {}, cats = {};
-      mntAllIssues.forEach(function(r){
-        if (r.address) addrs[r.address] = 1;
-        if (r.category) cats[r.category] = 1;
-      });
-      var addrSel = document.getElementById('mntFilterAddr');
-      var curAddr = addrSel.value;
-      addrSel.innerHTML = '<option value="">All Addresses</option>';
-      Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
-      if (curAddr) addrSel.value = curAddr;
-      var catSel = document.getElementById('mntFilterCat');
-      var curCat = catSel.value;
-      catSel.innerHTML = '<option value="">All Categories</option>';
-      Object.keys(cats).sort().forEach(function(c){ catSel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
-      if (curCat) catSel.value = curCat;
+      mntLoaded = true;
+      mntPopulateDropdowns();
       renderMaintenanceTable();
     })
     .catch(function(e) {
       console.error('Maintenance load error:', e);
-      document.getElementById('mntTableWrap').innerHTML = '<div style="color:#c0392b;font-size:0.84rem;padding:1.5rem;">Failed to load issues: ' + (e.message||'network error') + '</div>';
+      if (!silent) document.getElementById('mntTableWrap').innerHTML = '<div style="color:#c0392b;font-size:0.84rem;padding:1.5rem;">Failed to load issues: ' + (e.message||'network error') + '</div>';
     });
 }
 
