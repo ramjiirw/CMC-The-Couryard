@@ -657,7 +657,7 @@ function mntStatusBadge(status, dateResolved) {
   var v = s.toLowerCase();
   var style = 'display:inline-block;border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.15rem 0.55rem;letter-spacing:0.03em;text-transform:uppercase;white-space:nowrap;';
   if (v.indexOf('resolv') >= 0 || dateResolved)
-    return '<span style="' + style + 'background:#e8f2eb;color:var(--green);border:1px solid #c8e2ce;">Resolved</span>';
+    return '<span style="' + style + 'background:#2e7d52;color:#ffffff;border:1px solid #2e7d52;">Resolved</span>';
   if (v.indexOf('progress') >= 0)
     return '<span style="' + style + 'background:#fff4e0;color:#b8680a;border:1px solid #f5dba0;">In Progress</span>';
   return '<span style="' + style + 'background:#fdeaea;color:#c0392b;border:1px solid #f5c6c6;">New</span>';
@@ -739,7 +739,7 @@ function renderMaintenanceTable() {
   var sb = '';
   if (newCount)      sb += '<span style="' + bs + 'background:#fdeaea;color:#c0392b;border-color:#f5c6c6;">' + newCount + ' New</span>';
   if (inProgCount)   sb += '<span style="' + bs + 'background:#fff4e0;color:#b8680a;border-color:#f5dba0;">' + inProgCount + ' In Progress</span>';
-  if (resolvedCount) sb += '<span style="' + bs + 'background:#e8f2eb;color:var(--green);border-color:#c8e2ce;">' + resolvedCount + ' Resolved</span>';
+  if (resolvedCount) sb += '<span style="' + bs + 'background:#2e7d52;color:#ffffff;border-color:#2e7d52;">' + resolvedCount + ' Resolved</span>';
   document.getElementById('mntStatusBadges').innerHTML = sb;
 
   if (!issues.length) {
