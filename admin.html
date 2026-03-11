@@ -79,8 +79,8 @@
   .sidebar-link.active { background:rgba(196,149,106,0.1); color:var(--accent2); border-left-color:var(--accent2); }
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
   .admin-content { flex:1; padding:1.8rem; padding-bottom:6rem; overflow-y:auto; }
-  .admin-panel { display:none; }
-  .admin-panel.active { display:block; }
+  .admin-panel { visibility:hidden; position:absolute; pointer-events:none; opacity:0; }
+  .admin-panel.active { visibility:visible; position:relative; pointer-events:auto; opacity:1; }
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
   .res-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
@@ -260,18 +260,28 @@
         <!-- Filter bar -->
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
           <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
-          <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+
+          <select id="mntSelAddr" onchange="mntFilter.addr=this.value;renderMaintenanceTable();" style="padding:0.3rem 0.6rem;border-radius:5px;border:1px solid #b8ad9e;background:#faf7f2;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
-          <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+
+          <select id="mntSelStatus" onchange="mntFilter.status=this.value;renderMaintenanceTable();" style="padding:0.3rem 0.6rem;border-radius:5px;border:1px solid #b8ad9e;background:#faf7f2;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">
             <option value="">All Statuses</option>
             <option value="New">New</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-          <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+
+          <select id="mntSelCat" onchange="mntFilter.cat=this.value;renderMaintenanceTable();" style="padding:0.3rem 0.6rem;border-radius:5px;border:1px solid #b8ad9e;background:#faf7f2;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">
             <option value="">All Categories</option>
+            <option value="Car Parks">Car Parks</option>
+            <option value="Farmhouse">Farmhouse</option>
+            <option value="Grounds &amp; Common Areas">Grounds &amp; Common Areas</option>
+            <option value="Lighting">Lighting</option>
+            <option value="Other">Other</option>
+            <option value="Waste &amp; Recycling">Waste &amp; Recycling</option>
           </select>
+
           <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
@@ -444,12 +454,10 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'maintenance') {
+    mntPopulateDropdowns(); // instant — reads from mntAllIssues cache (may be empty if still fetching)
     if (!mntLoaded) {
-      mntLoaded = true;
       loadMaintenanceIssues();
     } else {
-      // Data already preloaded — render instantly
-      mntPopulateDropdowns();
       renderMaintenanceTable();
     }
     clearInterval(mntRefreshTimer);
@@ -629,6 +637,17 @@ var mntLoaded = false;
 var mntRefreshTimer = null;
 var mntSortCol = 'dateAdded';
 var mntSortDir = 'desc';
+var mntFilter = { addr: '', status: '', cat: '' };
+
+function mntApplyFilters() { renderMaintenanceTable(); }
+
+function mntClearFilters() {
+  mntFilter = { addr: '', status: '', cat: '' };
+  document.getElementById('mntSelAddr').value = '';
+  document.getElementById('mntSelStatus').value = '';
+  document.getElementById('mntSelCat').value = '';
+  renderMaintenanceTable();
+}
 
 function mntFmtDate(v) {
   if (!v) return '';
@@ -666,15 +685,6 @@ function mntStatusBadge(status, dateResolved) {
   return '<span style="' + style + 'background:#fdeaea;color:#c0392b;border:1px solid #f5c6c6;">New</span>';
 }
 
-function mntApplyFilters() { renderMaintenanceTable(); }
-
-function mntClearFilters() {
-  document.getElementById('mntFilterStatus').value = '';
-  document.getElementById('mntFilterCat').value = '';
-  document.getElementById('mntFilterAddr').value = '';
-  renderMaintenanceTable();
-}
-
 // Auto-bump status New → In Progress when user starts typing a note
 function mntOnNoteInput(i) {
   var statusSel = document.getElementById('mnt-status-' + i);
@@ -699,9 +709,9 @@ function mntSortIcon(col) {
 }
 
 function renderMaintenanceTable() {
-  var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
-  var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
-  var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+  var statusFilter = mntFilter.status.toLowerCase().trim();
+  var catFilter    = mntFilter.cat.toLowerCase().trim();
+  var addrFilter   = mntFilter.addr.toLowerCase().trim();
 
   var issues = mntAllIssues.filter(function(r) {
     var st = (r.status || 'New').toLowerCase();
@@ -805,22 +815,20 @@ function renderMaintenanceTable() {
 }
 
 function mntPopulateDropdowns() {
-  var addrs = {}, cats = {};
-  mntAllIssues.forEach(function(r){
-    if (r.address)  addrs[r.address]  = 1;
-    if (r.category) cats[r.category]  = 1;
+  if (!mntAllIssues.length) return;
+  var addrs = {};
+  mntAllIssues.forEach(function(r){ if (r.address) addrs[r.address] = 1; });
+  var sel = document.getElementById('mntSelAddr');
+  if (!sel) return;
+  var curAddr = mntFilter.addr;
+  sel.innerHTML = '<option value="">All Addresses</option>';
+  Object.keys(addrs).sort().forEach(function(a) {
+    var opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    if (a === curAddr) opt.selected = true;
+    sel.appendChild(opt);
   });
-  var addrSel = document.getElementById('mntFilterAddr');
-  var curAddr = addrSel.value;
-  addrSel.innerHTML = '<option value="">All Addresses</option>';
-  Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
-  if (curAddr) addrSel.value = curAddr;
-
-  var catSel = document.getElementById('mntFilterCat');
-  var curCat = catSel.value;
-  catSel.innerHTML = '<option value="">All Categories</option>';
-  Object.keys(cats).sort().forEach(function(c){ catSel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
-  if (curCat) catSel.value = curCat;
 }
 
 function loadMaintenanceIssues(silent) {
@@ -934,9 +942,6 @@ function loadWelcomeStats() {
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
 document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
-document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
-document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
-document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
