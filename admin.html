@@ -249,33 +249,33 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-maintenance" style="padding:0;overflow:hidden;border-radius:10px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.07);">
-        <!-- Dark card header matching maintenancesubmissions.html -->
-        <div style="background:var(--dark);padding:0.75rem 1.25rem;color:var(--cream);font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+      <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:hidden;">
+        <!-- Dark card header -->
+        <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
           &#128203; Issue Log
-          <span id="mntCountPill" style="background:rgba(196,149,106,0.25);color:var(--accent2);border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
+          <span id="mntCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
           <span id="mntStatusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span>
-          <button class="abtn" id="mntRefreshBtn" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;margin-left:0.5rem;background:rgba(196,149,106,0.18);border-color:rgba(196,149,106,0.3);color:var(--cream);">&#8635; Refresh</button>
+          <button class="abtn" id="mntRefreshBtn" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;margin-left:0.5rem;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
         </div>
         <!-- Filter bar -->
-        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:var(--warm);border-top:1px solid #c8bfb4;border-bottom:1px solid #c8bfb4;">
-          <label style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
-          <select id="mntFilterAddr" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
+          <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
+          <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
-          <select id="mntFilterStatus" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+          <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Statuses</option>
             <option value="New">New</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-          <select id="mntFilterCat" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+          <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
-          <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:var(--green);color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
+          <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
-          <div style="color:var(--stone);font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
+          <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
         </div>
       </div>
 
@@ -747,26 +747,27 @@ function renderMaintenanceTable() {
     return;
   }
 
-  // Table header style - darker so it stands out clearly
-  var TH = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;';
+  // Table header style - dark so it stands out clearly
+  var TH  = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;';
+  var THx = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;';
 
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr>';
-  html += '<th style="' + TH + 'width:36px;" onclick="mntToggleSort(\'num\')">#' + mntSortIcon('num') + '</th>';
-  html += '<th style="' + TH + 'width:120px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
-  html += '<th style="' + TH + 'width:120px;" onclick="mntToggleSort(\'category\')">Category' + mntSortIcon('category') + '</th>';
-  html += '<th style="' + TH + '" onclick="mntToggleSort(\'description\')">Description' + mntSortIcon('description') + '</th>';
-  html += '<th style="' + TH + 'width:110px;" onclick="mntToggleSort(\'dateAdded\')">Date Added' + mntSortIcon('dateAdded') + '</th>';
-  html += '<th style="' + TH + 'width:115px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
-  html += '<th style="' + TH + '" onclick="mntToggleSort(\'updates\')">Updates' + mntSortIcon('updates') + '</th>';
-  html += '<th style="' + TH + 'width:105px;" onclick="mntToggleSort(\'dateResolved\')">Date Resolved' + mntSortIcon('dateResolved') + '</th>';
-  html += '<th style="' + TH + 'width:36px;cursor:default;"></th>';
+  html += '<th style="' + TH  + 'width:36px;" onclick="mntToggleSort(\'num\')">#' + mntSortIcon('num') + '</th>';
+  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
+  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'category\')">Category' + mntSortIcon('category') + '</th>';
+  html += '<th style="' + THx + '">Description</th>';
+  html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'dateAdded\')">Date Added' + mntSortIcon('dateAdded') + '</th>';
+  html += '<th style="' + TH  + 'width:115px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
+  html += '<th style="' + THx + '">Updates</th>';
+  html += '<th style="' + TH  + 'width:105px;" onclick="mntToggleSort(\'dateResolved\')">Date Resolved' + mntSortIcon('dateResolved') + '</th>';
+  html += '<th style="' + THx + 'width:36px;"></th>';
   html += '</tr></thead><tbody>';
 
   issues.forEach(function(row, i) {
     var actualRowIndex = row.rowIndex;
     var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
-    var td = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:var(--dark);');
+    var td = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:#1e1a16;');
     html += '<tr id="mnt-row-' + i + '" onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})" onmouseout="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})">';
     html += '<td style="' + td + 'font-weight:600;">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + td + '">' + escHtml(row.address || '') + '</td>';
