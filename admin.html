@@ -265,9 +265,6 @@
           </select>
           <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Statuses</option>
-            <option value="New">New</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
           </select>
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
@@ -821,6 +818,18 @@ function mntPopulateDropdowns() {
   catSel.innerHTML = '<option value="">All Categories</option>';
   Object.keys(cats).sort().forEach(function(c){ catSel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
   if (curCat) catSel.value = curCat;
+
+  /* Dynamically build status options from actual data */
+  var hasNew      = mntAllIssues.some(function(r){ var s=(r.status||'New').toLowerCase(); return s.indexOf('new')>=0 && !r.dateResolved && s.indexOf('progress')<0 && s.indexOf('resolv')<0; });
+  var hasProgress = mntAllIssues.some(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; });
+  var hasResolved = mntAllIssues.some(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; });
+  var statusSel = document.getElementById('mntFilterStatus');
+  var curStatus = statusSel.value;
+  statusSel.innerHTML = '<option value="">All Statuses</option>';
+  if (hasNew)      statusSel.innerHTML += '<option value="New">New</option>';
+  if (hasProgress) statusSel.innerHTML += '<option value="In Progress">In Progress</option>';
+  if (hasResolved) statusSel.innerHTML += '<option value="Resolved">Resolved</option>';
+  if (curStatus) statusSel.value = curStatus;
 }
 
 function loadMaintenanceIssues(silent) {
