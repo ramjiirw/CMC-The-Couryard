@@ -233,19 +233,46 @@
   <!-- Budget Documents -->
   <div class="finance-section">
     <h3 class="section-heading">Budget Documents</h3>
-    <div class="placeholder-card"><span>📊</span>Budget documents will appear here once uploaded.</div>
+    <button class="btn-toggle" id="toggle-budget" onclick="togglePanel('budget')" aria-expanded="false" disabled>
+      <span class="chevron">▶</span> Budget Documents
+    </button>
+    <div class="collapsible-panel" id="panel-budget">
+      <div class="doc-card" id="card-budget">
+        <div id="wrap-budget">
+          <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Receipts -->
   <div class="finance-section">
     <h3 class="section-heading">Receipts</h3>
-    <div class="placeholder-card"><span>🧾</span>Receipts will appear here once uploaded.</div>
+    <button class="btn-toggle" id="toggle-receipts" onclick="togglePanel('receipts')" aria-expanded="false" disabled>
+      <span class="chevron">▶</span> Receipts
+    </button>
+    <div class="collapsible-panel" id="panel-receipts">
+      <div class="doc-card" id="card-receipts">
+        <div id="wrap-receipts">
+          <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Invoices -->
   <div class="finance-section">
     <h3 class="section-heading">Invoices</h3>
-    <div class="placeholder-card"><span>📄</span>Invoices will appear here once uploaded.</div>
+    <button class="btn-toggle" id="toggle-invoices" onclick="togglePanel('invoices')" aria-expanded="false" disabled>
+      <span class="chevron">▶</span> Invoices
+    </button>
+    <div class="collapsible-panel" id="panel-invoices">
+      <div class="doc-card" id="card-invoices">
+        <div id="wrap-invoices">
+          <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -303,8 +330,9 @@
       });
       allYears.sort().reverse();
 
+      var hasSearch = (key === 'other' || key === 'budget' || key === 'receipts' || key === 'invoices');
       var filterBar = '';
-      if (allYears.length > 1 || key === 'other') {
+      if (allYears.length > 1 || hasSearch) {
         filterBar = '<div class="year-filter">';
         if (allYears.length > 1) {
           var items = '<li class="selected" onclick="setYear(\'' + key + '\',\'all\',this)">All years</li>';
@@ -316,7 +344,7 @@
             '</div>' +
             '<button class="btn-clear" id="cs-clear-' + key + '" onclick="clearYear(\'' + key + '\')" style="display:none">Clear</button>';
         }
-        if (key === 'other') {
+        if (key === 'other' || key === 'budget' || key === 'receipts' || key === 'invoices') {
           filterBar += '<label style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
             '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
             '<button class="btn-clear" id="search-clear-' + key + '" style="display:none" onclick="clearSearch(\'' + key + '\')">Clear</button>';
@@ -371,7 +399,7 @@
   }
 
   document.addEventListener('click', function(e) {
-    ['current','other'].forEach(function(key) {
+    ['current','other','budget','receipts','invoices'].forEach(function(key) {
       var cs = document.getElementById('cs-' + key);
       if (cs && !cs.contains(e.target)) cs.classList.remove('open');
     });
@@ -455,10 +483,31 @@
         document.getElementById('toggle-' + key).disabled = false;
       });
 
+      /* Budget Documents, Receipts, Invoices — all get year filter + search */
+      var extraSections = [
+        { key: 'budget',   folderKey: 'cmcbudgetdocuments' },
+        { key: 'receipts', folderKey: 'cmcreceipts' },
+        { key: 'invoices', folderKey: 'cmcinvoices' }
+      ];
+      extraSections.forEach(function(sec) {
+        var files = findFiles(sec.folderKey);
+        tableState[sec.key] = {
+          files: files,
+          sortDir: 'desc',
+          activeYear: 'all',
+          search: ''
+        };
+        renderSection(sec.key);
+        document.getElementById('toggle-' + sec.key).disabled = false;
+      });
+
     } catch(err) {
       var msg = '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
       document.getElementById('wrap-current').innerHTML = msg;
       document.getElementById('wrap-other').innerHTML   = msg;
+      document.getElementById('wrap-budget').innerHTML   = msg;
+      document.getElementById('wrap-receipts').innerHTML = msg;
+      document.getElementById('wrap-invoices').innerHTML = msg;
     }
   })();
 </script>
