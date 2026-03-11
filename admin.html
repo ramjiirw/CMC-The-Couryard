@@ -258,24 +258,24 @@
           <button class="abtn" id="mntRefreshBtn" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;margin-left:0.5rem;background:rgba(196,149,106,0.18);border-color:rgba(196,149,106,0.3);color:var(--cream);">&#8635; Refresh</button>
         </div>
         <!-- Filter bar -->
-        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.6rem 1.25rem;background:var(--warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:var(--warm);border-top:1px solid #c8bfb4;border-bottom:1px solid #c8bfb4;">
           <label style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
-          <select id="mntFilterAddr" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+          <select id="mntFilterAddr" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
-          <select id="mntFilterStatus" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+          <select id="mntFilterStatus" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
             <option value="">All Statuses</option>
             <option value="New">New</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-          <select id="mntFilterCat" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
+          <select id="mntFilterCat" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
             <option value="">All Categories</option>
           </select>
-          <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:var(--green);color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#x2715; Clear Filters</button>
+          <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:var(--green);color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
-          <div style="color:var(--mid);font-size:0.84rem;padding:1.5rem;">Loading issues…</div>
+          <div style="color:var(--stone);font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
         </div>
       </div>
 
@@ -443,7 +443,12 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'maintenance') {
-    if (!mntLoaded) { mntLoaded = true; loadMaintenanceIssues(); }
+    if (!mntLoaded) {
+      mntLoaded = true;
+      // Show skeleton immediately so panel doesn't look blank
+      document.getElementById('mntTableWrap').innerHTML = '<div style="padding:1.5rem;"><div style="height:14px;background:#e8e0d5;border-radius:4px;margin-bottom:0.8rem;width:60%;opacity:0.6;"></div><div style="height:14px;background:#e8e0d5;border-radius:4px;margin-bottom:0.8rem;width:80%;opacity:0.5;"></div><div style="height:14px;background:#e8e0d5;border-radius:4px;width:45%;opacity:0.4;"></div></div>';
+      loadMaintenanceIssues();
+    }
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = setInterval(function(){ loadMaintenanceIssues(true); }, 60000);
   } else {
@@ -619,7 +624,8 @@ document.getElementById('lockBtn').addEventListener('click', lockAdmin);
 var mntAllIssues = [];
 var mntLoaded = false;
 var mntRefreshTimer = null;
-var mntDateDir = 'desc'; // newest first by default
+var mntSortCol = 'dateAdded';
+var mntSortDir = 'desc';
 
 function mntFmtDate(v) {
   if (!v) return '';
@@ -674,9 +680,124 @@ function mntOnNoteInput(i) {
   }
 }
 
-function mntToggleDateSort() {
-  mntDateDir = (mntDateDir === 'desc') ? 'asc' : 'desc';
+function mntToggleSort(col) {
+  if (mntSortCol === col) {
+    mntSortDir = (mntSortDir === 'desc') ? 'asc' : 'desc';
+  } else {
+    mntSortCol = col;
+    mntSortDir = (col === 'dateAdded') ? 'desc' : 'asc';
+  }
   renderMaintenanceTable();
+}
+
+function mntSortIcon(col) {
+  if (mntSortCol !== col) return '<span style="margin-left:0.25rem;opacity:0.3;font-size:0.6rem;">▲▼</span>';
+  return '<span style="margin-left:0.25rem;font-size:0.6rem;color:var(--accent2);">' + (mntSortDir === 'desc' ? '▼' : '▲') + '</span>';
+}
+
+function renderMaintenanceTable() {
+  var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
+  var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
+  var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+
+  var issues = mntAllIssues.filter(function(r) {
+    var st = (r.status || 'New').toLowerCase();
+    if (statusFilter) {
+      if (statusFilter === 'resolved' && !(st.indexOf('resolv') >= 0 || !!r.dateResolved)) return false;
+      if (statusFilter === 'in progress' && st.indexOf('progress') < 0) return false;
+      if (statusFilter === 'new' && !(st.indexOf('new') >= 0 && !r.dateResolved && st.indexOf('progress') < 0 && st.indexOf('resolv') < 0)) return false;
+    }
+    if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
+    if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
+    return true;
+  });
+
+  // Sort
+  issues.sort(function(a, b) {
+    var va, vb;
+    if (mntSortCol === 'dateAdded' || mntSortCol === 'dateResolved') {
+      var fieldA = mntSortCol === 'dateAdded' ? (a.dateAdded || a.dateSubmitted || a.date || '') : (a.dateResolved || '');
+      var fieldB = mntSortCol === 'dateAdded' ? (b.dateAdded || b.dateSubmitted || b.date || '') : (b.dateResolved || '');
+      va = mntParseDateVal(fieldA); vb = mntParseDateVal(fieldB);
+    } else if (mntSortCol === 'num') {
+      va = parseInt(a.issueNumber || 0, 10); vb = parseInt(b.issueNumber || 0, 10);
+    } else {
+      va = (a[mntSortCol] || '').toLowerCase(); vb = (b[mntSortCol] || '').toLowerCase();
+    }
+    if (va < vb) return mntSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return mntSortDir === 'asc' ?  1 : -1;
+    return 0;
+  });
+
+  // Update count pill and status summary badges
+  var total = mntAllIssues.length;
+  document.getElementById('mntCountPill').textContent = total;
+  var newCount      = mntAllIssues.filter(function(r){ var s=(r.status||'').toLowerCase(); return s.indexOf('new')>=0 && !r.dateResolved && s.indexOf('progress')<0 && s.indexOf('resolv')<0; }).length;
+  var inProgCount   = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; }).length;
+  var resolvedCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; }).length;
+  var bs = 'border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.15rem 0.55rem;text-transform:uppercase;white-space:nowrap;border:1px solid;';
+  var sb = '';
+  if (newCount)      sb += '<span style="' + bs + 'background:#fdeaea;color:#c0392b;border-color:#f5c6c6;">' + newCount + ' New</span>';
+  if (inProgCount)   sb += '<span style="' + bs + 'background:#fff4e0;color:#b8680a;border-color:#f5dba0;">' + inProgCount + ' In Progress</span>';
+  if (resolvedCount) sb += '<span style="' + bs + 'background:#e8f2eb;color:var(--green);border-color:#c8e2ce;">' + resolvedCount + ' Resolved</span>';
+  document.getElementById('mntStatusBadges').innerHTML = sb;
+
+  if (!issues.length) {
+    document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1.5rem;font-style:italic;">No issues match this filter.</div>';
+    return;
+  }
+
+  // Table header style - darker so it stands out clearly
+  var TH = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;';
+
+  var html = '<table style="width:100%;border-collapse:collapse;">';
+  html += '<thead><tr>';
+  html += '<th style="' + TH + 'width:36px;" onclick="mntToggleSort(\'num\')">#' + mntSortIcon('num') + '</th>';
+  html += '<th style="' + TH + 'width:120px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
+  html += '<th style="' + TH + 'width:120px;" onclick="mntToggleSort(\'category\')">Category' + mntSortIcon('category') + '</th>';
+  html += '<th style="' + TH + '" onclick="mntToggleSort(\'description\')">Description' + mntSortIcon('description') + '</th>';
+  html += '<th style="' + TH + 'width:110px;" onclick="mntToggleSort(\'dateAdded\')">Date Added' + mntSortIcon('dateAdded') + '</th>';
+  html += '<th style="' + TH + 'width:115px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
+  html += '<th style="' + TH + '" onclick="mntToggleSort(\'updates\')">Updates' + mntSortIcon('updates') + '</th>';
+  html += '<th style="' + TH + 'width:105px;" onclick="mntToggleSort(\'dateResolved\')">Date Resolved' + mntSortIcon('dateResolved') + '</th>';
+  html += '<th style="' + TH + 'width:36px;cursor:default;"></th>';
+  html += '</tr></thead><tbody>';
+
+  issues.forEach(function(row, i) {
+    var actualRowIndex = row.rowIndex;
+    var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
+    var td = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:var(--dark);');
+    html += '<tr id="mnt-row-' + i + '" onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})" onmouseout="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})">';
+    html += '<td style="' + td + 'font-weight:600;">' + (row.issueNumber || (i+1)) + '</td>';
+    html += '<td style="' + td + '">' + escHtml(row.address || '') + '</td>';
+    html += '<td style="' + td + '">' + escHtml(row.category || '') + '</td>';
+    html += '<td style="' + td + '">' + escHtml(row.description || '') + '</td>';
+    html += '<td style="' + td + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
+    html += '<td style="' + td + '">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
+    html += '<td style="' + td + '">' + escHtml(row.updates || '') + '</td>';
+    html += '<td style="' + td + 'white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
+    html += '<td style="' + td + 'text-align:center;"><button onclick="toggleMntEdit(' + i + ',' + actualRowIndex + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--accent2);padding:0;line-height:1;" title="Edit">✏️</button></td>';
+    html += '</tr>';
+    // Dark expand panel
+    html += '<tr id="mnt-edit-' + i + '" style="display:none;">';
+    html += '<td colspan="9" style="padding:0;border-bottom:2px solid var(--accent2);">';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;padding:1rem 1.25rem;background:#2a2520;border-top:2px solid var(--accent2);">';
+    html += '<div style="flex:0 0 auto;"><label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Status</label>';
+    html += '<select id="mnt-status-' + i + '" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.88rem;min-width:140px;">';
+    ['New','In Progress','Resolved'].forEach(function(s){
+      html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div style="flex:1;min-width:220px;"><label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
+    html += '<textarea id="mnt-note-' + i + '" rows="4" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.88rem;width:100%;min-height:100px;resize:vertical;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
+    html += '<div style="display:flex;gap:0.6rem;align-items:flex-end;padding-bottom:0.1rem;margin-left:auto;">';
+    html += '<button style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.85rem;cursor:pointer;" onclick="collapseMaintenanceRow(' + i + ')">Cancel</button>';
+    html += '<button id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="background:var(--green);color:white;border:none;border-radius:5px;padding:0.45rem 1.1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>';
+    html += '</div></div></td></tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('mntTableWrap').innerHTML = html;
 }
 
 function loadMaintenanceIssues(silent) {
@@ -710,100 +831,6 @@ function loadMaintenanceIssues(silent) {
     });
 }
 
-function renderMaintenanceTable() {
-  var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
-  var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
-  var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
-
-  var issues = mntAllIssues.filter(function(r) {
-    var st = (r.status || 'New').toLowerCase();
-    if (statusFilter) {
-      if (statusFilter === 'resolved' && !(st.indexOf('resolv') >= 0 || !!r.dateResolved)) return false;
-      if (statusFilter === 'in progress' && st.indexOf('progress') < 0) return false;
-      if (statusFilter === 'new' && !(st.indexOf('new') >= 0 && !r.dateResolved && st.indexOf('progress') < 0 && st.indexOf('resolv') < 0)) return false;
-    }
-    if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
-    if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
-    return true;
-  });
-
-  // Sort by dateAdded
-  issues.sort(function(a, b) {
-    var ta = mntParseDateVal(a.dateAdded || a.dateSubmitted || a.date || '');
-    var tb = mntParseDateVal(b.dateAdded || b.dateSubmitted || b.date || '');
-    return mntDateDir === 'desc' ? tb - ta : ta - tb;
-  });
-
-  // Update count pill and status summary badges
-  var total = mntAllIssues.length;
-  document.getElementById('mntCountPill').textContent = total;
-  var newCount  = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('new') >= 0 && !r.dateResolved && (r.status||'').toLowerCase().indexOf('progress') < 0 && (r.status||'').toLowerCase().indexOf('resolv') < 0; }).length;
-  var inProgCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('progress') >= 0; }).length;
-  var resolvedCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('resolv') >= 0 || !!r.dateResolved; }).length;
-  var badgeStyle = 'border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.15rem 0.55rem;text-transform:uppercase;white-space:nowrap;';
-  var sb = '';
-  if (newCount)      sb += '<span style="' + badgeStyle + 'background:#fdeaea;color:#c0392b;border:1px solid #f5c6c6;">' + newCount + ' New</span>';
-  if (inProgCount)   sb += '<span style="' + badgeStyle + 'background:#fff4e0;color:#b8680a;border:1px solid #f5dba0;">' + inProgCount + ' In Progress</span>';
-  if (resolvedCount) sb += '<span style="' + badgeStyle + 'background:#e8f2eb;color:var(--green);border:1px solid #c8e2ce;">' + resolvedCount + ' Resolved</span>';
-  document.getElementById('mntStatusBadges').innerHTML = sb;
-
-  if (!issues.length) {
-    document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1.5rem;font-style:italic;">No issues match this filter.</div>';
-    return;
-  }
-
-  var thStyle = 'background:#f5f0e8;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;';
-  var thSortStyle = thStyle + 'cursor:pointer;user-select:none;';
-  var sortArrow = mntDateDir === 'desc' ? ' ▼' : ' ▲';
-  var html = '<table style="width:100%;border-collapse:collapse;">';
-  html += '<thead><tr>';
-  html += '<th style="' + thStyle + 'width:36px;">#</th>';
-  html += '<th style="' + thStyle + 'width:130px;">Address</th>';
-  html += '<th style="' + thStyle + 'width:130px;">Category</th>';
-  html += '<th style="' + thStyle + '">Description</th>';
-  html += '<th style="' + thSortStyle + 'width:110px;" onclick="mntToggleDateSort()">Date Added<span style="margin-left:0.3rem;font-size:0.65rem;color:var(--accent2);">' + sortArrow + '</span></th>';
-  html += '<th style="' + thStyle + 'width:115px;">Status</th>';
-  html += '<th style="' + thStyle + '">Updates</th>';
-  html += '<th style="' + thStyle + 'width:105px;">Date Resolved</th>';
-  html += '<th style="' + thStyle + 'width:36px;"></th>';
-  html += '</tr></thead><tbody>';
-
-  issues.forEach(function(row, i) {
-    var actualRowIndex = row.rowIndex;
-    var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
-    var tdStyle = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:var(--dark);');
-    html += '<tr id="mnt-row-' + i + '" onmouseover="this.style.background=\'var(--warm)\'" onmouseout="this.style.background=\'\'">';
-    html += '<td style="' + tdStyle + 'font-weight:600;">' + (row.issueNumber || (i+1)) + '</td>';
-    html += '<td style="' + tdStyle + '">' + escHtml(row.address || '') + '</td>';
-    html += '<td style="' + tdStyle + '">' + escHtml(row.category || '') + '</td>';
-    html += '<td style="' + tdStyle + '">' + escHtml(row.description || '') + '</td>';
-    html += '<td style="' + tdStyle + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
-    html += '<td style="' + tdStyle + '">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
-    html += '<td style="' + tdStyle + '">' + escHtml(row.updates || '') + '</td>';
-    html += '<td style="' + tdStyle + 'white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
-    html += '<td style="' + tdStyle + 'text-align:center;"><button onclick="toggleMntEdit(' + i + ',' + actualRowIndex + ')" style="background:none;border:none;cursor:pointer;font-size:1rem;color:var(--accent2);padding:0;line-height:1;" title="Edit">✏️</button></td>';
-    html += '</tr>';
-    // Dark expand panel
-    html += '<tr id="mnt-edit-' + i + '" style="display:none;">';
-    html += '<td colspan="9" style="padding:0;border-bottom:2px solid var(--accent2);">';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;padding:1rem 1.25rem;background:#2a2520;border-top:2px solid var(--accent2);">';
-    html += '<div style="flex:0 0 auto;"><label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.88rem;min-width:140px;">';
-    ['New','In Progress','Resolved'].forEach(function(s){
-      html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
-    });
-    html += '</select></div>';
-    html += '<div style="flex:1;min-width:220px;"><label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
-    html += '<textarea id="mnt-note-' + i + '" rows="4" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.88rem;width:100%;min-height:100px;resize:vertical;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
-    html += '<div style="display:flex;gap:0.6rem;align-items:flex-end;padding-bottom:0.1rem;margin-left:auto;">';
-    html += '<button style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.85rem;cursor:pointer;" onclick="collapseMaintenanceRow(' + i + ')">Cancel</button>';
-    html += '<button id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="background:var(--green);color:white;border:none;border-radius:5px;padding:0.45rem 1.1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>';
-    html += '</div></div></td></tr>';
-  });
-
-  html += '</tbody></table>';
-  document.getElementById('mntTableWrap').innerHTML = html;
-}
 
 function toggleMntEdit(i, actualRowIndex) {
   var editRow = document.getElementById('mnt-edit-' + i);
