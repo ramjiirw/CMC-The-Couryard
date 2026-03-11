@@ -260,16 +260,16 @@
         <!-- Filter bar -->
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
           <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
-          <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+          <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
-          <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+          <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
             <option value="">All Statuses</option>
             <option value="New">New</option>
             <option value="In Progress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
-          <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+          <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#faf7f2;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
           <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
@@ -444,12 +444,10 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'maintenance') {
+    mntPopulateDropdowns(); // instant — reads from mntAllIssues cache (may be empty if still fetching)
     if (!mntLoaded) {
-      mntLoaded = true;
       loadMaintenanceIssues();
     } else {
-      // Data already preloaded — render instantly
-      mntPopulateDropdowns();
       renderMaintenanceTable();
     }
     clearInterval(mntRefreshTimer);
@@ -805,16 +803,30 @@ function renderMaintenanceTable() {
 }
 
 function mntPopulateDropdowns() {
-  var addrs = {}, cats = {};
+  if (!mntAllIssues.length) return; // nothing cached yet, leave as-is
+  var addrs = {}, cats = {}, statuses = {};
   mntAllIssues.forEach(function(r){
     if (r.address)  addrs[r.address]  = 1;
     if (r.category) cats[r.category]  = 1;
+    var s = r.dateResolved ? 'Resolved' : (r.status || 'New');
+    if (s.toLowerCase().indexOf('resolv')  >= 0) statuses['Resolved']    = 1;
+    else if (s.toLowerCase().indexOf('progress') >= 0) statuses['In Progress'] = 1;
+    else statuses['New'] = 1;
   });
+
   var addrSel = document.getElementById('mntFilterAddr');
   var curAddr = addrSel.value;
   addrSel.innerHTML = '<option value="">All Addresses</option>';
   Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
   if (curAddr) addrSel.value = curAddr;
+
+  var statusSel = document.getElementById('mntFilterStatus');
+  var curStatus = statusSel.value;
+  statusSel.innerHTML = '<option value="">All Statuses</option>';
+  ['New','In Progress','Resolved'].forEach(function(s){
+    if (statuses[s]) statusSel.innerHTML += '<option value="' + s + '">' + s + '</option>';
+  });
+  if (curStatus) statusSel.value = curStatus;
 
   var catSel = document.getElementById('mntFilterCat');
   var curCat = catSel.value;
@@ -934,9 +946,6 @@ function loadWelcomeStats() {
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
 document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
-document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
-document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
-document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
