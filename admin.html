@@ -258,7 +258,7 @@
           <button class="abtn" id="mntRefreshBtn" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;margin-left:0.5rem;background:rgba(196,149,106,0.18);border-color:rgba(196,149,106,0.3);color:var(--cream);">&#8635; Refresh</button>
         </div>
         <!-- Filter bar -->
-        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.6rem 1.25rem;background:var(--warm);border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.6rem 1.25rem;background:var(--warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
           <label style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
           <select id="mntFilterAddr" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);cursor:pointer;">
             <option value="">All Addresses</option>
@@ -274,7 +274,7 @@
           </select>
           <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:var(--green);color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#x2715; Clear Filters</button>
         </div>
-        <div id="mntTableWrap" style="overflow-x:auto;">
+        <div id="mntTableWrap" style="overflow-x:auto;background:white;">
           <div style="color:var(--mid);font-size:0.84rem;padding:1.5rem;">Loading issues…</div>
         </div>
       </div>
@@ -752,7 +752,7 @@ function renderMaintenanceTable() {
     return;
   }
 
-  var thStyle = 'background:var(--warm);padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;';
+  var thStyle = 'background:#f5f0e8;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;';
   var thSortStyle = thStyle + 'cursor:pointer;user-select:none;';
   var sortArrow = mntDateDir === 'desc' ? ' ▼' : ' ▲';
   var html = '<table style="width:100%;border-collapse:collapse;">';
@@ -771,7 +771,7 @@ function renderMaintenanceTable() {
   issues.forEach(function(row, i) {
     var actualRowIndex = row.rowIndex;
     var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
-    var tdStyle = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #f0ebe3;vertical-align:top;' + (isResolved ? 'color:#999590;' : 'color:var(--dark);');
+    var tdStyle = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:var(--dark);');
     html += '<tr id="mnt-row-' + i + '" onmouseover="this.style.background=\'var(--warm)\'" onmouseout="this.style.background=\'\'">';
     html += '<td style="' + tdStyle + 'font-weight:600;">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + tdStyle + '">' + escHtml(row.address || '') + '</td>';
