@@ -288,6 +288,106 @@
     .meeting-label { margin-top: 0.5rem; }
     .fab { bottom: 1rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
   }
+
+  /* ── AGM Availability button ── */
+  .btn-availability {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    background: var(--accent); color: white;
+    border: none; border-radius: 6px;
+    font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+  .btn-availability:hover { background: #5e4530; transform: translateY(-1px); }
+
+  /* ── Availability Modal ── */
+  .avail-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 950;
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .avail-overlay.open { display: flex; }
+  .avail-modal {
+    background: white; border-radius: 12px;
+    width: 100%; max-width: 720px; max-height: 90vh;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.28);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .avail-header {
+    background: var(--dark); padding: 0.9rem 1.3rem; color: var(--cream);
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .avail-close {
+    background: none; border: none; color: white; font-size: 1.3rem;
+    cursor: pointer; line-height: 1; padding: 0 0.2rem;
+  }
+  .avail-close:hover { opacity: 0.7; }
+  .avail-instruction {
+    padding: 0.9rem 1.3rem; font-size: 0.83rem; color: var(--mid);
+    line-height: 1.55; background: var(--warm); border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .avail-table-wrap { overflow-y: auto; flex: 1; }
+  .avail-table {
+    width: 100%; border-collapse: collapse; font-size: 0.84rem;
+  }
+  .avail-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--dark); color: var(--cream);
+    padding: 0.6rem 0.8rem; text-align: center;
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+  }
+  .avail-table thead th:first-child { text-align: left; min-width: 160px; }
+  .avail-table thead th.winning { background: var(--green); }
+  .avail-table tbody tr { border-bottom: 1px solid #f0ebe3; transition: background 0.15s; }
+  .avail-table tbody tr:last-child { border-bottom: none; }
+  .avail-table tbody tr.totals-row { background: var(--warm); font-weight: 700; border-top: 2px solid var(--border); }
+  .avail-table tbody tr.totals-row td { padding: 0.55rem 0.8rem; color: var(--mid); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .avail-table tbody td {
+    padding: 0.6rem 0.8rem; vertical-align: middle;
+    border-right: 1px solid #f0ebe3; text-align: center;
+  }
+  .avail-table tbody td:first-child { text-align: left; font-weight: 500; padding-left: 0.5rem; }
+  .avail-table tbody td.winning-col { background: rgba(61,107,74,0.06); }
+  .avail-table tbody tr.totals-row td.winning-col { background: rgba(61,107,74,0.12); }
+
+  /* Edit / save button */
+  .btn-edit-row {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.2rem 0.45rem; cursor: pointer; font-size: 0.8rem;
+    transition: background 0.15s, border-color 0.15s; color: var(--mid);
+  }
+  .btn-edit-row:hover { background: var(--cream); border-color: var(--stone); }
+  .btn-save-row {
+    background: var(--green); border: none; border-radius: 4px;
+    padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.78rem;
+    color: white; font-weight: 600; transition: background 0.15s;
+  }
+  .btn-save-row:hover { background: #2d5238; }
+  .btn-save-row:disabled { background: var(--stone); cursor: not-allowed; }
+
+  /* Checkbox cell in edit mode */
+  .avail-cb { width: 18px; height: 18px; cursor: pointer; accent-color: var(--green); }
+
+  /* Tick display */
+  .avail-tick { color: var(--green); font-size: 1rem; font-weight: 700; }
+
+  /* Saved flash */
+  .saved-flash {
+    display: inline-block; color: var(--green); font-size: 0.75rem;
+    font-weight: 600; margin-left: 4px; opacity: 1; transition: opacity 1s;
+  }
+  .saved-flash.fade { opacity: 0; }
+
+  /* Loading / error inside modal */
+  .avail-status { padding: 2rem; text-align: center; color: var(--stone); font-size: 0.85rem; }
+  .avail-error  { padding: 1.5rem; text-align: center; color: #c0392b; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -307,9 +407,14 @@
 </header>
 
 <main>
-  <div class="page-title">
-    <h2>AGM Agenda</h2>
-    <p>Annual General Meeting — agenda items and resident submissions.</p>
+  <div class="page-title" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
+    <div>
+      <h2>AGM Agenda</h2>
+      <p>Annual General Meeting — agenda items and resident submissions.</p>
+    </div>
+    <button class="btn-availability" id="btn-availability" onclick="openAvailModal()" style="display:none;">
+      📅 Select Your AGM Availability
+    </button>
   </div>
 
   <!-- Meeting details -->
@@ -365,6 +470,22 @@
   </div>
 
 </main>
+
+<!-- AGM Availability Modal -->
+<div class="avail-overlay" id="availModal">
+  <div class="avail-modal">
+    <div class="avail-header">
+      <span>📅 AGM Date Availability</span>
+      <button class="avail-close" onclick="closeAvailModal()">&#x2715;</button>
+    </div>
+    <div class="avail-instruction">
+      We're finalising the date for the AGM. Please indicate which dates you are available by clicking the ✏️ next to your address, ticking your available dates and pressing Save.
+    </div>
+    <div class="avail-table-wrap">
+      <div id="availTableArea"><div class="avail-status">Loading…</div></div>
+    </div>
+  </div>
+</div>
 
 <!-- Floating Add Agenda Item Button -->
 <button class="fab" onclick="openAgendaModal()">➕ Add an Agenda Item</button>
@@ -613,6 +734,168 @@ function showMsg(type, text) {
 loadAddresses();
 loadAgenda();
 setInterval(() => { loadAgenda(); }, 60000);
+
+// ── AGM Date Availability ─────────────────────────────────────────────────────
+
+var availData = null;       // { dates: [], rows: [{address, values:[bool]}] }
+var availEditingRow = null; // index of row currently being edited
+
+function openAvailModal() {
+  document.getElementById('availModal').classList.add('open');
+  if (!availData) loadAvailability();
+}
+function closeAvailModal() {
+  document.getElementById('availModal').classList.remove('open');
+}
+
+async function loadAvailability() {
+  document.getElementById('availTableArea').innerHTML = '<div class="avail-status">Loading…</div>';
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=readAvailability');
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Error');
+    availData = data;
+    availEditingRow = null;
+    renderAvailTable();
+  } catch(e) {
+    document.getElementById('availTableArea').innerHTML =
+      '<div class="avail-error">⚠️ Could not load availability data.<br><small>' + e.message + '</small></div>';
+  }
+}
+
+function renderAvailTable() {
+  var d = availData;
+  if (!d || !d.dates || !d.rows) {
+    document.getElementById('availTableArea').innerHTML = '<div class="avail-status">No data available.</div>';
+    return;
+  }
+
+  // Work out winning column (highest total)
+  var totals = d.dates.map(function(_, di) {
+    return d.rows.reduce(function(sum, r) { return sum + (r.values[di] ? 1 : 0); }, 0);
+  });
+  var maxTotal = Math.max.apply(null, totals);
+  var winningCol = (maxTotal > 0) ? totals.indexOf(maxTotal) : -1;
+
+  var html = '<table class="avail-table"><thead><tr>';
+  html += '<th></th><th style="text-align:left;min-width:130px;">Address</th>';
+  d.dates.forEach(function(date, di) {
+    var cls = (di === winningCol && maxTotal > 0) ? ' class="winning"' : '';
+    html += '<th' + cls + '>' + escHtml(date) + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  d.rows.forEach(function(row, ri) {
+    var isEditing = (availEditingRow === ri);
+    html += '<tr>';
+
+    // Edit/save button cell
+    if (isEditing) {
+      html += '<td><button class="btn-save-row" id="saveBtn-' + ri + '" onclick="saveAvailRow(' + ri + ')">💾 Save</button></td>';
+    } else {
+      html += '<td><button class="btn-edit-row" onclick="editAvailRow(' + ri + ')">✏️</button></td>';
+    }
+
+    // Address
+    html += '<td style="text-align:left;font-weight:500;">' + escHtml(row.address) + '</td>';
+
+    // Date columns
+    d.dates.forEach(function(date, di) {
+      var winCls = (di === winningCol && maxTotal > 0) ? ' class="winning-col"' : '';
+      if (isEditing) {
+        var checked = row.values[di] ? ' checked' : '';
+        html += '<td' + winCls + '><input type="checkbox" class="avail-cb" id="cb-' + ri + '-' + di + '"' + checked + '></td>';
+      } else {
+        var tick = row.values[di] ? '<span class="avail-tick">✓</span>' : '';
+        html += '<td' + winCls + '>' + tick + '</td>';
+      }
+    });
+
+    html += '</tr>';
+  });
+
+  // Totals row
+  html += '<tr class="totals-row"><td></td><td>Total Available</td>';
+  totals.forEach(function(t, di) {
+    var winCls = (di === winningCol && maxTotal > 0) ? ' class="winning-col"' : '';
+    html += '<td' + winCls + '>' + t + '</td>';
+  });
+  html += '</tr></tbody></table>';
+
+  document.getElementById('availTableArea').innerHTML = html;
+}
+
+function editAvailRow(ri) {
+  availEditingRow = ri;
+  renderAvailTable();
+  // Scroll row into view
+  var btn = document.getElementById('saveBtn-' + ri);
+  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function saveAvailRow(ri) {
+  var row = availData.rows[ri];
+  var btn = document.getElementById('saveBtn-' + ri);
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  // Read checkbox state
+  var newValues = availData.dates.map(function(_, di) {
+    var cb = document.getElementById('cb-' + ri + '-' + di);
+    return cb ? cb.checked : row.values[di];
+  });
+
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'writeAvailability',
+        address: row.address,
+        values: newValues
+      })
+    });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Save failed');
+
+    // Update local data
+    availData.rows[ri].values = newValues;
+    availEditingRow = null;
+    renderAvailTable();
+
+    // Flash "Saved!" next to that row's edit button after re-render
+    var editBtn = document.querySelector('.avail-table tbody tr:nth-child(' + (ri + 1) + ') .btn-edit-row');
+    if (editBtn) {
+      var flash = document.createElement('span');
+      flash.className = 'saved-flash';
+      flash.textContent = '✅ Saved!';
+      editBtn.parentNode.appendChild(flash);
+      setTimeout(function() { flash.classList.add('fade'); }, 1500);
+      setTimeout(function() { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 2600);
+    }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Save'; }
+    alert('Could not save. Please try again.\n' + e.message);
+  }
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Check availability switch on load ────────────────────────────────────────
+(async function checkAvailSwitch() {
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=readAvailability');
+    var data = await res.json();
+    if (data.status === 'ok' && data.switchOn) {
+      document.getElementById('btn-availability').style.display = 'inline-flex';
+      availData = data; // cache for when modal opens
+    }
+  } catch(e) {
+    // silently ignore — button stays hidden
+  }
+})();
 
 // ── AGM Documents ─────────────────────────────────────────────────────────────
 var agmDocState = { files: [], sortCol: 'name', sortDir: 'asc' };
