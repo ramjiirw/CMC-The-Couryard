@@ -296,10 +296,11 @@
     background: var(--accent); color: white;
     border: none; border-radius: 6px;
     font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 600;
-    cursor: pointer; transition: background 0.2s, transform 0.15s;
+    cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
     white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(122,92,62,0.45);
   }
-  .btn-availability:hover { background: #5e4530; transform: translateY(-1px); }
+  .btn-availability:hover { background: #5e4530; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(122,92,62,0.55); }
 
   /* ── Availability Modal ── */
   .avail-overlay {
@@ -742,7 +743,7 @@ var availEditingRow = null; // index of row currently being edited
 
 function openAvailModal() {
   document.getElementById('availModal').classList.add('open');
-  if (!availData) loadAvailability();
+  loadAvailability();
 }
 function closeAvailModal() {
   document.getElementById('availModal').classList.remove('open');
