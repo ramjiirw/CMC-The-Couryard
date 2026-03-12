@@ -322,12 +322,13 @@
     flex-shrink: 0;
   }
   .avail-close {
-    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 5px; color: white; font-size: 0.78rem; font-weight: 600;
-    cursor: pointer; padding: 0.3rem 0.75rem; letter-spacing: 0.03em;
-    transition: background 0.2s;
+    background: transparent; border: 1px solid #3a3530;
+    border-radius: 5px; color: var(--stone); font-family: Arial, sans-serif;
+    font-size: 0.82rem; font-weight: 400; letter-spacing: 0.03em;
+    cursor: pointer; padding: 0.4rem 1rem;
+    transition: background 0.2s, color 0.2s;
   }
-  .avail-close:hover { background: rgba(255,255,255,0.25); }
+  .avail-close:hover { background: #2a2520; color: var(--accent2); }
   .avail-instruction {
     padding: 0.9rem 1.3rem; font-size: 0.83rem; color: var(--mid);
     line-height: 1.55; background: var(--warm); border-bottom: 1px solid var(--border);
@@ -481,7 +482,7 @@
   <div class="avail-modal">
     <div class="avail-header">
       <span>📅 AGM Date Availability</span>
-      <button class="avail-close" onclick="closeAvailModal()">Close ✕</button>
+      <button class="avail-close" onclick="closeAvailModal()">Close</button>
     </div>
     <div class="avail-instruction">
       We're finalising the date for the AGM. Please indicate which dates you are available by clicking the ✏️ next to your address, ticking your available dates and pressing Save.
