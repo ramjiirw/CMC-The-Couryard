@@ -799,17 +799,17 @@ function renderAvailTable() {
     return;
   }
 
-  // Work out winning column (highest total)
+  // Work out winning column(s) — highlight all tied for highest
   var totals = d.dates.map(function(_, di) {
     return d.rows.reduce(function(sum, r) { return sum + (r.values[di] ? 1 : 0); }, 0);
   });
   var maxTotal = Math.max.apply(null, totals);
-  var winningCol = (maxTotal > 0) ? totals.indexOf(maxTotal) : -1;
+  var winningCols = totals.map(function(t) { return maxTotal > 0 && t === maxTotal; });
 
   var html = '<table class="avail-table"><thead><tr>';
   html += '<th></th><th style="text-align:left;min-width:160px;">Address</th>';
   d.dates.forEach(function(date, di) {
-    var cls = (di === winningCol && maxTotal > 0) ? ' class="winning"' : '';
+    var cls = winningCols[di] ? ' class="winning"' : '';
     html += '<th' + cls + '>' + escHtml(formatAvailDate(date)) + '</th>';
   });
   html += '</tr></thead><tbody>';
@@ -830,7 +830,7 @@ function renderAvailTable() {
 
     // Date columns
     d.dates.forEach(function(date, di) {
-      var winCls = (di === winningCol && maxTotal > 0) ? ' class="winning-col"' : '';
+      var winCls = winningCols[di] ? ' class="winning-col"' : '';
       if (isEditing) {
         var checked = row.values[di] ? ' checked' : '';
         html += '<td' + winCls + '><input type="checkbox" class="avail-cb" id="cb-' + ri + '-' + di + '"' + checked + '></td>';
@@ -846,7 +846,7 @@ function renderAvailTable() {
   // Totals row
   html += '<tr class="totals-row"><td></td><td>Total Available</td>';
   totals.forEach(function(t, di) {
-    var winCls = (di === winningCol && maxTotal > 0) ? ' class="winning-col"' : '';
+    var winCls = winningCols[di] ? ' class="winning-col"' : '';
     html += '<td' + winCls + '>' + t + '</td>';
   });
   html += '</tr></tbody></table>';
