@@ -349,6 +349,21 @@
     </div>
   </div>
 
+  <!-- AGM Minutes -->
+  <div class="agenda-card" style="margin-bottom: 1.5rem;">
+    <button class="btn-toggle" id="toggle-agmminutes" onclick="toggleMinutes()" aria-expanded="false">
+      <span>📋 AGM Minutes</span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-agmminutes">
+      <div id="wrap-agmminutes"><div class="loading">Loading minutes…</div></div>
+    </div>
+  </div>
+
 </main>
 
 <!-- Floating Add Agenda Item Button -->
@@ -658,12 +673,10 @@ function renderDocs() {
   }
   var rows = sorted.map(function(f) {
     return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
-      fixDocTitle(f.name) + '</a></td>' +
-      '<td class="td-date">' + fmtDocDate(f.modified) + '</td></tr>';
+      fixDocTitle(f.name) + '</a></td></tr>';
   }).join('');
   wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
     '<th class="' + thCls('name') + '" onclick="reSortDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
-    '<th class="' + thCls('date') + '" onclick="reSortDocs(\'date\')">Date<span class="sort-icon"></span></th>' +
     '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
@@ -688,6 +701,58 @@ function reSortDocs(col) {
   } catch(err) {
     document.getElementById('wrap-agmdocs').innerHTML =
       '<div class="state-error">⚠️ Could not load documents. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
+  }
+})();
+
+// ── AGM Minutes ───────────────────────────────────────────────────────────────
+var agmMinutesState = { files: [], sortCol: 'name', sortDir: 'asc' };
+
+function toggleMinutes() {
+  var btn   = document.getElementById('toggle-agmminutes');
+  var panel = document.getElementById('panel-agmminutes');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    setTimeout(function() {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+}
+
+function renderMinutes() {
+  var state = agmMinutesState;
+  var wrap  = document.getElementById('wrap-agmminutes');
+
+  if (!state.files.length) {
+    wrap.innerHTML = '<div class="state-empty">No minutes have been uploaded yet — check back soon.</div>';
+    return;
+  }
+  var sorted = state.files.slice().sort(function(a, b) {
+    var va = fixDocTitle(a.name).toLowerCase(), vb = fixDocTitle(b.name).toLowerCase();
+    return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  var rows = sorted.map(function(f) {
+    return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
+      fixDocTitle(f.name) + '</a></td></tr>';
+  }).join('');
+  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
+    '<th>Document</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+(async function loadAgmMinutes() {
+  var INDEX_URL = 'cmcdocuments/index.json';
+  try {
+    var res = await fetch(INDEX_URL + '?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var idx = await res.json();
+    var folder = (idx.folders || []).find(function(f) { return f.key === 'agmminutes'; });
+    agmMinutesState.files = folder ? (folder.files || []) : [];
+    renderMinutes();
+  } catch(err) {
+    document.getElementById('wrap-agmminutes').innerHTML =
+      '<div class="state-error">⚠️ Could not load minutes. Make sure the GitHub Action has run.<br><small>' + err.message + '</small></div>';
   }
 })();
 </script>
