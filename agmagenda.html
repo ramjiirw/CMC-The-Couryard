@@ -344,7 +344,8 @@
     border-right: 1px solid rgba(255,255,255,0.1);
     white-space: nowrap;
   }
-  .avail-table thead th:first-child { text-align: left; min-width: 160px; }
+  .avail-table thead th:first-child { text-align: center; width: 36px; padding: 0.6rem 0.4rem; }
+  .avail-table thead th:nth-child(2) { text-align: left; min-width: 160px; }
   .avail-table thead th.winning { background: var(--green); }
   .avail-table tbody tr { border-bottom: 1px solid #f0ebe3; transition: background 0.15s; }
   .avail-table tbody tr:last-child { border-bottom: none; }
@@ -354,7 +355,8 @@
     padding: 0.6rem 0.8rem; vertical-align: middle;
     border-right: 1px solid #f0ebe3; text-align: center;
   }
-  .avail-table tbody td:first-child { text-align: left; font-weight: 500; padding-left: 0.5rem; }
+  .avail-table tbody td:first-child { text-align: center; width: 36px; padding: 0.4rem; }
+  .avail-table tbody td:nth-child(2) { text-align: left; font-weight: 500; padding-left: 0.8rem; }
   .avail-table tbody td.winning-col { background: rgba(61,107,74,0.06); }
   .avail-table tbody tr.totals-row td.winning-col { background: rgba(61,107,74,0.12); }
 
@@ -741,6 +743,16 @@ setInterval(() => { loadAgenda(); }, 60000);
 var availData = null;       // { dates: [], rows: [{address, values:[bool]}] }
 var availEditingRow = null; // index of row currently being edited
 
+function formatAvailDate(raw) {
+  if (!raw) return raw;
+  // If it's already a nice short string like "Sun 29 March", return as-is
+  if (typeof raw === 'string' && raw.length < 20) return raw;
+  // Try to parse as a date
+  var d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' });
+}
+
 function openAvailModal() {
   document.getElementById('availModal').classList.add('open');
   loadAvailability();
@@ -779,10 +791,10 @@ function renderAvailTable() {
   var winningCol = (maxTotal > 0) ? totals.indexOf(maxTotal) : -1;
 
   var html = '<table class="avail-table"><thead><tr>';
-  html += '<th></th><th style="text-align:left;min-width:130px;">Address</th>';
+  html += '<th></th><th style="text-align:left;min-width:160px;">Address</th>';
   d.dates.forEach(function(date, di) {
     var cls = (di === winningCol && maxTotal > 0) ? ' class="winning"' : '';
-    html += '<th' + cls + '>' + escHtml(date) + '</th>';
+    html += '<th' + cls + '>' + escHtml(formatAvailDate(date)) + '</th>';
   });
   html += '</tr></thead><tbody>';
 
@@ -798,7 +810,7 @@ function renderAvailTable() {
     }
 
     // Address
-    html += '<td style="text-align:left;font-weight:500;">' + escHtml(row.address) + '</td>';
+    html += '<td>' + escHtml(row.address) + '</td>';
 
     // Date columns
     d.dates.forEach(function(date, di) {
