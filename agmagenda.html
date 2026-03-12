@@ -322,10 +322,12 @@
     flex-shrink: 0;
   }
   .avail-close {
-    background: none; border: none; color: white; font-size: 1.3rem;
-    cursor: pointer; line-height: 1; padding: 0 0.2rem;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 5px; color: white; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; padding: 0.3rem 0.75rem; letter-spacing: 0.03em;
+    transition: background 0.2s;
   }
-  .avail-close:hover { opacity: 0.7; }
+  .avail-close:hover { background: rgba(255,255,255,0.25); }
   .avail-instruction {
     padding: 0.9rem 1.3rem; font-size: 0.83rem; color: var(--mid);
     line-height: 1.55; background: var(--warm); border-bottom: 1px solid var(--border);
@@ -479,7 +481,7 @@
   <div class="avail-modal">
     <div class="avail-header">
       <span>📅 AGM Date Availability</span>
-      <button class="avail-close" onclick="closeAvailModal()">&#x2715;</button>
+      <button class="avail-close" onclick="closeAvailModal()">Close ✕</button>
     </div>
     <div class="avail-instruction">
       We're finalising the date for the AGM. Please indicate which dates you are available by clicking the ✏️ next to your address, ticking your available dates and pressing Save.
@@ -758,8 +760,17 @@ function openAvailModal() {
   loadAvailability();
 }
 function closeAvailModal() {
+  if (availEditingRow !== null) {
+    if (!confirm('You have unsaved changes. Close anyway?')) return;
+  }
+  availEditingRow = null;
   document.getElementById('availModal').classList.remove('open');
 }
+
+// Close on overlay click (outside modal)
+document.getElementById('availModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAvailModal();
+});
 
 async function loadAvailability() {
   document.getElementById('availTableArea').innerHTML = '<div class="avail-status">Loading…</div>';
