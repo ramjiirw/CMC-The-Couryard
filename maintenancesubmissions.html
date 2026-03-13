@@ -233,6 +233,17 @@
   </div>
 
 <!-- Unsaved changes modal -->
+<div id="reportUnsavedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1100;align-items:center;justify-content:center;">
+  <div class="unsaved-box">
+    <h3>⚠️ Unsaved Issue</h3>
+    <p>You've started filling in an issue. If you close now your details will be lost.</p>
+    <div class="ub-btns">
+      <button class="btn-save" onclick="confirmCloseReportModal()">Discard &amp; Close</button>
+      <button class="btn-cancel-edit" onclick="document.getElementById('reportUnsavedModal').style.display='none';">Go Back</button>
+    </div>
+  </div>
+</div>
+
 <div id="unsavedModal">
   <div class="unsaved-box">
     <h3>⚠️ Unsaved Changes</h3>
@@ -251,11 +262,11 @@
 <button class="fab" onclick="openReportModal()">&#10133; Report an Issue</button>
 
 <!-- Report Modal -->
-<div class="report-modal-overlay" id="reportModal">
+<div class="report-modal-overlay" id="reportModal" onclick="handleReportOverlayClick(event)">
   <div class="report-modal">
     <div class="report-modal-header">
       <span>&#10133; Report a New Issue</span>
-      <button class="report-modal-close" onclick="closeReportModal()">&#x2715;</button>
+      <button class="report-modal-close" onclick="guardedCloseReportModal()">&#x2715;</button>
     </div>
     <div class="submit-body">
       <div class="form-row">
@@ -586,12 +597,44 @@ function toggleDateSort() {
   renderIssues();
 }
 
+function reportFormIsDirty() {
+  const address  = document.getElementById('addressSelect').value;
+  const category = document.getElementById('categorySelect').value;
+  const issue    = document.getElementById('issueText').value.trim();
+  return !!(address || category || issue);
+}
 function openReportModal() {
   document.getElementById('reportModal').classList.add('open');
+}
+function guardedCloseReportModal() {
+  if (reportFormIsDirty()) {
+    document.getElementById('reportUnsavedModal').style.display = 'flex';
+  } else {
+    closeReportModal();
+  }
+}
+function handleReportOverlayClick(e) {
+  if (e.target === document.getElementById('reportModal')) {
+    guardedCloseReportModal();
+  }
+}
+function confirmCloseReportModal() {
+  document.getElementById('reportUnsavedModal').style.display = 'none';
+  closeReportModal();
 }
 function closeReportModal() {
   document.getElementById('reportModal').classList.remove('open');
   document.getElementById('submitMsg').className = 'submit-msg';
+  document.getElementById('issueText').value = '';
+  document.getElementById('addressSelect').value = '';
+  document.getElementById('categorySelect').value = '';
+  // Re-enable fields in case they were locked from a failed submission
+  document.getElementById('addressSelect').disabled  = false;
+  document.getElementById('categorySelect').disabled = false;
+  document.getElementById('issueText').disabled      = false;
+  document.getElementById('issueText').style.cursor  = '';
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false; btn.textContent = 'Submit Issue';
 }
 
 function clearFilters() {
@@ -680,7 +723,15 @@ async function submitIssue() {
   if (!category) { showMsg('error','Please select a category.');    return; }
   if (!issue)    { showMsg('error','Please describe the issue.');   return; }
   const btn = document.getElementById('submitBtn');
+  const addressSel  = document.getElementById('addressSelect');
+  const categorySel = document.getElementById('categorySelect');
+  const issueArea   = document.getElementById('issueText');
+  // Lock all fields while saving
   btn.disabled = true; btn.textContent = 'Submitting...';
+  addressSel.disabled  = true;
+  categorySel.disabled = true;
+  issueArea.disabled   = true;
+  issueArea.style.cursor = 'not-allowed';
   try {
     const res  = await fetch(SCRIPT_URL, {
       method: 'POST',
@@ -689,13 +740,17 @@ async function submitIssue() {
     const data = await res.json();
     if (data.status === 'ok') {
       showMsg('success','Issue submitted - thank you!'); setTimeout(closeReportModal, 2000);
-      document.getElementById('issueText').value = '';
-      document.getElementById('addressSelect').value = '';
-      document.getElementById('categorySelect').value = '';
       setTimeout(loadIssues, 800);
     } else { throw new Error(data.message); }
-  } catch(e) { showMsg('error','Could not submit - please try again.'); }
-  btn.disabled = false; btn.textContent = 'Submit Issue';
+  } catch(e) {
+    showMsg('error','Could not submit - please try again.');
+    // Unlock fields on error so user can retry
+    btn.disabled = false; btn.textContent = 'Submit Issue';
+    addressSel.disabled  = false;
+    categorySel.disabled = false;
+    issueArea.disabled   = false;
+    issueArea.style.cursor = '';
+  }
 }
 
 function showMsg(type, text) {
