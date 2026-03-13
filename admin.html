@@ -118,8 +118,8 @@
   .cep-box textarea:focus { outline:none; border-color:var(--accent2); }
   .cep-hint { font-size:0.72rem; color:#aaa; margin-top:0.3rem; margin-bottom:1rem; }
   .cep-btns { display:flex; gap:0.6rem; justify-content:flex-end; }
-  #toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px); background:var(--dark); color:var(--cream); border-radius:8px; padding:0.65rem 1.2rem; font-size:0.8rem; opacity:0; transition:all 0.3s; z-index:900; pointer-events:none; border:1px solid rgba(196,149,106,0.3); white-space:nowrap; }
-  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast { position:fixed; bottom:50%; left:50%; transform:translateX(-50%) translateY(50%) scale(0.9); background:var(--dark); color:var(--cream); border-radius:10px; padding:1.1rem 2.5rem; font-size:1.15rem; font-weight:600; letter-spacing:0.02em; opacity:0; transition:all 0.3s; z-index:900; pointer-events:none; border:2px solid rgba(196,149,106,0.5); white-space:nowrap; box-shadow:0 8px 40px rgba(0,0,0,0.4); }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(50%) scale(1); }
   #toast.success { border-color:rgba(58,107,74,0.5); }
   #toast.error { border-color:rgba(139,58,58,0.5); }
   .admin-footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.2); padding:0.9rem 2.5rem; display:flex; align-items:center; justify-content:center; }
@@ -987,11 +987,15 @@ function doChangeSitePassword() {
 }
 document.getElementById('spwSaveBtn').addEventListener('click', doChangeSitePassword);
 document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
+document.getElementById('spNew').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
+document.getElementById('spCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
 document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
+document.getElementById('cpNew').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
+document.getElementById('cpCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
   el.addEventListener('click', function(){ showPanel(el.dataset.panel); });
 });
