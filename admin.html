@@ -281,9 +281,9 @@
         <div class="panel-title">Change Admin Password</div>
         <div class="panel-desc">Update the password used to access this admin portal.</div>
         <div class="cpw-form">
-          <div class="field"><label>Current Password</label><input type="password" id="cpCurrent" placeholder="Enter current password"></div>
-          <div class="field"><label>New Password</label><input type="password" id="cpNew" placeholder="Enter new password"></div>
-          <div class="field"><label>Confirm New Password</label><input type="password" id="cpConfirm" placeholder="Repeat new password"></div>
+          <div class="field"><label>Current Password</label><input type="text" id="cpCurrent" autocomplete="off" placeholder="Enter current password"></div>
+          <div class="field"><label>New Password</label><input type="text" id="cpNew" autocomplete="off" placeholder="Enter new password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="text" id="cpConfirm" autocomplete="off" placeholder="Repeat new password"></div>
           <div id="cpwErr"></div>
           <button class="abtn abtn-primary" id="cpwSaveBtn">Update Password</button>
         </div>
@@ -293,9 +293,9 @@
         <div class="panel-title">Change Site Password</div>
         <div class="panel-desc">Update the password residents use to access CMC The Courtyard portal.</div>
         <div class="cpw-form">
-          <div class="field"><label>Current Site Password</label><input type="password" id="spCurrent" placeholder="Enter current site password"></div>
-          <div class="field"><label>New Site Password</label><input type="password" id="spNew" placeholder="Enter new site password"></div>
-          <div class="field"><label>Confirm New Password</label><input type="password" id="spConfirm" placeholder="Repeat new password"></div>
+          <div class="field"><label>Current Site Password</label><input type="text" id="spCurrent" autocomplete="off" placeholder="Enter current site password"></div>
+          <div class="field"><label>New Site Password</label><input type="text" id="spNew" autocomplete="off" placeholder="Enter new site password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="text" id="spConfirm" autocomplete="off" placeholder="Repeat new password"></div>
           <div id="spwErr" style="color:#b05050;font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
           <button class="abtn abtn-primary" id="spwSaveBtn">Update Site Password</button>
         </div>
@@ -986,16 +986,23 @@ function doChangeSitePassword() {
   .catch(function(e){ errEl.textContent = 'Error: ' + e.message; });
 }
 document.getElementById('spwSaveBtn').addEventListener('click', doChangeSitePassword);
-document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
-document.getElementById('spNew').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
-document.getElementById('spCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
+document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
+document.getElementById('spNew').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
+document.getElementById('spCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
 document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
-document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
-document.getElementById('cpNew').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
-document.getElementById('cpCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangePassword(); });
+function flashButton(id) {
+  var btn = document.getElementById(id);
+  btn.style.opacity = '0.6';
+  btn.style.transform = 'scale(0.97)';
+  setTimeout(function(){ btn.style.opacity = ''; btn.style.transform = ''; }, 150);
+}
+
+document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('cpwSaveBtn'); doChangePassword(); } });
+document.getElementById('cpNew').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('cpwSaveBtn'); doChangePassword(); } });
+document.getElementById('cpCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('cpwSaveBtn'); doChangePassword(); } });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
   el.addEventListener('click', function(){ showPanel(el.dataset.panel); });
 });
