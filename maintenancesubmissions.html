@@ -209,16 +209,16 @@
     <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span class="count-pill" id="issueCount">-</span><span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span></div>
     <div class="filter-bar">
       <label>Filter:</label>
-      <select id="filterAddr" onchange="renderIssues()">
+      <select id="filterAddr" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Addresses</option>
       </select>
-      <select id="filterStatus" onchange="renderIssues()">
+      <select id="filterStatus" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Statuses</option>
         <option value="new">New</option>
         <option value="progress">In Progress</option>
         <option value="resolv">Resolved</option>
       </select>
-      <select id="filterCat" onchange="renderIssues()">
+      <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Categories</option>
         <option>Waste &amp; Recycling</option>
         <option>Lighting</option>
@@ -227,7 +227,7 @@
         <option>Farmhouse</option>
         <option>Other</option>
       </select>
-      <button onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;">&#x2715; Clear Filters</button>
+      <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:var(--accent);display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -637,10 +637,28 @@ function closeReportModal() {
   btn.disabled = false; btn.textContent = 'Submit Issue';
 }
 
+function updateFilterBtn() {
+  const count = [
+    document.getElementById('filterStatus').value,
+    document.getElementById('filterCat').value,
+    document.getElementById('filterAddr').value
+  ].filter(Boolean).length;
+  const btn = document.getElementById('clearFiltersBtn');
+  const pill = document.getElementById('filterCount');
+  if (count > 0) {
+    btn.style.display = '';
+    pill.textContent = '(' + count + ')';
+  } else {
+    btn.style.display = 'none';
+    pill.textContent = '';
+  }
+}
+
 function clearFilters() {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAddr').value = '';
+  updateFilterBtn();
   renderIssues();
 }
 
