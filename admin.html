@@ -183,7 +183,8 @@
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Settings</div>
-      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Password</div>
+      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Admin Password</div>
+      <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">Change Site Password</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -285,6 +286,17 @@
           <div class="field"><label>Confirm New Password</label><input type="password" id="cpConfirm" placeholder="Repeat new password"></div>
           <div id="cpwErr"></div>
           <button class="abtn abtn-primary" id="cpwSaveBtn">Update Password</button>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-changesitepw">
+        <div class="panel-title">Change Site Password</div>
+        <div class="panel-desc">Update the password residents use to access CMC The Courtyard portal.</div>
+        <div class="cpw-form">
+          <div class="field"><label>New Site Password</label><input type="password" id="spNew" placeholder="Enter new site password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="spConfirm" placeholder="Repeat new password"></div>
+          <div id="spwErr" style="color:#b05050;font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+          <button class="abtn abtn-primary" id="spwSaveBtn">Update Site Password</button>
         </div>
       </div>
     </main>
@@ -943,6 +955,30 @@ function loadWelcomeStats() {
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
 document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
+
+function doChangeSitePassword() {
+  var newPw = document.getElementById('spNew').value.trim();
+  var conf = document.getElementById('spConfirm').value.trim();
+  var errEl = document.getElementById('spwErr');
+  errEl.textContent = '';
+  if (!newPw) { errEl.textContent = 'Please enter a new site password.'; return; }
+  if (newPw !== conf) { errEl.textContent = 'Passwords do not match.'; return; }
+  fetch(SCRIPT_URL, {
+    method: 'POST', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'writePortalPassword', password: newPw })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status !== 'ok') throw new Error(d.message);
+    document.getElementById('spNew').value = '';
+    document.getElementById('spConfirm').value = '';
+    showToast('Site password updated', 'success');
+  })
+  .catch(function(e){ errEl.textContent = 'Error: ' + e.message; });
+}
+document.getElementById('spwSaveBtn').addEventListener('click', doChangeSitePassword);
+document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter') doChangeSitePassword(); });
 document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
