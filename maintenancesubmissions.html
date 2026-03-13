@@ -133,7 +133,7 @@
   /* unsaved warning modal */
   #unsavedModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; }
   #unsavedModal.open { display:flex; }
-  .unsaved-box { background:var(--card); border-radius:12px; padding:1.5rem 2rem; max-width:340px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.35); text-align:center; }
+  .unsaved-box { background:#fff; border-radius:12px; padding:1.5rem 2rem; max-width:340px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.35); text-align:center; }
   .unsaved-box h3 { color:var(--accent); margin:0 0 0.5rem; font-size:1rem; }
   .unsaved-box p { color:var(--mid); font-size:0.85rem; margin:0 0 1.2rem; }
   .unsaved-box .ub-btns { display:flex; gap:0.7rem; justify-content:center; }
@@ -233,7 +233,7 @@
   </div>
 
 <!-- Unsaved changes modal -->
-<div id="reportUnsavedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1100;align-items:center;justify-content:center;">
+<div id="reportUnsavedModal" style="display:none;position:fixed;inset:0;background:transparent;z-index:1100;align-items:center;justify-content:center;">
   <div class="unsaved-box">
     <h3>⚠️ Unsaved Issue</h3>
     <p>You've started filling in an issue. If you close now your details will be lost.</p>
