@@ -93,6 +93,8 @@
   .res-table tr:last-child td { border-bottom:none; }
   .res-table tr.row-changed td { background:rgba(122,92,62,0.06); }
   .res-table tr.row-changed .addr-cell::after { content:' ●'; color:var(--accent2); font-size:0.65rem; vertical-align:middle; }
+  tr.mnt-row-dirty td { background:rgba(196,149,106,0.08) !important; }
+  tr.mnt-row-dirty td:first-child { border-left:3px solid var(--accent2); }
   .edit-cell-btn { width:100%; text-align:left; background:rgba(122,92,62,0.07); border:1px solid rgba(122,92,62,0.18); border-radius:5px; padding:0.35rem 0.5rem; font-family:Arial,sans-serif; font-size:0.82rem; color:var(--dark); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; transition:all 0.15s; }
   .edit-cell-btn:hover { background:rgba(122,92,62,0.15); border-color:var(--accent2); }
   .edit-cell-empty { color:#aaa; font-style:italic; }
@@ -107,6 +109,8 @@
   .stat-tile .stat-num { font-size:1.9rem; font-weight:700; color:var(--accent); line-height:1; }
   .stat-tile .stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--mid); margin-top:0.3rem; }
   .stat-tile.stat-alert .stat-num { color:#b05050; }
+  .stat-tile.stat-clickable { cursor:pointer; transition:background 0.15s, border-color 0.15s; }
+  .stat-tile.stat-clickable:hover { background:rgba(122,92,62,0.2); border-color:rgba(122,92,62,0.4); }
   .cpw-form .field { margin-bottom:1rem; }
   .cpw-form label { display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); margin-bottom:0.35rem; }
   .cpw-form input { width:100%; padding:0.6rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.9rem; }
@@ -196,9 +200,9 @@
           <div style="font-size:1.5rem;font-weight:700;color:var(--accent);letter-spacing:0.08em;">CMC The Courtyard</div>
           <div style="font-size:0.78rem;color:var(--mid);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.3rem;">Admin Portal</div>
           <div class="welcome-stats">
-            <div class="stat-tile"><div class="stat-num" id="statResidents">—</div><div class="stat-lbl">Residents</div></div>
-            <div class="stat-tile" id="statOpenTile"><div class="stat-num" id="statOpen">—</div><div class="stat-lbl">Open Issues</div></div>
-            <div class="stat-tile"><div class="stat-num" id="statClosed">—</div><div class="stat-lbl">Resolved</div></div>
+            <div class="stat-tile stat-clickable" onclick="showPanel('residents')" title="Go to Residents"><div class="stat-num" id="statResidents">—</div><div class="stat-lbl">Residents</div></div>
+            <div class="stat-tile stat-clickable" id="statOpenTile" onclick="showPanel('maintenance')" title="Go to Issues"><div class="stat-num" id="statOpen">—</div><div class="stat-lbl">Open Issues</div></div>
+            <div class="stat-tile stat-clickable" onclick="showPanel('maintenance')" title="Go to Issues"><div class="stat-num" id="statClosed">—</div><div class="stat-lbl">Resolved</div></div>
           </div>
           <div style="font-size:0.78rem;color:var(--stone);margin-top:1.2rem;">Select a section from the menu to get started.</div>
         </div>
@@ -587,10 +591,22 @@ function closeCep(save) {
     if (btn) btn.innerHTML = val ? escHtml(val) : '<span class="edit-cell-empty">' + (cepField === 'owner' ? 'Owner name' : 'Tenant / blank') + '</span>';
     var row = document.getElementById('row_' + cepIdx);
     if (row) row.classList.add('row-changed');
+    updateResSaveBtn();
     resetAutoLock();
   }
   document.getElementById('cepOverlay').classList.remove('open');
   cepIdx = null; cepField = null;
+}
+
+function updateResSaveBtn() {
+  var changed = editDraft.filter(function(r, i){ var o = residents[i]; return !o || r.owner !== o.owner || r.tenant !== o.tenant; }).length;
+  var saveBtn = document.getElementById('resSaveBtn');
+  if (!saveBtn) return;
+  if (changed > 0) {
+    saveBtn.textContent = '\uD83D\uDCBE Save ' + changed + ' Change' + (changed !== 1 ? 's' : '');
+  } else {
+    saveBtn.textContent = '\uD83D\uDCBE Save to Sheet';
+  }
 }
 
 function autoCapCep() {
@@ -722,12 +738,18 @@ function mntClearFilters() {
   renderMaintenanceTable();
 }
 
+function mntMarkDirty(i) {
+  var mainRow = document.getElementById('mnt-row-' + i);
+  if (mainRow) mainRow.classList.add('mnt-row-dirty');
+}
+
 // Auto-bump status New → In Progress when user starts typing a note
 function mntOnNoteInput(i) {
   var statusSel = document.getElementById('mnt-status-' + i);
   if (statusSel && statusSel.value === 'New') {
     statusSel.value = 'In Progress';
   }
+  mntMarkDirty(i);
 }
 
 function mntToggleSort(col) {
@@ -818,7 +840,7 @@ function renderMaintenanceTable() {
     var actualRowIndex = row.rowIndex;
     var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
     var td = 'padding:0.65rem 1rem;font-size:0.84rem;border-bottom:1px solid #e8e0d5;vertical-align:top;background:white;' + (isResolved ? 'color:#999590;' : 'color:#1e1a16;');
-    html += '<tr id="mnt-row-' + i + '" onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})" onmouseout="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})">';
+    html += '<tr id="mnt-row-' + i + '" onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})" onmouseout="(function(r){if(!r.classList.contains(\'mnt-row-dirty\')){r.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})}})(this)">';
     html += '<td style="' + td + 'font-weight:600;">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + td + '">' + escHtml(row.address || '') + '</td>';
     html += '<td style="' + td + '">' + escHtml(row.category || '') + '</td>';
@@ -834,7 +856,7 @@ function renderMaintenanceTable() {
     html += '<td colspan="9" style="padding:0;border-bottom:2px solid var(--accent2);">';
     html += '<div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;padding:1rem 1.25rem;background:#2a2520;border-top:2px solid var(--accent2);">';
     html += '<div style="flex:0 0 auto;"><label style="color:var(--stone);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.88rem;min-width:140px;">';
+    html += '<select id="mnt-status-' + i + '" onchange="mntMarkDirty(' + i + ')" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.88rem;min-width:140px;">';
     ['New','In Progress','Resolved'].forEach(function(s){
       html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
     });
@@ -911,6 +933,8 @@ function toggleMntEdit(i, actualRowIndex) {
 function collapseMaintenanceRow(i) {
   var editRow = document.getElementById('mnt-edit-' + i);
   if (editRow) editRow.style.display = 'none';
+  var mainRow = document.getElementById('mnt-row-' + i);
+  if (mainRow) mainRow.classList.remove('mnt-row-dirty');
 }
 
 async function saveMaintenanceRow(actualRowIndex, uiIndex) {
