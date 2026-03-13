@@ -690,14 +690,30 @@ function renderAgenda(rows, submissions) {
 }
 
 // ── Modal open/close ──────────────────────────────────────────────────────
+function hasAgendaUnsavedChanges() {
+  return document.getElementById('itemText').value.trim() !== '' ||
+         document.getElementById('addressSelect').value !== '';
+}
+
 function openAgendaModal() {
   document.getElementById('agendaModal').classList.add('open');
 }
-function closeAgendaModal() {
+
+function closeAgendaModal(force) {
+  if (!force && hasAgendaUnsavedChanges()) {
+    if (!confirm('You have unsaved changes. Close anyway?')) return;
+  }
   document.getElementById('agendaModal').classList.remove('open');
   document.getElementById('submitMsg').className = 'submit-msg';
   document.getElementById('submitMsg').style.display = 'none';
+  document.getElementById('itemText').value = '';
+  document.getElementById('addressSelect').value = '';
 }
+
+// Close agenda modal on overlay click
+document.getElementById('agendaModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAgendaModal();
+});
 
 // ── Submit resident item ───────────────────────────────────────────────────
 async function submitItem() {
@@ -721,7 +737,7 @@ async function submitItem() {
       showMsg('success', 'Your item has been added to the agenda.');
       document.getElementById('itemText').value = '';
       document.getElementById('addressSelect').value = '';
-      setTimeout(closeAgendaModal, 2000);
+      setTimeout(() => closeAgendaModal(true), 2000);
       setTimeout(() => loadAgenda(), 1000);
     } else {
       throw new Error(data.message);
