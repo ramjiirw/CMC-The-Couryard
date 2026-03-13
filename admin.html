@@ -293,6 +293,7 @@
         <div class="panel-title">Change Site Password</div>
         <div class="panel-desc">Update the password residents use to access CMC The Courtyard portal.</div>
         <div class="cpw-form">
+          <div class="field"><label>Current Site Password</label><input type="password" id="spCurrent" placeholder="Enter current site password"></div>
           <div class="field"><label>New Site Password</label><input type="password" id="spNew" placeholder="Enter new site password"></div>
           <div class="field"><label>Confirm New Password</label><input type="password" id="spConfirm" placeholder="Repeat new password"></div>
           <div id="spwErr" style="color:#b05050;font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
@@ -333,6 +334,7 @@ var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8
 var SESSION_KEY = 'cmc_admin_auth';
 var LOCK_MINS = 5;
 var adminPassword = null;
+var portalPassword = null;
 var residents = [], editDraft = [];
 var cepIdx = null, cepField = null;
 var lockInterval = null, lockDeadline = 0;
@@ -347,6 +349,7 @@ function fetchAdminPassword() {
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.password) adminPassword = d.password;
+      if (d.portalPassword) portalPassword = d.portalPassword;
       btn.disabled = false;
       btn.style.opacity = '';
       btn.style.cursor = '';
@@ -957,10 +960,13 @@ document.getElementById('resSaveBtn').addEventListener('click', saveResidents);
 document.getElementById('cpwSaveBtn').addEventListener('click', doChangePassword);
 
 function doChangeSitePassword() {
+  var current = document.getElementById('spCurrent').value.trim();
   var newPw = document.getElementById('spNew').value.trim();
   var conf = document.getElementById('spConfirm').value.trim();
   var errEl = document.getElementById('spwErr');
   errEl.textContent = '';
+  if (!current) { errEl.textContent = 'Please enter the current site password.'; return; }
+  if (current.toLowerCase() !== portalPassword.toLowerCase()) { errEl.textContent = 'Current site password is incorrect.'; return; }
   if (!newPw) { errEl.textContent = 'Please enter a new site password.'; return; }
   if (newPw !== conf) { errEl.textContent = 'Passwords do not match.'; return; }
   fetch(SCRIPT_URL, {
@@ -971,6 +977,8 @@ function doChangeSitePassword() {
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (d.status !== 'ok') throw new Error(d.message);
+    portalPassword = newPw;
+    document.getElementById('spCurrent').value = '';
     document.getElementById('spNew').value = '';
     document.getElementById('spConfirm').value = '';
     showToast('Site password updated', 'success');
