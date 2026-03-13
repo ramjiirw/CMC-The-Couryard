@@ -715,6 +715,8 @@ function closeAgendaModal(force) {
   document.getElementById('submitMsg').style.display = 'none';
   document.getElementById('itemText').value = '';
   document.getElementById('addressSelect').value = '';
+  document.getElementById('addressSelect').disabled = false;
+  document.getElementById('itemText').disabled = false;
   document.getElementById('submitBtn').textContent = 'Submit Item';
   document.getElementById('submitBtn').disabled = false;
   document.getElementById('submitFormBody').style.display = 'block';
