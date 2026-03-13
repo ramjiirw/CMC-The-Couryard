@@ -342,6 +342,19 @@
             } else {
               el.innerHTML = `<span class="agm-countdown past">AGM was ${Math.abs(diff)} day${Math.abs(diff)===1?'':'s'} ago</span>`;
             }
+          } else {
+            // No confirmed date — check if availability switch is on
+            (async function() {
+              try {
+                const ar = await fetch(SCRIPT_URL + '?action=readAvailability');
+                const ad = await ar.json();
+                if (ad.status === 'ok' && ad.switchOn) {
+                  const el = document.getElementById('agmCountdown');
+                  el.style.display = 'block';
+                  el.innerHTML = `<span class="agm-countdown">📅 Select your AGM Availability</span>`;
+                }
+              } catch(e) {}
+            })();
           }
         }
         if (key === 'Time')  document.getElementById('agmTime').textContent  = val;
