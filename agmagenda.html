@@ -508,21 +508,28 @@
       <button class="report-modal-close" onclick="closeAgendaModal()">&#x2715;</button>
     </div>
     <div class="submit-body">
-      <div class="form-row">
-        <div class="form-group" style="flex:0 0 200px;">
-          <label>Your Address</label>
-          <select id="addressSelect">
-            <option value="">— Select your address —</option>
-          </select>
+      <div id="submitFormBody">
+        <div class="form-row">
+          <div class="form-group" style="flex:0 0 200px;">
+            <label>Your Address</label>
+            <select id="addressSelect">
+              <option value="">— Select your address —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Agenda Item</label>
+            <textarea id="itemText" placeholder="Describe the item you'd like to raise…"></textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Agenda Item</label>
-          <textarea id="itemText" placeholder="Describe the item you'd like to raise…"></textarea>
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; justify-content:flex-end;">
+          <div id="submitMsg" class="submit-msg"></div>
+          <button class="btn-submit" id="submitBtn" onclick="submitItem()">Submit Item</button>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; justify-content:flex-end;">
-        <div id="submitMsg" class="submit-msg"></div>
-        <button class="btn-submit" id="submitBtn" onclick="submitItem()">Submit Item</button>
+      <div id="submitSuccess" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:2rem; gap:0.75rem; text-align:center;">
+        <div style="font-size:2.5rem;">✅</div>
+        <div style="font-size:1rem; font-weight:600; color:var(--green);">Item submitted successfully!</div>
+        <div style="font-size:0.82rem; color:var(--mid);">Your agenda item has been added. This window will close shortly…</div>
       </div>
     </div>
   </div>
@@ -710,6 +717,8 @@ function closeAgendaModal(force) {
   document.getElementById('addressSelect').value = '';
   document.getElementById('submitBtn').textContent = 'Submit Item';
   document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitFormBody').style.display = 'block';
+  document.getElementById('submitSuccess').style.display = 'none';
 }
 
 // Close agenda modal on overlay click
@@ -726,6 +735,9 @@ async function submitItem() {
   if (!address) { showMsg('error', 'Please select your address.'); return; }
   if (!item)    { showMsg('error', 'Please enter an agenda item.'); return; }
 
+  // Lock the whole form
+  const fields = ['addressSelect', 'itemText'];
+  fields.forEach(id => { document.getElementById(id).disabled = true; });
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
@@ -736,8 +748,9 @@ async function submitItem() {
     });
     const data = await res.json();
     if (data.status === 'ok') {
-      showMsg('success', '✅ Your item has been added to the agenda.');
-      btn.textContent = '✅ Submitted!';
+      // Show success overlay over the form body
+      document.getElementById('submitFormBody').style.display = 'none';
+      document.getElementById('submitSuccess').style.display = 'flex';
       setTimeout(() => loadAgenda(), 1000);
       setTimeout(() => closeAgendaModal(true), 2500);
     } else {
@@ -745,10 +758,10 @@ async function submitItem() {
     }
   } catch(e) {
     showMsg('error', 'Could not submit. Please try again.');
+    fields.forEach(id => { document.getElementById(id).disabled = false; });
+    btn.disabled = false;
+    btn.textContent = 'Submit Item';
   }
-
-  btn.disabled = false;
-  btn.textContent = 'Submit Item';
 }
 
 function showMsg(type, text) {
