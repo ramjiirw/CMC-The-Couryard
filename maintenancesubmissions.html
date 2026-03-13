@@ -47,6 +47,8 @@
   .filter-bar label { font-size: 0.72rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
   .filter-bar select { padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.82rem; background: white; color: var(--dark); cursor: pointer; }
   .filter-bar select:focus { outline: none; border-color: var(--accent2); }
+  #mntClearFiltersBtn { display: none; padding: 0.3rem 0.9rem; border: none; border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; background: #7a5c3e; color: white; letter-spacing: 0.02em; transition: background 0.2s; }
+  #mntClearFiltersBtn:hover { background: var(--accent); }
   th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
   th.sortable:hover { color: var(--accent); }
   th.sortable .sort-icon { margin-left: 0.3rem; font-size: 0.65rem; opacity: 0.4; }
@@ -209,16 +211,16 @@
     <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span class="count-pill" id="issueCount">-</span><span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span></div>
     <div class="filter-bar">
       <label>Filter:</label>
-      <select id="filterAddr" onchange="renderIssues()">
+      <select id="filterAddr" onchange="renderIssues(); mntUpdateFilterBtn();">
         <option value="">All Addresses</option>
       </select>
-      <select id="filterStatus" onchange="renderIssues()">
+      <select id="filterStatus" onchange="renderIssues(); mntUpdateFilterBtn();">
         <option value="">All Statuses</option>
         <option value="new">New</option>
         <option value="progress">In Progress</option>
         <option value="resolv">Resolved</option>
       </select>
-      <select id="filterCat" onchange="renderIssues()">
+      <select id="filterCat" onchange="renderIssues(); mntUpdateFilterBtn();">
         <option value="">All Categories</option>
         <option>Waste &amp; Recycling</option>
         <option>Lighting</option>
@@ -227,7 +229,7 @@
         <option>Farmhouse</option>
         <option>Other</option>
       </select>
-      <button onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;">&#x2715; Clear Filters</button>
+      <button id="mntClearFiltersBtn" onclick="clearFilters()"></button>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -599,6 +601,21 @@ function clearFilters() {
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAddr').value = '';
   renderIssues();
+  mntUpdateFilterBtn();
+}
+
+function mntUpdateFilterBtn() {
+  const btn = document.getElementById('mntClearFiltersBtn');
+  let count = 0;
+  if (document.getElementById('filterAddr').value)   count++;
+  if (document.getElementById('filterStatus').value) count++;
+  if (document.getElementById('filterCat').value)    count++;
+  if (count > 0) {
+    btn.textContent = '\u2715 Clear Filters (' + count + ')';
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function renderIssues() {
