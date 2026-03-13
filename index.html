@@ -5,15 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CMC The Courtyard — Login</title>
 
-<!--
-════════════════════════════════════════
-  CHANGE THE PASSWORD HERE
-════════════════════════════════════════
-  Edit the line below:
-  password: 'cmcds'
-════════════════════════════════════════
--->
-
 <style>
   :root {
     --cream: #f5f0e8;
@@ -110,28 +101,43 @@
 </div>
 
 <script>
-// ════════════════════════════════════════
-//  CONFIGURATION — edit here
-// ════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
 const CONFIG = {
-  password: 'cmcds',          // ← Change this to your chosen password
-  idleMinutes: 30,            // ← Idle timeout in minutes
-  defaultRedirect: 'main.html' // ← Where to send users after login
+  idleMinutes: 30,
+  defaultRedirect: 'main.html'
 };
 
-// ════════════════════════════════════════
-//  LOGIN LOGIC
-// ════════════════════════════════════════
+var portalPassword = null;
+
+// Fetch password from sheet on load
+(function fetchPassword() {
+  const inp = document.getElementById('pwInput');
+  inp.placeholder = 'Loading…';
+  inp.disabled = true;
+  fetch(SCRIPT_URL + '?action=readSettings')
+    .then(r => r.json())
+    .then(d => {
+      if (d.portalPassword) portalPassword = d.portalPassword;
+      inp.placeholder = 'Enter password to access';
+      inp.disabled = false;
+      inp.focus();
+    })
+    .catch(() => {
+      inp.placeholder = 'Enter password to access';
+      inp.disabled = false;
+    });
+})();
+
 function checkPassword() {
   const val = document.getElementById('pwInput').value;
   const err = document.getElementById('pwError');
 
-  if (val.toLowerCase() === CONFIG.password.toLowerCase()) {
-    // Store auth + timestamp in sessionStorage
+  if (!portalPassword) { err.textContent = 'Still loading — please wait.'; return; }
+
+  if (val.toLowerCase() === portalPassword.toLowerCase()) {
     sessionStorage.setItem('cyard_auth', '1');
     sessionStorage.setItem('cyard_last_active', Date.now().toString());
-
-    // Redirect to the page they were trying to reach, or default
     const returnTo = sessionStorage.getItem('cyard_return_to') || CONFIG.defaultRedirect;
     sessionStorage.removeItem('cyard_return_to');
     window.location.href = returnTo;
