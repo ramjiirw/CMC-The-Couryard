@@ -314,9 +314,13 @@
   (async function() {
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
-      const res = await fetch(SCRIPT_URL + '?action=readAgenda');
-      if (!res.ok) throw new Error('offline');
-      const data = await res.json();
+      // Fire both requests simultaneously
+      const [agendaRes, availRes] = await Promise.all([
+        fetch(SCRIPT_URL + '?action=readAgenda'),
+        fetch(SCRIPT_URL + '?action=readAvailability')
+      ]);
+      const data = await agendaRes.json();
+      const avail = await availRes.json();
       if (data.status !== 'ok') throw new Error();
       const rows = data.agenda;
       rows.forEach(row => {
@@ -343,18 +347,12 @@
               el.innerHTML = `<span class="agm-countdown past">AGM was ${Math.abs(diff)} day${Math.abs(diff)===1?'':'s'} ago</span>`;
             }
           } else {
-            // No confirmed date — check if availability switch is on
-            (async function() {
-              try {
-                const ar = await fetch(SCRIPT_URL + '?action=readAvailability');
-                const ad = await ar.json();
-                if (ad.status === 'ok' && ad.switchOn) {
-                  const el = document.getElementById('agmCountdown');
-                  el.style.display = 'block';
-                  el.innerHTML = `<span class="agm-countdown">📅 Select your AGM Availability</span>`;
-                }
-              } catch(e) {}
-            })();
+            // No confirmed date — use already-loaded availability result
+            if (avail.status === 'ok' && avail.switchOn) {
+              const el = document.getElementById('agmCountdown');
+              el.style.display = 'block';
+              el.innerHTML = `<span class="agm-countdown">📅 Select your AGM Availability</span>`;
+            }
           }
         }
         if (key === 'Time')  document.getElementById('agmTime').textContent  = val;
