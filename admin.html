@@ -23,6 +23,9 @@
   .pw-field input.shake { animation:shake 0.4s ease; border-color:var(--red) !important; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
   .pw-error { color:#e07070; font-size:0.78rem; margin-bottom:0.75rem; min-height:1.2rem; }
+  .input-mismatch { border-color:#c05050 !important; background:#fff8f8 !important; }
+  .hint-mismatch { color:#c05050; }
+  .hint-match { color:#3a7d52; }
   .login-btn { width:100%; padding:0.9rem; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:6px; font-family:Arial,sans-serif; font-size:0.9rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
   .login-btn:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 4px 16px rgba(122,92,62,0.4); }
   .back-link { display:block; margin-top:1.2rem; font-size:0.72rem; color:rgba(184,173,158,0.4); text-decoration:none; letter-spacing:0.04em; transition:color 0.2s; }
@@ -177,14 +180,14 @@
     <nav class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-link sidebar-home" data-panel="welcome" id="nav-welcome">&#8962; Admin Home</div>
       <div class="sidebar-label">Residents</div>
-      <div class="sidebar-link" data-panel="residents" id="nav-residents">Edit Residents</div>
+      <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Edit Residents</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Settings</div>
-      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">Change Admin Password</div>
-      <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">Change Site Password</div>
+      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
+      <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -270,7 +273,7 @@
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
-          <button onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
+          <button id="mntClearFiltersBtn" onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
@@ -283,7 +286,7 @@
         <div class="cpw-form">
           <div class="field"><label>Current Password</label><input type="text" id="cpCurrent" autocomplete="off" placeholder="Enter current password"></div>
           <div class="field"><label>New Password</label><input type="text" id="cpNew" autocomplete="off" placeholder="Enter new password"></div>
-          <div class="field"><label>Confirm New Password</label><input type="text" id="cpConfirm" autocomplete="off" placeholder="Repeat new password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="text" id="cpConfirm" autocomplete="off" placeholder="Repeat new password"><div id="cpMatchHint" style="font-size:0.72rem;margin-top:0.3rem;min-height:1rem;"></div></div>
           <div id="cpwErr"></div>
           <button class="abtn abtn-primary" id="cpwSaveBtn">Update Password</button>
         </div>
@@ -295,7 +298,7 @@
         <div class="cpw-form">
           <div class="field"><label>Current Site Password</label><input type="text" id="spCurrent" autocomplete="off" placeholder="Enter current site password"></div>
           <div class="field"><label>New Site Password</label><input type="text" id="spNew" autocomplete="off" placeholder="Enter new site password"></div>
-          <div class="field"><label>Confirm New Password</label><input type="text" id="spConfirm" autocomplete="off" placeholder="Repeat new password"></div>
+          <div class="field"><label>Confirm New Password</label><input type="text" id="spConfirm" autocomplete="off" placeholder="Repeat new password"><div id="spMatchHint" style="font-size:0.72rem;margin-top:0.3rem;min-height:1rem;"></div></div>
           <div id="spwErr" style="color:#b05050;font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
           <button class="abtn abtn-primary" id="spwSaveBtn">Update Site Password</button>
         </div>
@@ -625,8 +628,11 @@ function doChangePassword() {
       el.value = '';
       el.type = 'text';
       el.readOnly = false;
+      el.classList.remove('input-mismatch');
       el.blur();
     });
+    var cpHint = document.getElementById('cpMatchHint');
+    if (cpHint) { cpHint.textContent = ''; cpHint.className = ''; }
     showToast('Password updated', 'success');
   })
   .catch(function(e){
@@ -690,12 +696,29 @@ function mntStatusBadge(status, dateResolved) {
   return '<span style="' + style + 'background:#fdeaea;color:#c0392b;border:1px solid #f5c6c6;">New</span>';
 }
 
-function mntApplyFilters() { renderMaintenanceTable(); }
+function mntApplyFilters() { mntUpdateFilterBtn(); renderMaintenanceTable(); }
+
+function mntUpdateFilterBtn() {
+  var count = 0;
+  if (document.getElementById('mntFilterStatus').value) count++;
+  if (document.getElementById('mntFilterCat').value) count++;
+  if (document.getElementById('mntFilterAddr').value) count++;
+  var btn = document.getElementById('mntClearFiltersBtn');
+  if (!btn) return;
+  if (count > 0) {
+    btn.textContent = '\u2715 Clear Filters (' + count + ')';
+    btn.style.background = '#b05030';
+  } else {
+    btn.textContent = '\u2715 Clear Filters';
+    btn.style.background = '#3d6b4a';
+  }
+}
 
 function mntClearFilters() {
   document.getElementById('mntFilterStatus').value = '';
   document.getElementById('mntFilterCat').value = '';
   document.getElementById('mntFilterAddr').value = '';
+  mntUpdateFilterBtn();
   renderMaintenanceTable();
 }
 
@@ -999,8 +1022,11 @@ function doChangeSitePassword() {
       el.value = '';
       el.type = 'text';
       el.readOnly = false;
+      el.classList.remove('input-mismatch');
       el.blur();
     });
+    var spHint = document.getElementById('spMatchHint');
+    if (spHint) { spHint.textContent = ''; spHint.className = ''; }
     showToast('Site password updated', 'success');
   })
   .catch(function(e){
@@ -1016,6 +1042,60 @@ document.getElementById('spCurrent').addEventListener('keydown', function(e){ if
 document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
+
+// ── Live confirm-field mismatch indicator ──────────────────────────
+function setupMatchHint(newId, confirmId, hintId) {
+  function check() {
+    var newVal = document.getElementById(newId).value;
+    var confVal = document.getElementById(confirmId).value;
+    var hint = document.getElementById(hintId);
+    var confEl = document.getElementById(confirmId);
+    if (!confVal) {
+      hint.textContent = '';
+      confEl.classList.remove('input-mismatch');
+      return;
+    }
+    if (newVal === confVal) {
+      hint.textContent = '✓ Passwords match';
+      hint.className = 'hint-match';
+      confEl.classList.remove('input-mismatch');
+    } else {
+      hint.textContent = 'Passwords do not match';
+      hint.className = 'hint-mismatch';
+      confEl.classList.add('input-mismatch');
+    }
+  }
+  document.getElementById(newId).addEventListener('input', check);
+  document.getElementById(confirmId).addEventListener('input', check);
+}
+setupMatchHint('cpNew', 'cpConfirm', 'cpMatchHint');
+setupMatchHint('spNew', 'spConfirm', 'spMatchHint');
+
+// ── Unsaved resident edits warning ─────────────────────────────────
+function hasUnsavedResidentEdits() {
+  if (!residents.length || !editDraft.length) return false;
+  return editDraft.some(function(r, i) {
+    var o = residents[i];
+    return !o || r.owner !== o.owner || r.tenant !== o.tenant;
+  });
+}
+window.addEventListener('beforeunload', function(e) {
+  if (hasUnsavedResidentEdits()) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+// Also warn when navigating away from the residents panel via sidebar
+var _origShowPanel = showPanel;
+showPanel = function(id) {
+  if (id !== 'residents' && hasUnsavedResidentEdits()) {
+    if (!confirm('You have unsaved resident changes. Leave without saving?')) return;
+    // Reset draft to match saved state
+    editDraft = residents.map(function(r) { return Object.assign({}, r); });
+    renderTable();
+  }
+  _origShowPanel(id);
+};
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 function flashButton(id) {
   var btn = document.getElementById(id);
