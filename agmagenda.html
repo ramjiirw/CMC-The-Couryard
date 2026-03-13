@@ -708,6 +708,8 @@ function closeAgendaModal(force) {
   document.getElementById('submitMsg').style.display = 'none';
   document.getElementById('itemText').value = '';
   document.getElementById('addressSelect').value = '';
+  document.getElementById('submitBtn').textContent = 'Submit Item';
+  document.getElementById('submitBtn').disabled = false;
 }
 
 // Close agenda modal on overlay click
@@ -734,11 +736,10 @@ async function submitItem() {
     });
     const data = await res.json();
     if (data.status === 'ok') {
-      showMsg('success', 'Your item has been added to the agenda.');
-      document.getElementById('itemText').value = '';
-      document.getElementById('addressSelect').value = '';
-      setTimeout(() => closeAgendaModal(true), 2000);
+      showMsg('success', '✅ Your item has been added to the agenda.');
+      btn.textContent = '✅ Submitted!';
       setTimeout(() => loadAgenda(), 1000);
+      setTimeout(() => closeAgendaModal(true), 2500);
     } else {
       throw new Error(data.message);
     }
