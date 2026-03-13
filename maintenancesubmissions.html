@@ -16,9 +16,9 @@
     --blue: #3d6b4a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; padding-top: 150px; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
   main { flex: 1; }
-  header { position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: var(--dark); padding: 1.5rem 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(196,149,106,0.2); }
+  header { background: var(--dark); padding: 1.5rem 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(196,149,106,0.2); }
   .header-brand { display: flex; align-items: center; gap: 1rem; }
   .header-brand h1 { font-family: Arial,sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
   .header-brand p { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -79,7 +79,7 @@
   .submit-msg { font-size: 0.82rem; padding: 0.6rem 0.9rem; border-radius: 5px; display: none; }
   .submit-msg.success { background: #e8f2eb; color: var(--green); border: 1px solid #c8e2ce; display: block; }
   .submit-msg.error   { background: #fdeaea; color: #c0392b; border: 1px solid #f5c6c6; display: block; }
-  .state-msg { padding: 1.5rem; text-align: left; color: var(--stone); font-size: 0.85rem; font-style: italic; }
+  .state-msg { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; font-style: italic; }
   /* Floating Report Button */
   .fab {
     position: fixed; bottom: 4.5rem; right: 1.8rem; z-index: 500;
@@ -139,7 +139,6 @@
   .unsaved-box .ub-btns { display:flex; gap:0.7rem; justify-content:center; }
   @media (max-width: 640px) {
     header { padding: 1rem; }
-    body { padding-top: 130px; }
     .fab { bottom: 4rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
   }
   footer {
