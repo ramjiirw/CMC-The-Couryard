@@ -227,9 +227,10 @@
         <option>Farmhouse</option>
         <option>Other</option>
       </select>
+      <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);width:160px;">
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
     </div>
-    <div style="overflow-x:auto;"><div id="issuesBody"><div class="state-msg">Loading issues...</div></div></div>
+    <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:200px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
 
 <!-- Unsaved changes modal -->
@@ -641,7 +642,8 @@ function updateFilterBtn() {
   const count = [
     document.getElementById('filterStatus').value,
     document.getElementById('filterCat').value,
-    document.getElementById('filterAddr').value
+    document.getElementById('filterAddr').value,
+    document.getElementById('filterSearch').value.trim()
   ].filter(Boolean).length;
   const btn = document.getElementById('clearFiltersBtn');
   const pill = document.getElementById('filterCount');
@@ -658,6 +660,7 @@ function clearFilters() {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAddr').value = '';
+  document.getElementById('filterSearch').value = '';
   updateFilterBtn();
   renderIssues();
 }
@@ -666,12 +669,14 @@ function renderIssues() {
   const sf = document.getElementById('filterStatus').value;
   const cf = document.getElementById('filterCat').value.toLowerCase();
   const af = document.getElementById('filterAddr').value.toLowerCase();
+  const sq = document.getElementById('filterSearch').value.trim().toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
     const matchS = !sf || sv.includes(sf);
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
-    return matchS && matchC && matchA;
+    const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq);
+    return matchS && matchC && matchA && matchQ;
   }).slice().sort((a, b) => {
     const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); if (p.length===3) { let yr=parseInt(p[2],10); if(yr<100)yr+=2000; return new Date(yr, parseInt(p[1],10)-1, parseInt(p[0],10)); } return new Date(v); };
     const av = parseD(a.dateAdded);
