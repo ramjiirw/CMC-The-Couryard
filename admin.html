@@ -273,7 +273,7 @@
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
-          <button id="mntClearFiltersBtn" onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#x2715; Clear Filters</button>
+          <button id="mntClearFiltersBtn" onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
@@ -708,9 +708,9 @@ function mntUpdateFilterBtn() {
   if (count > 0) {
     btn.textContent = '\u2715 Clear Filters (' + count + ')';
     btn.style.background = '#b05030';
+    btn.style.display = '';
   } else {
-    btn.textContent = '\u2715 Clear Filters';
-    btn.style.background = '#3d6b4a';
+    btn.style.display = 'none';
   }
 }
 
