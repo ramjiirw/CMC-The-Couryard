@@ -607,6 +607,7 @@ function doChangePassword() {
   if (current.toLowerCase() !== adminPassword.toLowerCase()) { errEl.textContent = 'Current password is incorrect.'; return; }
   if (!newPw) { errEl.textContent = 'Please enter a new password.'; return; }
   if (newPw !== conf) { errEl.textContent = 'Passwords do not match.'; return; }
+  ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ document.getElementById(id).type = 'password'; });
   fetch(SCRIPT_URL, {
     method: 'POST', redirect: 'follow',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -616,12 +617,18 @@ function doChangePassword() {
   .then(function(d){
     if (d.status !== 'ok') throw new Error(d.message);
     adminPassword = newPw;
-    document.getElementById('cpCurrent').value = '';
-    document.getElementById('cpNew').value = '';
-    document.getElementById('cpConfirm').value = '';
+    ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){
+      var el = document.getElementById(id);
+      el.value = '';
+      el.type = 'text';
+      el.blur();
+    });
     showToast('Password updated', 'success');
   })
-  .catch(function(e){ errEl.textContent = 'Failed: ' + e.message; });
+  .catch(function(e){
+    ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ document.getElementById(id).type = 'text'; });
+    errEl.textContent = 'Failed: ' + e.message;
+  });
   resetAutoLock();
 }
 
@@ -969,6 +976,7 @@ function doChangeSitePassword() {
   if (current.toLowerCase() !== portalPassword.toLowerCase()) { errEl.textContent = 'Current site password is incorrect.'; return; }
   if (!newPw) { errEl.textContent = 'Please enter a new site password.'; return; }
   if (newPw !== conf) { errEl.textContent = 'Passwords do not match.'; return; }
+  ['spCurrent','spNew','spConfirm'].forEach(function(id){ document.getElementById(id).type = 'password'; });
   fetch(SCRIPT_URL, {
     method: 'POST', redirect: 'follow',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -978,12 +986,18 @@ function doChangeSitePassword() {
   .then(function(d){
     if (d.status !== 'ok') throw new Error(d.message);
     portalPassword = newPw;
-    document.getElementById('spCurrent').value = '';
-    document.getElementById('spNew').value = '';
-    document.getElementById('spConfirm').value = '';
+    ['spCurrent','spNew','spConfirm'].forEach(function(id){
+      var el = document.getElementById(id);
+      el.value = '';
+      el.type = 'text';
+      el.blur();
+    });
     showToast('Site password updated', 'success');
   })
-  .catch(function(e){ errEl.textContent = 'Error: ' + e.message; });
+  .catch(function(e){
+    ['spCurrent','spNew','spConfirm'].forEach(function(id){ document.getElementById(id).type = 'text'; });
+    errEl.textContent = 'Error: ' + e.message;
+  });
 }
 document.getElementById('spwSaveBtn').addEventListener('click', doChangeSitePassword);
 document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
