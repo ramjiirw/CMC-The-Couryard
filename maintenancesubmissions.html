@@ -305,10 +305,6 @@
     </button>
     <div class="collapsible-panel" id="panel-maintdocs">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" />
-          <button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()">&#x2715; Clear</button>
-        </div>
         <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
       </div>
     </div>
@@ -957,18 +953,19 @@ function fixMaintDocTitle(raw) {
 }
 
 function filterMaintDocs() {
-  var val = document.getElementById('maintDocSearch').value;
+  var el = document.getElementById('maintDocSearch');
+  var val = el ? el.value : '';
   maintDocState.filter = val;
-  var clearBtn = document.getElementById('maintDocClearBtn');
-  clearBtn.style.display = val ? 'inline-flex' : 'none';
   renderMaintDocs();
+  var el2 = document.getElementById('maintDocSearch');
+  if (el2) { el2.focus(); el2.setSelectionRange(val.length, val.length); }
 }
 
 function clearMaintDocSearch() {
-  document.getElementById('maintDocSearch').value = '';
   maintDocState.filter = '';
-  document.getElementById('maintDocClearBtn').style.display = 'none';
   renderMaintDocs();
+  var el = document.getElementById('maintDocSearch');
+  if (el) el.focus();
 }
 
 function reSortMaintDocs(col) {
@@ -1003,7 +1000,7 @@ function renderMaintDocs() {
 
   var html = '';
 
-  // Render pinned files as buttons above the table
+  // Render pinned files as buttons above the filter bar
   pinned.forEach(function(f) {
     var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
     displayName = fixMaintDocTitle(displayName);
@@ -1011,6 +1008,13 @@ function renderMaintDocs() {
       '📌 ' + displayName +
       '</a>';
   });
+
+  // Filter bar sits below pinned buttons
+  var filterVal = state.filter || '';
+  html += '<div class="doc-filter-bar">' +
+    '<input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" value="' + filterVal.replace(/"/g, '&quot;') + '" />' +
+    '<button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()" style="display:' + (filterVal ? 'inline-flex' : 'none') + '">&#x2715; Clear</button>' +
+    '</div>';
 
   // Filter and sort the remaining (non-pinned) files
   var filtered = rest;
