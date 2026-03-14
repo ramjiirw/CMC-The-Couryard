@@ -165,13 +165,7 @@
     </button>
     <div class="collapsible-panel" id="panel-insurance">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="search-insurance" placeholder="Filter documents..." oninput="filterSection('insurance')" />
-          <button class="doc-filter-clear" id="clear-insurance" onclick="clearFilter('insurance')">&#x2715; Clear</button>
-          <span class="filter-count-badge" id="filterbadge-insurance" style="display:none;"></span>
-          <span class="doc-count-total" id="count-insurance" style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;"></span>
-        </div>
-        <div id="docs-insurance"><div class="doc-state-empty">Loading documents&#8230;</div></div>
+          <div id="docs-insurance"><div class="doc-state-empty">Loading documents&#8230;</div></div>
       </div>
     </div>
   </div>
@@ -188,13 +182,7 @@
     </button>
     <div class="collapsible-panel" id="panel-legal">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="search-legal" placeholder="Filter documents..." oninput="filterSection('legal')" />
-          <button class="doc-filter-clear" id="clear-legal" onclick="clearFilter('legal')">&#x2715; Clear</button>
-          <span class="filter-count-badge" id="filterbadge-legal" style="display:none;"></span>
-          <span class="doc-count-total" id="count-legal" style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;"></span>
-        </div>
-        <div id="docs-legal"><div class="doc-state-empty">Loading documents&#8230;</div></div>
+          <div id="docs-legal"><div class="doc-state-empty">Loading documents&#8230;</div></div>
       </div>
     </div>
   </div>
@@ -211,13 +199,7 @@
     </button>
     <div class="collapsible-panel" id="panel-finances">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="search-finances" placeholder="Filter documents..." oninput="filterSection('finances')" />
-          <button class="doc-filter-clear" id="clear-finances" onclick="clearFilter('finances')">&#x2715; Clear</button>
-          <span class="filter-count-badge" id="filterbadge-finances" style="display:none;"></span>
-          <span class="doc-count-total" id="count-finances" style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;"></span>
-        </div>
-        <div id="docs-finances"><div class="doc-state-empty">Loading documents&#8230;</div></div>
+          <div id="docs-finances"><div class="doc-state-empty">Loading documents&#8230;</div></div>
       </div>
     </div>
   </div>
@@ -234,13 +216,7 @@
     </button>
     <div class="collapsible-panel" id="panel-misc">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="search-misc" placeholder="Filter documents..." oninput="filterSection('misc')" />
-          <button class="doc-filter-clear" id="clear-misc" onclick="clearFilter('misc')">&#x2715; Clear</button>
-          <span class="filter-count-badge" id="filterbadge-misc" style="display:none;"></span>
-          <span class="doc-count-total" id="count-misc" style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;"></span>
-        </div>
-        <div id="docs-misc"><div class="doc-state-empty">Loading documents&#8230;</div></div>
+          <div id="docs-misc"><div class="doc-state-empty">Loading documents&#8230;</div></div>
       </div>
     </div>
   </div>
@@ -324,7 +300,7 @@ function renderSection(key) {
                       .sort(function(a,b) { return a.name.localeCompare(b.name); });
   var rest   = s.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
 
-  if (!rest.length && !pinned.length) {
+  if (!s.files.length) {
     countEl.textContent = '0';
     badge.style.display = 'none';
     wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
@@ -340,28 +316,26 @@ function renderSection(key) {
     });
   }
 
-  // Count is non-pinned docs only — pinned are excluded entirely
-  if (s.filter) {
-    countEl.textContent = filtered.length + ' / ' + rest.length;
-  } else {
-    countEl.textContent = rest.length;
-  }
+  // Count: non-pinned only
+  var countText = s.filter ? (filtered.length + ' / ' + rest.length) : rest.length;
+  countEl.textContent = countText;
   badge.style.display = 'none';
 
   var html = '';
 
-  // Pinned buttons always first, never filtered, never counted
+  // Pinned buttons always first — never filtered, never counted
   pinned.forEach(function(f) {
     var displayName = fixTitle(f.name.replace(/^PIN_/, ''));
     html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">&#128204; ' + displayName + '</a>';
   });
 
-  // Filter bar sits below pinned docs
+  // Single filter bar below pinned docs
   var clearDisplay = s.filter ? 'inline-flex' : 'none';
   var filterVal    = s.filter ? s.filter.replace(/"/g, '&quot;') : '';
   html += '<div class="doc-filter-bar">' +
     '<input type="text" id="search-' + key + '" placeholder="Filter documents..." oninput="filterSection(\'' + key + '\')" value="' + filterVal + '" />' +
     '<button class="doc-filter-clear" onclick="clearFilter(\'' + key + '\')" style="display:' + clearDisplay + ';">&#x2715; Clear</button>' +
+    '<span style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;">' + countText + '</span>' +
     '</div>';
 
   if (filtered.length) {
@@ -378,10 +352,8 @@ function renderSection(key) {
     html += '<table class="doc-table"><thead><tr>' +
       '<th class="' + thCls + '" onclick="reSortSection(\'' + key + '\')">Document<span class="sort-icon"></span></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table>';
-  } else if (s.filter) {
+  } else if (!pinned.length) {
     html += '<div class="doc-state-empty">No documents match your filter.</div>';
-  } else if (!rest.length) {
-    html += '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
   }
 
   wrap.innerHTML = html;
