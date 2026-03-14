@@ -186,6 +186,8 @@
   footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
   footer p > span:first-child { color: var(--accent2); }
   footer #footerYear { color: var(--stone); }
+  #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
+  #adminLink:hover { color:var(--accent2); }
 
   @media (max-width: 600px) {
     header { padding: 1rem; }
@@ -252,6 +254,7 @@
 
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+  <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
 
 <script>
