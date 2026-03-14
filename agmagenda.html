@@ -20,7 +20,7 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
 
   /* ── Header ── */
   header {
@@ -43,7 +43,7 @@
   .btn-nav:hover { background: #2a2520; color: var(--accent2); }
 
   /* ── Main ── */
-  main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 4rem; flex: 1; width: 100%; }
 
   .page-title { margin-bottom: 1.5rem; }
   .page-title h2 { font-size: 1.4rem; font-weight: 500; color: var(--accent); }
