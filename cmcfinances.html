@@ -181,6 +181,8 @@
     header { padding: 1rem; }
     main { padding: 1.5rem 1rem 4rem; }
   }
+  #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
+  #adminLink:hover { color:var(--accent2); }
 </style>
 </head>
 <body>
@@ -516,10 +518,11 @@
     }
   })();
 </script>
-<footer style="background:var(--dark);border-top:1px solid rgba(196,149,106,0.2);padding:0.9rem 2.5rem;display:flex;align-items:center;justify-content:center;margin-top:auto;">
+<footer style="background:var(--dark);border-top:1px solid rgba(196,149,106,0.2);padding:0.9rem 2.5rem;display:flex;align-items:center;justify-content:center;margin-top:auto;position:relative;">
   <p style="font-size:0.72rem;color:var(--stone);letter-spacing:0.04em;text-align:center;">
     <span style="color:var(--accent2);">CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span>
   </p>
+  <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
 <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 </body>
