@@ -147,6 +147,8 @@
   footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
   footer p > span:first-child { color: var(--accent2); }
   footer #footerYear { color: var(--stone); }
+  #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
+  #adminLink:hover { color:var(--accent2); }
 
   /* ── Maintenance Documents section ── */
   .btn-toggle {
@@ -305,6 +307,10 @@
     </button>
     <div class="collapsible-panel" id="panel-maintdocs">
       <div class="doc-card-inner">
+        <div class="doc-filter-bar">
+          <input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" />
+          <button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()">&#x2715; Clear</button>
+        </div>
         <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
       </div>
     </div>
@@ -953,19 +959,18 @@ function fixMaintDocTitle(raw) {
 }
 
 function filterMaintDocs() {
-  var el = document.getElementById('maintDocSearch');
-  var val = el ? el.value : '';
+  var val = document.getElementById('maintDocSearch').value;
   maintDocState.filter = val;
+  var clearBtn = document.getElementById('maintDocClearBtn');
+  clearBtn.style.display = val ? 'inline-flex' : 'none';
   renderMaintDocs();
-  var el2 = document.getElementById('maintDocSearch');
-  if (el2) { el2.focus(); el2.setSelectionRange(val.length, val.length); }
 }
 
 function clearMaintDocSearch() {
+  document.getElementById('maintDocSearch').value = '';
   maintDocState.filter = '';
+  document.getElementById('maintDocClearBtn').style.display = 'none';
   renderMaintDocs();
-  var el = document.getElementById('maintDocSearch');
-  if (el) el.focus();
 }
 
 function reSortMaintDocs(col) {
@@ -1000,7 +1005,7 @@ function renderMaintDocs() {
 
   var html = '';
 
-  // Render pinned files as buttons above the filter bar
+  // Render pinned files as buttons above the table
   pinned.forEach(function(f) {
     var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
     displayName = fixMaintDocTitle(displayName);
@@ -1008,13 +1013,6 @@ function renderMaintDocs() {
       '📌 ' + displayName +
       '</a>';
   });
-
-  // Filter bar sits below pinned buttons
-  var filterVal = state.filter || '';
-  html += '<div class="doc-filter-bar">' +
-    '<input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" value="' + filterVal.replace(/"/g, '&quot;') + '" />' +
-    '<button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()" style="display:' + (filterVal ? 'inline-flex' : 'none') + '">&#x2715; Clear</button>' +
-    '</div>';
 
   // Filter and sort the remaining (non-pinned) files
   var filtered = rest;
@@ -1068,12 +1066,12 @@ function renderMaintDocs() {
 })();
 
 loadAddresses();
-fetchAdminPassword();
 loadIssues();
 setInterval(() => { loadIssues(); }, 60000);
 </script>
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
+  <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
 <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 <div id="toast" style="position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:#2a2015;color:#f5f0e8;padding:0.75rem 1.25rem;border-radius:6px;font-size:0.83rem;box-shadow:0 4px 20px rgba(0,0,0,0.35);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.4,0.64,1);z-index:9999;display:flex;align-items:center;gap:0.5rem;pointer-events:none;"></div>
