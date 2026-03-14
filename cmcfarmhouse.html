@@ -296,22 +296,12 @@ function reSortSection(key) {
 function renderSection(key) {
   var s     = sections[key];
   var wrap  = document.getElementById('docs-' + key);
-  var badge = document.getElementById('filterbadge-' + key);
-  var countEl = document.getElementById('count-' + key);
-
   // Split pinned vs rest
   var pinned = s.files.filter(function(f) { return f.name.startsWith('PIN_'); })
                       .sort(function(a,b) { return a.name.localeCompare(b.name); });
   var rest   = s.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
 
-  if (!s.files.length) {
-    countEl.textContent = '0';
-    badge.style.display = 'none';
-    wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
-    return;
-  }
-
-  // Filter rest
+  // Filter non-pinned only
   var filtered = rest;
   if (s.filter) {
     var q = s.filter.toLowerCase();
@@ -320,10 +310,13 @@ function renderSection(key) {
     });
   }
 
-  // Count: non-pinned only
+  // Count baked into rendered HTML — no DOM refs needed
   var countText = s.filter ? (filtered.length + ' / ' + rest.length) : rest.length;
-  countEl.textContent = countText;
-  badge.style.display = 'none';
+
+  if (!pinned.length && !rest.length) {
+    wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
+    return;
+  }
 
   var html = '';
 
