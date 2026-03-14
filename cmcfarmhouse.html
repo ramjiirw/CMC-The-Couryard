@@ -269,18 +269,22 @@ function fixTitle(raw) {
 
 // ── Filter input handler ──────────────────────────────────────────────────────
 function filterSection(key) {
-  var val = document.getElementById('search-' + key).value;
-  sections[key].filter = val;
-  var clearBtn = document.getElementById('clear-' + key);
-  clearBtn.style.display = val ? 'inline-flex' : 'none';
+  // Read value directly from the element (it's inside rendered HTML)
+  var el = document.getElementById('search-' + key);
+  if (!el) return;
+  sections[key].filter = el.value;
+  // Store cursor position, re-render, then restore focus & cursor
+  var pos = el.selectionStart;
   renderSection(key);
+  var newEl = document.getElementById('search-' + key);
+  if (newEl) { newEl.focus(); try { newEl.setSelectionRange(pos, pos); } catch(e){} }
 }
 
 function clearFilter(key) {
-  document.getElementById('search-' + key).value = '';
   sections[key].filter = '';
-  document.getElementById('clear-' + key).style.display = 'none';
   renderSection(key);
+  var el = document.getElementById('search-' + key);
+  if (el) el.focus();
 }
 
 function reSortSection(key) {
