@@ -986,7 +986,7 @@ function renderMaintDocs() {
   var wrap  = document.getElementById('wrap-maintdocs');
 
   // Split into pinned (PIN_ prefix) and regular files
-  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); });
+  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); }).sort(function(a,b){ return a.name.localeCompare(b.name); });
   var rest   = state.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
 
   // Update header count (pinned + rest)
