@@ -16,7 +16,7 @@
     --blue: #3d6b4a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: stretch; }
   header { background: var(--dark); padding: 1.5rem 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(196,149,106,0.2); }
   .header-brand { display: flex; align-items: center; gap: 1rem; }
   .header-brand h1 { font-family: Arial,sans-serif; color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
@@ -28,7 +28,7 @@
   .btn-lock { background: transparent; color: var(--stone); border: 1px solid #3a3530; font-size: 0.75rem; }
   .btn-lock:hover { background: #2a2520; color: #c4956a; }
   #welcomeMsg { font-size: 0.78rem; color: var(--accent2); font-style: italic; display: block; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em; }
-  main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 1200px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem 4rem; flex: 1; }
   .page-title { margin-bottom: 1.5rem; }
   .page-title h2 { font-size: 1.4rem; font-weight: 500; color: var(--accent); }
   .page-title p { color: var(--mid); font-size: 0.85rem; margin-top: 0.3rem; }
