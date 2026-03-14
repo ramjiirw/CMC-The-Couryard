@@ -112,6 +112,11 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
   }
+  .minutes-pill {
+    display: none; font-size: 0.72rem; font-weight: 600; border-radius: 10px;
+    padding: 0.25rem 0.65rem; background: #e8f2eb; color: #3d6b4a;
+    border: 1px solid #c8e2ce; letter-spacing: 0.03em; white-space: nowrap;
+  }
   .last-updated {
     font-size: 0.68rem; color: var(--stone); margin-top: 0.3rem;
     font-style: italic; letter-spacing: 0.02em;
@@ -218,6 +223,7 @@
         <div style="display:flex;align-items:center;gap:0.75rem;">
           <span class="icon" style="margin:0">📋</span>
           <h3 style="margin:0">AGM Agenda</h3>
+          <span id="minutesPill" class="minutes-pill">📌 Latest minutes available</span>
         </div>
         <div id="agmCountdown" style="display:none;"></div>
       </div>
@@ -428,7 +434,18 @@
     }
   })();
 
-  // Resident Directory — missing mobile / email counts
+  // Show 'Latest minutes available' pill on AGM card if a PIN_ file exists in agmminutes
+  (async function() {
+    try {
+      const res = await fetch('cmcdocuments/index.json?v=' + Date.now());
+      if (!res.ok) throw new Error();
+      const idx = await res.json();
+      const folder = (idx.folders || []).find(f => f.key === 'agmminutes');
+      const files = folder ? (folder.files || []) : [];
+      const hasPinned = files.some(f => f.name.startsWith('PIN_'));
+      if (hasPinned) document.getElementById('minutesPill').style.display = 'inline-block';
+    } catch(e) {}
+  })();
   (async function() {
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
