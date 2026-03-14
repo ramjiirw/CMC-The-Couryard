@@ -324,7 +324,7 @@ function renderSection(key) {
                       .sort(function(a,b) { return a.name.localeCompare(b.name); });
   var rest   = s.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
 
-  if (!s.files.length) {
+  if (!rest.length && !pinned.length) {
     countEl.textContent = '0';
     badge.style.display = 'none';
     wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
@@ -340,26 +340,29 @@ function renderSection(key) {
     });
   }
 
-  // Count = pinned (always shown) + filtered
-  var totalCount   = s.files.length;
-  var visibleCount = pinned.length + filtered.length;
-
-  // Update the in-bar count (far right of filter bar)
+  // Count is non-pinned docs only — pinned are excluded entirely
   if (s.filter) {
-    countEl.textContent = visibleCount + ' / ' + totalCount;
-    badge.style.display = 'none'; // badge slot unused now — count does the job
+    countEl.textContent = filtered.length + ' / ' + rest.length;
   } else {
-    countEl.textContent = totalCount;
-    badge.style.display = 'none';
+    countEl.textContent = rest.length;
   }
+  badge.style.display = 'none';
 
   var html = '';
 
-  // Pinned buttons
+  // Pinned buttons always first, never filtered, never counted
   pinned.forEach(function(f) {
     var displayName = fixTitle(f.name.replace(/^PIN_/, ''));
     html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">&#128204; ' + displayName + '</a>';
   });
+
+  // Filter bar sits below pinned docs
+  var clearDisplay = s.filter ? 'inline-flex' : 'none';
+  var filterVal    = s.filter ? s.filter.replace(/"/g, '&quot;') : '';
+  html += '<div class="doc-filter-bar">' +
+    '<input type="text" id="search-' + key + '" placeholder="Filter documents..." oninput="filterSection(\'' + key + '\')" value="' + filterVal + '" />' +
+    '<button class="doc-filter-clear" onclick="clearFilter(\'' + key + '\')" style="display:' + clearDisplay + ';">&#x2715; Clear</button>' +
+    '</div>';
 
   if (filtered.length) {
     // Sort
@@ -375,8 +378,10 @@ function renderSection(key) {
     html += '<table class="doc-table"><thead><tr>' +
       '<th class="' + thCls + '" onclick="reSortSection(\'' + key + '\')">Document<span class="sort-icon"></span></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table>';
-  } else if (!pinned.length) {
+  } else if (s.filter) {
     html += '<div class="doc-state-empty">No documents match your filter.</div>';
+  } else if (!rest.length) {
+    html += '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
   }
 
   wrap.innerHTML = html;
