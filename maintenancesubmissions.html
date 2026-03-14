@@ -213,6 +213,30 @@
   .doc-state-empty { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; font-style: italic; }
   .doc-state-error { padding: 1rem 1.5rem; color: #c0392b; font-size: 0.85rem; }
   .doc-card-wrapper { background: white; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 1.5rem; }
+
+  /* ── PIN_ document button ── */
+  /* HOW THIS WORKS:
+     Any file whose name starts with PIN_ is rendered as a prominent button
+     above the document list, rather than appearing in the table.
+     To pin a doc: rename it to PIN_Filename.pdf in the folder, then re-run
+     the indexer. No JSON or code changes needed — just the filename prefix.
+     To replicate on another page: find the renderXxxDocs() function that
+     builds the document list from index.json, copy the PIN_ split logic
+     (pinned/rest filter) and the pinned button rendering block from this page. */
+  .pinned-doc-btn {
+    display: flex; align-items: center; gap: 0.6rem;
+    width: 100%; padding: 0.75rem 1.25rem;
+    background: var(--green-light); color: var(--green);
+    border: 1.5px solid #c8e2ce; border-radius: 0;
+    font-family: Arial, sans-serif; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; text-align: left; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .pinned-doc-btn:hover { background: #d4ecda; }
+  .pinned-doc-btn .pin-label {
+    margin-left: auto; font-size: 0.72rem; font-weight: 400;
+    opacity: 0.75; text-transform: uppercase; letter-spacing: 0.04em;
+  }
 </style>
 </head>
 <body>
@@ -961,7 +985,11 @@ function renderMaintDocs() {
   var state = maintDocState;
   var wrap  = document.getElementById('wrap-maintdocs');
 
-  // Update header count
+  // Split into pinned (PIN_ prefix) and regular files
+  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); });
+  var rest   = state.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
+
+  // Update header count (pinned + rest)
   var count = state.files.length;
   var headerSpan = document.querySelector('#toggle-maintdocs span:first-child');
   if (headerSpan) {
@@ -973,40 +1001,51 @@ function renderMaintDocs() {
     return;
   }
 
-  // Filter
-  var filtered = state.files;
+  var html = '';
+
+  // Render pinned files as buttons above the table
+  pinned.forEach(function(f) {
+    var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
+    displayName = fixMaintDocTitle(displayName);
+    html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
+      '📌 ' + displayName +
+      '</a>';
+  });
+
+  // Filter and sort the remaining (non-pinned) files
+  var filtered = rest;
   if (state.filter) {
     var q = state.filter.toLowerCase();
-    filtered = state.files.filter(function(f) {
+    filtered = rest.filter(function(f) {
       return fixMaintDocTitle(f.name).toLowerCase().indexOf(q) !== -1;
     });
   }
 
-  if (!filtered.length) {
-    wrap.innerHTML = '<div class="doc-state-empty">No documents match your filter.</div>';
-    return;
+  if (filtered.length) {
+    var sorted = filtered.slice().sort(function(a, b) {
+      var va = fixMaintDocTitle(a.name).toLowerCase();
+      var vb = fixMaintDocTitle(b.name).toLowerCase();
+      return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+
+    function thCls(col) {
+      if (col !== state.sortCol) return '';
+      return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
+    }
+
+    var rows = sorted.map(function(f) {
+      return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
+        fixMaintDocTitle(f.name) + '</a></td></tr>';
+    }).join('');
+
+    html += '<table class="doc-table"><thead><tr>' +
+      '<th class="' + thCls('name') + '" onclick="reSortMaintDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+  } else if (!pinned.length) {
+    html += '<div class="doc-state-empty">No documents match your filter.</div>';
   }
 
-  // Sort
-  var sorted = filtered.slice().sort(function(a, b) {
-    var va = fixMaintDocTitle(a.name).toLowerCase();
-    var vb = fixMaintDocTitle(b.name).toLowerCase();
-    return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-  });
-
-  function thCls(col) {
-    if (col !== state.sortCol) return '';
-    return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
-  }
-
-  var rows = sorted.map(function(f) {
-    return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
-      fixMaintDocTitle(f.name) + '</a></td></tr>';
-  }).join('');
-
-  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
-    '<th class="' + thCls('name') + '" onclick="reSortMaintDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
+  wrap.innerHTML = html;
 }
 
 (async function loadMaintDocs() {
