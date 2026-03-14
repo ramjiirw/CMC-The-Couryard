@@ -138,9 +138,8 @@ function checkPassword() {
   if (val.toLowerCase() === portalPassword.toLowerCase()) {
     sessionStorage.setItem('cyard_auth', '1');
     sessionStorage.setItem('cyard_last_active', Date.now().toString());
-    const returnTo = sessionStorage.getItem('cyard_return_to') || CONFIG.defaultRedirect;
     sessionStorage.removeItem('cyard_return_to');
-    window.location.href = returnTo;
+    window.location.href = CONFIG.defaultRedirect;
   } else {
     err.textContent = 'Incorrect password — please try again.';
     const inp = document.getElementById('pwInput');
@@ -158,9 +157,8 @@ function checkPassword() {
   const idleMs = CONFIG.idleMinutes * 60 * 1000;
 
   if (auth === '1' && (Date.now() - lastActive) < idleMs) {
-    const returnTo = sessionStorage.getItem('cyard_return_to') || CONFIG.defaultRedirect;
     sessionStorage.removeItem('cyard_return_to');
-    window.location.href = returnTo;
+    window.location.href = CONFIG.defaultRedirect;
   }
 })();
 </script>
