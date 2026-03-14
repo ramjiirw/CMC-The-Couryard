@@ -149,6 +149,72 @@
   footer p { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.04em; text-align: center; }
   footer p > span:first-child { color: var(--accent2); }
   footer #footerYear { color: var(--stone); }
+
+  /* ── Maintenance Documents section ── */
+  .btn-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0.75rem 1.25rem;
+    background: var(--dark); color: var(--cream);
+    border: none; border-radius: 10px 10px 0 0;
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-toggle:hover { background: #2a2520; }
+  .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
+  .btn-toggle.open .chevron { transform: rotate(90deg); }
+  .btn-toggle.open .toggle-hint .hint-open { display: none; }
+  .btn-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .btn-toggle.open .toggle-hint .hint-close { display: inline; }
+  .btn-toggle:not(.open) .toggle-hint .hint-close { display: none; }
+  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+  .collapsible-panel.open { max-height: 8000px; }
+  .doc-card-inner {
+    background: var(--cream); border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 10px 10px; overflow: hidden;
+  }
+  .doc-filter-bar {
+    display: flex; gap: 0.5rem; align-items: center;
+    padding: 0.6rem 1.25rem; background: var(--warm); border-bottom: 1px solid var(--border);
+  }
+  .doc-filter-bar input[type="text"] {
+    padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 5px;
+    font-family: Arial, sans-serif; font-size: 0.82rem; background: white;
+    color: var(--dark); width: 220px; transition: border-color 0.2s;
+  }
+  .doc-filter-bar input[type="text"]:focus { outline: none; border-color: var(--accent2); }
+  .doc-filter-clear {
+    padding: 0.3rem 0.7rem; border-radius: 5px; border: none;
+    background: #c0622a; color: white; font-family: Arial, sans-serif;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; display: none;
+    align-items: center; gap: 0.3rem; transition: background 0.2s;
+  }
+  .doc-filter-clear:hover { background: #a0501e; }
+  .doc-table { width: 100%; border-collapse: collapse; }
+  .doc-table thead th {
+    background: rgba(122,92,62,0.07); padding: 0.7rem 1.5rem;
+    text-align: left; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--mid);
+    border-bottom: 1px solid var(--border); user-select: none; cursor: pointer; white-space: nowrap;
+  }
+  .doc-table thead th:hover { color: var(--accent); }
+  .doc-table thead th { cursor: pointer; user-select: none; }
+  .doc-table thead th .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.35; }
+  .doc-table thead th.sort-asc  .sort-icon { opacity: 1; color: var(--accent2); }
+  .doc-table thead th.sort-asc  .sort-icon::after { content: ' ▲'; }
+  .doc-table thead th.sort-desc .sort-icon { opacity: 1; color: var(--accent2); }
+  .doc-table thead th.sort-desc .sort-icon::after { content: ' ▼'; }
+  .doc-table thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: ' ▲▼'; }
+  .doc-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .doc-table tbody tr:last-child { border-bottom: none; }
+  .doc-table tbody tr:hover { background: rgba(196,149,106,0.06); }
+  .doc-table tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
+  .doc-link { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-word; }
+  .doc-link:hover { color: var(--accent2); text-decoration: underline; }
+  .doc-state-empty { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; font-style: italic; }
+  .doc-state-error { padding: 1rem 1.5rem; color: #c0392b; font-size: 0.85rem; }
+  .doc-card-wrapper { background: white; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 1.5rem; }
 </style>
 </head>
 <body>
@@ -203,6 +269,27 @@
   <div class="page-title">
     <h2>&#128295; Maintenance &amp; Site Issues</h2>
     <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents.</p>
+  </div>
+
+  <!-- Maintenance Documents -->
+  <div class="doc-card-wrapper">
+    <button class="btn-toggle" id="toggle-maintdocs" onclick="toggleMaintDocs()" aria-expanded="false">
+      <span>📄 Maintenance Documents</span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-maintdocs">
+      <div class="doc-card-inner">
+        <div class="doc-filter-bar">
+          <input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" />
+          <button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()">&#x2715; Clear</button>
+        </div>
+        <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -824,6 +911,120 @@ function showQR() {
     a.href = canvas.toDataURL('image/png');
     a.click();
   }
+
+// ── Maintenance Documents ─────────────────────────────────────────────────────
+var maintDocState = { files: [], sortCol: 'name', sortDir: 'asc', filter: '' };
+
+function toggleMaintDocs() {
+  var btn   = document.getElementById('toggle-maintdocs');
+  var panel = document.getElementById('panel-maintdocs');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    setTimeout(function() {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+}
+
+function fixMaintDocTitle(raw) {
+  return raw.replace(/\.pdf$/i, '').replace(/\w\S*/g, function(w) {
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  });
+}
+
+function filterMaintDocs() {
+  var val = document.getElementById('maintDocSearch').value;
+  maintDocState.filter = val;
+  var clearBtn = document.getElementById('maintDocClearBtn');
+  clearBtn.style.display = val ? 'inline-flex' : 'none';
+  renderMaintDocs();
+}
+
+function clearMaintDocSearch() {
+  document.getElementById('maintDocSearch').value = '';
+  maintDocState.filter = '';
+  document.getElementById('maintDocClearBtn').style.display = 'none';
+  renderMaintDocs();
+}
+
+function reSortMaintDocs(col) {
+  if (maintDocState.sortCol === col) {
+    maintDocState.sortDir = maintDocState.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    maintDocState.sortCol = col;
+    maintDocState.sortDir = 'asc';
+  }
+  renderMaintDocs();
+}
+
+function renderMaintDocs() {
+  var state = maintDocState;
+  var wrap  = document.getElementById('wrap-maintdocs');
+
+  // Update header count
+  var count = state.files.length;
+  var headerSpan = document.querySelector('#toggle-maintdocs span:first-child');
+  if (headerSpan) {
+    headerSpan.textContent = '📄 Maintenance Documents' + (count > 0 ? ' (' + count + ')' : '');
+  }
+
+  if (!state.files.length) {
+    wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
+    return;
+  }
+
+  // Filter
+  var filtered = state.files;
+  if (state.filter) {
+    var q = state.filter.toLowerCase();
+    filtered = state.files.filter(function(f) {
+      return fixMaintDocTitle(f.name).toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="doc-state-empty">No documents match your filter.</div>';
+    return;
+  }
+
+  // Sort
+  var sorted = filtered.slice().sort(function(a, b) {
+    var va = fixMaintDocTitle(a.name).toLowerCase();
+    var vb = fixMaintDocTitle(b.name).toLowerCase();
+    return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  function thCls(col) {
+    if (col !== state.sortCol) return '';
+    return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
+  }
+
+  var rows = sorted.map(function(f) {
+    return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
+      fixMaintDocTitle(f.name) + '</a></td></tr>';
+  }).join('');
+
+  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
+    '<th class="' + thCls('name') + '" onclick="reSortMaintDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+(async function loadMaintDocs() {
+  var INDEX_URL = 'cmcdocuments/index.json';
+  try {
+    var res = await fetch(INDEX_URL + '?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var idx = await res.json();
+    var folder = (idx.folders || []).find(function(f) { return f.key === 'cmcmaintenance'; });
+    maintDocState.files = folder ? (folder.files || []) : [];
+    renderMaintDocs();
+  } catch(err) {
+    document.getElementById('wrap-maintdocs').innerHTML =
+      '<div class="doc-state-error">⚠️ Could not load documents. Make sure the index has been generated.<br><small>' + err.message + '</small></div>';
+  }
+})();
 
 loadAddresses();
 fetchAdminPassword();
