@@ -278,6 +278,14 @@
   .doc-table tbody td { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
   .doc-link { color: var(--accent); text-decoration: none; font-weight: 500; word-break: break-word; }
   .doc-link:hover { color: var(--accent2); text-decoration: underline; }
+  /* ── PIN_ document button ──
+     Any file whose name starts with PIN_ is rendered as a prominent button
+     above the document list. To pin a doc: rename it to PIN_Filename.pdf in
+     the folder, then re-run the indexer. No JSON or code changes needed.
+     To replicate on another page: copy the PIN_ split logic and pinned button
+     rendering block from renderMinutes() below. */
+  .pinned-doc-btn { display: flex; align-items: center; gap: 0.6rem; width: 100%; padding: 0.75rem 1.25rem; background: var(--green-light); color: var(--green); border: none; border-bottom: 1.5px solid #c8e2ce; font-family: Arial, sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: left; text-decoration: none; transition: background 0.2s; box-sizing: border-box; }
+  .pinned-doc-btn:hover { background: #d4ecda; }
   .td-date { color: var(--mid); font-size: 0.82rem; white-space: nowrap; }
   .state-empty { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; font-style: italic; }
   .state-error { padding: 1rem 1.5rem; color: #c0392b; font-size: 0.85rem; }
@@ -1104,11 +1112,26 @@ function renderMinutes() {
   var state = agmMinutesState;
   var wrap  = document.getElementById('wrap-agmminutes');
 
+  // Split into pinned (PIN_ prefix) and regular files
+  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); }).sort(function(a,b){ return a.name.localeCompare(b.name); });
+  var rest   = state.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
+
   if (!state.files.length) {
     wrap.innerHTML = '<div class="state-empty">No minutes have been uploaded yet — check back soon.</div>';
     return;
   }
-  var sorted = state.files.slice().sort(function(a, b) {
+
+  var html = '';
+
+  // Render pinned files as buttons above the table
+  pinned.forEach(function(f) {
+    var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
+    displayName = fixDocTitle(displayName);
+    html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">📌 ' + displayName + '</a>';
+  });
+
+  // Sort and render remaining files
+  var sorted = rest.slice().sort(function(a, b) {
     if (state.sortCol === 'date') {
       var va = extractDateFromTitle(a.name).getTime();
       var vb = extractDateFromTitle(b.name).getTime();
@@ -1122,13 +1145,19 @@ function renderMinutes() {
     if (col !== state.sortCol) return '';
     return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
   }
-  var rows = sorted.map(function(f) {
-    return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
-      fixDocTitle(f.name) + '</a></td></tr>';
-  }).join('');
-  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
-    '<th class="' + thCls('name') + '" onclick="reSortMinutes(\'name\')" style="cursor:pointer">Document<span class="sort-icon"></span></th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
+  if (sorted.length) {
+    var rows = sorted.map(function(f) {
+      return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
+        fixDocTitle(f.name) + '</a></td></tr>';
+    }).join('');
+    html += '<table class="doc-table"><thead><tr>' +
+      '<th class="' + thCls('name') + '" onclick="reSortMinutes(\'name\')" style="cursor:pointer">Document<span class="sort-icon"></span></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+  } else if (!pinned.length) {
+    html += '<div class="state-empty">No minutes have been uploaded yet — check back soon.</div>';
+  }
+
+  wrap.innerHTML = html;
 }
 
 (async function loadAgmMinutes() {
