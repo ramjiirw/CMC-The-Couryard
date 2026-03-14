@@ -22,8 +22,10 @@
   }
 
   function logout(reason) {
-    // Store current page so user returns here after re-login
-    sessionStorage.setItem('cyard_return_to', window.location.pathname + window.location.search);
+    // Only store return page if this is NOT a timeout logout
+    if (reason !== 'timeout') {
+      sessionStorage.setItem('cyard_return_to', window.location.pathname + window.location.search);
+    }
     sessionStorage.removeItem('cyard_auth');
     sessionStorage.removeItem('cyard_last_active');
     window.location.href = LOGIN_PAGE + (reason ? '?reason=' + reason : '');
