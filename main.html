@@ -45,6 +45,30 @@
   .welcome-block { margin-bottom: 2.5rem; }
   .welcome-block h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.5rem; }
   .welcome-block p { color: var(--mid); line-height: 1.6; font-size: 0.9rem; }
+  /* ── Noticeboard ── */
+  .noticeboard {
+    display: none; background: white; border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow);
+    overflow: hidden; margin-bottom: 2rem;
+  }
+  .noticeboard-header {
+    background: var(--dark); padding: 0.75rem 1.25rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    color: var(--cream); font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .noticeboard-body { padding: 0; }
+  .noticeboard-item {
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border);
+  }
+  .noticeboard-item:last-child { border-bottom: none; }
+  .noticeboard-item-title {
+    font-size: 0.88rem; font-weight: 600; color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .noticeboard-item-msg {
+    font-size: 0.83rem; color: var(--mid); line-height: 1.5;
+  }
 
   .links-grid {
     display: grid;
@@ -214,6 +238,12 @@
   <div class="welcome-block">
     <h2>Welcome</h2>
     <p>This is your resident portal for CMC The Courtyard. Use the links below to access information and resources.</p>
+  </div>
+
+  <!-- Courtyard Noticeboard — hidden if no messages -->
+  <div class="noticeboard" id="noticeboardCard">
+    <div class="noticeboard-header">📋 The Courtyard Noticeboard</div>
+    <div class="noticeboard-body" id="noticeboardBody"></div>
   </div>
 
   <div class="links-grid">
@@ -582,6 +612,26 @@
       document.getElementById('mapOwner').textContent  = '—';
       document.getElementById('mapTenant').textContent = '—';
     }
+  })();
+
+  // ── Courtyard Noticeboard ────────────────────────────────────────────────
+  (async function loadNoticeboard() {
+    try {
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+      const res = await fetch(SCRIPT_URL + '?action=readNoticeboard');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const messages = (data.messages || []).filter(m => m.title || m.message);
+      if (!messages.length) return;
+      const body = document.getElementById('noticeboardBody');
+      body.innerHTML = messages.map(m =>
+        '<div class="noticeboard-item">' +
+        (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
+        (m.message ? '<div class="noticeboard-item-msg">' + m.message + '</div>' : '') +
+        '</div>'
+      ).join('');
+      document.getElementById('noticeboardCard').style.display = 'block';
+    } catch(e) {}
   })();
 </script>
 <footer>
