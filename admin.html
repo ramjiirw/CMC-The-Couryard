@@ -104,6 +104,17 @@
   .spinner { width:28px; height:28px; border:2px solid rgba(122,92,62,0.2); border-top-color:var(--accent2); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 0.8rem; }
   @keyframes spin { to{transform:rotate(360deg);} }
   .cpw-form { max-width:340px; }
+  /* Noticeboard editor */
+  .nb-row { display:flex; gap:0.5rem; align-items:flex-start; margin-bottom:0.6rem; }
+  .nb-row input { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; }
+  .nb-row input:focus { outline:none; border-color:var(--accent2); }
+  .nb-row input.nb-title { flex:0 0 200px; }
+  .nb-row textarea { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; resize:vertical; min-height:60px; }
+  .nb-row textarea:focus { outline:none; border-color:var(--accent2); }
+  .nb-header-row { display:flex; gap:0.5rem; margin-bottom:0.3rem; }
+  .nb-header-row span { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); }
+  .nb-header-row .nb-ht { flex:0 0 200px; }
+  .nb-header-row .nb-hm { flex:1; }
   .welcome-stats { display:flex; gap:1rem; margin-top:1.4rem; flex-wrap:wrap; justify-content:center; }
   .stat-tile { background:rgba(122,92,62,0.1); border:1px solid rgba(122,92,62,0.2); border-radius:10px; padding:0.9rem 1.5rem; min-width:110px; text-align:center; }
   .stat-tile .stat-num { font-size:1.9rem; font-weight:700; color:var(--accent); line-height:1; }
@@ -185,6 +196,7 @@
       <div class="sidebar-link sidebar-home" data-panel="welcome" id="nav-welcome">&#8962; Admin Home</div>
       <div class="sidebar-label">Residents</div>
       <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Edit Residents</div>
+      <div class="sidebar-link" data-panel="noticeboard" id="nav-noticeboard">&#128240; Noticeboard</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
       <div class="sidebar-label">Maintenance</div>
@@ -281,6 +293,17 @@
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-noticeboard">
+        <div class="panel-title">The Courtyard Noticeboard</div>
+        <div class="panel-desc">Add, edit or remove messages shown on the main portal page. Changes save directly to the sheet.</div>
+        <div id="nbMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+        <div id="nbRows" style="margin-bottom:1rem;"></div>
+        <button class="abtn abtn-muted" id="nbAddBtn" onclick="nbAddRow()">&#43; Add Message</button>
+        <div style="margin-top:1rem;">
+          <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
         </div>
       </div>
 
@@ -1114,11 +1137,11 @@ var _origShowPanel = showPanel;
 showPanel = function(id) {
   if (id !== 'residents' && hasUnsavedResidentEdits()) {
     if (!confirm('You have unsaved resident changes. Leave without saving?')) return;
-    // Reset draft to match saved state
     editDraft = residents.map(function(r) { return Object.assign({}, r); });
     renderTable();
   }
   _origShowPanel(id);
+  if (id === 'noticeboard') nbLoad();
 };
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 function flashButton(id) {
@@ -1361,6 +1384,74 @@ async function ctExportPDF() {
   </body></html>`;
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
+}
+// ─── NOTICEBOARD ─────────────────────────────────────────────────────
+
+var nbMessages = [];
+
+async function nbLoad() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=readNoticeboard');
+    const data = await res.json();
+    nbMessages = (data.messages || []);
+    nbRender();
+  } catch(e) {
+    document.getElementById('nbMsg').textContent = 'Could not load messages.';
+  }
+}
+
+function nbRender() {
+  var wrap = document.getElementById('nbRows');
+  if (!nbMessages.length) {
+    wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">No messages yet — click Add Message below.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 32px;"></span></div>' +
+    nbMessages.map(function(m, i) {
+      return '<div class="nb-row">' +
+        '<input class="nb-title" type="text" value="' + escHtml(m.title) + '" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value">' +
+        '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value">' + escHtml(m.message) + '</textarea>' +
+        '<button class="abtn abtn-danger" onclick="nbRemove(' + i + ')">&#10005;</button>' +
+        '</div>';
+    }).join('');
+}
+
+function nbAddRow() {
+  nbMessages.push({title:'', message:''});
+  nbRender();
+  var inputs = document.querySelectorAll('#nbRows .nb-row:last-child input');
+  if (inputs.length) inputs[0].focus();
+}
+
+function nbRemove(i) {
+  nbMessages.splice(i, 1);
+  nbRender();
+}
+
+async function nbSave() {
+  var btn = document.getElementById('nbSaveBtn');
+  var msg = document.getElementById('nbMsg');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'writeNoticeboard', messages: nbMessages })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✓ Saved successfully';
+    } else throw new Error(data.message);
+  } catch(e) {
+    msg.style.color = '#b05050';
+    msg.textContent = '✗ Could not save — ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = '💾 Save to Sheet';
+  setTimeout(function(){ msg.textContent = ''; }, 4000);
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 
