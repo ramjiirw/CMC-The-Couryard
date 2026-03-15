@@ -632,7 +632,7 @@
       body.innerHTML = messages.map(m =>
         '<div class="noticeboard-item">' +
         (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
-        (m.message ? '<div class="noticeboard-item-msg">' + m.message + '</div>' : '') +
+        (m.message ? '<div class="noticeboard-item-msg">' + m.message.replace(/\n/g, '<br>') + '</div>' : '') +
         '</div>'
       ).join('');
       document.getElementById('noticeboardCard').style.display = 'block';
