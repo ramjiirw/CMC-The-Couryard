@@ -27,6 +27,16 @@
   .page-title { margin-bottom: 1.5rem; }
   .page-title h2 { font-size: 1.4rem; font-weight: 500; color: var(--accent); }
   .page-title p { color: var(--mid); font-size: 0.85rem; margin-top: 0.3rem; }
+  .intro-card {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    display: flex; gap: 1rem; align-items: flex-start;
+    box-shadow: var(--shadow);
+  }
+  .intro-card .intro-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+  .intro-card .intro-title { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 0.25rem; }
+  .intro-card .intro-text { font-size: 0.82rem; color: var(--mid); line-height: 1.5; margin: 0; }
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 0 0 1.5rem 0; opacity: 0.5; }
 
   /* ── Toggle / Collapsible sections ── */
   .btn-toggle {
@@ -148,9 +158,12 @@
 </header>
 
 <main>
-  <div class="page-title">
-    <h2>&#127968; The Farmhouse</h2>
-    <p>Insurance and other documents for The Farmhouse</p>
+  <div class="intro-card">
+    <div class="intro-icon">🏠</div>
+    <div>
+      <div class="intro-title">The Farmhouse</div>
+      <p class="intro-text">Insurance, legal, finances and other documents for The Farmhouse. Tap any section below to expand and view documents.</p>
+    </div>
   </div>
 
   <!-- Section 1: Insurance Documents -->
@@ -170,6 +183,7 @@
     </div>
   </div>
 
+  <hr class="section-divider">
   <!-- Section 2: Legal Documents -->
   <div class="doc-card-wrapper" id="wrap-legal">
     <button class="btn-toggle" id="toggle-legal" onclick="toggleSection('legal')" aria-expanded="false">
@@ -187,6 +201,7 @@
     </div>
   </div>
 
+  <hr class="section-divider">
   <!-- Section 3: Finance Documents -->
   <div class="doc-card-wrapper" id="wrap-finances">
     <button class="btn-toggle" id="toggle-finances" onclick="toggleSection('finances')" aria-expanded="false">
@@ -204,6 +219,7 @@
     </div>
   </div>
 
+  <hr class="section-divider">
   <!-- Section 4: Misc Documents -->
   <div class="doc-card-wrapper" id="wrap-misc">
     <button class="btn-toggle" id="toggle-misc" onclick="toggleSection('misc')" aria-expanded="false">
