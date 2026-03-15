@@ -52,10 +52,14 @@
     overflow: hidden; margin-bottom: 2rem;
   }
   .noticeboard-header {
-    background: var(--dark); padding: 0.75rem 1.25rem;
-    display: flex; align-items: center; gap: 0.6rem;
-    color: var(--cream); font-size: 0.8rem; font-weight: 600;
-    letter-spacing: 0.06em; text-transform: uppercase;
+    background: var(--accent); padding: 0.75rem 1.25rem;
+    color: white; font-size: 0.9rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; text-align: center;
+  }
+  .noticeboard-sub {
+    background: var(--accent2); padding: 0.25rem 1.25rem;
+    color: white; font-size: 0.7rem; letter-spacing: 0.06em;
+    text-align: center; text-transform: uppercase;
   }
   .noticeboard-body { padding: 0; }
   .noticeboard-item {
@@ -242,7 +246,8 @@
 
   <!-- Courtyard Noticeboard — hidden if no messages -->
   <div class="noticeboard" id="noticeboardCard">
-    <div class="noticeboard-header">📋 The Courtyard Noticeboard</div>
+    <div class="noticeboard-header">📰 The Courtyard Noticeboard</div>
+    <div class="noticeboard-sub">Latest news &amp; notices for residents</div>
     <div class="noticeboard-body" id="noticeboardBody"></div>
   </div>
 
