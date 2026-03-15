@@ -255,10 +255,10 @@
 // ── Section state ─────────────────────────────────────────────────────────────
 // Each section has: key (id suffix), folderKey (index.json key), files[], sortDir, filter
 var sections = {
-  insurance: { folderKey: 'farmhouseinsurance', files: [], sortDir: 'asc', filter: '' },
-  legal:     { folderKey: 'farmhouselegal',     files: [], sortDir: 'asc', filter: '' },
-  finances:  { folderKey: 'farmhousefinances',  files: [], sortDir: 'asc', filter: '' },
-  misc:      { folderKey: 'farmhousemisc',      files: [], sortDir: 'asc', filter: '' }
+  insurance: { folderKey: 'farmhouseinsurance', files: [], sortDir: 'desc', filter: '', year: '' },
+  legal:     { folderKey: 'farmhouselegal',     files: [], sortDir: 'desc', filter: '', year: '' },
+  finances:  { folderKey: 'farmhousefinances',  files: [], sortDir: 'desc', filter: '', year: '' },
+  misc:      { folderKey: 'farmhousemisc',      files: [], sortDir: 'desc', filter: '', year: '' }
 };
 
 // ── Toggle expand/collapse ────────────────────────────────────────────────────
@@ -282,19 +282,25 @@ function fixTitle(raw) {
 
 // ── Filter input handler ──────────────────────────────────────────────────────
 function filterSection(key) {
-  // Read value directly from the element (it's inside rendered HTML)
   var el = document.getElementById('search-' + key);
   if (!el) return;
   sections[key].filter = el.value;
-  // Store cursor position, re-render, then restore focus & cursor
   var pos = el.selectionStart;
   renderSection(key);
   var newEl = document.getElementById('search-' + key);
   if (newEl) { newEl.focus(); try { newEl.setSelectionRange(pos, pos); } catch(e){} }
 }
 
+function filterYear(key) {
+  var el = document.getElementById('year-' + key);
+  if (!el) return;
+  sections[key].year = el.value;
+  renderSection(key);
+}
+
 function clearFilter(key) {
   sections[key].filter = '';
+  sections[key].year   = '';
   renderSection(key);
   var el = document.getElementById('search-' + key);
   if (el) el.focus();
@@ -314,17 +320,30 @@ function renderSection(key) {
                       .sort(function(a,b) { return a.name.localeCompare(b.name); });
   var rest   = s.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
 
-  // Filter non-pinned only
+  // Extract unique years from all non-pinned filenames
+  var yearSet = {};
+  rest.forEach(function(f) {
+    var m = f.name.match(/\b(20\d{2})\b/);
+    if (m) yearSet[m[1]] = true;
+  });
+  var years = Object.keys(yearSet).sort().reverse();
+
+  // Apply year filter
   var filtered = rest;
+  if (s.year) {
+    filtered = filtered.filter(function(f) { return f.name.indexOf(s.year) !== -1; });
+  }
+
+  // Apply text filter
   if (s.filter) {
     var q = s.filter.toLowerCase();
-    filtered = rest.filter(function(f) {
+    filtered = filtered.filter(function(f) {
       return fixTitle(f.name).toLowerCase().indexOf(q) !== -1;
     });
   }
 
-  // Count baked into rendered HTML — no DOM refs needed
-  var countText = s.filter ? (filtered.length + ' / ' + rest.length) : rest.length;
+  // Count
+  var countText = (s.filter || s.year) ? (filtered.length + ' / ' + rest.length) : rest.length;
 
   if (!pinned.length && !rest.length) {
     wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
@@ -333,23 +352,35 @@ function renderSection(key) {
 
   var html = '';
 
-  // Pinned buttons always first — never filtered, never counted
+  // Pinned buttons always first
   pinned.forEach(function(f) {
     var displayName = fixTitle(f.name.replace(/^PIN_/, ''));
     html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">&#128204; ' + displayName + '</a>';
   });
 
-  // Single filter bar below pinned docs
-  var clearDisplay = s.filter ? 'inline-flex' : 'none';
+  // Filter bar — year dropdown + text input + single clear button
+  var hasFilter    = !!(s.filter || s.year);
+  var clearDisplay = hasFilter ? 'inline-flex' : 'none';
   var filterVal    = s.filter ? s.filter.replace(/"/g, '&quot;') : '';
-  html += '<div class="doc-filter-bar">' +
-    '<input type="text" id="search-' + key + '" placeholder="Filter documents..." oninput="filterSection(\'' + key + '\')" value="' + filterVal + '" />' +
+
+  var yearOptions = '<option value="">All years</option>' +
+    years.map(function(y) {
+      return '<option value="' + y + '"' + (s.year === y ? ' selected' : '') + '>' + y + '</option>';
+    }).join('');
+
+  html += '<div class="doc-filter-bar">';
+
+  if (years.length > 0) {
+    html += '<select id="year-' + key + '" onchange="filterYear(\'' + key + '\')" style="padding:0.38rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;background:#fff;color:var(--dark);font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;margin-right:0.4rem;">' +
+      yearOptions + '</select>';
+  }
+
+  html += '<input type="text" id="search-' + key + '" placeholder="Filter documents..." oninput="filterSection(\'' + key + '\')" value="' + filterVal + '" />' +
     '<button class="doc-filter-clear" onclick="clearFilter(\'' + key + '\')" style="display:' + clearDisplay + ';">&#x2715; Clear</button>' +
     '<span style="margin-left:auto;background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.72rem;padding:0.15rem 0.55rem;font-weight:700;white-space:nowrap;">' + countText + '</span>' +
     '</div>';
 
   if (filtered.length) {
-    // Sort
     var sorted = filtered.slice().sort(function(a,b) {
       var va = fixTitle(a.name).toLowerCase();
       var vb = fixTitle(b.name).toLowerCase();
