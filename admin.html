@@ -109,8 +109,18 @@
   .nb-row input { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; }
   .nb-row input:focus { outline:none; border-color:var(--accent2); }
   .nb-row input.nb-title { flex:0 0 200px; }
-  .nb-row textarea { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; resize:vertical; min-height:60px; }
+  .nb-row textarea { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; resize:vertical; min-height:120px; }
   .nb-row textarea:focus { outline:none; border-color:var(--accent2); }
+  .nb-row.nb-hidden-row { opacity:0.42; }
+  .nb-row.nb-hidden-row input,
+  .nb-row.nb-hidden-row textarea { background:#f0ebe3; text-decoration:line-through; color:#aaa; }
+  .nb-toggle-btn {
+    flex:0 0 auto; padding:0.3rem 0.6rem; border-radius:5px; border:1px solid rgba(122,92,62,0.28);
+    font-size:0.7rem; font-weight:700; cursor:pointer; letter-spacing:0.04em;
+    background:#e8f2eb; color:#3d6b4a; transition:all 0.2s; white-space:nowrap;
+  }
+  .nb-toggle-btn.is-hidden { background:#f5e8e8; color:#b05050; border-color:rgba(139,58,58,0.25); }
+  .nb-row-actions { display:flex; flex-direction:column; gap:0.4rem; align-items:center; flex-shrink:0; }
   .nb-header-row { display:flex; gap:0.5rem; margin-bottom:0.3rem; }
   .nb-header-row span { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); }
   .nb-header-row .nb-ht { flex:0 0 200px; }
@@ -1393,7 +1403,9 @@ async function nbLoad() {
   try {
     const res = await fetch(SCRIPT_URL + '?action=readNoticeboard');
     const data = await res.json();
-    nbMessages = (data.messages || []);
+    nbMessages = (data.messages || []).map(function(m) {
+      return { title: m.title || '', message: m.message || '', hidden: !!m.hidden };
+    });
     nbRender();
   } catch(e) {
     document.getElementById('nbMsg').textContent = 'Could not load messages.';
@@ -1406,18 +1418,22 @@ function nbRender() {
     wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">No messages yet — click Add Message below.</div>';
     return;
   }
-  wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 32px;"></span></div>' +
+  wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
     nbMessages.map(function(m, i) {
-      return '<div class="nb-row">' +
+      var isHidden = !!m.hidden;
+      return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '">' +
         '<input class="nb-title" type="text" value="' + escHtml(m.title) + '" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value">' +
         '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value">' + escHtml(m.message) + '</textarea>' +
-        '<button class="abtn abtn-danger" onclick="nbRemove(' + i + ')">&#10005;</button>' +
+        '<div class="nb-row-actions">' +
+          '<button class="nb-toggle-btn' + (isHidden ? ' is-hidden' : '') + '" onclick="nbToggleHidden(' + i + ')" title="' + (isHidden ? 'Hidden from portal — click to show' : 'Visible on portal — click to hide') + '">' + (isHidden ? '👁 Hidden' : '✓ Visible') + '</button>' +
+          '<button class="abtn abtn-danger" onclick="nbRemove(' + i + ')">&#10005;</button>' +
+        '</div>' +
         '</div>';
     }).join('');
 }
 
 function nbAddRow() {
-  nbMessages.push({title:'', message:''});
+  nbMessages.push({title:'', message:'', hidden:false});
   nbRender();
   var inputs = document.querySelectorAll('#nbRows .nb-row:last-child input');
   if (inputs.length) inputs[0].focus();
@@ -1425,6 +1441,11 @@ function nbAddRow() {
 
 function nbRemove(i) {
   nbMessages.splice(i, 1);
+  nbRender();
+}
+
+function nbToggleHidden(i) {
+  nbMessages[i].hidden = !nbMessages[i].hidden;
   nbRender();
 }
 
