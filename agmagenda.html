@@ -681,7 +681,7 @@ function renderAgenda(rows, submissions) {
 
   // Resident submissions in green zone
   if (submissions && submissions.length > 0) {
-    agendaHtml += '<tr class="section-resident-header"><td colspan="3">Resident Items</td></tr>';
+    agendaHtml += '<tr class="section-resident-header"><td colspan="3">Resident Agenda Items</td></tr>';
     submissions.forEach(s => {
       agendaHtml += '<tr class="row-resident"><td class="col-num">' + itemNum++ + '.</td><td>' + s.item + '</td><td class="col-raised"><span class="resident-badge">' + s.raisedBy + '</span></td></tr>';
     });
