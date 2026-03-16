@@ -200,21 +200,26 @@
     background: white;
   }
   .useful-info-toggle {
-    width: 100%; border: none; cursor: pointer;
+    width: 100%; border: none; outline: none; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.75rem 1.25rem;
-    background: #a0714f;
+    background: var(--accent);
     color: white; font-size: 0.9rem; font-weight: 700;
     letter-spacing: 0.1em; text-transform: uppercase;
     transition: background 0.2s;
   }
-  .useful-info-toggle:hover { background: #8c6244; }
+  .useful-info-toggle:focus { outline: none; box-shadow: none; }
+  .useful-info-toggle:focus-visible { outline: none; box-shadow: none; }
+  .useful-info-toggle::-moz-focus-inner { border: 0; }
+  .useful-info-toggle:hover { background: var(--accent2); }
   .useful-info-toggle .toggle-arrow {
     font-size: 0.75rem; transition: transform 0.3s ease;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.85);
     display: inline-block;
   }
-  .useful-info-toggle.open .toggle-arrow { transform: rotate(180deg); }
+  .useful-info-toggle.open .toggle-arrow { transform: rotate(90deg); }
+  .toggle-arrow.open-arrow { transform: rotate(90deg); display: inline-block; }
 
   .useful-info-body {
     display: none; border-top: 1px solid var(--border);
@@ -337,7 +342,7 @@
   <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
     <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
       <span>ℹ️ CMC Useful Information</span>
-      <span style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▼</span></span>
+      <span id="usefulInfoLabel" style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▶</span></span>
     </button>
     <div class="useful-info-body" id="usefulInfoBody">
       <div class="useful-info-controls">
@@ -728,8 +733,13 @@
   function toggleUsefulInfo() {
     const toggle = document.getElementById('usefulInfoToggle');
     const body   = document.getElementById('usefulInfoBody');
+    const label  = document.getElementById('usefulInfoLabel');
     toggle.classList.toggle('open');
     body.classList.toggle('open');
+    const isOpen = toggle.classList.contains('open');
+    label.innerHTML = isOpen
+      ? 'Tap to close <span class="toggle-arrow open-arrow">▶</span>'
+      : 'Tap to expand &amp; view <span class="toggle-arrow">▶</span>';
   }
 
   let _usefulSort = 'az';
