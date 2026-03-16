@@ -121,6 +121,58 @@
   }
   .nb-toggle-btn.is-hidden { background:#f5e8e8; color:#b05050; border-color:rgba(139,58,58,0.25); }
   .nb-row-actions { display:flex; flex-direction:column; gap:0.4rem; align-items:center; flex-shrink:0; }
+
+  /* Mobile noticeboard edit modal */
+  .nb-mobile-modal {
+    display:none; position:fixed; inset:0; z-index:900;
+    background:rgba(0,0,0,0.6); align-items:flex-end; justify-content:center;
+  }
+  .nb-mobile-modal.open { display:flex; }
+  .nb-mobile-box {
+    background:var(--cream); border-radius:16px 16px 0 0;
+    padding:1.4rem 1.2rem 2rem; width:100%; max-width:600px;
+    box-shadow:0 -4px 30px rgba(0,0,0,0.25);
+    display:flex; flex-direction:column; gap:0.75rem;
+    max-height:85vh; overflow-y:auto;
+  }
+  .nb-mobile-box label {
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent); font-weight:700; margin-bottom:0.2rem; display:block;
+  }
+  .nb-mobile-box input, .nb-mobile-box textarea {
+    width:100%; padding:0.7rem 0.85rem; border:1px solid rgba(122,92,62,0.28);
+    border-radius:8px; font-family:Arial,sans-serif; font-size:1rem;
+    color:var(--dark); background:#fff; box-sizing:border-box;
+  }
+  .nb-mobile-box textarea { min-height:160px; resize:vertical; }
+  .nb-mobile-box input:focus, .nb-mobile-box textarea:focus {
+    outline:none; border-color:var(--accent2);
+    box-shadow:0 0 0 3px rgba(196,149,106,0.15);
+  }
+  .nb-mobile-btns { display:flex; gap:0.6rem; margin-top:0.5rem; }
+  .nb-mobile-btns button { flex:1; padding:0.8rem; border-radius:8px;
+    font-family:Arial,sans-serif; font-size:0.9rem; font-weight:600; cursor:pointer; border:none; }
+
+  /* On non-phone screens, hide mobile edit triggers and show inline editing */
+  @media (min-width: 601px) {
+    .nb-mobile-edit-btn { display:none !important; }
+  }
+  /* On phone screens, hide inline inputs and show tap-to-edit buttons */
+  @media (max-width: 600px) {
+    .nb-row { flex-direction:column; }
+    .nb-row input.nb-title, .nb-row textarea { display:none !important; }
+    .nb-mobile-edit-btn {
+      display:block; width:100%; text-align:left;
+      padding:0.6rem 0.75rem; border:1px solid rgba(122,92,62,0.28);
+      border-radius:6px; background:#fff; color:var(--dark);
+      font-family:Arial,sans-serif; font-size:0.9rem; cursor:pointer;
+      white-space:pre-wrap; word-break:break-word; line-height:1.4;
+    }
+    .nb-row.nb-hidden-row .nb-mobile-edit-btn {
+      background:#f0ebe3; text-decoration:line-through; color:#aaa;
+    }
+    .nb-row-actions { flex-direction:row; justify-content:flex-start; }
+  }
   .nb-header-row { display:flex; gap:0.5rem; margin-bottom:0.3rem; }
   .nb-header-row span { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); }
   .nb-header-row .nb-ht { flex:0 0 200px; }
@@ -196,7 +248,7 @@
       <div class="admin-badge">Admin</div>
     </div>
     <div class="admin-header-right">
-      <span class="lock-info">Auto-lock in <span id="lockCountdown">5:00</span></span>
+      <span class="lock-info">Auto-lock in <span id="lockCountdown">10:00</span></span>
       <button id="lockBtn" style="display:none;">&#128274; Lock &mdash; Back to Resident Portal</button>
     </div>
   </header>
@@ -315,6 +367,25 @@
         <div id="nbMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
         <div id="nbRows" style="margin-bottom:1rem;"></div>
         <button class="abtn abtn-muted" id="nbAddBtn" onclick="nbAddRow()">&#43; Add Message</button>
+
+        <!-- Mobile edit modal -->
+        <div class="nb-mobile-modal" id="nbMobileModal">
+          <div class="nb-mobile-box">
+            <div style="font-size:0.95rem;font-weight:700;color:var(--accent);margin-bottom:0.25rem;">Edit Message</div>
+            <div>
+              <label>Title</label>
+              <input type="text" id="nbMobileTitle" placeholder="Title">
+            </div>
+            <div>
+              <label>Message</label>
+              <textarea id="nbMobileMessage" placeholder="Message text"></textarea>
+            </div>
+            <div class="nb-mobile-btns">
+              <button onclick="nbMobileCancel()" style="background:#e8e0d5;color:var(--mid);">Cancel</button>
+              <button onclick="nbMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
+            </div>
+          </div>
+        </div>
         <div style="margin-top:1rem;">
           <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
         </div>
@@ -375,7 +446,7 @@
 <script>
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 var SESSION_KEY = 'cmc_admin_auth';
-var LOCK_MINS = 5;
+var LOCK_MINS = 10;
 var adminPassword = null;
 var portalPassword = null;
 var residents = [], editDraft = [];
@@ -1442,9 +1513,15 @@ function nbRender() {
   wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
     nbMessages.map(function(m, i) {
       var isHidden = !!m.hidden;
+      var titlePreview = m.title || '(no title)';
+      var msgPreview   = m.message || '(no message)';
       return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '">' +
         '<input class="nb-title" type="text" value="' + escHtml(m.title) + '" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value;nbSetDirty()">' +
         '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value;nbSetDirty()">' + escHtml(m.message) + '</textarea>' +
+        '<button class="nb-mobile-edit-btn" onclick="nbMobileOpen(' + i + ')">' +
+          '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
+          escHtml(msgPreview) +
+        '</button>' +
         '<div class="nb-row-actions">' +
           '<button class="nb-toggle-btn' + (isHidden ? ' is-hidden' : '') + '" onclick="nbToggleHidden(' + i + ')" title="' + (isHidden ? 'Hidden from portal — click to show' : 'Visible on portal — click to hide') + '">' + (isHidden ? '👁 Hidden' : '✓ Visible') + '</button>' +
           '<button class="abtn abtn-danger" onclick="nbRemove(' + i + ')">&#10005;</button>' +
@@ -1471,6 +1548,27 @@ function nbToggleHidden(i) {
   nbMessages[i].hidden = !nbMessages[i].hidden;
   nbSetDirty();
   nbRender();
+}
+
+var _nbMobileIdx = -1;
+function nbMobileOpen(i) {
+  _nbMobileIdx = i;
+  document.getElementById('nbMobileTitle').value   = nbMessages[i].title   || '';
+  document.getElementById('nbMobileMessage').value = nbMessages[i].message || '';
+  document.getElementById('nbMobileModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('nbMobileTitle').focus(); }, 100);
+}
+function nbMobileSave() {
+  if (_nbMobileIdx < 0) return;
+  nbMessages[_nbMobileIdx].title   = document.getElementById('nbMobileTitle').value;
+  nbMessages[_nbMobileIdx].message = document.getElementById('nbMobileMessage').value;
+  nbSetDirty();
+  nbRender();
+  nbMobileCancel();
+}
+function nbMobileCancel() {
+  _nbMobileIdx = -1;
+  document.getElementById('nbMobileModal').classList.remove('open');
 }
 
 async function nbSave() {
