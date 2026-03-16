@@ -457,7 +457,7 @@
       if (el) el.classList.add('selected');
     }
     var clearBtn = document.getElementById('cs-clear-' + key);
-    if (clearBtn) clearBtn.style.display = year === 'all' ? 'none' : '';
+    if (clearBtn) clearBtn.style.display = year === 'all' ? 'none' : 'inline-block';
     renderSection(key);
   }
 
@@ -478,7 +478,7 @@
   function setSearch(key, val) {
     tableState[key].search = val;
     var clr = document.getElementById('search-clear-' + key);
-    if (clr) clr.style.display = val ? '' : 'none';
+    if (clr) clr.style.display = val ? 'inline-block' : 'none';
     renderSection(key);
   }
 
