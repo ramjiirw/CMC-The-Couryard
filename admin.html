@@ -259,6 +259,7 @@
       <div class="sidebar-label">Residents</div>
       <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Edit Residents</div>
       <div class="sidebar-link" data-panel="noticeboard" id="nav-noticeboard">&#128240; Noticeboard</div>
+      <div class="sidebar-link" data-panel="usefulinfo" id="nav-usefulinfo">ℹ️ Useful Information</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
       <div class="sidebar-label">Maintenance</div>
@@ -388,6 +389,40 @@
         </div>
         <div style="margin-top:1rem;">
           <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-usefulinfo">
+        <div class="panel-title">CMC Useful Information</div>
+        <div class="panel-desc">Add, edit or remove items shown in the Useful Information section on the main portal page. Changes save directly to the sheet (columns G &amp; H of cmcsettings).</div>
+        <div id="uiUnsavedWarn" style="display:none;align-items:center;gap:0.6rem;background:#fff3cd;border:1px solid #f0c040;border-radius:6px;padding:0.5rem 0.9rem;margin-bottom:0.75rem;font-size:0.8rem;color:#7a5c00;font-weight:600;">
+          ⚠️ You have unsaved changes — don't forget to click Save to Sheet!
+        </div>
+        <div id="uiMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+        <div id="uiRows" style="margin-bottom:1rem;"></div>
+        <button class="abtn abtn-muted" id="uiAddBtn" onclick="uiAddRow()">&#43; Add Item</button>
+
+        <!-- Mobile edit modal -->
+        <div class="nb-mobile-modal" id="uiMobileModal">
+          <div class="nb-mobile-box">
+            <div style="font-size:0.95rem;font-weight:700;color:var(--accent);margin-bottom:0.25rem;">Edit Item</div>
+            <div>
+              <label>Title</label>
+              <input type="text" id="uiMobileTitle" placeholder="Title">
+            </div>
+            <div>
+              <label>Information</label>
+              <textarea id="uiMobileValue" placeholder="Information text"></textarea>
+            </div>
+            <div class="nb-mobile-btns">
+              <button onclick="uiMobileCancel()" style="background:#e8e0d5;color:var(--mid);">Cancel</button>
+              <button onclick="uiMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <button class="abtn abtn-primary" id="uiSaveBtn" onclick="uiSave()">&#128190; Save to Sheet</button>
         </div>
       </div>
 
@@ -1211,7 +1246,7 @@ function hasUnsavedResidentEdits() {
   });
 }
 window.addEventListener('beforeunload', function(e) {
-  if (hasUnsavedResidentEdits() || nbDirty) {
+  if (hasUnsavedResidentEdits() || nbDirty || uiDirty) {
     e.preventDefault();
     e.returnValue = '';
   }
@@ -1228,8 +1263,13 @@ showPanel = function(id) {
     if (!confirm('You have unsaved noticeboard changes. Leave without saving?')) return;
     nbDirty = false;
   }
+  if (id !== 'usefulinfo' && uiDirty) {
+    if (!confirm('You have unsaved Useful Information changes. Leave without saving?')) return;
+    uiDirty = false;
+  }
   _origShowPanel(id);
   if (id === 'noticeboard') nbLoad();
+  if (id === 'usefulinfo') uiLoad();
 };
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 function flashButton(id) {
@@ -1596,6 +1636,118 @@ async function nbSave() {
 
 function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// ─── CMC USEFUL INFORMATION ───────────────────────────────────────────────────
+
+var uiItems = [];
+var uiDirty = false;
+
+function uiSetDirty() {
+  uiDirty = true;
+  var warn = document.getElementById('uiUnsavedWarn');
+  if (warn) warn.style.display = 'flex';
+}
+
+function uiClearDirty() {
+  uiDirty = false;
+  var warn = document.getElementById('uiUnsavedWarn');
+  if (warn) warn.style.display = 'none';
+}
+
+async function uiLoad() {
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=readUsefulInfo');
+    const data = await res.json();
+    uiItems = (data.items || []).map(function(r) {
+      return { title: r.title || '', value: r.value || '' };
+    });
+    uiClearDirty();
+    uiRender();
+  } catch(e) {
+    document.getElementById('uiMsg').textContent = 'Could not load items.';
+  }
+}
+
+function uiRender() {
+  var wrap = document.getElementById('uiRows');
+  if (!uiItems.length) {
+    wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">No items yet — click Add Item below.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Information</span><span style="flex:0 0 32px;"></span></div>' +
+    uiItems.map(function(r, i) {
+      var titlePreview = r.title || '(no title)';
+      var valPreview   = r.value || '(no information)';
+      return '<div class="nb-row" id="ui-row-' + i + '">' +
+        '<input class="nb-title" type="text" value="' + escHtml(r.title) + '" placeholder="Title" oninput="uiItems[' + i + '].title=this.value;uiSetDirty()">' +
+        '<textarea placeholder="Information text" oninput="uiItems[' + i + '].value=this.value;uiSetDirty()">' + escHtml(r.value) + '</textarea>' +
+        '<button class="nb-mobile-edit-btn" onclick="uiMobileOpen(' + i + ')">' +
+          '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
+          escHtml(valPreview) +
+        '</button>' +
+        '<div class="nb-row-actions">' +
+          '<button class="abtn abtn-danger" onclick="uiRemove(' + i + ')">&#10005;</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function uiAddRow() {
+  uiItems.push({ title: '', value: '' });
+  uiSetDirty();
+  uiRender();
+  var inputs = document.querySelectorAll('#uiRows .nb-row:last-child input');
+  if (inputs.length) inputs[0].focus();
+}
+
+function uiRemove(i) {
+  uiItems.splice(i, 1);
+  uiSetDirty();
+  uiRender();
+}
+
+var _uiMobileIdx = -1;
+function uiMobileOpen(i) {
+  _uiMobileIdx = i;
+  document.getElementById('uiMobileTitle').value = uiItems[i].title || '';
+  document.getElementById('uiMobileValue').value = uiItems[i].value || '';
+  document.getElementById('uiMobileModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('uiMobileTitle').focus(); }, 100);
+}
+function uiMobileSave() {
+  if (_uiMobileIdx < 0) return;
+  uiItems[_uiMobileIdx].title = document.getElementById('uiMobileTitle').value;
+  uiItems[_uiMobileIdx].value = document.getElementById('uiMobileValue').value;
+  uiSetDirty();
+  uiRender();
+  uiMobileCancel();
+}
+function uiMobileCancel() {
+  _uiMobileIdx = -1;
+  document.getElementById('uiMobileModal').classList.remove('open');
+}
+
+async function uiSave() {
+  var btn = document.getElementById('uiSaveBtn');
+  var msg = document.getElementById('uiMsg');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const res  = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'writeUsefulInfo', items: uiItems })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✓ Saved successfully';
+      uiClearDirty();
+    } else throw new Error(data.message);
+  } catch(e) {
+    msg.style.color = '#b05050';
+    msg.textContent = '✗ Could not save — ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = '💾 Save to Sheet';
+  setTimeout(function(){ msg.textContent = ''; }, 4000);
 }
 
 
