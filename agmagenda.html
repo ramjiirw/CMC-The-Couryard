@@ -119,6 +119,7 @@
   .col-raised { width: 160px; color: var(--mid); font-size: 0.78rem; }
 
   .row-section td.col-num { color: var(--stone); font-weight: 600; }
+  .row-section-divider td { border-top: 3px solid var(--border) !important; }
   .row-section td {
     background: var(--warm);
     font-weight: 700;
@@ -688,7 +689,7 @@ function renderAgenda(rows, submissions) {
 
   // AOB
   if (aobRow) {
-    agendaHtml += '<tr class="row-section"><td class="col-num">' + itemNum++ + '.</td><td colspan="2">' + aobRow + '</td></tr>';
+    agendaHtml += '<tr class="row-section row-section-divider"><td class="col-num">' + itemNum++ + '.</td><td colspan="2">' + aobRow + '</td></tr>';
   }
 
   // End of meeting
