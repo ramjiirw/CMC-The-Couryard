@@ -108,7 +108,7 @@
   .nb-row { display:flex; gap:0.5rem; align-items:flex-start; margin-bottom:0.6rem; }
   .nb-row input { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; }
   .nb-row input:focus { outline:none; border-color:var(--accent2); }
-  .nb-row input.nb-title { flex:0 0 200px; }
+  .nb-row textarea.nb-title { flex:0 0 200px; min-height:120px; resize:vertical; }
   .nb-row textarea { flex:1; padding:0.5rem 0.7rem; border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; color:var(--dark); font-family:Arial,sans-serif; font-size:0.85rem; resize:vertical; min-height:120px; }
   .nb-row textarea:focus { outline:none; border-color:var(--accent2); }
   .nb-row.nb-hidden-row { opacity:0.65; }
@@ -160,7 +160,7 @@
   /* On phone screens, hide inline inputs and show tap-to-edit buttons */
   @media (max-width: 600px) {
     .nb-row { flex-direction:column; }
-    .nb-row input.nb-title, .nb-row textarea { display:none !important; }
+    .nb-row textarea.nb-title, .nb-row textarea:not(.nb-title) { display:none !important; }
     .nb-mobile-edit-btn {
       display:block; width:100%; text-align:left;
       padding:0.6rem 0.75rem; border:1px solid rgba(122,92,62,0.28);
@@ -1556,7 +1556,7 @@ function nbRender() {
       var titlePreview = m.title || '(no title)';
       var msgPreview   = m.message || '(no message)';
       return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '">' +
-        '<input class="nb-title" type="text" value="' + escHtml(m.title) + '" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value;nbSetDirty()">' +
+        '<textarea class="nb-title" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value;nbSetDirty()">' + escHtml(m.title) + '</textarea>' +
         '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value;nbSetDirty()">' + escHtml(m.message) + '</textarea>' +
         '<button class="nb-mobile-edit-btn" onclick="nbMobileOpen(' + i + ')">' +
           '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
@@ -1679,7 +1679,7 @@ function uiRender() {
       var titlePreview = r.title || '(no title)';
       var valPreview   = r.value || '(no information)';
       return '<div class="nb-row" id="ui-row-' + i + '">' +
-        '<input class="nb-title" type="text" value="' + escHtml(r.title) + '" placeholder="Title" oninput="uiItems[' + i + '].title=this.value;uiSetDirty()">' +
+        '<textarea class="nb-title" placeholder="Title" oninput="uiItems[' + i + '].title=this.value;uiSetDirty()">' + escHtml(r.title) + '</textarea>' +
         '<textarea placeholder="Information text" oninput="uiItems[' + i + '].value=this.value;uiSetDirty()">' + escHtml(r.value) + '</textarea>' +
         '<button class="nb-mobile-edit-btn" onclick="uiMobileOpen(' + i + ')">' +
           '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
