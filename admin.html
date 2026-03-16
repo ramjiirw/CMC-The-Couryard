@@ -398,9 +398,28 @@
         <div id="uiUnsavedWarn" style="display:none;align-items:center;gap:0.6rem;background:#fff3cd;border:1px solid #f0c040;border-radius:6px;padding:0.5rem 0.9rem;margin-bottom:0.75rem;font-size:0.8rem;color:#7a5c00;font-weight:600;">
           ⚠️ You have unsaved changes — don't forget to click Save to Sheet!
         </div>
+
+        <!-- Top controls -->
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:1rem;">
+          <button class="abtn abtn-muted" onclick="uiAddRow()">&#43; Add Item</button>
+          <button class="abtn abtn-primary" onclick="uiSave()">&#128190; Save to Sheet</button>
+          <span style="flex:1;"></span>
+          <input type="text" id="uiFilter" placeholder="Filter…"
+            style="padding:0.4rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);width:160px;outline:none;"
+            oninput="uiApplyFilter()" />
+          <button class="abtn abtn-muted" id="uiClearBtn" onclick="uiClearFilter()" style="display:none;">✕ Clear</button>
+          <button class="abtn" id="uiSortAZ" onclick="uiSetSort('az')" style="font-size:0.78rem;font-weight:700;padding:0.4rem 0.85rem;background:var(--accent);color:white;border:none;border-radius:6px;">A–Z</button>
+          <button class="abtn" id="uiSortZA" onclick="uiSetSort('za')" style="font-size:0.78rem;font-weight:700;padding:0.4rem 0.85rem;background:var(--warm);color:var(--mid);border:1px solid rgba(122,92,62,0.28);border-radius:6px;">Z–A</button>
+        </div>
+
         <div id="uiMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
         <div id="uiRows" style="margin-bottom:1rem;"></div>
-        <button class="abtn abtn-muted" id="uiAddBtn" onclick="uiAddRow()">&#43; Add Item</button>
+
+        <!-- Bottom controls -->
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;">
+          <button class="abtn abtn-muted" onclick="uiAddRow()">&#43; Add Item</button>
+          <button class="abtn abtn-primary" id="uiSaveBtn" onclick="uiSave()">&#128190; Save to Sheet</button>
+        </div>
 
         <!-- Mobile edit modal -->
         <div class="nb-mobile-modal" id="uiMobileModal">
@@ -419,10 +438,6 @@
               <button onclick="uiMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
             </div>
           </div>
-        </div>
-
-        <div style="margin-top:1rem;">
-          <button class="abtn abtn-primary" id="uiSaveBtn" onclick="uiSave()">&#128190; Save to Sheet</button>
         </div>
       </div>
 
@@ -1641,6 +1656,8 @@ function escHtml(s) {
 
 var uiItems = [];
 var uiDirty = false;
+var uiSort  = 'az';
+var uiFilterText = '';
 
 function uiSetDirty() {
   uiDirty = true;
@@ -1652,6 +1669,32 @@ function uiClearDirty() {
   uiDirty = false;
   var warn = document.getElementById('uiUnsavedWarn');
   if (warn) warn.style.display = 'none';
+}
+
+function uiSetSort(dir) {
+  uiSort = dir;
+  document.getElementById('uiSortAZ').style.background = dir === 'az' ? 'var(--accent)' : 'var(--warm)';
+  document.getElementById('uiSortAZ').style.color      = dir === 'az' ? 'white' : 'var(--mid)';
+  document.getElementById('uiSortAZ').style.border     = dir === 'az' ? 'none' : '1px solid rgba(122,92,62,0.28)';
+  document.getElementById('uiSortZA').style.background = dir === 'za' ? 'var(--accent)' : 'var(--warm)';
+  document.getElementById('uiSortZA').style.color      = dir === 'za' ? 'white' : 'var(--mid)';
+  document.getElementById('uiSortZA').style.border     = dir === 'za' ? 'none' : '1px solid rgba(122,92,62,0.28)';
+  uiRender();
+}
+
+function uiApplyFilter() {
+  uiFilterText = (document.getElementById('uiFilter').value || '').trim().toLowerCase();
+  var clearBtn = document.getElementById('uiClearBtn');
+  if (clearBtn) clearBtn.style.display = uiFilterText ? 'inline-block' : 'none';
+  uiRender();
+}
+
+function uiClearFilter() {
+  document.getElementById('uiFilter').value = '';
+  uiFilterText = '';
+  var clearBtn = document.getElementById('uiClearBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
+  uiRender();
 }
 
 async function uiLoad() {
@@ -1670,12 +1713,31 @@ async function uiLoad() {
 
 function uiRender() {
   var wrap = document.getElementById('uiRows');
-  if (!uiItems.length) {
-    wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">No items yet — click Add Item below.</div>';
+
+  // Build display list — filtered and sorted, but track original indices
+  var display = uiItems.map(function(r, i) { return { r: r, i: i }; });
+
+  if (uiFilterText) {
+    display = display.filter(function(d) {
+      return d.r.title.toLowerCase().includes(uiFilterText) ||
+             d.r.value.toLowerCase().includes(uiFilterText);
+    });
+  }
+
+  display.sort(function(a, b) {
+    var ta = a.r.title.toLowerCase(), tb = b.r.title.toLowerCase();
+    return uiSort === 'az' ? ta.localeCompare(tb) : tb.localeCompare(ta);
+  });
+
+  if (!display.length) {
+    wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">' +
+      (uiFilterText ? 'No items match your filter.' : 'No items yet — click Add Item above.') + '</div>';
     return;
   }
+
   wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Information</span><span style="flex:0 0 32px;"></span></div>' +
-    uiItems.map(function(r, i) {
+    display.map(function(d) {
+      var i = d.i, r = d.r;
       var titlePreview = r.title || '(no title)';
       var valPreview   = r.value || '(no information)';
       return '<div class="nb-row" id="ui-row-' + i + '">' +
