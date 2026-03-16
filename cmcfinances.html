@@ -372,25 +372,24 @@
       });
       allYears.sort().reverse();
 
-      var hasSearch = (key === 'other' || key === 'budget' || key === 'receipts' || key === 'invoices');
+      var hasSearch = (key === 'current' || key === 'other' || key === 'budget' || key === 'receipts' || key === 'invoices');
       var filterBar = '';
       if (allYears.length > 1 || hasSearch) {
         filterBar = '<div class="year-filter">';
-        if (allYears.length > 1 || hasSearch) {
+        if (allYears.length > 1) {
           var items = '<li class="selected" onclick="setYear(\'' + key + '\',\'all\',this)">All years</li>';
           allYears.forEach(function(y) { items += '<li onclick="setYear(\'' + key + '\',\'' + y + '\',this)">' + y + '</li>'; });
           filterBar += '<label>Filter by year:</label>' +
             '<div class="custom-select" id="cs-' + key + '">' +
               '<div class="custom-select-btn" onclick="toggleCustomSelect(\'' + key + '\')"><span id="cs-label-' + key + '">All years</span><span class="cs-arrow">▼</span></div>' +
               '<ul class="custom-select-list">' + items + '</ul>' +
-            '</div>' +
-            '<button class="btn-clear" id="cs-clear-' + key + '" onclick="clearYear(\'' + key + '\')" style="display:none">Clear</button>';
+            '</div>';
         }
         if (hasSearch) {
           filterBar += '<label style="margin-left:' + (allYears.length > 1 ? '1rem' : '0') + '">Search:</label>' +
-            '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">' +
-            '<button class="btn-clear" id="search-clear-' + key + '" style="display:none" onclick="clearSearch(\'' + key + '\')">Clear</button>';
+            '<input class="search-input" id="search-' + key + '" type="text" placeholder="Type to filter…" oninput="setSearch(\'' + key + '\',this.value)">';
         }
+        filterBar += '<button class="btn-clear" id="clear-all-' + key + '" onclick="clearAll(\'' + key + '\')" style="display:none">&#x2715; Clear</button>';
         filterBar += '</div>';
       }
       wrap.innerHTML = filterBar + '<div class="table-area"></div>';
@@ -435,6 +434,33 @@
     wrap.querySelector('.table-area').innerHTML = tableHtml;
   }
 
+  function updateClearAll(key) {
+    var btn = document.getElementById('clear-all-' + key);
+    if (!btn) return;
+    var hasYear = tableState[key].activeYear !== 'all';
+    var hasSearch = tableState[key].search && tableState[key].search.length > 0;
+    btn.style.display = (hasYear || hasSearch) ? 'inline-block' : 'none';
+  }
+
+  function clearAll(key) {
+    // Clear year
+    var cs = document.getElementById('cs-' + key);
+    if (cs) {
+      document.getElementById('cs-label-' + key).textContent = 'All years';
+      cs.querySelectorAll('li').forEach(function(li) { li.classList.remove('selected'); });
+      var first = cs.querySelector('li');
+      if (first) first.classList.add('selected');
+      cs.classList.remove('open');
+    }
+    tableState[key].activeYear = 'all';
+    // Clear search
+    var inp = document.getElementById('search-' + key);
+    if (inp) inp.value = '';
+    if (tableState[key].search !== undefined) tableState[key].search = '';
+    updateClearAll(key);
+    renderSection(key);
+  }
+
   function toggleCustomSelect(key) {
     var cs = document.getElementById('cs-' + key);
     if (cs) cs.classList.toggle('open');
@@ -456,8 +482,8 @@
       cs.querySelectorAll('li').forEach(function(li) { li.classList.remove('selected'); });
       if (el) el.classList.add('selected');
     }
-    var clearBtn = document.getElementById('cs-clear-' + key);
-    if (clearBtn) clearBtn.style.display = year === 'all' ? 'none' : 'inline-block';
+    var clearBtn = document.getElementById('clear-all-' + key);
+    updateClearAll(key);
     renderSection(key);
   }
 
@@ -469,25 +495,13 @@
       var first = cs.querySelector('li');
       if (first) first.classList.add('selected');
     }
-    var clearBtn = document.getElementById('cs-clear-' + key);
-    if (clearBtn) clearBtn.style.display = 'none';
     tableState[key].activeYear = 'all';
     renderSection(key);
   }
 
   function setSearch(key, val) {
     tableState[key].search = val;
-    var clr = document.getElementById('search-clear-' + key);
-    if (clr) clr.style.display = val ? 'inline-block' : 'none';
-    renderSection(key);
-  }
-
-  function clearSearch(key) {
-    tableState[key].search = '';
-    var inp = document.getElementById('search-' + key);
-    if (inp) inp.value = '';
-    var clr = document.getElementById('search-clear-' + key);
-    if (clr) clr.style.display = 'none';
+    updateClearAll(key);
     renderSection(key);
   }
 
@@ -519,7 +533,7 @@
           files: files,
           sortDir: 'desc',
           activeYear: 'all',
-          search: key === 'other' ? '' : undefined
+          search: ''
         };
         renderSection(key);
         document.getElementById('toggle-' + key).classList.remove('btn-loading');
