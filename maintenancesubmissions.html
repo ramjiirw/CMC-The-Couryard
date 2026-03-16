@@ -308,6 +308,12 @@
     </button>
     <div class="collapsible-panel" id="panel-maintdocs">
       <div class="doc-card-inner">
+        <div id="wrap-pinned-maintdocs"></div>
+        <div class="doc-filter-bar">
+          <input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" />
+          <button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()" style="display:none;">&#x2715; Clear</button>
+          <span class="count-pill" id="maintDocCount" style="margin-left:auto;">-</span>
+        </div>
         <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
       </div>
     </div>
@@ -1001,23 +1007,17 @@ function renderMaintDocs() {
     return;
   }
 
-  var html = '';
-
-  // Render pinned files as buttons above the table
+  // Render pinned files into their own static div
+  var pinnedHtml = '';
   pinned.forEach(function(f) {
     var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
     displayName = fixMaintDocTitle(displayName);
-    html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
+    pinnedHtml += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
       '📌 ' + displayName +
       '</a>';
   });
-
-  // Inject filter bar after pinned items
-  html += '<div class="doc-filter-bar">' +
-    '<input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" value="' + (state.filter || '') + '" />' +
-    '<button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()" style="display:' + (state.filter ? 'inline-flex' : 'none') + '">&#x2715; Clear</button>' +
-    '<span class="count-pill" id="maintDocCount" style="margin-left:auto;">-</span>' +
-    '</div>';
+  var pinnedWrap = document.getElementById('wrap-pinned-maintdocs');
+  if (pinnedWrap) pinnedWrap.innerHTML = pinnedHtml;
 
   // Filter and sort the remaining (non-pinned) files
   var filtered = rest;
@@ -1028,6 +1028,13 @@ function renderMaintDocs() {
     });
   }
 
+  // Update count pill and clear button directly (they're static elements)
+  var docCountEl = document.getElementById('maintDocCount');
+  if (docCountEl) docCountEl.textContent = filtered.length;
+  var clearBtn = document.getElementById('maintDocClearBtn');
+  if (clearBtn) clearBtn.style.display = state.filter ? 'inline-flex' : 'none';
+
+  var html = '';
   if (filtered.length) {
     var sorted = filtered.slice().sort(function(a, b) {
       var va = fixMaintDocTitle(a.name).toLowerCase();
@@ -1053,10 +1060,6 @@ function renderMaintDocs() {
   }
 
   wrap.innerHTML = html;
-
-  // Update count pill (element now exists in DOM)
-  var docCountEl = document.getElementById('maintDocCount');
-  if (docCountEl) docCountEl.textContent = filtered.length;
 }
 
 (async function loadMaintDocs() {
