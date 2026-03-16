@@ -190,6 +190,83 @@
   .placeholder-card h3 { font-size: 1rem; font-weight: 600; color: var(--mid); margin-bottom: 0.3rem; }
   .placeholder-card p { font-size: 0.8rem; color: var(--stone); }
 
+  /* ── CMC Useful Information Collapsible ── */
+  .useful-info-section {
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: white;
+  }
+  .useful-info-toggle {
+    width: 100%; background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1.25rem;
+    background: #f0ebe3;
+    border-top: 1px solid var(--border);
+    color: var(--mid); font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: background 0.2s;
+  }
+  .useful-info-toggle:hover { background: #e8e2d8; }
+  .useful-info-toggle .toggle-arrow {
+    font-size: 0.7rem; transition: transform 0.3s ease;
+    color: var(--accent2);
+  }
+  .useful-info-toggle.open .toggle-arrow { transform: rotate(90deg); }
+
+  .useful-info-body {
+    display: none; border-top: 1px solid var(--border);
+  }
+  .useful-info-body.open { display: block; }
+
+  .useful-info-controls {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.75rem 1.25rem 0.5rem;
+    flex-wrap: wrap;
+  }
+  .useful-info-search {
+    flex: 1; min-width: 140px;
+    padding: 0.4rem 0.75rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.82rem; color: var(--dark);
+    background: var(--warm); outline: none;
+    transition: border-color 0.2s;
+  }
+  .useful-info-search:focus { border-color: var(--accent2); }
+
+  .useful-info-btn {
+    padding: 0.4rem 0.85rem; border-radius: 6px; border: 1px solid var(--border);
+    font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    background: var(--warm); color: var(--mid);
+    letter-spacing: 0.03em; transition: all 0.2s;
+    display: none;
+  }
+  .useful-info-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .useful-info-btn.visible { display: inline-block; }
+
+  .useful-info-sort {
+    padding: 0.4rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+    font-size: 0.78rem; color: var(--mid); background: var(--warm);
+    cursor: pointer; outline: none;
+  }
+
+  .useful-info-list { padding: 0 0 0.5rem; }
+  .useful-info-item {
+    padding: 0.7rem 1.25rem; border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 0.15rem;
+  }
+  .useful-info-item:last-child { border-bottom: none; }
+  .useful-info-item-title {
+    font-size: 0.82rem; font-weight: 700; color: var(--accent);
+  }
+  .useful-info-item-value {
+    font-size: 0.82rem; color: var(--mid); white-space: pre-line; line-height: 1.5;
+  }
+  .useful-info-empty {
+    padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--stone); font-style: italic;
+  }
+
   @media (max-width: 600px) {
     header { padding: 1rem; }
     main { padding: 1.5rem 1rem 4rem; }
@@ -249,6 +326,29 @@
     <div class="noticeboard-header">📰 The Courtyard Noticeboard</div>
     <div class="noticeboard-sub">Latest news &amp; notices for residents</div>
     <div class="noticeboard-body" id="noticeboardBody"></div>
+  </div>
+
+  <!-- CMC Useful Information — collapsible, below noticeboard -->
+  <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
+    <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
+      <span>📌 CMC Useful Information</span>
+      <span class="toggle-arrow">▶</span>
+    </button>
+    <div class="useful-info-body" id="usefulInfoBody">
+      <div class="useful-info-controls">
+        <input class="useful-info-search" id="usefulInfoSearch" type="text"
+          placeholder="Filter information…"
+          oninput="filterUsefulInfo()" />
+        <button class="useful-info-btn" id="usefulInfoClear" onclick="clearUsefulFilter()">✕ Clear</button>
+        <select class="useful-info-sort" id="usefulInfoSort" onchange="renderUsefulInfo()">
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+        </select>
+      </div>
+      <div class="useful-info-list" id="usefulInfoList">
+        <div class="useful-info-empty">Loading…</div>
+      </div>
+    </div>
   </div>
 
   <div class="links-grid">
@@ -617,6 +717,82 @@
       document.getElementById('mapOwner').textContent  = '—';
       document.getElementById('mapTenant').textContent = '—';
     }
+  })();
+
+  // ── CMC Useful Information ────────────────────────────────────────────────
+  let _usefulInfoData = [];
+
+  function toggleUsefulInfo() {
+    const toggle = document.getElementById('usefulInfoToggle');
+    const body   = document.getElementById('usefulInfoBody');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  function renderUsefulInfo() {
+    const sort   = document.getElementById('usefulInfoSort').value;
+    const filter = (document.getElementById('usefulInfoSearch').value || '').trim().toLowerCase();
+    const list   = document.getElementById('usefulInfoList');
+
+    let items = _usefulInfoData.slice();
+
+    // Filter
+    if (filter) {
+      items = items.filter(r =>
+        (r.title  || '').toLowerCase().includes(filter) ||
+        (r.value  || '').toLowerCase().includes(filter)
+      );
+    }
+
+    // Sort
+    items.sort((a, b) => {
+      const ta = (a.title || '').toLowerCase();
+      const tb = (b.title || '').toLowerCase();
+      return sort === 'az' ? ta.localeCompare(tb) : tb.localeCompare(ta);
+    });
+
+    if (!items.length) {
+      list.innerHTML = '<div class="useful-info-empty">No results found.</div>';
+      return;
+    }
+
+    list.innerHTML = items.map(r =>
+      '<div class="useful-info-item">' +
+      '<div class="useful-info-item-title">' + escHtml(r.title) + '</div>' +
+      '<div class="useful-info-item-value">' + escHtml(r.value) + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  function filterUsefulInfo() {
+    const val     = document.getElementById('usefulInfoSearch').value;
+    const clearBtn = document.getElementById('usefulInfoClear');
+    clearBtn.classList.toggle('visible', val.length > 0);
+    renderUsefulInfo();
+  }
+
+  function clearUsefulFilter() {
+    document.getElementById('usefulInfoSearch').value = '';
+    document.getElementById('usefulInfoClear').classList.remove('visible');
+    renderUsefulInfo();
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  (async function loadUsefulInfo() {
+    try {
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+      const res  = await fetch(SCRIPT_URL + '?action=readUsefulInfo');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const items = (data.items || []).filter(r => r.title || r.value);
+      if (!items.length) return;
+      _usefulInfoData = items;
+      renderUsefulInfo();
+      document.getElementById('usefulInfoSection').style.display = 'block';
+    } catch(e) {}
   })();
 
   // ── Courtyard Noticeboard ────────────────────────────────────────────────
