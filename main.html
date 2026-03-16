@@ -213,13 +213,13 @@
   .useful-info-toggle:focus-visible { outline: none; box-shadow: none; }
   .useful-info-toggle::-moz-focus-inner { border: 0; }
   .useful-info-toggle:hover { background: var(--accent2); }
-  .useful-info-toggle .toggle-arrow {
-    font-size: 0.75rem; transition: transform 0.3s ease;
-    color: rgba(255,255,255,0.85);
-    display: inline-block;
-  }
-  .useful-info-toggle.open .toggle-arrow { transform: rotate(90deg); }
-  .toggle-arrow.open-arrow { transform: rotate(90deg); display: inline-block; }
+  .useful-info-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.85; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
+  .useful-info-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
+  .useful-info-toggle.open .chevron { transform: rotate(90deg); }
+  .useful-info-toggle.open .toggle-hint .hint-open { display: none; }
+  .useful-info-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .useful-info-toggle.open .toggle-hint .hint-close { display: inline; }
+  .useful-info-toggle:not(.open) .toggle-hint .hint-close { display: none; }
 
   .useful-info-body {
     display: none; border-top: 1px solid var(--border);
@@ -342,7 +342,12 @@
   <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
     <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
       <span>ℹ️ CMC Useful Information</span>
-      <span id="usefulInfoLabel" style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▶</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
     </button>
     <div class="useful-info-body" id="usefulInfoBody">
       <div class="useful-info-controls">
@@ -733,13 +738,9 @@
   function toggleUsefulInfo() {
     const toggle = document.getElementById('usefulInfoToggle');
     const body   = document.getElementById('usefulInfoBody');
-    const label  = document.getElementById('usefulInfoLabel');
-    toggle.classList.toggle('open');
-    body.classList.toggle('open');
-    const isOpen = toggle.classList.contains('open');
-    label.innerHTML = isOpen
-      ? 'Tap to close <span class="toggle-arrow open-arrow">▶</span>'
-      : 'Tap to expand &amp; view <span class="toggle-arrow">▶</span>';
+    const isOpen = toggle.classList.toggle('open');
+    body.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', isOpen);
   }
 
   let _usefulSort = 'az';
