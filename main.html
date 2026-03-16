@@ -244,11 +244,16 @@
   .useful-info-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
   .useful-info-btn.visible { display: inline-block; }
 
-  .useful-info-sort {
-    padding: 0.4rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
-    font-size: 0.78rem; color: var(--mid); background: var(--warm);
-    cursor: pointer; outline: none;
+  .useful-info-sort-btn {
+    padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer; letter-spacing: 0.03em;
+    border: 1px solid var(--border); background: var(--warm); color: var(--mid);
+    transition: all 0.2s;
   }
+  .useful-info-sort-btn.active {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  .useful-info-sort-btn:not(.active):hover { background: #e8e2d8; }
 
   .useful-info-list { padding: 0 0 0.5rem; }
   .useful-info-item {
@@ -339,10 +344,8 @@
           placeholder="Filter information…"
           oninput="filterUsefulInfo()" />
         <button class="useful-info-btn" id="usefulInfoClear" onclick="clearUsefulFilter()">✕ Clear</button>
-        <select class="useful-info-sort" id="usefulInfoSort" onchange="renderUsefulInfo()">
-          <option value="az">A–Z</option>
-          <option value="za">Z–A</option>
-        </select>
+        <button class="useful-info-sort-btn active" id="sortAZ" onclick="setSort('az')">A–Z</button>
+        <button class="useful-info-sort-btn" id="sortZA" onclick="setSort('za')">Z–A</button>
       </div>
       <div class="useful-info-list" id="usefulInfoList">
         <div class="useful-info-empty">Loading…</div>
@@ -728,8 +731,16 @@
     body.classList.toggle('open');
   }
 
+  let _usefulSort = 'az';
+
+  function setSort(dir) {
+    _usefulSort = dir;
+    document.getElementById('sortAZ').classList.toggle('active', dir === 'az');
+    document.getElementById('sortZA').classList.toggle('active', dir === 'za');
+    renderUsefulInfo();
+  }
+
   function renderUsefulInfo() {
-    const sort   = document.getElementById('usefulInfoSort').value;
     const filter = (document.getElementById('usefulInfoSearch').value || '').trim().toLowerCase();
     const list   = document.getElementById('usefulInfoList');
 
@@ -747,7 +758,7 @@
     items.sort((a, b) => {
       const ta = (a.title || '').toLowerCase();
       const tb = (b.title || '').toLowerCase();
-      return sort === 'az' ? ta.localeCompare(tb) : tb.localeCompare(ta);
+      return _usefulSort === 'az' ? ta.localeCompare(tb) : tb.localeCompare(ta);
     });
 
     if (!items.length) {
