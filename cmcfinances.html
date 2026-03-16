@@ -161,12 +161,12 @@
   .search-input:focus, .search-input:hover { border-color: var(--accent2); }
   .search-input::placeholder { color: var(--stone); font-style: italic; }
   .btn-clear {
-    padding: 0.3rem 0.65rem; border-radius: 6px; border: 1px solid var(--border);
-    background: transparent; color: var(--mid); font-family: Arial, sans-serif;
-    font-size: 0.78rem; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    padding: 0.3rem 0.65rem; border-radius: 6px; border: none;
+    background: #c0622a; color: white; font-family: Arial, sans-serif;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s;
     display: none;
   }
-  .btn-clear:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(196,149,106,0.08); }
+  .btn-clear:hover { background: #a0501e; }
 
   .placeholder-card {
     background: rgba(196,149,106,0.04); border: 1.5px dashed var(--border);
