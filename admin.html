@@ -1421,7 +1421,7 @@ function nbClearDirty() {
 
 async function nbLoad() {
   try {
-    const res = await fetch(SCRIPT_URL + '?action=readNoticeboard');
+    const res = await fetch(SCRIPT_URL + '?action=readNoticeboardAdmin');
     const data = await res.json();
     nbMessages = (data.messages || []).map(function(m) {
       return { title: m.title || '', message: m.message || '', hidden: !!m.hidden };
