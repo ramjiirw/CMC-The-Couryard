@@ -212,8 +212,9 @@
   .useful-info-toggle .toggle-arrow {
     font-size: 0.75rem; transition: transform 0.3s ease;
     color: rgba(255,255,255,0.75);
+    display: inline-block;
   }
-  .useful-info-toggle.open .toggle-arrow { transform: rotate(90deg); }
+  .useful-info-toggle.open .toggle-arrow { transform: rotate(180deg); }
 
   .useful-info-body {
     display: none; border-top: 1px solid var(--border);
@@ -336,7 +337,7 @@
   <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
     <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
       <span>ℹ️ CMC Useful Information</span>
-      <span style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▶</span></span>
+      <span style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▼</span></span>
     </button>
     <div class="useful-info-body" id="usefulInfoBody">
       <div class="useful-info-controls">
