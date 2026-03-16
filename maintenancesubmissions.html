@@ -308,11 +308,6 @@
     </button>
     <div class="collapsible-panel" id="panel-maintdocs">
       <div class="doc-card-inner">
-        <div class="doc-filter-bar">
-          <input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" />
-          <button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()">&#x2715; Clear</button>
-          <span class="count-pill" id="maintDocCount" style="margin-left:auto;">-</span>
-        </div>
         <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
       </div>
     </div>
@@ -321,7 +316,7 @@
   <div class="card" style="min-height:120px;">
     <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span></div>
     <div class="filter-bar">
-      <label>Filter: <span id="issueCount" style="font-weight:700;color:var(--accent);">-</span></label>
+      <label>Filter:</label>
       <select id="filterAddr" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Addresses</option>
       </select>
@@ -342,6 +337,7 @@
       </select>
       <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);width:160px;">
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
+      <span class="count-pill" id="issueCount" style="margin-left:auto;">-</span>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -997,7 +993,7 @@ function renderMaintDocs() {
   var count = state.files.length;
   var headerSpan = document.querySelector('#toggle-maintdocs span:first-child');
   if (headerSpan) {
-    headerSpan.textContent = '📄 Maintenance and Site Documents' + (count > 0 ? ' (' + count + ')' : '');
+    headerSpan.textContent = '📄 Maintenance and Site Documents';
   }
 
   if (!state.files.length) {
@@ -1016,6 +1012,13 @@ function renderMaintDocs() {
       '</a>';
   });
 
+  // Inject filter bar after pinned items
+  html += '<div class="doc-filter-bar">' +
+    '<input type="text" id="maintDocSearch" placeholder="Filter documents..." oninput="filterMaintDocs()" value="' + (state.filter || '') + '" />' +
+    '<button class="doc-filter-clear" id="maintDocClearBtn" onclick="clearMaintDocSearch()" style="display:' + (state.filter ? 'inline-flex' : 'none') + '">&#x2715; Clear</button>' +
+    '<span class="count-pill" id="maintDocCount" style="margin-left:auto;">-</span>' +
+    '</div>';
+
   // Filter and sort the remaining (non-pinned) files
   var filtered = rest;
   if (state.filter) {
@@ -1027,7 +1030,7 @@ function renderMaintDocs() {
 
   // Update count pill
   var docCountEl = document.getElementById('maintDocCount');
-  if (docCountEl) docCountEl.textContent = pinned.length + filtered.length;
+  if (docCountEl) docCountEl.textContent = filtered.length;
 
   if (filtered.length) {
     var sorted = filtered.slice().sort(function(a, b) {
