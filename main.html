@@ -203,12 +203,12 @@
     width: 100%; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0.75rem 1.25rem;
-    background: var(--accent);
+    background: #a0714f;
     color: white; font-size: 0.9rem; font-weight: 700;
     letter-spacing: 0.1em; text-transform: uppercase;
     transition: background 0.2s;
   }
-  .useful-info-toggle:hover { background: #6a4e34; }
+  .useful-info-toggle:hover { background: #8c6244; }
   .useful-info-toggle .toggle-arrow {
     font-size: 0.75rem; transition: transform 0.3s ease;
     color: rgba(255,255,255,0.75);
@@ -331,7 +331,7 @@
   <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
     <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
       <span>ℹ️ CMC Useful Information</span>
-      <span class="toggle-arrow">▶</span>
+      <span style="font-size:0.75rem;font-weight:400;letter-spacing:0.04em;opacity:0.85;">Tap to expand &amp; view <span class="toggle-arrow">▶</span></span>
     </button>
     <div class="useful-info-body" id="usefulInfoBody">
       <div class="useful-info-controls">
