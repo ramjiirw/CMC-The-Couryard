@@ -121,6 +121,12 @@
   }
   .nb-toggle-btn.is-hidden { background:#f5e8e8; color:#b05050; border-color:rgba(139,58,58,0.25); }
   .nb-row-actions { display:flex; flex-direction:column; gap:0.4rem; align-items:center; flex-shrink:0; }
+  .nb-drag-handle {
+    cursor: grab; color: var(--stone); font-size: 1rem; padding: 0.2rem 0.1rem;
+    user-select: none; line-height:1; opacity:0.6;
+  }
+  .nb-drag-handle:hover { opacity:1; color:var(--accent2); }
+  .nb-row.drag-over { border: 2px dashed var(--accent2); border-radius:6px; }
 
   /* Mobile noticeboard edit modal */
   .nb-mobile-modal {
@@ -1565,12 +1571,13 @@ function nbRender() {
     wrap.innerHTML = '<div style="font-size:0.8rem;color:var(--stone);font-style:italic;margin-bottom:0.5rem;">No messages yet — click Add Message below.</div>';
     return;
   }
-  wrap.innerHTML = '<div class="nb-header-row"><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
+  wrap.innerHTML = '<div class="nb-header-row"><span style="flex:0 0 20px;"></span><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
     nbMessages.map(function(m, i) {
       var isHidden = !!m.hidden;
       var titlePreview = m.title || '(no title)';
       var msgPreview   = m.message || '(no message)';
-      return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '">' +
+      return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '" draggable="true" data-idx="' + i + '">' +
+        '<div class="nb-drag-handle" title="Drag to reorder">⠿</div>' +
         '<textarea class="nb-title" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value;nbSetDirty()">' + escHtml(m.title) + '</textarea>' +
         '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value;nbSetDirty()">' + escHtml(m.message) + '</textarea>' +
         '<button class="nb-mobile-edit-btn" onclick="nbMobileOpen(' + i + ')">' +
@@ -1583,6 +1590,36 @@ function nbRender() {
         '</div>' +
         '</div>';
     }).join('');
+
+  // Wire up drag-and-drop
+  var rows = wrap.querySelectorAll('.nb-row[draggable]');
+  rows.forEach(function(row) {
+    row.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', row.dataset.idx);
+      row.style.opacity = '0.4';
+    });
+    row.addEventListener('dragend', function() {
+      row.style.opacity = '';
+      wrap.querySelectorAll('.nb-row').forEach(function(r){ r.classList.remove('drag-over'); });
+    });
+    row.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      wrap.querySelectorAll('.nb-row').forEach(function(r){ r.classList.remove('drag-over'); });
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      var toIdx   = parseInt(row.dataset.idx);
+      if (fromIdx === toIdx) return;
+      var moved = nbMessages.splice(fromIdx, 1)[0];
+      nbMessages.splice(toIdx, 0, moved);
+      nbSetDirty();
+      nbRender();
+    });
+  });
 }
 
 function nbAddRow() {
