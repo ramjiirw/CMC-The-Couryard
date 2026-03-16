@@ -687,12 +687,12 @@ function renderAgenda(rows, submissions) {
 
   // AOB
   if (aobRow) {
-    agendaHtml += '<tr class="row-section"><td colspan="3">' + aobRow + '</td></tr>';
+    agendaHtml += '<tr class="row-section"><td class="col-num">' + itemNum++ + '.</td><td colspan="2">' + aobRow + '</td></tr>';
   }
 
   // End of meeting
   if (endRow) {
-    agendaHtml += '<tr class="row-section"><td colspan="3">END of Meeting &nbsp;—&nbsp; ' + endRow + '</td></tr>';
+    agendaHtml += '<tr class="row-section"><td class="col-num">' + itemNum++ + '.</td><td colspan="2">END of Meeting &nbsp;—&nbsp; ' + endRow + '</td></tr>';
   }
 
   agendaHtml += '</tbody></table>';
