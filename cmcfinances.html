@@ -44,30 +44,39 @@
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
   .page-header p { color: var(--mid); line-height: 1.6; font-size: 0.88rem; }
 
-  .finance-section { margin-bottom: 2.5rem; }
+  .finance-section { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
   .section-heading {
-    font-size: 1.1rem; font-weight: 600; color: var(--accent);
-    letter-spacing: 0.02em; border-bottom: 2px solid var(--border);
-    padding-bottom: 0.5rem; margin-bottom: 1.2rem;
+    font-size: 0.72rem; font-weight: 700; color: var(--stone);
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.4rem 1.25rem; margin: 0;
+    background: rgba(122,92,62,0.05); border-bottom: 1px solid var(--border);
   }
 
   /* Toggle button */
   .btn-toggle {
-    display: inline-flex; align-items: center; gap: 0.55rem;
-    padding: 0.6rem 1.3rem; border-radius: 7px;
-    border: 1.5px solid rgba(196,149,106,0.5);
-    background: rgba(196,149,106,0.10); color: var(--accent);
-    font-family: Arial, sans-serif; font-size: 0.9rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-bottom: 0.5rem;
-    width: 320px;
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0.75rem 1.25rem;
+    background: var(--dark); color: var(--cream);
+    border: none; border-radius: 0;
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s; margin-bottom: 0;
   }
-  .btn-toggle:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .btn-toggle:hover { background: #2a2520; }
+  .btn-toggle:disabled { opacity: 1; cursor: default; pointer-events: none; background: var(--dark); }
+  .btn-loading { pointer-events: none; opacity: 0.6; }
+  .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
+  .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .btn-toggle.open .chevron { transform: rotate(90deg); }
+  .btn-toggle.open .toggle-hint .hint-open { display: none; }
+  .btn-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .btn-toggle.open .toggle-hint .hint-close { display: inline; }
+  .btn-toggle:not(.open) .toggle-hint .hint-close { display: none; }
 
   /* Collapsible */
-  .collapsible-panel { overflow: hidden; max-height: 0; background: var(--cream); padding: 0; }
-  .collapsible-panel.open { max-height: 8000px; padding: 0.6rem 0 0; }
+  .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+  .collapsible-panel.open { max-height: 8000px; }
   @media (max-width: 1024px) {
     .collapsible-panel { transition: max-height 0.35s ease; }
   }
@@ -112,8 +121,8 @@
 
   /* Doc card */
   .doc-card {
-    background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
-    box-shadow: var(--shadow); overflow: hidden;
+    background: var(--cream); border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 10px 10px; overflow: hidden;
   }
 
   table { width: 100%; border-collapse: collapse; }
@@ -155,6 +164,7 @@
     padding: 0.3rem 0.65rem; border-radius: 6px; border: 1px solid var(--border);
     background: transparent; color: var(--mid); font-family: Arial, sans-serif;
     font-size: 0.78rem; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    display: none;
   }
   .btn-clear:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(196,149,106,0.08); }
 
@@ -211,8 +221,13 @@
   <div class="finance-section">
     <h3 class="section-heading">Bank Statements</h3>
 
-    <button class="btn-toggle" id="toggle-current" onclick="togglePanel('current')" aria-expanded="false" disabled>
-      <span class="chevron">▶</span> Current Account Bank Statements
+    <button class="btn-toggle btn-loading" id="toggle-current" onclick="togglePanel('current')" aria-expanded="false">
+      <span class="toggle-left"><span>📄 Current Account Bank Statements</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-current">
       <div class="doc-card" id="card-current">
@@ -220,8 +235,13 @@
       </div>
     </div>
 
-    <button class="btn-toggle" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false" style="margin-top:0.6rem;" disabled>
-      <span class="chevron">▶</span> Other Accounts Bank Statements
+    <button class="btn-toggle btn-loading" id="toggle-other" onclick="togglePanel('other')" aria-expanded="false" style="margin-top:0.5rem;">
+      <span class="toggle-left"><span>📄 Other Accounts Bank Statements</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-other">
       <div class="doc-card" id="card-other">
@@ -235,8 +255,13 @@
   <!-- Budget Documents -->
   <div class="finance-section">
     <h3 class="section-heading">Budget Documents</h3>
-    <button class="btn-toggle" id="toggle-budget" onclick="togglePanel('budget')" aria-expanded="false" disabled>
-      <span class="chevron">▶</span> Budget Documents
+    <button class="btn-toggle btn-loading" id="toggle-budget" onclick="togglePanel('budget')" aria-expanded="false">
+      <span class="toggle-left"><span>📄 Budget Documents</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-budget">
       <div class="doc-card" id="card-budget">
@@ -250,8 +275,13 @@
   <!-- Invoices -->
   <div class="finance-section">
     <h3 class="section-heading">Invoices</h3>
-    <button class="btn-toggle" id="toggle-invoices" onclick="togglePanel('invoices')" aria-expanded="false" disabled>
-      <span class="chevron">▶</span> Invoices
+    <button class="btn-toggle btn-loading" id="toggle-invoices" onclick="togglePanel('invoices')" aria-expanded="false">
+      <span class="toggle-left"><span>📄 Invoices</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-invoices">
       <div class="doc-card" id="card-invoices">
@@ -262,11 +292,16 @@
     </div>
   </div>
 
-  <!-- Receipts -->
+  <!-- CMC Accounts -->
   <div class="finance-section">
-    <h3 class="section-heading">Receipts</h3>
-    <button class="btn-toggle" id="toggle-receipts" onclick="togglePanel('receipts')" aria-expanded="false" disabled>
-      <span class="chevron">▶</span> Receipts
+    <h3 class="section-heading">CMC Accounts</h3>
+    <button class="btn-toggle btn-loading" id="toggle-receipts" onclick="togglePanel('receipts')" aria-expanded="false">
+      <span class="toggle-left"><span>📄 CMC Accounts</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
     </button>
     <div class="collapsible-panel" id="panel-receipts">
       <div class="doc-card" id="card-receipts">
@@ -487,13 +522,13 @@
           search: key === 'other' ? '' : undefined
         };
         renderSection(key);
-        document.getElementById('toggle-' + key).disabled = false;
+        document.getElementById('toggle-' + key).classList.remove('btn-loading');
       });
 
       /* Budget Documents, Receipts, Invoices — all get year filter + search */
       var extraSections = [
         { key: 'budget',   folderKey: 'cmcbudgetdocuments' },
-        { key: 'receipts', folderKey: 'cmcreceipts' },
+        { key: 'receipts', folderKey: 'cmcaccounts' },
         { key: 'invoices', folderKey: 'cmcinvoices' }
       ];
       extraSections.forEach(function(sec) {
@@ -505,7 +540,12 @@
           search: ''
         };
         renderSection(sec.key);
-        document.getElementById('toggle-' + sec.key).disabled = false;
+        document.getElementById('toggle-' + sec.key).classList.remove('btn-loading');
+      });
+
+      // Catch-all: ensure all buttons are enabled
+      ['current','other','budget','receipts','invoices'].forEach(function(k) {
+        document.getElementById('toggle-' + k).classList.remove('btn-loading');
       });
 
     } catch(err) {
@@ -515,6 +555,10 @@
       document.getElementById('wrap-budget').innerHTML   = msg;
       document.getElementById('wrap-receipts').innerHTML = msg;
       document.getElementById('wrap-invoices').innerHTML = msg;
+      // Remove loading state even on error
+      ['current','other','budget','receipts','invoices'].forEach(function(k) {
+        document.getElementById('toggle-' + k).classList.remove('btn-loading');
+      });
     }
   })();
 </script>
