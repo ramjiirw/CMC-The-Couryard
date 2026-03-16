@@ -382,7 +382,10 @@
         </div>
         <div id="nbMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
         <div id="nbRows" style="margin-bottom:1rem;"></div>
-        <button class="abtn abtn-muted" id="nbAddBtn" onclick="nbAddRow()">&#43; Add Message</button>
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+          <button class="abtn abtn-muted" id="nbAddBtn" onclick="nbAddRow()">&#43; Add Message</button>
+          <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
+        </div>
 
         <!-- Mobile edit modal -->
         <div class="nb-mobile-modal" id="nbMobileModal">
@@ -401,9 +404,6 @@
               <button onclick="nbMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
             </div>
           </div>
-        </div>
-        <div style="margin-top:1rem;">
-          <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
         </div>
       </div>
 
