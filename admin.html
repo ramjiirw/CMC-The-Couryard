@@ -908,7 +908,6 @@ function mntUpdateFilterBtn() {
   if (document.getElementById('mntDateFrom').value) count++;
   if (document.getElementById('mntDateTo').value) count++;
   if (mntHideResolvedOn) count++;
-  if (document.getElementById('mntFilterAddr').value) count++;
   var btn = document.getElementById('mntClearFiltersBtn');
   if (!btn) return;
   if (count > 0) {
