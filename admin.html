@@ -349,6 +349,8 @@
         <!-- Filter bar -->
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
           <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">Filter:</label>
+          <input id="mntSearch" type="text" placeholder="Search description…" oninput="mntApplyFilters()"
+            style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;width:160px;outline:none;" />
           <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
@@ -358,6 +360,13 @@
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
+          <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;margin-left:0.4rem;">From:</label>
+          <input id="mntDateFrom" type="date" onchange="mntApplyFilters()"
+            style="padding:0.3rem 0.5rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;outline:none;" />
+          <label style="font-size:0.72rem;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.04em;">To:</label>
+          <input id="mntDateTo" type="date" onchange="mntApplyFilters()"
+            style="padding:0.3rem 0.5rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;outline:none;" />
+          <button id="mntHideResolved" onclick="mntToggleHideResolved()" style="padding:0.3rem 0.9rem;border-radius:5px;border:1px solid #b8ad9e;background:#fff;color:#6b5f52;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Hide Resolved</button>
           <button id="mntClearFiltersBtn" onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear Filters</button>
         </div>
         <div id="mntTableWrap" style="overflow-x:auto;background:white;">
@@ -877,10 +886,28 @@ function mntStatusBadge(status, dateResolved) {
 
 function mntApplyFilters() { mntUpdateFilterBtn(); renderMaintenanceTable(); }
 
+var mntHideResolvedOn = false;
+function mntToggleHideResolved() {
+  mntHideResolvedOn = !mntHideResolvedOn;
+  var btn = document.getElementById('mntHideResolved');
+  if (btn) {
+    btn.style.background    = mntHideResolvedOn ? '#2e7d52' : '#fff';
+    btn.style.color         = mntHideResolvedOn ? 'white'   : '#6b5f52';
+    btn.style.borderColor   = mntHideResolvedOn ? '#2e7d52' : '#b8ad9e';
+  }
+  mntUpdateFilterBtn();
+  renderMaintenanceTable();
+}
+
 function mntUpdateFilterBtn() {
   var count = 0;
+  if (document.getElementById('mntSearch').value.trim()) count++;
   if (document.getElementById('mntFilterStatus').value) count++;
   if (document.getElementById('mntFilterCat').value) count++;
+  if (document.getElementById('mntFilterAddr').value) count++;
+  if (document.getElementById('mntDateFrom').value) count++;
+  if (document.getElementById('mntDateTo').value) count++;
+  if (mntHideResolvedOn) count++;
   if (document.getElementById('mntFilterAddr').value) count++;
   var btn = document.getElementById('mntClearFiltersBtn');
   if (!btn) return;
@@ -894,9 +921,15 @@ function mntUpdateFilterBtn() {
 }
 
 function mntClearFilters() {
+  document.getElementById('mntSearch').value = '';
   document.getElementById('mntFilterStatus').value = '';
   document.getElementById('mntFilterCat').value = '';
   document.getElementById('mntFilterAddr').value = '';
+  document.getElementById('mntDateFrom').value = '';
+  document.getElementById('mntDateTo').value = '';
+  mntHideResolvedOn = false;
+  var btn = document.getElementById('mntHideResolved');
+  if (btn) { btn.style.background = '#fff'; btn.style.color = '#6b5f52'; btn.style.borderColor = '#b8ad9e'; }
   mntUpdateFilterBtn();
   renderMaintenanceTable();
 }
@@ -931,12 +964,20 @@ function mntSortIcon(col) {
 }
 
 function renderMaintenanceTable() {
+  var searchText   = (document.getElementById('mntSearch').value || '').trim().toLowerCase();
   var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
   var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
   var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+  var dateFrom     = document.getElementById('mntDateFrom').value;
+  var dateTo       = document.getElementById('mntDateTo').value;
+  var fromMs       = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
+  var toMs         = dateTo   ? new Date(dateTo).setHours(23,59,59,999) : null;
 
   var issues = mntAllIssues.filter(function(r) {
     var st = (r.status || 'New').toLowerCase();
+    // Hide resolved toggle
+    if (mntHideResolvedOn && (st.indexOf('resolv') >= 0 || !!r.dateResolved)) return false;
+    // Status dropdown
     if (statusFilter) {
       if (statusFilter === 'resolved' && !(st.indexOf('resolv') >= 0 || !!r.dateResolved)) return false;
       if (statusFilter === 'in progress' && st.indexOf('progress') < 0) return false;
@@ -944,6 +985,17 @@ function renderMaintenanceTable() {
     }
     if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
     if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
+    // Free-text search — description and updates only
+    if (searchText) {
+      var hay = [(r.description||''), (r.updates||'')].join(' ').toLowerCase();
+      if (hay.indexOf(searchText) < 0) return false;
+    }
+    // Date range — based on dateAdded
+    if (fromMs || toMs) {
+      var rowDate = mntParseDateVal(r.dateAdded || r.dateSubmitted || r.date || '');
+      if (fromMs && rowDate < fromMs) return false;
+      if (toMs   && rowDate > toMs)   return false;
+    }
     return true;
   });
 
@@ -1573,7 +1625,7 @@ function nbRender() {
   }
   wrap.innerHTML = '<div class="nb-header-row"><span style="flex:0 0 20px;"></span><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
     nbMessages.map(function(m, i) {
-      var isHidden = !!m.hidden;
+      var isHidden  = !!m.hidden;
       var titlePreview = m.title || '(no title)';
       var msgPreview   = m.message || '(no message)';
       return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '" draggable="true" data-idx="' + i + '">' +
