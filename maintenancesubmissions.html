@@ -1028,10 +1028,6 @@ function renderMaintDocs() {
     });
   }
 
-  // Update count pill
-  var docCountEl = document.getElementById('maintDocCount');
-  if (docCountEl) docCountEl.textContent = filtered.length;
-
   if (filtered.length) {
     var sorted = filtered.slice().sort(function(a, b) {
       var va = fixMaintDocTitle(a.name).toLowerCase();
@@ -1057,6 +1053,10 @@ function renderMaintDocs() {
   }
 
   wrap.innerHTML = html;
+
+  // Update count pill (element now exists in DOM)
+  var docCountEl = document.getElementById('maintDocCount');
+  if (docCountEl) docCountEl.textContent = filtered.length;
 }
 
 (async function loadMaintDocs() {
