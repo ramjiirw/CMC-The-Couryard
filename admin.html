@@ -268,6 +268,8 @@
       <div class="sidebar-link" data-panel="usefulinfo" id="nav-usefulinfo">ℹ️ Useful Information</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
+      <div class="sidebar-label">AGM</div>
+      <div class="sidebar-link" data-panel="agmsubmissions" id="nav-agmsubmissions">&#128203; Submissions</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Settings</div>
@@ -335,6 +337,17 @@
             <button class="abtn abtn-muted" onclick="closeCTModal()">Close</button>
             <button class="abtn abtn-primary" id="ctModalActionBtn" style="display:none;"></button>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-agmsubmissions">
+        <div class="panel-title">AGM Submissions</div>
+        <div class="panel-desc">View and manage agenda items submitted by residents. Delete individual items or clear all submissions.</div>
+        <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;">
+          <button class="abtn abtn-danger" id="agmDeleteAllBtn" onclick="agmDeleteAll()" style="margin-left:auto;">&#128465; Delete All Submissions</button>
+        </div>
+        <div id="agmSubmissionsBody">
+          <div class="loading">Loading submissions…</div>
         </div>
       </div>
 
@@ -634,6 +647,7 @@ function showPanel(id) {
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'agmsubmissions') loadAgmSubmissions();
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -1391,6 +1405,81 @@ document.getElementById('cepTextarea').addEventListener('keydown', function(e){
   if (e.key === 'Escape') closeCep(false);
 });
 document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+// ── AGM SUBMISSIONS ───────────────────────────────────────────────────────────
+
+var agmSubmissions = [];
+
+async function loadAgmSubmissions() {
+  document.getElementById('agmSubmissionsBody').innerHTML = '<div class="loading">Loading submissions…</div>';
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=readAgenda');
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    agmSubmissions = data.submissions || [];
+    renderAgmSubmissions();
+  } catch(e) {
+    document.getElementById('agmSubmissionsBody').innerHTML =
+      '<div style="color:#b05050;padding:1rem;">⚠️ Could not load submissions. ' + e.message + '</div>';
+  }
+}
+
+function renderAgmSubmissions() {
+  var body = document.getElementById('agmSubmissionsBody');
+  if (!agmSubmissions.length) {
+    body.innerHTML = '<div style="color:var(--stone);font-size:0.85rem;font-style:italic;padding:1rem 0;">No submissions yet.</div>';
+    return;
+  }
+  var html = '<table class="res-table" style="table-layout:auto;">';
+  html += '<thead><tr><th style="width:140px;">Address</th><th>Agenda Item</th><th style="width:130px;">Date Added</th><th style="width:70px;text-align:center;">Delete</th></tr></thead><tbody>';
+  agmSubmissions.forEach(function(s, i) {
+    html += '<tr>'
+      + '<td style="font-size:0.8rem;color:var(--mid);">' + escAdm(s.raisedBy) + '</td>'
+      + '<td style="font-size:0.82rem;">' + escAdm(s.item) + '</td>'
+      + '<td style="font-size:0.78rem;color:var(--stone);">' + escAdm(s.timestamp || '') + '</td>'
+      + '<td style="text-align:center;"><button class="abtn abtn-danger" style="padding:0.3rem 0.6rem;font-size:0.75rem;" onclick="agmDeleteOne(' + i + ')">&#128465;</button></td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+async function agmDeleteOne(index) {
+  var s = agmSubmissions[index];
+  if (!s) return;
+  if (!confirm('Delete this submission?\n\n"' + s.item + '"\n\nThis cannot be undone.')) return;
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteAgendaItem', index: index })
+    });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    await loadAgmSubmissions();
+  } catch(e) {
+    alert('Could not delete submission.\n' + e.message);
+  }
+}
+
+async function agmDeleteAll() {
+  if (!agmSubmissions.length) { alert('There are no submissions to delete.'); return; }
+  if (!confirm('Delete ALL ' + agmSubmissions.length + ' submission(s)? This cannot be undone.')) return;
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteAllAgendaItems' })
+    });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    await loadAgmSubmissions();
+  } catch(e) {
+    alert('Could not delete all submissions.\n' + e.message);
+  }
+}
+
+function escAdm(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 // Sidebar toggle
 var sidebarToggle = document.getElementById('sidebarToggle');
