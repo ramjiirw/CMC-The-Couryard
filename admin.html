@@ -265,6 +265,7 @@
       <div class="sidebar-label">Residents</div>
       <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Edit Residents</div>
       <div class="sidebar-link" data-panel="noticeboard" id="nav-noticeboard">&#128240; Noticeboard</div>
+      <div class="sidebar-link" data-panel="broadcast" id="nav-broadcast">&#128226; Broadcast Email</div>
       <div class="sidebar-link" data-panel="usefulinfo" id="nav-usefulinfo">ℹ️ Useful Information</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
@@ -417,6 +418,44 @@
               <button onclick="nbMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-broadcast">
+        <div class="panel-title">Broadcast Email</div>
+        <div class="panel-desc">Send a one-off email to selected residents. One email is sent with all selected addresses in the To field.</div>
+        <div id="bcMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+
+        <!-- Address selector -->
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <label style="font-size:0.78rem;font-weight:600;color:var(--mid);">Recipients</label>
+            <div style="display:flex;gap:0.5rem;">
+              <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectAll()">Select All</button>
+              <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectNone()">Clear All</button>
+            </div>
+          </div>
+          <div id="bcAddressList" style="border:1px solid rgba(122,92,62,0.28);border-radius:6px;background:#fff;max-height:220px;overflow-y:auto;padding:0.4rem 0;">
+            <div style="font-size:0.78rem;color:var(--stone);padding:0.5rem 0.75rem;font-style:italic;">Loading addresses…</div>
+          </div>
+          <div id="bcRecipientCount" style="font-size:0.72rem;color:var(--mid);margin-top:0.35rem;min-height:1rem;"></div>
+        </div>
+
+        <!-- Subject -->
+        <div style="margin-bottom:0.75rem;">
+          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Subject / Title</label>
+          <input type="text" id="bcTitle" placeholder="e.g. Important Notice — Car Park Works" style="width:100%;box-sizing:border-box;padding:0.5rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;">
+        </div>
+
+        <!-- Message -->
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Message</label>
+          <textarea id="bcMessage" placeholder="Type your message here…" rows="6" style="width:100%;box-sizing:border-box;padding:0.5rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+          <button class="abtn abtn-muted" onclick="bcClear()">&#10005; Clear</button>
+          <button class="abtn abtn-primary" id="bcSendBtn" onclick="bcSend()">&#128231; Send Email</button>
         </div>
       </div>
 
@@ -1380,6 +1419,7 @@ showPanel = function(id) {
   _origShowPanel(id);
   if (id === 'noticeboard') nbLoad();
   if (id === 'usefulinfo') uiLoad();
+  if (id === 'broadcast') bcLoad();
 };
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 function flashButton(id) {
@@ -1750,6 +1790,7 @@ function nbRender() {
         '</button>' +
         '<div class="nb-row-actions">' +
           '<button class="nb-toggle-btn' + (isHidden ? ' is-hidden' : '') + '" onclick="nbToggleHidden(' + i + ')" title="' + (isHidden ? 'Hidden from portal — click to show' : 'Visible on portal — click to hide') + '">' + (isHidden ? '👁 Hidden' : '✓ Visible') + '</button>' +
+          '<button class="abtn abtn-muted" onclick="nbNotify(' + i + ')" title="Email this notice to all residents" style="font-size:0.75rem;">&#128231; Notify</button>' +
           '<button class="abtn abtn-danger" onclick="nbRemove(' + i + ')">&#10005;</button>' +
         '</div>' +
         '</div>';
@@ -1853,6 +1894,176 @@ async function nbSave() {
 function escHtml(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ─── NOTICEBOARD NOTIFY ──────────────────────────────────────────────────────
+
+async function nbNotify(i) {
+  var m = nbMessages[i];
+  if (!m) return;
+  if (!m.title && !m.message) {
+    alert('This notice has no title or message.');
+    return;
+  }
+
+  // Get resident count
+  var resCount = 0;
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=read');
+    const data = await res.json();
+    resCount = (data.rows || []).filter(function(r){ return r.email && r.email.indexOf('@') > -1; }).length;
+  } catch(e) {}
+
+  var confirmMsg = 'Send this notice to all residents?' + (resCount > 0 ? '
+
+This will email ' + resCount + ' resident' + (resCount === 1 ? '' : 's') + '.' : '');
+  if (!confirm(confirmMsg)) return;
+
+  var rowEl = document.getElementById('nb-row-' + i);
+  var btns = rowEl ? rowEl.querySelectorAll('.abtn-muted') : [];
+  var notifyBtn = btns.length > 0 ? btns[btns.length - 1] : null;
+  if (notifyBtn) { notifyBtn.disabled = true; notifyBtn.textContent = 'Sending…'; }
+  var msg = document.getElementById('nbMsg');
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'notifyResidents', title: m.title, message: m.message })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✓ Notice emailed to all residents';
+    } else throw new Error(data.message);
+  } catch(e) {
+    msg.style.color = '#b05050';
+    msg.textContent = '✗ Could not send — ' + e.message;
+  }
+  if (notifyBtn) { notifyBtn.disabled = false; notifyBtn.innerHTML = '&#128231; Notify'; }
+  setTimeout(function(){ msg.textContent = ''; }, 5000);
+}
+
+// ─── BROADCAST EMAIL ─────────────────────────────────────────────────────────
+
+var bcResidents = []; // [{address, emails:[]}]
+
+async function bcLoad() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=read');
+    const data = await res.json();
+    var rows = data.rows || [];
+
+    // Group by address, only include those with emails
+    var map = {};
+    rows.forEach(function(r) {
+      if (!r.email || r.email.indexOf('@') === -1) return;
+      if (!map[r.address]) map[r.address] = [];
+      map[r.address].push(r.email);
+    });
+
+    bcResidents = Object.keys(map).sort().map(function(addr) {
+      return { address: addr, emails: map[addr] };
+    });
+
+    bcRenderAddresses();
+  } catch(e) {
+    document.getElementById('bcAddressList').innerHTML = '<div style="font-size:0.78rem;color:#b05050;padding:0.5rem 0.75rem;">Could not load addresses.</div>';
+  }
+}
+
+function bcRenderAddresses() {
+  var wrap = document.getElementById('bcAddressList');
+  if (!bcResidents.length) {
+    wrap.innerHTML = '<div style="font-size:0.78rem;color:var(--stone);padding:0.5rem 0.75rem;font-style:italic;">No residents with email addresses found.</div>';
+    return;
+  }
+  wrap.innerHTML = bcResidents.map(function(r, i) {
+    return '<label style="display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0.75rem;cursor:pointer;font-size:0.82rem;color:var(--dark);border-bottom:1px solid rgba(122,92,62,0.1);">' +
+      '<input type="checkbox" data-idx="' + i + '" checked onchange="bcUpdateCount()" style="cursor:pointer;accent-color:var(--accent);width:15px;height:15px;">' +
+      '<span>' + escHtml(r.address) + '</span>' +
+      '<span style="margin-left:auto;font-size:0.72rem;color:var(--stone);">' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '') + '</span>' +
+    '</label>';
+  }).join('');
+  bcUpdateCount();
+}
+
+function bcUpdateCount() {
+  var checked = document.querySelectorAll('#bcAddressList input[type=checkbox]:checked');
+  var totalEmails = 0;
+  checked.forEach(function(cb) {
+    var idx = parseInt(cb.getAttribute('data-idx'));
+    totalEmails += bcResidents[idx].emails.length;
+  });
+  var countEl = document.getElementById('bcRecipientCount');
+  if (checked.length === 0) {
+    countEl.textContent = 'No addresses selected.';
+  } else {
+    countEl.textContent = checked.length + ' address' + (checked.length > 1 ? 'es' : '') + ' selected — ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '') + ' in To field.';
+  }
+}
+
+function bcSelectAll() {
+  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.checked = true; });
+  bcUpdateCount();
+}
+
+function bcSelectNone() {
+  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.checked = false; });
+  bcUpdateCount();
+}
+
+function bcClear() {
+  document.getElementById('bcTitle').value = '';
+  document.getElementById('bcMessage').value = '';
+  document.getElementById('bcMsg').textContent = '';
+  bcSelectAll();
+}
+
+async function bcSend() {
+  var title   = (document.getElementById('bcTitle').value || '').trim();
+  var message = (document.getElementById('bcMessage').value || '').trim();
+  var msg     = document.getElementById('bcMsg');
+
+  if (!title)   { msg.style.color = '#b05050'; msg.textContent = '✗ Please enter a subject / title.'; return; }
+  if (!message) { msg.style.color = '#b05050'; msg.textContent = '✗ Please enter a message.'; return; }
+
+  // Collect selected emails
+  var checked = document.querySelectorAll('#bcAddressList input[type=checkbox]:checked');
+  if (!checked.length) { msg.style.color = '#b05050'; msg.textContent = '✗ Please select at least one address.'; return; }
+
+  var selectedEmails = [];
+  checked.forEach(function(cb) {
+    var idx = parseInt(cb.getAttribute('data-idx'));
+    selectedEmails = selectedEmails.concat(bcResidents[idx].emails);
+  });
+
+  var totalEmails = selectedEmails.length;
+  var totalAddresses = checked.length;
+  var confirmMsg = 'Send this email to ' + totalAddresses + ' address' + (totalAddresses > 1 ? 'es' : '') + ' (' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + ')?
+
+Subject: ' + title;
+  if (!confirm(confirmMsg)) return;
+
+  var btn = document.getElementById('bcSendBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'broadcastEmail', title: title, message: message, emails: selectedEmails })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.style.color = 'var(--green)';
+      msg.textContent = '✓ Email sent to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '');
+    } else throw new Error(data.message);
+  } catch(e) {
+    msg.style.color = '#b05050';
+    msg.textContent = '✗ Could not send — ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = '📧 Send Email';
+  setTimeout(function(){ msg.textContent = ''; }, 5000);
+}
+
 // ─── CMC USEFUL INFORMATION ───────────────────────────────────────────────────
 
 var uiItems = [];
