@@ -826,13 +826,25 @@
       const data = await res.json();
       const messages = (data.messages || []).filter(m => m.title || m.message);
       if (!messages.length) return;
+      function filterPastDates(title, message) {
+        if (!title || title.trim().toLowerCase() !== 'bin collections') return message;
+        var today = new Date(); today.setHours(0,0,0,0);
+        var months = {january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
+        return message.split('\n').filter(function(line) {
+          var m = line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i);
+          if (!m) return true;
+          var d = new Date(parseInt(m[3]), months[m[2].toLowerCase()], parseInt(m[1]));
+          return isNaN(d.getTime()) || d >= today;
+        }).join('\n');
+      }
       const body = document.getElementById('noticeboardBody');
-      body.innerHTML = messages.map(m =>
-        '<div class="noticeboard-item">' +
-        (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
-        (m.message ? '<div class="noticeboard-item-msg">' + m.message.replace(/\n/g, '<br>') + '</div>' : '') +
-        '</div>'
-      ).join('');
+      body.innerHTML = messages.map(m => {
+        var msg = m.message ? filterPastDates(m.title, m.message) : '';
+        return '<div class="noticeboard-item">' +
+          (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
+          (msg ? '<div class="noticeboard-item-msg">' + msg.replace(/\n/g, '<br>') + '</div>' : '') +
+          '</div>';
+      }).join('');
       document.getElementById('noticeboardCard').style.display = 'block';
     } catch(e) {}
   })();
