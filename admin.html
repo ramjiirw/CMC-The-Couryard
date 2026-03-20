@@ -1913,9 +1913,7 @@ async function nbNotify(i) {
     resCount = (data.rows || []).filter(function(r){ return r.email && r.email.indexOf('@') > -1; }).length;
   } catch(e) {}
 
-  var confirmMsg = 'Send this notice to all residents?' + (resCount > 0 ? '
-
-This will email ' + resCount + ' resident' + (resCount === 1 ? '' : 's') + '.' : '');
+  var confirmMsg = 'Send this notice to all residents?' + (resCount > 0 ? '\n\nThis will email ' + resCount + ' resident' + (resCount === 1 ? '' : 's') + '.' : '');
   if (!confirm(confirmMsg)) return;
 
   var rowEl = document.getElementById('nb-row-' + i);
@@ -2038,9 +2036,7 @@ async function bcSend() {
 
   var totalEmails = selectedEmails.length;
   var totalAddresses = checked.length;
-  var confirmMsg = 'Send this email to ' + totalAddresses + ' address' + (totalAddresses > 1 ? 'es' : '') + ' (' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + ')?
-
-Subject: ' + title;
+  var confirmMsg = 'Send this email to ' + totalAddresses + ' address' + (totalAddresses > 1 ? 'es' : '') + ' (' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + ')?\n\nSubject: ' + title;
   if (!confirm(confirmMsg)) return;
 
   var btn = document.getElementById('bcSendBtn');
