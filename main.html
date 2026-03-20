@@ -291,6 +291,12 @@
   footer #footerYear { color: var(--stone); }
   #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
   #adminLink:hover { color:var(--accent2); }
+  #sessionWarningToast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(20px); background:#1a1410; color:var(--cream); border:1px solid rgba(176,80,80,0.6); border-radius:10px; padding:0.9rem 1.4rem; font-size:0.82rem; opacity:0; transition:all 0.35s; z-index:1100; pointer-events:none; white-space:nowrap; text-align:center; }
+  #sessionWarningToast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #sessionWarningToast .sw-msg { margin-bottom:0.4rem; color:#e07070; font-weight:600; }
+  #sessionWarningToast .sw-sub { font-size:0.72rem; color:#b8ada0; margin-bottom:0.75rem; }
+  #sessionWarningToast .sw-btn { background:var(--accent); color:var(--dark); border:none; border-radius:6px; padding:0.45rem 1.1rem; font-size:0.78rem; font-weight:700; cursor:pointer; letter-spacing:0.04em; }
+  #sessionWarningToast .sw-btn:hover { opacity:0.85; }
 </style>
 </head>
 <body>
@@ -859,5 +865,36 @@
   <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
   <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
+  <script>
+  var WARNING_MS = 2 * 60 * 1000;
+  var IDLE_MS_W = 30 * 60 * 1000;
+  var warnTimer = null, warnShown = false;
+  function showSessionWarning() {
+    if (warnShown) return; warnShown = true;
+    var t = document.getElementById('sessionWarningToast'); if (t) t.classList.add('show');
+  }
+  function hideSessionWarning() {
+    warnShown = false;
+    var t = document.getElementById('sessionWarningToast'); if (t) t.classList.remove('show');
+  }
+  function scheduleWarning() {
+    clearTimeout(warnTimer);
+    warnTimer = setTimeout(showSessionWarning, IDLE_MS_W - WARNING_MS);
+  }
+  window.stayLoggedIn = function() {
+    hideSessionWarning(); scheduleWarning();
+    sessionStorage.setItem('cyard_last_active', Date.now().toString());
+    document.dispatchEvent(new Event('click'));
+  };
+  scheduleWarning();
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(e) {
+    document.addEventListener(e, function(){ hideSessionWarning(); scheduleWarning(); }, { passive:true });
+  });
+  </script>
+<div id="sessionWarningToast">
+  <div class="sw-msg">&#9200; Session expiring soon</div>
+  <div class="sw-sub">You'll be logged out in 2 minutes due to inactivity</div>
+  <button class="sw-btn" onclick="stayLoggedIn()">Stay logged in</button>
+</div>
 </body>
 </html>
