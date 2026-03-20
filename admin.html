@@ -409,6 +409,7 @@
         <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <button class="abtn abtn-muted" id="nbAddBtn" onclick="nbAddRow()">&#43; Add Message</button>
           <button class="abtn abtn-primary" id="nbSaveBtn" onclick="nbSave()">&#128190; Save to Sheet</button>
+          <button class="abtn abtn-muted" id="nbDiscardBtn" onclick="nbDiscard()" style="display:none;">&#8635; Discard Changes</button>
         </div>
 
         <!-- Mobile edit modal -->
@@ -463,9 +464,12 @@
           <textarea id="bcMessage" placeholder="Type your message here…" rows="6" style="width:100%;box-sizing:border-box;padding:0.5rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
         </div>
 
-        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+        <div id="bcButtonArea" style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <button class="abtn abtn-muted" onclick="bcClear()">&#10005; Clear</button>
           <button class="abtn abtn-primary" id="bcSendBtn" onclick="bcSend()">&#128231; Send Email</button>
+        </div>
+        <div id="bcSuccessArea" style="display:none;padding:0.75rem 0;">
+          <p style="margin:0;font-size:1.1rem;font-weight:700;color:var(--accent);">&#10003; <span id="bcSuccessText"></span></p>
         </div>
       </div>
 
@@ -1757,12 +1761,21 @@ function nbSetDirty() {
   nbDirty = true;
   var warn = document.getElementById('nbUnsavedWarn');
   if (warn) warn.style.display = 'flex';
+  var discard = document.getElementById('nbDiscardBtn');
+  if (discard) discard.style.display = 'inline-flex';
 }
 
 function nbClearDirty() {
   nbDirty = false;
   var warn = document.getElementById('nbUnsavedWarn');
   if (warn) warn.style.display = 'none';
+  var discard = document.getElementById('nbDiscardBtn');
+  if (discard) discard.style.display = 'none';
+}
+
+function nbDiscard() {
+  if (!confirm('Discard all unsaved changes and reload from the sheet?')) return;
+  nbLoad();
 }
 
 async function nbLoad() {
@@ -2098,11 +2111,21 @@ async function bcSend() {
     });
     const data = await res.json();
     if (data.status === 'ok') {
-      msg.style.color = 'var(--green)';
-      msg.textContent = '✓ Email sent to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '');
       document.getElementById('bcTitle').value = '';
       document.getElementById('bcMessage').value = '';
       bcSelectNone();
+      var successText = 'Email sent successfully to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + '.';
+      // Large bold text
+      document.getElementById('bcSuccessText').textContent = successText;
+      document.getElementById('bcButtonArea').style.display = 'none';
+      document.getElementById('bcSuccessArea').style.display = 'block';
+      setTimeout(function(){
+        document.getElementById('bcButtonArea').style.display = 'flex';
+        document.getElementById('bcSuccessArea').style.display = 'none';
+      }, 4000);
+      // Small tick message
+      msg.style.color = 'var(--green)';
+      msg.textContent = '\u2713 ' + successText;
     } else throw new Error(data.message);
   } catch(e) {
     msg.style.color = '#b05050';
