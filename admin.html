@@ -1959,12 +1959,11 @@ async function bcLoad() {
     const data = await res.json();
     var rows = data.rows || [];
 
-    // Group by address, only include those with emails
+    // Group by address — include all, flag those with no emails
     var map = {};
     rows.forEach(function(r) {
-      if (!r.email || r.email.indexOf('@') === -1) return;
       if (!map[r.address]) map[r.address] = [];
-      map[r.address].push(r.email);
+      if (r.email && r.email.indexOf('@') > -1) map[r.address].push(r.email);
     });
 
     bcResidents = Object.keys(map).sort(function(a,b){
@@ -1990,10 +1989,18 @@ function bcRenderAddresses() {
   var col1 = bcResidents.slice(0, half);
   var col2 = bcResidents.slice(half);
   function renderItem(r, i) {
-    return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.82rem;color:var(--dark);border-bottom:1px solid rgba(122,92,62,0.08);">' +
-      '<input type="checkbox" data-idx="' + i + '" onchange="bcUpdateCount()" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
+    var hasEmail = r.emails.length > 0;
+    if (!hasEmail) {
+      return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;font-size:0.82rem;color:rgba(122,92,62,0.35);border-bottom:1px solid rgba(122,92,62,0.08);">' +
+        '<span style="width:14px;height:14px;flex-shrink:0;"></span>' +
+        '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
+        '<span style="font-size:0.72rem;color:rgba(122,92,62,0.3);white-space:nowrap;font-style:italic;">no email</span>' +
+      '</div>';
+    }
+    return '<label id="bc-label-' + i + '" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.82rem;color:var(--dark);border-bottom:1px solid rgba(122,92,62,0.08);transition:background 0.15s;">' +
+      '<input type="checkbox" data-idx="' + i + '" onchange="bcUpdateCount();bcHighlight(this,' + i + ')" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
       '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
-      '<span style="font-size:0.7rem;color:var(--stone);white-space:nowrap;">' + r.emails.length + ' ✉</span>' +
+      '<span style="font-size:0.75rem;color:var(--mid);white-space:nowrap;font-weight:600;">' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '') + '</span>' +
     '</label>';
   }
   wrap.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1px;background:rgba(122,92,62,0.1);">'
@@ -2018,13 +2025,27 @@ function bcUpdateCount() {
   }
 }
 
+function bcHighlight(cb, i) {
+  var label = document.getElementById('bc-label-' + i);
+  if (!label) return;
+  label.style.background = cb.checked ? 'rgba(122,92,62,0.1)' : '';
+  label.style.fontWeight  = cb.checked ? '600' : '400';
+  label.style.color       = cb.checked ? 'var(--accent)' : 'var(--dark)';
+}
+
 function bcSelectAll() {
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.checked = true; });
+  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){
+    cb.checked = true;
+    bcHighlight(cb, parseInt(cb.getAttribute('data-idx')));
+  });
   bcUpdateCount();
 }
 
 function bcSelectNone() {
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.checked = false; });
+  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){
+    cb.checked = false;
+    bcHighlight(cb, parseInt(cb.getAttribute('data-idx')));
+  });
   bcUpdateCount();
 }
 
@@ -2070,6 +2091,9 @@ async function bcSend() {
     if (data.status === 'ok') {
       msg.style.color = 'var(--green)';
       msg.textContent = '✓ Email sent to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '');
+      document.getElementById('bcTitle').value = '';
+      document.getElementById('bcMessage').value = '';
+      bcSelectNone();
     } else throw new Error(data.message);
   } catch(e) {
     msg.style.color = '#b05050';
