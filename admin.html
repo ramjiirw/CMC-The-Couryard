@@ -85,12 +85,12 @@
   @media (max-width:768px) {
     .admin-content { overflow-x:auto !important; padding:0.5rem; }
     #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    #panel-directory .dir-table-scroll table { min-width:800px !important; width:800px !important; table-layout:fixed !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:155px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:100px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(3) { width:100px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:120px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:255px !important; }
+    #panel-directory .dir-table-scroll table { min-width:1000px !important; width:1000px !important; table-layout:fixed !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:170px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:120px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(3) { width:120px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:130px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:390px !important; }
     #panel-directory .dir-table-scroll colgroup col:nth-child(6) { width:70px !important; }
   }
   .admin-panel { display:none; }
@@ -393,6 +393,11 @@
       </div>
 
       <div class="admin-panel" id="panel-directory">
+        <div id="dirUnsavedBanner" style="display:none;align-items:center;gap:0.75rem;background:#fff3cd;border:1px solid #f0c040;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#7a5c00;flex-wrap:wrap;">
+          <span style="flex:1;font-weight:600;">⚠️ You have unsaved changes in the directory.</span>
+          <button class="abtn abtn-primary" style="font-size:0.78rem;padding:0.35rem 0.85rem;" onclick="dir_saveAndLeave()">💾 Save &amp; Leave</button>
+          <button class="abtn abtn-muted" style="font-size:0.78rem;padding:0.35rem 0.85rem;" onclick="dir_discardAndLeave()">Discard &amp; Leave</button>
+        </div>
         <!-- Header row -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;gap:0.75rem;flex-wrap:wrap;">
           <div>
@@ -2736,18 +2741,41 @@ document.addEventListener('blur', function(e) {
 
 // Load directory when panel is opened
 var _origShowPanel2 = showPanel;
+var _dirPendingPanel = null;
+
+function dir_showUnsavedBanner(pendingId) {
+  _dirPendingPanel = pendingId;
+  var b = document.getElementById('dirUnsavedBanner');
+  if (b) b.style.display = 'flex';
+}
+function dir_hideUnsavedBanner() {
+  _dirPendingPanel = null;
+  var b = document.getElementById('dirUnsavedBanner');
+  if (b) b.style.display = 'none';
+}
+function dir_saveAndLeave() {
+  dir_collectFromDOM();
+  dir_saveToSheets();
+  dir_setSaveStatus(true);
+  dirHasUnsaved = false;
+  dir_closeAllEditingRows();
+  dir_hideUnsavedBanner();
+  if (_dirPendingPanel) _origShowPanel2(_dirPendingPanel);
+  _dirPendingPanel = null;
+}
+function dir_discardAndLeave() {
+  dirHasUnsaved = false;
+  dir_closeAllEditingRows();
+  dir_hideUnsavedBanner();
+  if (_dirPendingPanel) _origShowPanel2(_dirPendingPanel);
+  _dirPendingPanel = null;
+}
+
 showPanel = function(id) {
-  // Warn if navigating away from directory with unsaved changes
   var dirRowOpen = document.querySelectorAll('#dirTableBody tr.row-editing').length > 0;
   if (id !== 'directory' && (dirHasUnsaved || dirRowOpen)) {
-    var choice = confirm('You have unsaved changes in the Resident Directory.\n\nClick OK to save, or Cancel to discard.');
-    if (choice) {
-      dir_collectFromDOM();
-      dir_saveToSheets();
-      dir_setSaveStatus(true);
-    }
-    dirHasUnsaved = false;
-    dir_closeAllEditingRows();
+    dir_showUnsavedBanner(id);
+    return;
   }
   _origShowPanel2(id);
   if (id === 'directory' && !dirResidents.length) dir_loadFromSheets();
