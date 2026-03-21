@@ -83,8 +83,8 @@
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
   .admin-content { flex:1; padding:1.8rem; padding-right:0.5rem; padding-bottom:6rem; overflow-y:auto; overflow-x:hidden; min-width:0; }
   @media (max-width:768px) {
-    .admin-content { overflow-x:auto; padding:0.75rem; }
-    #panel-directory .dir-table-scroll table { min-width:600px; }
+    .admin-content { overflow-x:auto; padding:0.5rem; }
+    #panel-directory .dir-table-scroll table { min-width:800px; width:800px; }
   }
   @media (max-width:900px) { .admin-content { padding:1rem 0.75rem; overflow-x:auto; } }
   .admin-panel { display:none; }
@@ -256,7 +256,7 @@
   #panel-directory .dir-table-scroll::-webkit-scrollbar { height:5px; }
   #panel-directory .dir-table-scroll::-webkit-scrollbar-track { background:var(--border); border-radius:3px; }
   #panel-directory .dir-table-scroll::-webkit-scrollbar-thumb { background:var(--stone); border-radius:3px; }
-  #panel-directory .dir-table-scroll table { width:100%; border-collapse:collapse; table-layout:fixed; min-width:600px; }
+  #panel-directory .dir-table-scroll table { width:100%; border-collapse:collapse; table-layout:fixed; }
   #panel-directory .dir-table-scroll thead th { padding:0.9rem 0.5rem; text-align:left; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:var(--stone); white-space:nowrap; background:var(--dark); }
   #panel-directory .dir-table-scroll thead th:last-child { text-align:center; padding:0.9rem 0.25rem; }
   #panel-directory .dir-table-scroll tbody tr { border-bottom:1px solid var(--border); transition:background 0.12s; }
@@ -2731,6 +2731,17 @@ document.addEventListener('blur', function(e) {
 // Load directory when panel is opened
 var _origShowPanel2 = showPanel;
 showPanel = function(id) {
+  // Warn if navigating away from directory with unsaved changes
+  if (id !== 'directory' && dirHasUnsaved) {
+    var choice = confirm('You have unsaved changes in the Resident Directory.\n\nClick OK to save, or Cancel to discard.');
+    if (choice) {
+      dir_collectFromDOM();
+      dir_saveToSheets();
+      dir_setSaveStatus(true);
+    }
+    dirHasUnsaved = false;
+    dir_closeAllEditingRows();
+  }
   _origShowPanel2(id);
   if (id === 'directory' && !dirResidents.length) dir_loadFromSheets();
 };
