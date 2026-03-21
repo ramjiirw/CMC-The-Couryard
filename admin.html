@@ -83,10 +83,10 @@
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
   .admin-content { flex:1; padding:1.8rem; padding-right:0.5rem; padding-bottom:6rem; overflow-y:auto; overflow-x:hidden; min-width:0; }
   @media (max-width:768px) {
-    .admin-content { overflow-x:auto; padding:0.5rem; }
-    #panel-directory .dir-table-scroll table { min-width:800px; width:800px; }
+    .admin-content { overflow-x:auto !important; padding:0.5rem; }
+    #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    #panel-directory .dir-table-scroll table { min-width:800px !important; width:800px !important; table-layout:auto !important; }
   }
-  @media (max-width:900px) { .admin-content { padding:1rem 0.75rem; overflow-x:auto; } }
   .admin-panel { display:none; }
   .admin-panel.active { display:block; }
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
@@ -2550,7 +2550,7 @@ function dir_renderTable() {
   }).join('');
 }
 
-function dir_isMobile() { return window.innerWidth <= 680; }
+function dir_isMobile() { return window.innerWidth <= 1024; }
 
 function dir_closeAllEditingRows() {
   document.querySelectorAll('#dirTableBody tr.row-editing').forEach(function(row) {
