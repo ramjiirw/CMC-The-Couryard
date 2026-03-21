@@ -85,7 +85,13 @@
   @media (max-width:768px) {
     .admin-content { overflow-x:auto !important; padding:0.5rem; }
     #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    #panel-directory .dir-table-scroll table { min-width:800px !important; width:800px !important; table-layout:auto !important; }
+    #panel-directory .dir-table-scroll table { min-width:800px !important; width:800px !important; table-layout:fixed !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:155px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:100px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(3) { width:100px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:120px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:255px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(6) { width:70px !important; }
   }
   .admin-panel { display:none; }
   .admin-panel.active { display:block; }
@@ -293,9 +299,9 @@
   #panel-directory .dir-add-btn { display:inline-flex; align-items:center; gap:0.5rem; background:none; border:1px dashed var(--stone); border-radius:5px; padding:0.45rem 1.1rem; color:var(--mid); font-family:Arial,sans-serif; font-size:0.82rem; cursor:pointer; transition:all 0.2s; }
   #panel-directory .dir-add-btn:hover { border-color:var(--accent); color:var(--accent); background:#fdf8f3; }
   /* Mobile modal for directory */
-  #dirMobileModalOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:700; align-items:flex-end; justify-content:center; }
+  #dirMobileModalOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:700; align-items:center; justify-content:center; }
   #dirMobileModalOverlay.open { display:flex; }
-  #dirMobileModal { background:var(--cream); border-radius:16px 16px 0 0; padding:1.5rem 1.25rem 2rem; width:100%; max-width:520px; box-shadow:0 -8px 40px rgba(0,0,0,0.25); animation:slideUp 0.28s ease; }
+  #dirMobileModal { background:var(--cream); border-radius:12px; padding:1.5rem 1.25rem; width:90%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.4); }
   #dirMobileModal h3 { font-size:1rem; color:var(--accent); margin-bottom:1.1rem; font-weight:600; }
   #dirMobileModal .dir-modal-field { margin-bottom:0.85rem; }
   #dirMobileModal .dir-modal-field label { display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); margin-bottom:0.3rem; }
@@ -2732,7 +2738,8 @@ document.addEventListener('blur', function(e) {
 var _origShowPanel2 = showPanel;
 showPanel = function(id) {
   // Warn if navigating away from directory with unsaved changes
-  if (id !== 'directory' && dirHasUnsaved) {
+  var dirRowOpen = document.querySelectorAll('#dirTableBody tr.row-editing').length > 0;
+  if (id !== 'directory' && (dirHasUnsaved || dirRowOpen)) {
     var choice = confirm('You have unsaved changes in the Resident Directory.\n\nClick OK to save, or Cancel to discard.');
     if (choice) {
       dir_collectFromDOM();
