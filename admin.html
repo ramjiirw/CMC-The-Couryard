@@ -86,12 +86,12 @@
     .admin-content { overflow-x:auto !important; padding:0.5rem; }
     #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     #panel-directory .dir-table-scroll table { min-width:1000px !important; width:1000px !important; table-layout:fixed !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:170px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:120px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:70px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:170px !important; }
     #panel-directory .dir-table-scroll colgroup col:nth-child(3) { width:120px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:140px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:380px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(6) { width:70px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:120px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:140px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(6) { width:380px !important; }
   }
   .admin-panel { display:none; }
   .admin-panel.active { display:block; }
@@ -425,21 +425,21 @@
           <div class="dir-table-scroll">
             <table id="dirTable">
               <colgroup>
-                <col style="width:18%;">
-                <col style="width:13%;">
-                <col style="width:13%;">
-                <col style="width:14%;">
-                <col style="width:35%;">
                 <col style="width:7%;">
+                <col style="width:18%;">
+                <col style="width:11%;">
+                <col style="width:11%;">
+                <col style="width:13%;">
+                <col>
               </colgroup>
               <thead>
                 <tr>
+                  <th style="text-align:center;white-space:nowrap;">Actions</th>
                   <th>Address</th>
                   <th>First Name</th>
                   <th>Last Name</th>
                   <th>Mobile</th>
                   <th>Email</th>
-                  <th style="text-align:center;white-space:nowrap;">Actions</th>
                 </tr>
               </thead>
               <tbody id="dirTableBody">
@@ -2537,6 +2537,12 @@ function dir_renderTable() {
   }
   tbody.innerHTML = list.map(function(r) {
     return '<tr data-id="' + r.id + '">' +
+      '<td style="text-align:center;">' +
+        '<div class="dir-row-actions">' +
+          '<button class="dir-btn-icon dir-btn-edit-row" title="Edit" data-rid="' + r.id + '">&#9998; Edit</button>' +
+          '<button class="dir-btn-icon dir-btn-del" title="Remove" data-rid="' + r.id + '">&#10005;</button>' +
+        '</div>' +
+      '</td>' +
       '<td><select class="dir-addr-sel" onchange="dir_markUnsaved()">' +
         '<option value="">— Select address —</option>' +
         DIR_ADDRESSES.map(function(a){ return '<option value="' + a + '"' + (r.address===a?' selected':'') + '>' + a + '</option>'; }).join('') +
@@ -2550,12 +2556,6 @@ function dir_renderTable() {
       '<td class="dir-cell-wrap">' +
         '<input class="dir-cell-input dir-email-inp" type="email" placeholder="email@example.com" value="' + dir_esc(r.email) + '" oninput="dir_markUnsaved()">' +
         (r.email ? '<a class="dir-tap-link" href="mailto:' + r.email + '"></a>' : '') +
-      '</td>' +
-      '<td>' +
-        '<div class="dir-row-actions">' +
-          '<button class="dir-btn-icon dir-btn-edit-row" title="Edit" data-rid="' + r.id + '">&#9998; Edit</button>' +
-          '<button class="dir-btn-icon dir-btn-del" title="Remove" data-rid="' + r.id + '">&#10005;</button>' +
-        '</div>' +
       '</td>' +
     '</tr>';
   }).join('');
