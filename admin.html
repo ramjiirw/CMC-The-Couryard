@@ -238,6 +238,61 @@
   .ct-tool-btn .icon { font-size:1.3rem; }
   .ct-tool-btn .label { font-size:0.8rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.04em; }
   .ct-tool-btn .desc { font-size:0.72rem; color:var(--stone); line-height:1.3; }
+
+  /* ── Full Directory panel ── */
+  #panel-directory .dir-save-status { font-size:0.8rem; font-style:italic; color:var(--stone); opacity:0.85; transition:all 0.4s; }
+  #panel-directory .dir-save-status.unsaved { color:var(--accent2); opacity:1; }
+  #panel-directory .dir-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem; }
+  #panel-directory .dir-filter-wrap { display:flex; align-items:center; gap:0.6rem; }
+  #panel-directory .dir-filter-wrap label { font-size:0.8rem; color:var(--mid); }
+  #panel-directory .dir-filter-select { padding:0.45rem 2rem 0.45rem 0.8rem; border:1px solid var(--border); border-radius:5px; background:var(--cream); font-family:Arial,sans-serif; font-size:0.83rem; color:var(--dark); cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b5f52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.6rem center; }
+  #panel-directory .dir-table-card { background:var(--cream); border-radius:10px; border:1px solid var(--border); box-shadow:0 1px 6px rgba(0,0,0,0.07); overflow:hidden; }
+  #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  #panel-directory .dir-table-scroll table { min-width:900px; width:100%; border-collapse:collapse; table-layout:auto; }
+  #panel-directory .dir-table-scroll thead th { padding:0.9rem 0.75rem; text-align:left; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--stone); white-space:nowrap; background:var(--dark); }
+  #panel-directory .dir-table-scroll thead th:last-child { text-align:center; width:80px; }
+  #panel-directory .dir-table-scroll tbody tr { border-bottom:1px solid var(--border); transition:background 0.12s; }
+  #panel-directory .dir-table-scroll tbody tr:last-child { border-bottom:none; }
+  #panel-directory .dir-table-scroll tbody tr:nth-child(odd) { background:var(--cream); }
+  #panel-directory .dir-table-scroll tbody tr:nth-child(even) { background:#f0ece6; }
+  #panel-directory .dir-table-scroll tbody tr:hover { background:#fdfaf6; }
+  #panel-directory .dir-table-scroll tbody tr.row-editing { background:rgba(196,149,106,0.08) !important; }
+  #panel-directory .dir-table-scroll tbody td { padding:0.55rem 0.75rem; vertical-align:middle; }
+  #panel-directory .dir-cell-input { width:100%; border:1px solid transparent; border-radius:4px; padding:0.38rem 0.55rem; font-family:Arial,sans-serif; font-size:14px; color:var(--dark); background:transparent; transition:all 0.15s; overflow:hidden; text-overflow:ellipsis; }
+  #panel-directory .dir-cell-input:hover:not(:focus) { border-color:var(--border); background:var(--warm); }
+  #panel-directory .dir-cell-input:focus { outline:none; border-color:var(--accent2); background:var(--warm); box-shadow:0 0 0 3px rgba(196,149,106,0.12); }
+  #panel-directory .dir-addr-sel { width:100%; border:1px solid transparent; border-radius:4px; padding:0.38rem 1.8rem 0.38rem 0.55rem; font-family:Arial,sans-serif; font-size:14px; font-weight:500; color:var(--accent); background:var(--cream); cursor:pointer; transition:all 0.15s; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a5c3e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.5rem center; }
+  #panel-directory .dir-addr-sel:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.12); }
+  #panel-directory tr.row-editing .dir-cell-input { pointer-events:auto !important; border-color:rgba(196,149,106,0.4) !important; background:rgba(255,255,255,0.05) !important; cursor:text !important; }
+  #panel-directory tr.row-editing .dir-addr-sel { pointer-events:auto !important; appearance:auto !important; cursor:pointer !important; }
+  #panel-directory tr.row-editing .dir-btn-del { display:flex !important; }
+  #panel-directory tr.row-editing .dir-btn-edit-row { background:var(--accent); color:white; }
+  #panel-directory .dir-cell-wrap { position:relative; }
+  #panel-directory .dir-tap-link { display:none; position:absolute; inset:0; z-index:2; }
+  #panel-directory tr.row-editing .dir-tap-link { display:none; }
+  #panel-directory .dir-row-actions { display:flex; justify-content:center; gap:0.35rem; }
+  #panel-directory .dir-btn-icon { width:26px; height:26px; border-radius:4px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.8rem; transition:all 0.15s; }
+  #panel-directory .dir-btn-del { background:#fdf0f0; color:var(--red); display:none; }
+  #panel-directory .dir-btn-del:hover { background:#f8d8d8; }
+  #panel-directory .dir-btn-edit-row { background:rgba(122,92,62,0.12); color:var(--accent); padding:0 8px; width:auto; font-size:0.78rem; }
+  #panel-directory .dir-btn-edit-row:hover { background:rgba(122,92,62,0.22); }
+  #panel-directory .dir-add-footer { padding:0.8rem 1rem; background:#faf8f5; border-top:1px solid var(--border); }
+  #panel-directory .dir-add-btn { display:inline-flex; align-items:center; gap:0.5rem; background:none; border:1px dashed var(--stone); border-radius:5px; padding:0.45rem 1.1rem; color:var(--mid); font-family:Arial,sans-serif; font-size:0.82rem; cursor:pointer; transition:all 0.2s; }
+  #panel-directory .dir-add-btn:hover { border-color:var(--accent); color:var(--accent); background:#fdf8f3; }
+  /* Mobile modal for directory */
+  #dirMobileModalOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:700; align-items:flex-end; justify-content:center; }
+  #dirMobileModalOverlay.open { display:flex; }
+  #dirMobileModal { background:var(--cream); border-radius:16px 16px 0 0; padding:1.5rem 1.25rem 2rem; width:100%; max-width:520px; box-shadow:0 -8px 40px rgba(0,0,0,0.25); animation:slideUp 0.28s ease; }
+  #dirMobileModal h3 { font-size:1rem; color:var(--accent); margin-bottom:1.1rem; font-weight:600; }
+  #dirMobileModal .dir-modal-field { margin-bottom:0.85rem; }
+  #dirMobileModal .dir-modal-field label { display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); margin-bottom:0.3rem; }
+  #dirMobileModal .dir-modal-field input, #dirMobileModal .dir-modal-field select { width:100%; padding:0.55rem 0.75rem; border:1px solid var(--border); border-radius:6px; font-size:0.95rem; font-family:Arial,sans-serif; background:white; color:var(--dark); box-sizing:border-box; }
+  #dirMobileModal .dir-modal-field input:focus, #dirMobileModal .dir-modal-field select:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  #dirMobileModal .dir-modal-actions { display:flex; gap:0.75rem; margin-top:1.25rem; }
+  #dirMobileModal .dir-modal-actions button { flex:1; padding:0.75rem; border-radius:6px; font-size:0.9rem; font-weight:500; cursor:pointer; border:none; }
+  #dirMobileModal .dir-btn-modal-save { background:var(--accent); color:white; }
+  #dirMobileModal .dir-btn-modal-cancel { background:transparent; color:var(--mid); border:1px solid var(--border) !important; }
+
 </style>
 </head>
 <body>
@@ -273,7 +328,8 @@
     <nav class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-link sidebar-home" data-panel="welcome" id="nav-welcome">&#8962; Admin Home</div>
       <div class="sidebar-label">Residents</div>
-      <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Edit Residents</div>
+      <div class="sidebar-link" data-panel="directory" id="nav-directory">&#128196; Resident Directory</div>
+      <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Resident Map</div>
       <div class="sidebar-link" data-panel="noticeboard" id="nav-noticeboard">&#128240; Noticeboard</div>
       <div class="sidebar-link" data-panel="broadcast" id="nav-broadcast">&#128226; Broadcast Email</div>
       <div class="sidebar-link" data-panel="usefulinfo" id="nav-usefulinfo">ℹ️ Useful Information</div>
@@ -304,7 +360,7 @@
       <div class="admin-panel" id="panel-residents">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;gap:0.75rem;flex-wrap:wrap;">
           <div>
-            <div class="panel-title">Edit Residents</div>
+            <div class="panel-title">Resident Map</div>
             <div class="panel-desc" style="margin-bottom:0;">Update owner and tenant names. Address is fixed. Leave Tenant blank for owner-occupied.</div>
           </div>
           <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0;">
@@ -315,6 +371,73 @@
         </div>
         <div id="residentsTableWrap"><div class="state-msg"><div class="spinner"></div>Loading residents...</div></div>
 
+      </div>
+
+      <div class="admin-panel" id="panel-directory">
+        <!-- Header row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;gap:0.75rem;flex-wrap:wrap;">
+          <div>
+            <div class="panel-title">Resident Directory</div>
+            <div class="panel-desc" style="margin-bottom:0;">Add, edit and remove residents. Changes save automatically to the Residents sheet.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;flex-wrap:wrap;">
+            <span class="dir-save-status" id="dirSaveStatus"></span>
+            <button class="abtn abtn-muted" onclick="dir_reload()">&#8635; Reload</button>
+            <button class="abtn abtn-muted" onclick="dir_exportCSV()">&#11123; CSV</button>
+          </div>
+        </div>
+        <!-- Toolbar: filter + add -->
+        <div class="dir-toolbar">
+          <div class="dir-filter-wrap">
+            <label for="dirFilterSelect">Filter:</label>
+            <select class="dir-filter-select" id="dirFilterSelect" onchange="dir_renderTable()">
+              <option value="">All addresses</option>
+            </select>
+          </div>
+          <button class="abtn abtn-primary" onclick="dir_addRow()">+ Add Resident</button>
+        </div>
+        <!-- Table -->
+        <div class="dir-table-card">
+          <div class="dir-table-scroll">
+            <table id="dirTable">
+              <thead>
+                <tr>
+                  <th>Address</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Mobile</th>
+                  <th>Email</th>
+                  <th style="text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dirTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem;">Loading directory…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="dir-add-footer">
+            <button class="dir-add-btn" onclick="dir_addRow()">&#43; Add resident</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Directory mobile edit modal -->
+      <div id="dirMobileModalOverlay">
+        <div id="dirMobileModal">
+          <h3 id="dirMobileModalTitle">Edit Resident</h3>
+          <div class="dir-modal-field">
+            <label>Address</label>
+            <select id="dirMModal_address"></select>
+          </div>
+          <div class="dir-modal-field"><label>First Name</label><input type="text" id="dirMModal_firstName" placeholder="First name"></div>
+          <div class="dir-modal-field"><label>Last Name</label><input type="text" id="dirMModal_lastName" placeholder="Last name"></div>
+          <div class="dir-modal-field"><label>Mobile</label><input type="tel" id="dirMModal_mobile" placeholder="07700 000000"></div>
+          <div class="dir-modal-field"><label>Email</label><input type="email" id="dirMModal_email" placeholder="email@example.com"></div>
+          <div class="dir-modal-actions">
+            <button class="dir-btn-modal-cancel" onclick="dir_closeMobileModal()">Cancel</button>
+            <button class="dir-btn-modal-save" onclick="dir_saveMobileModal()">&#10004; Save</button>
+          </div>
+        </div>
       </div>
 
       <div class="admin-panel" id="panel-contacttools">
@@ -2301,6 +2424,282 @@ async function uiSave() {
   setTimeout(function(){ msg.textContent = ''; }, 4000);
 }
 
+
+
+
+// ─── FULL DIRECTORY ──────────────────────────────────────────────────────────
+
+var DIR_ADDRESSES = Array.from({length:14}, function(_,i){ return (i+1) + ' The Courtyard'; });
+var dirResidents = [];
+var dirHasUnsaved = false;
+var dirAutoLockTimer = null;
+var dirMobileEditId = null;
+
+function dir_uid() { return Math.random().toString(36).substr(2,9); }
+function dir_blankRow(a) { a = a||''; return {id:dir_uid(), address:a, firstName:'', lastName:'', email:'', mobile:''}; }
+function dir_esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function dir_formatMobile(input) {
+  var digits = input.value.replace(/\D/g,'');
+  if (digits.length > 5) digits = digits.slice(0,5) + ' ' + digits.slice(5,11);
+  input.value = digits;
+}
+
+function dir_collectFromDOM() {
+  dirResidents.forEach(function(r) {
+    var row = document.querySelector('#dirTableBody tr[data-id="' + r.id + '"]');
+    if (row) {
+      r.address   = row.querySelector('.dir-addr-sel').value;
+      r.firstName = row.querySelector('.dir-firstname-inp').value;
+      r.lastName  = row.querySelector('.dir-lastname-inp').value;
+      r.email     = row.querySelector('.dir-email-inp').value;
+      r.mobile    = row.querySelector('.dir-mob-inp').value;
+    }
+  });
+}
+
+function dir_setSaveStatus(saved) {
+  var el = document.getElementById('dirSaveStatus');
+  if (!el) return;
+  if (saved) {
+    var now = new Date();
+    el.textContent = '✓ Updated ' + now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    el.className = 'dir-save-status';
+  } else {
+    el.textContent = '● Unsaved changes';
+    el.className = 'dir-save-status unsaved';
+  }
+}
+
+function dir_markUnsaved() {
+  if (!dirHasUnsaved) { dirHasUnsaved = true; dir_setSaveStatus(false); }
+}
+
+function dir_sortResidents() {
+  dirResidents.sort(function(a,b) {
+    var nA = parseInt(a.address)||999, nB = parseInt(b.address)||999;
+    if (nA !== nB) return nA - nB;
+    return (a.lastName||'').localeCompare(b.lastName||'') || (a.firstName||'').localeCompare(b.firstName||'');
+  });
+}
+
+function dir_populateFilter() {
+  var sel = document.getElementById('dirFilterSelect');
+  if (!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">All addresses</option>' +
+    DIR_ADDRESSES.map(function(a) {
+      return '<option value="' + a + '"' + (cur===a?' selected':'') + '>' + a + '</option>';
+    }).join('');
+}
+
+function dir_renderTable() {
+  dir_sortResidents();
+  var filter = (document.getElementById('dirFilterSelect')||{}).value || '';
+  var tbody = document.getElementById('dirTableBody');
+  if (!tbody) return;
+  var list = filter ? dirResidents.filter(function(r){ return r.address===filter; }) : dirResidents;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem;">No residents match this filter.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(r) {
+    return '<tr data-id="' + r.id + '">' +
+      '<td><select class="dir-addr-sel" onchange="dir_markUnsaved()">' +
+        '<option value="">— Select address —</option>' +
+        DIR_ADDRESSES.map(function(a){ return '<option value="' + a + '"' + (r.address===a?' selected':'') + '>' + a + '</option>'; }).join('') +
+      '</select></td>' +
+      '<td><input class="dir-cell-input dir-firstname-inp" type="text" placeholder="First name" value="' + dir_esc(r.firstName) + '" oninput="dir_markUnsaved()"></td>' +
+      '<td><input class="dir-cell-input dir-lastname-inp"  type="text" placeholder="Last name"  value="' + dir_esc(r.lastName)  + '" oninput="dir_markUnsaved()"></td>' +
+      '<td class="dir-cell-wrap">' +
+        '<input class="dir-cell-input dir-mob-inp" type="tel" placeholder="07700 000000" value="' + dir_esc(r.mobile) + '" oninput="dir_formatMobile(this);dir_markUnsaved()">' +
+        (r.mobile ? '<a class="dir-tap-link" href="tel:' + r.mobile.replace(/\s/g,'') + '"></a>' : '') +
+      '</td>' +
+      '<td class="dir-cell-wrap">' +
+        '<input class="dir-cell-input dir-email-inp" type="email" placeholder="email@example.com" value="' + dir_esc(r.email) + '" oninput="dir_markUnsaved()">' +
+        (r.email ? '<a class="dir-tap-link" href="mailto:' + r.email + '"></a>' : '') +
+      '</td>' +
+      '<td>' +
+        '<div class="dir-row-actions">' +
+          '<button class="dir-btn-icon dir-btn-edit-row" title="Edit" onclick="dir_isMobile() ? dir_openMobileModal(\u0022' + r.id + '\u0022) : dir_toggleRowEdit(\u0022' + r.id + '\u0022, this)">✎ Edit</button>' +
+          '<button class="dir-btn-icon dir-btn-del" title="Remove" onclick="dir_deleteRow(\u0022' + r.id + '\u0022)">✕</button>' +
+        '</div>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function dir_isMobile() { return window.innerWidth <= 680; }
+
+function dir_closeAllEditingRows() {
+  document.querySelectorAll('#dirTableBody tr.row-editing').forEach(function(row) {
+    row.classList.remove('row-editing');
+    var b = row.querySelector('.dir-btn-edit-row');
+    if (b) { b.textContent = '✎ Edit'; b.title = 'Edit'; }
+  });
+  clearTimeout(dirAutoLockTimer);
+}
+
+function dir_toggleRowEdit(id, btn) {
+  var row = document.querySelector('#dirTableBody tr[data-id="' + id + '"]');
+  if (!row) return;
+  var isEditing = row.classList.contains('row-editing');
+  if (isEditing) {
+    row.classList.remove('row-editing');
+    btn.textContent = '✎ Edit'; btn.title = 'Edit';
+    clearTimeout(dirAutoLockTimer);
+    dir_collectFromDOM();
+    dirHasUnsaved = false;
+    dir_setSaveStatus(true);
+    dir_renderTable(); dir_populateFilter();
+    dir_saveToSheets();
+    showToast('Saved successfully', 'success');
+  } else {
+    dir_closeAllEditingRows();
+    row.classList.add('row-editing');
+    btn.textContent = '✔ Done'; btn.title = 'Save and lock';
+    dirAutoLockTimer = setTimeout(function() {
+      if (row.classList.contains('row-editing')) {
+        row.classList.remove('row-editing');
+        btn.textContent = '✎ Edit'; btn.title = 'Edit';
+        dir_collectFromDOM();
+        dir_setSaveStatus(true);
+        dir_saveToSheets();
+        showToast('Row locked after inactivity', 'success');
+      }
+    }, 2 * 60 * 1000);
+  }
+}
+
+function dir_addRow() {
+  dir_collectFromDOM();
+  var nr = dir_blankRow();
+  dirResidents.push(nr);
+  dir_renderTable(); dir_markUnsaved();
+  setTimeout(function() {
+    var newRow = document.querySelector('#dirTableBody tr[data-id="' + nr.id + '"]');
+    if (newRow) {
+      var editBtn = newRow.querySelector('.dir-btn-edit-row');
+      newRow.classList.add('row-editing');
+      if (editBtn) { editBtn.textContent = '✔ Done'; editBtn.title = 'Save and lock'; }
+      var inp = newRow.querySelector('.dir-firstname-inp');
+      if (inp) inp.focus();
+    }
+  }, 40);
+}
+
+function dir_deleteRow(id) {
+  var r = dirResidents.find(function(x){ return x.id===id; });
+  var name = [r&&r.firstName, r&&r.lastName].filter(Boolean).join(' ') || 'this resident';
+  if (!confirm('Remove ' + name + ' from the directory?')) return;
+  dir_collectFromDOM();
+  dirResidents = dirResidents.filter(function(x){ return x.id!==id; });
+  if (!dirResidents.length) dirResidents = [dir_blankRow()];
+  dir_renderTable(); dir_populateFilter();
+  dir_setSaveStatus(true);
+  dir_saveToSheets();
+}
+
+async function dir_loadFromSheets() {
+  var tbody = document.getElementById('dirTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem;"><div class="spinner" style="margin:0 auto 0.5rem;"></div>Loading directory…</td></tr>';
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=read', { redirect:'follow' });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    dirResidents = data.rows.length ? data.rows.map(function(r){ return Object.assign({id:dir_uid()}, r); }) : [dir_blankRow()];
+    dir_renderTable(); dir_populateFilter();
+    dir_setSaveStatus(true);
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#b05050;font-size:0.85rem;">Failed to load. Check connection and reload.</td></tr>';
+  }
+}
+
+async function dir_saveToSheets() {
+  try {
+    var rowsToSave = dirResidents.filter(function(r){ return r.firstName.trim()||r.lastName.trim()||r.email.trim()||r.mobile.trim(); });
+    await fetch(SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'write', rows:rowsToSave})
+    });
+  } catch(e) {
+    showToast('Could not save — please try again', 'error');
+  }
+}
+
+function dir_reload() { dir_loadFromSheets(); }
+
+function dir_exportCSV() {
+  dir_collectFromDOM();
+  var rows = [['Address','First Name','Last Name','Mobile','Email']];
+  dirResidents.forEach(function(r){ if (r.firstName||r.lastName||r.email||r.mobile) rows.push([r.address,r.firstName,r.lastName,r.mobile,r.email]); });
+  var csv = rows.map(function(r){ return r.map(function(c){ return '"'+(c||'').replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'courtyard-directory.csv';
+  a.click();
+}
+
+function dir_openMobileModal(id) {
+  var r = dirResidents.find(function(x){ return x.id===id; });
+  if (!r) return;
+  dirMobileEditId = id;
+  var sel = document.getElementById('dirMModal_address');
+  sel.innerHTML = '<option value="">— Select address —</option>' +
+    DIR_ADDRESSES.map(function(a){ return '<option value="'+a+'"'+(r.address===a?' selected':'')+'>'+a+'</option>'; }).join('');
+  document.getElementById('dirMModal_firstName').value = r.firstName || '';
+  document.getElementById('dirMModal_lastName').value  = r.lastName  || '';
+  document.getElementById('dirMModal_mobile').value    = r.mobile    || '';
+  document.getElementById('dirMModal_email').value     = r.email     || '';
+  document.getElementById('dirMobileModalTitle').textContent =
+    (r.firstName||r.lastName) ? 'Edit — '+[r.firstName,r.lastName].filter(Boolean).join(' ') : 'Add Resident';
+  document.getElementById('dirMobileModalOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('dirMModal_firstName').focus(); }, 50);
+}
+
+function dir_closeMobileModal() {
+  document.getElementById('dirMobileModalOverlay').classList.remove('open');
+  dirMobileEditId = null;
+}
+
+function dir_saveMobileModal() {
+  if (!dirMobileEditId) return;
+  var r = dirResidents.find(function(x){ return x.id===dirMobileEditId; });
+  if (!r) return;
+  r.address   = document.getElementById('dirMModal_address').value;
+  r.firstName = document.getElementById('dirMModal_firstName').value.trim();
+  r.lastName  = document.getElementById('dirMModal_lastName').value.trim();
+  r.mobile    = document.getElementById('dirMModal_mobile').value.trim();
+  r.email     = document.getElementById('dirMModal_email').value.trim();
+  dir_closeMobileModal();
+  dirHasUnsaved = false;
+  dir_renderTable(); dir_populateFilter();
+  dir_setSaveStatus(true);
+  dir_saveToSheets();
+  showToast('Saved successfully', 'success');
+}
+
+document.getElementById('dirMobileModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) dir_closeMobileModal();
+});
+
+// Auto-save on blur within directory panel
+document.addEventListener('blur', function(e) {
+  if (e.target.matches('.dir-cell-input,.dir-addr-sel')) {
+    dir_collectFromDOM();
+    dir_setSaveStatus(true); dirHasUnsaved = false;
+    dir_populateFilter();
+    dir_saveToSheets();
+  }
+}, true);
+
+// Load directory when panel is opened
+var _origShowPanel2 = showPanel;
+showPanel = function(id) {
+  _origShowPanel2(id);
+  if (id === 'directory' && !dirResidents.length) dir_loadFromSheets();
+};
 
 
 </script>
