@@ -89,8 +89,8 @@
     #panel-directory .dir-table-scroll colgroup col:nth-child(1) { width:170px !important; }
     #panel-directory .dir-table-scroll colgroup col:nth-child(2) { width:120px !important; }
     #panel-directory .dir-table-scroll colgroup col:nth-child(3) { width:120px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:130px !important; }
-    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:390px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(4) { width:140px !important; }
+    #panel-directory .dir-table-scroll colgroup col:nth-child(5) { width:380px !important; }
     #panel-directory .dir-table-scroll colgroup col:nth-child(6) { width:70px !important; }
   }
   .admin-panel { display:none; }
@@ -2713,7 +2713,11 @@ function dir_saveMobileModal() {
 }
 
 document.getElementById('dirMobileModalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) dir_closeMobileModal();
+  if (e.target === this) {
+    if (confirm('Discard changes to this resident?')) {
+      dir_closeMobileModal();
+    }
+  }
 });
 
 // Delegated handlers for edit/delete buttons
