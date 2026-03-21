@@ -2521,8 +2521,8 @@ function dir_renderTable() {
       '</td>' +
       '<td>' +
         '<div class="dir-row-actions">' +
-          '<button class="dir-btn-icon dir-btn-edit-row" title="Edit" onclick="dir_isMobile() ? dir_openMobileModal(\u0022' + r.id + '\u0022) : dir_toggleRowEdit(\u0022' + r.id + '\u0022, this)">✎ Edit</button>' +
-          '<button class="dir-btn-icon dir-btn-del" title="Remove" onclick="dir_deleteRow(\u0022' + r.id + '\u0022)">✕</button>' +
+          '<button class="dir-btn-icon dir-btn-edit-row" title="Edit" data-rid="' + r.id + '">&#9998; Edit</button>' +
+          '<button class="dir-btn-icon dir-btn-del" title="Remove" data-rid="' + r.id + '">&#10005;</button>' +
         '</div>' +
       '</td>' +
     '</tr>';
@@ -2682,6 +2682,19 @@ function dir_saveMobileModal() {
 
 document.getElementById('dirMobileModalOverlay').addEventListener('click', function(e) {
   if (e.target === this) dir_closeMobileModal();
+});
+
+// Delegated handlers for edit/delete buttons
+document.getElementById('dirTableBody').addEventListener('click', function(e) {
+  var editBtn = e.target.closest('.dir-btn-edit-row');
+  var delBtn  = e.target.closest('.dir-btn-del');
+  if (editBtn) {
+    var id = editBtn.dataset.rid;
+    if (dir_isMobile()) { dir_openMobileModal(id); } else { dir_toggleRowEdit(id, editBtn); }
+  }
+  if (delBtn) {
+    dir_deleteRow(delBtn.dataset.rid);
+  }
 });
 
 // Auto-save on blur within directory panel
