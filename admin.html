@@ -248,7 +248,7 @@
   #panel-directory .dir-filter-select { padding:0.45rem 2rem 0.45rem 0.8rem; border:1px solid var(--border); border-radius:5px; background:var(--cream); font-family:Arial,sans-serif; font-size:0.83rem; color:var(--dark); cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b5f52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.6rem center; }
   #panel-directory .dir-table-card { background:var(--cream); border-radius:10px; border:1px solid var(--border); box-shadow:0 1px 6px rgba(0,0,0,0.07); overflow:hidden; }
   #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  #panel-directory .dir-table-scroll table { min-width:900px; width:100%; border-collapse:collapse; table-layout:auto; }
+  #panel-directory .dir-table-scroll table { min-width:800px; width:100%; border-collapse:collapse; table-layout:fixed; }
   #panel-directory .dir-table-scroll thead th { padding:0.9rem 0.75rem; text-align:left; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--stone); white-space:nowrap; background:var(--dark); }
   #panel-directory .dir-table-scroll thead th:last-child { text-align:center; width:80px; }
   #panel-directory .dir-table-scroll tbody tr { border-bottom:1px solid var(--border); transition:background 0.12s; }
@@ -263,6 +263,11 @@
   #panel-directory .dir-cell-input:focus { outline:none; border-color:var(--accent2); background:var(--warm); box-shadow:0 0 0 3px rgba(196,149,106,0.12); }
   #panel-directory .dir-addr-sel { width:100%; border:1px solid transparent; border-radius:4px; padding:0.38rem 1.8rem 0.38rem 0.55rem; font-family:Arial,sans-serif; font-size:14px; font-weight:500; color:var(--accent); background:var(--cream); cursor:pointer; transition:all 0.15s; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a5c3e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.5rem center; }
   #panel-directory .dir-addr-sel:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.12); }
+  /* Locked by default — only editing row is interactive */
+  #panel-directory .dir-cell-input { pointer-events:none; border-color:transparent !important; background:transparent !important; cursor:default; }
+  #panel-directory .dir-cell-input:focus { outline:none; box-shadow:none; }
+  #panel-directory .dir-addr-sel { pointer-events:none; appearance:none !important; cursor:default; }
+  #panel-directory .dir-btn-del { display:none; }
   #panel-directory tr.row-editing .dir-cell-input { pointer-events:auto !important; border-color:rgba(196,149,106,0.4) !important; background:rgba(255,255,255,0.05) !important; cursor:text !important; }
   #panel-directory tr.row-editing .dir-addr-sel { pointer-events:auto !important; appearance:auto !important; cursor:pointer !important; }
   #panel-directory tr.row-editing .dir-btn-del { display:flex !important; }
@@ -402,12 +407,12 @@
             <table id="dirTable">
               <thead>
                 <tr>
-                  <th>Address</th>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Mobile</th>
-                  <th>Email</th>
-                  <th style="text-align:center;">Actions</th>
+                  <th style="width:14%;">Address</th>
+                  <th style="width:12%;">First Name</th>
+                  <th style="width:12%;">Last Name</th>
+                  <th style="width:13%;">Mobile</th>
+                  <th style="width:auto;">Email</th>
+                  <th style="width:80px;text-align:center;">Actions</th>
                 </tr>
               </thead>
               <tbody id="dirTableBody">
