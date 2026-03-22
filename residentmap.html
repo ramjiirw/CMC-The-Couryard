@@ -415,11 +415,10 @@ function tenantDisplay(r) {
 
 function buildLegend(data) {
   const list = document.getElementById('legendList');
-  const extraVisible = extraInfoOpen ? 'visible' : '';
   list.innerHTML = data.map(r => {
     const extraRows = buildExtraInfoRows(r);
     const extraSection = extraRows
-      ? `<div class="legend-extra ${extraVisible}" id="extra_${r.num}">${extraRows}</div>`
+      ? `<div class="legend-extra${extraInfoOpen ? ' visible' : ''}" id="extra_${r.num}">${extraRows}</div>`
       : '';
     return `
     <div class="legend-row" data-num="${r.num}" onclick="selectProperty(${r.num})">
@@ -766,11 +765,20 @@ function toggleExtraInfo() {
 function updateExtraInfoUI() {
   const btn = document.getElementById('extraInfoBtn');
   if (btn) {
-    btn.classList.toggle('active', extraInfoOpen);
-    btn.textContent = extraInfoOpen ? '✕ Hide Extra Info' : 'ℹ Extra Info';
+    if (extraInfoOpen) {
+      btn.classList.add('active');
+      btn.textContent = '✕ Hide Extra';
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = 'ℹ Extra Info';
+    }
   }
   document.querySelectorAll('.legend-extra').forEach(el => {
-    el.classList.toggle('visible', extraInfoOpen);
+    if (extraInfoOpen) {
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
   });
 }
 
