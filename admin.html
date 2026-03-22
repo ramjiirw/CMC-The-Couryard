@@ -2206,7 +2206,8 @@ async function bcLoad() {
     bcResidents = Object.keys(map).sort(function(a,b){
       return a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'});
     }).map(function(addr) {
-      return { address: addr, emails: map[addr] };
+      var emails = map[addr];
+      return { address: addr, emails: emails, checked: emails.map(function(){ return false; }), open: false };
     });
 
     bcRenderAddresses();
@@ -2221,76 +2222,118 @@ function bcRenderAddresses() {
     wrap.innerHTML = '<div style="font-size:0.78rem;color:var(--stone);padding:0.5rem 0.75rem;font-style:italic;">No residents with email addresses found.</div>';
     return;
   }
-  // Split into two columns
   var half = Math.ceil(bcResidents.length / 2);
   var col1 = bcResidents.slice(0, half);
   var col2 = bcResidents.slice(half);
   function renderItem(r, i) {
-    var hasEmail = r.emails.length > 0;
-    if (!hasEmail) {
+    if (!r.emails.length) {
       return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;font-size:0.82rem;color:rgba(122,92,62,0.35);border-bottom:1px solid rgba(122,92,62,0.08);">' +
         '<span style="width:14px;height:14px;flex-shrink:0;"></span>' +
         '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
         '<span style="font-size:0.72rem;color:rgba(122,92,62,0.3);white-space:nowrap;font-style:italic;">no email</span>' +
       '</div>';
     }
-    return '<label id="bc-label-' + i + '" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.82rem;color:var(--dark);border-bottom:1px solid rgba(122,92,62,0.08);transition:background 0.15s;">' +
-      '<input type="checkbox" data-idx="' + i + '" onchange="bcUpdateCount();bcHighlight(this,' + i + ')" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
-      '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
-      '<span style="font-size:0.75rem;color:var(--mid);white-space:nowrap;font-weight:600;">' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '') + '</span>' +
-    '</label>';
+    var anyOn = r.checked.some(Boolean);
+    var allOn = r.checked.every(Boolean);
+    var activeCnt = r.checked.filter(Boolean).length;
+    var rowBg = anyOn ? 'background:rgba(122,92,62,0.1);' : '';
+    var rowColor = anyOn ? 'color:var(--accent);font-weight:600;' : 'color:var(--dark);';
+    var arrowStyle = 'display:inline-block;font-size:0.6rem;color:rgba(122,92,62,0.5);margin-left:0.3rem;transition:transform 0.15s;' + (r.emails.length > 1 ? '' : 'visibility:hidden;');
+    var arrowRot = r.open ? 'transform:rotate(90deg);' : '';
+    var subDisplay = r.open ? 'block' : 'none';
+    var countLabel = r.emails.length > 1
+      ? (activeCnt + '/' + r.emails.length + ' emails')
+      : (activeCnt === 1 ? '1 email' : '0 emails');
+    return '<div id="bc-row-' + i + '" style="border-bottom:1px solid rgba(122,92,62,0.08);">' +
+      '<div id="bc-label-' + i + '" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.82rem;transition:background 0.15s;' + rowBg + rowColor + '" onclick="bcToggleAddr(' + i + ')">' +
+        '<input type="checkbox" id="bc-chk-' + i + '" data-idx="' + i + '" ' + (allOn ? 'checked' : '') + ' onclick="event.stopPropagation();bcClickAddrChk(' + i + ')" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
+        '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
+        '<span style="font-size:0.75rem;color:var(--mid);white-space:nowrap;font-weight:600;">' + countLabel + '</span>' +
+        (r.emails.length > 1 ? '<span id="bc-arrow-' + i + '" style="' + arrowStyle + arrowRot + '" onclick="event.stopPropagation();bcToggleExpand(' + i + ')">&#9654;</span>' : '') +
+      '</div>' +
+      '<div id="bc-sub-' + i + '" style="display:' + subDisplay + ';background:rgba(122,92,62,0.04);border-top:1px solid rgba(122,92,62,0.08);padding:0.2rem 0.75rem 0.2rem 2rem;">' +
+        r.emails.map(function(email, ei) {
+          var subOn = r.checked[ei];
+          return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.28rem 0;cursor:pointer;font-size:0.78rem;color:' + (subOn ? 'var(--accent)' : 'var(--mid)') + ';border-bottom:1px solid rgba(122,92,62,0.06);">' +
+            '<input type="checkbox" data-idx="' + i + '" data-eidx="' + ei + '" ' + (subOn ? 'checked' : '') + ' onchange="bcToggleEmail(' + i + ',' + ei + ')" style="cursor:pointer;accent-color:var(--accent);width:13px;height:13px;flex-shrink:0;">' +
+            '<span>' + escHtml(email) + '</span>' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+    '</div>';
   }
   wrap.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1px;background:rgba(122,92,62,0.1);">'
     + '<div style="background:var(--cream);">' + col1.map(function(r){ return renderItem(r, bcResidents.indexOf(r)); }).join('') + '</div>'
     + '<div style="background:var(--cream);">' + col2.map(function(r){ return renderItem(r, bcResidents.indexOf(r)); }).join('') + '</div>'
     + '</div>';
+  // Set indeterminate state on address checkboxes where needed
+  bcResidents.forEach(function(r, i) {
+    var chk = document.getElementById('bc-chk-' + i);
+    if (chk) chk.indeterminate = r.checked.some(Boolean) && !r.checked.every(Boolean);
+  });
   bcUpdateCount();
 }
 
 function bcUpdateCount() {
-  var checked = document.querySelectorAll('#bcAddressList input[type=checkbox]:checked');
   var totalEmails = 0;
-  checked.forEach(function(cb) {
-    var idx = parseInt(cb.getAttribute('data-idx'));
-    totalEmails += bcResidents[idx].emails.length;
+  var addrCount = 0;
+  bcResidents.forEach(function(r) {
+    var cnt = r.checked.filter(Boolean).length;
+    if (cnt > 0) { totalEmails += cnt; addrCount++; }
   });
   var countEl = document.getElementById('bcRecipientCount');
-  if (checked.length === 0) {
+  if (totalEmails === 0) {
     countEl.textContent = 'No addresses selected.';
   } else {
-    countEl.textContent = checked.length + ' address' + (checked.length > 1 ? 'es' : '') + ' selected — ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '') + ' in To field.';
+    countEl.textContent = addrCount + ' address' + (addrCount > 1 ? 'es' : '') + ' selected — ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '') + ' in To field.';
   }
 }
 
-function bcHighlight(cb, i) {
-  var label = document.getElementById('bc-label-' + i);
-  if (!label) return;
-  label.style.background = cb.checked ? 'rgba(122,92,62,0.1)' : '';
-  label.style.fontWeight  = cb.checked ? '600' : '400';
-  label.style.color       = cb.checked ? 'var(--accent)' : 'var(--dark)';
+// Called when user clicks the address row label area (toggles all emails for that address)
+function bcToggleAddr(i) {
+  var r = bcResidents[i];
+  if (!r.emails.length) return;
+  var allOn = r.checked.every(Boolean);
+  r.checked = r.checked.map(function(){ return !allOn; });
+  bcRenderAddresses();
+}
+
+// Called when user clicks the checkbox directly (same behaviour as clicking the row)
+function bcClickAddrChk(i) {
+  var r = bcResidents[i];
+  var allOn = r.checked.every(Boolean);
+  r.checked = r.checked.map(function(){ return !allOn; });
+  bcRenderAddresses();
+}
+
+// Called when user clicks the expand arrow (multi-email addresses only)
+function bcToggleExpand(i) {
+  bcResidents[i].open = !bcResidents[i].open;
+  bcRenderAddresses();
+}
+
+// Called when user toggles an individual email checkbox
+function bcToggleEmail(i, ei) {
+  bcResidents[i].checked[ei] = !bcResidents[i].checked[ei];
+  bcRenderAddresses();
 }
 
 function bcSelectAll() {
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){
-    cb.checked = true;
-    bcHighlight(cb, parseInt(cb.getAttribute('data-idx')));
-  });
-  bcUpdateCount();
+  bcResidents.forEach(function(r){ r.checked = r.checked.map(function(){ return true; }); });
+  bcRenderAddresses();
 }
 
 function bcSelectNone() {
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){
-    cb.checked = false;
-    bcHighlight(cb, parseInt(cb.getAttribute('data-idx')));
-  });
-  bcUpdateCount();
+  bcResidents.forEach(function(r){ r.checked = r.checked.map(function(){ return false; }); });
+  bcRenderAddresses();
 }
 
 function bcClear() {
   document.getElementById('bcTitle').value = '';
   document.getElementById('bcMessage').value = '';
   document.getElementById('bcMsg').textContent = '';
-  bcSelectNone();
+  bcResidents.forEach(function(r){ r.checked = r.checked.map(function(){ return false; }); r.open = false; });
+  bcRenderAddresses();
 }
 
 async function bcSend() {
@@ -2302,17 +2345,18 @@ async function bcSend() {
   if (!message) { msg.style.color = '#b05050'; msg.textContent = '✗ Please enter a message.'; return; }
 
   // Collect selected emails
-  var checked = document.querySelectorAll('#bcAddressList input[type=checkbox]:checked');
-  if (!checked.length) { msg.style.color = '#b05050'; msg.textContent = '✗ Please select at least one address.'; return; }
-
   var selectedEmails = [];
-  checked.forEach(function(cb) {
-    var idx = parseInt(cb.getAttribute('data-idx'));
-    selectedEmails = selectedEmails.concat(bcResidents[idx].emails);
+  var selectedAddrCount = 0;
+  bcResidents.forEach(function(r) {
+    r.emails.forEach(function(email, ei) {
+      if (r.checked[ei]) selectedEmails.push(email);
+    });
+    if (r.checked.some(Boolean)) selectedAddrCount++;
   });
+  if (!selectedEmails.length) { msg.style.color = '#b05050'; msg.textContent = '✗ Please select at least one address.'; return; }
 
   var totalEmails = selectedEmails.length;
-  var totalAddresses = checked.length;
+  var totalAddresses = selectedAddrCount;
   var confirmMsg = 'Send this email to ' + totalAddresses + ' address' + (totalAddresses > 1 ? 'es' : '') + ' (' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + ')?\n\nSubject: ' + title;
   if (!confirm(confirmMsg)) return;
 
