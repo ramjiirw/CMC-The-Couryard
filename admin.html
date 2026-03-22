@@ -351,6 +351,7 @@
       <div class="sidebar-link" data-panel="residents" id="nav-residents">&#128101; Resident Map</div>
       <div class="sidebar-link" data-panel="noticeboard" id="nav-noticeboard">&#128240; Noticeboard</div>
       <div class="sidebar-link" data-panel="broadcast" id="nav-broadcast">&#128226; Broadcast Email</div>
+      <div class="sidebar-link" data-panel="broadcasthistory" id="nav-broadcasthistory">&#128203; Send History</div>
       <div class="sidebar-link" data-panel="usefulinfo" id="nav-usefulinfo">ℹ️ Useful Information</div>
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
@@ -693,6 +694,18 @@
               <button class="abtn abtn-primary" id="bcConfirmBtn" onclick="bcSend()">&#128231; Confirm &amp; Send</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-broadcasthistory">
+        <div class="panel-title">Broadcast Send History</div>
+        <div class="panel-desc">A record of all broadcast emails sent — both immediate and scheduled. Loaded from the <strong>BroadcastHistory</strong> sheet, newest first.</div>
+        <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;align-items:center;">
+          <button class="abtn abtn-muted" onclick="bhLoad()">&#8635; Refresh</button>
+          <span id="bhStatus" style="font-size:0.78rem;color:var(--mid);"></span>
+        </div>
+        <div id="bhTableWrap" style="overflow-x:auto;">
+          <p style="color:var(--mid);font-size:0.82rem;">Loading history…</p>
         </div>
       </div>
 
@@ -1725,6 +1738,7 @@ showPanel = function(id) {
   if (id === 'noticeboard') nbLoad();
   if (id === 'usefulinfo') uiLoad();
   if (id === 'broadcast') bcLoad();
+  if (id === 'broadcasthistory') bhLoad();
 };
 document.getElementById('mntRefreshBtn').addEventListener('click', function(){ loadMaintenanceIssues(); resetAutoLock(); });
 function flashButton(id) {
@@ -2613,6 +2627,56 @@ async function bcSend() {
   }
   btn.disabled = false;
   setTimeout(function(){ msg.textContent = ''; }, 5000);
+}
+
+// ─── BROADCAST HISTORY ───────────────────────────────────────────────────────
+
+async function bhLoad() {
+  var wrap   = document.getElementById('bhTableWrap');
+  var status = document.getElementById('bhStatus');
+  wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">Loading…</p>';
+  status.textContent = '';
+  try {
+    var res  = await fetch(SCRIPT_URL + '?action=readBroadcastHistory');
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    if (!data.rows || !data.rows.length) {
+      wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">No broadcast history yet — entries will appear here after emails are sent.</p>';
+      return;
+    }
+    status.textContent = data.rows.length + ' record' + (data.rows.length !== 1 ? 's' : '');
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+      + '<thead><tr style="background:var(--dark);color:var(--cream);">'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Timestamp</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Subject</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Recipients</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Type</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">External</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;min-width:200px;">Message</th>'
+      + '</tr></thead><tbody>';
+    data.rows.forEach(function(r, i) {
+      var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
+      var typeChip = r.type === 'Scheduled'
+        ? '<span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span>'
+        : '<span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span>';
+      var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
+      var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
+      html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
+        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(r.timestamp) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;text-align:center;">' + (r.recipients || 0) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load history — ' + e.message + '</p>';
+  }
 }
 
 // ─── CMC USEFUL INFORMATION ───────────────────────────────────────────────────
