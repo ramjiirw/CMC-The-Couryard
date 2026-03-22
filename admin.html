@@ -2238,18 +2238,19 @@ function bcRenderAddresses() {
     var activeCnt = r.checked.filter(Boolean).length;
     var rowBg = anyOn ? 'background:rgba(122,92,62,0.1);' : '';
     var rowColor = anyOn ? 'color:var(--accent);font-weight:600;' : 'color:var(--dark);';
-    var arrowStyle = 'display:inline-block;font-size:0.6rem;color:rgba(122,92,62,0.5);margin-left:0.3rem;transition:transform 0.15s;' + (r.emails.length > 1 ? '' : 'visibility:hidden;');
     var arrowRot = r.open ? 'transform:rotate(90deg);' : '';
     var subDisplay = r.open ? 'block' : 'none';
-    var countLabel = r.emails.length > 1
-      ? (activeCnt + '/' + r.emails.length + ' emails')
-      : (activeCnt === 1 ? '1 email' : '0 emails');
+    var countLabel = activeCnt > 0 && activeCnt < r.emails.length
+      ? activeCnt + '/' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '')
+      : r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '');
     return '<div id="bc-row-' + i + '" style="border-bottom:1px solid rgba(122,92,62,0.08);">' +
       '<div id="bc-label-' + i + '" style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.82rem;transition:background 0.15s;' + rowBg + rowColor + '" onclick="bcToggleAddr(' + i + ')">' +
         '<input type="checkbox" id="bc-chk-' + i + '" data-idx="' + i + '" ' + (allOn ? 'checked' : '') + ' onclick="event.stopPropagation();bcClickAddrChk(' + i + ')" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
         '<span style="flex:1;">' + escHtml(r.address) + '</span>' +
-        '<span style="font-size:0.75rem;color:var(--mid);white-space:nowrap;font-weight:600;">' + countLabel + '</span>' +
-        (r.emails.length > 1 ? '<span id="bc-arrow-' + i + '" style="' + arrowStyle + arrowRot + '" onclick="event.stopPropagation();bcToggleExpand(' + i + ')">&#9654;</span>' : '') +
+        '<span style="display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">' +
+          '<span style="font-size:0.75rem;color:var(--mid);font-weight:600;">' + countLabel + '</span>' +
+          '<span id="bc-arrow-' + i + '" style="display:inline-block;font-size:0.6rem;color:rgba(122,92,62,0.5);transition:transform 0.15s;' + arrowRot + '" onclick="event.stopPropagation();bcToggleExpand(' + i + ')">&#9654;</span>' +
+        '</span>' +
       '</div>' +
       '<div id="bc-sub-' + i + '" style="display:' + subDisplay + ';background:rgba(122,92,62,0.04);border-top:1px solid rgba(122,92,62,0.08);padding:0.2rem 0.75rem 0.2rem 2rem;">' +
         r.emails.map(function(email, ei) {
