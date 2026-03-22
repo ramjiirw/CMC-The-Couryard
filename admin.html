@@ -871,7 +871,7 @@ function showPanel(id) {
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = null;
   }
-  if (id === 'residents' && !editDraft.length) loadResidents();
+  if (id === 'residents') { editDraft = []; loadResidents(); }
   if (window.innerWidth <= 600) {
     adminSidebar.classList.add('collapsed');
     sidebarToggle.innerHTML = '&#10095;';
@@ -931,7 +931,11 @@ function loadResidents() {
   var wrap = document.getElementById('residentsTableWrap');
   wrap.innerHTML = '<div class="state-msg"><div class="spinner"></div>Loading residents...</div>';
   Promise.all([
-    fetch(SCRIPT_URL + '?action=readResidentMap').then(function(r){ return r.json(); }),
+    fetch(SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'readResidentMap' })
+    }).then(function(r){ return r.json(); }),
     fetch(SCRIPT_URL + '?action=read').then(function(r){ return r.json(); })
   ])
   .then(function(results) {
