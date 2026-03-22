@@ -1811,7 +1811,7 @@ function renderAgmSubmissions() {
     html += '<tr>'
       + '<td style="font-size:0.8rem;color:var(--mid);">' + escAdm(s.raisedBy) + '</td>'
       + '<td style="font-size:0.82rem;">' + escAdm(s.item) + '</td>'
-      + '<td style="font-size:0.78rem;color:var(--stone);">' + escAdm(s.timestamp || '') + '</td>'
+      + '<td style="font-size:0.78rem;color:var(--stone);">' + escAdm((s.timestamp || '').toString().substring(0, 10)) + '</td>'
       + '<td style="text-align:center;"><button class="abtn abtn-danger" style="padding:0.3rem 0.6rem;font-size:0.75rem;" onclick="agmDeleteOne(' + i + ')">&#128465;</button></td>'
       + '</tr>';
   });
@@ -2806,7 +2806,6 @@ async function bhLoad() {
 function bhResend(i) {
   var r = (window._bhRows || [])[i];
   if (!r) return;
-  if (!confirm('Pre-fill the broadcast form with this email to resend?')) return;
   // Switch to broadcast panel and pre-fill
   showPanel('broadcast');
   setTimeout(function() {
