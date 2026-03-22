@@ -458,28 +458,6 @@ async function loadData() {
     document.getElementById('legendList').innerHTML =
       '<div class="error-msg">Could not load resident data. Please try refreshing.</div>';
   }
-
-  // ── Step 2: Silently refresh from Apps Script for fresh data ──────────────
-  try {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'readResidentMap' })
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const rows = data.residents || data.rows || [];
-      const fresh = rows.map(r => {
-      const num = parseInt((r.address || '').match(/\d+/)?.[0]) || 0;
-      return { num, address: r.address || '', owner: r.owner || '', tenant: r.tenant || '', waterMeter: r.waterMeter || r.water_meter || '' };
-    }).filter(r => r.num > 0).sort((a, b) => a.num - b.num);
-    if (fresh.length) {
-      residents = fresh;
-      buildLegend(residents);
-    }
-  } catch(e) {
-    // Silent fail — CSV data already showing
-  }
 }
 
 // ── Interaction ───────────────────────────────────────────────────────────────
