@@ -2309,9 +2309,9 @@ async function bcLoad() {
       if (h === 9) opt.selected = true;
       hourSel.appendChild(opt);
     }
-    // Populate minute dropdown (00, 15, 30, 45)
+    // Populate minute dropdown (hour only — :00)
     var minSel = document.getElementById('bcSchedMin');
-    ['00','15','30','45'].forEach(function(m) {
+    ['00'].forEach(function(m) {
       var opt = document.createElement('option');
       opt.value = m; opt.textContent = m;
       minSel.appendChild(opt);
