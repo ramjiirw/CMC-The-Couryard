@@ -675,6 +675,7 @@
         <div id="bcSuccessArea" style="display:none;padding:0.75rem 0;">
           <p style="margin:0;font-size:1.1rem;font-weight:700;color:var(--accent);">&#10003; <span id="bcSuccessText"></span></p>
         </div>
+        <div id="bcScheduledList" style="margin-top:0.75rem;"></div>
 
         <!-- Review modal -->
         <div id="bcModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.6);z-index:500;align-items:center;justify-content:center;">
@@ -2537,6 +2538,19 @@ function bcReview() {
   document.getElementById('bcModalOverlay').style.display = 'flex';
 }
 
+function bcAddScheduledBadge(date, time, subject) {
+  var list = document.getElementById('bcScheduledList');
+  var id   = 'bc-sched-' + Date.now();
+  var div  = document.createElement('div');
+  div.id   = id;
+  div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:0.5rem;background:rgba(196,149,106,0.12);border:1px solid rgba(196,149,106,0.35);border-radius:6px;padding:0.45rem 0.75rem;margin-bottom:0.4rem;font-size:0.78rem;';
+  div.innerHTML =
+    '<span style="color:var(--accent);">&#9201;</span>' +
+    '<span style="flex:1;color:var(--dark);"><strong>' + escHtml(subject) + '</strong> — scheduled for ' + escHtml(date) + ' at ' + escHtml(time) + '</span>' +
+    '<button onclick="document.getElementById(\'' + id + '\').remove()" style="background:none;border:none;cursor:pointer;font-size:0.72rem;color:var(--mid);padding:0;">&#10005; Dismiss</button>';
+  list.appendChild(div);
+}
+
 function bcCloseModal() {
   document.getElementById('bcModalOverlay').style.display = 'none';
 }
@@ -2568,20 +2582,30 @@ async function bcSend() {
     const data = await res.json();
     if (data.status === 'ok') {
       bcCloseModal();
+      // Capture schedule info before clearing
+      var schedDate = document.getElementById('bcSchedDate').value;
+      var schedTime = document.getElementById('bcSchedHour').value + ':' + document.getElementById('bcSchedMin').value;
+      // Reset form
       document.getElementById('bcTitle').value   = '';
       document.getElementById('bcMessage').value = '';
       document.getElementById('bcCharCount').textContent = '0 words · 0 characters';
       bcResidents.forEach(function(r){ r.open = false; });
       bcSelectNone();
       bcSetMode('to');
+      // Reset schedule to Send now
+      document.querySelector('input[name=bcSched][value=now]').checked = true;
+      document.getElementById('bcSchedFields').style.display = 'none';
+      document.getElementById('bcConfirmBtn').innerHTML = '&#128231; Confirm &amp; Send';
       var successText = later
-        ? 'Email scheduled for ' + document.getElementById('bcSchedDate').value + ' at ' + document.getElementById('bcSchedHour').value + ':' + document.getElementById('bcSchedMin').value + '.'
+        ? 'Email scheduled for ' + schedDate + ' at ' + schedTime + '.'
         : 'Email sent successfully to ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + '.';
       document.getElementById('bcSuccessText').textContent = successText;
       document.getElementById('bcButtonArea').style.display = 'none';
       document.getElementById('bcSuccessArea').style.display = 'block';
       setTimeout(function(){ document.getElementById('bcButtonArea').style.display='flex'; document.getElementById('bcSuccessArea').style.display='none'; }, 4000);
       msg.style.color = 'var(--green)'; msg.textContent = '\u2713 ' + successText;
+      // If scheduled, show persistent indicator
+      if (later) bcAddScheduledBadge(schedDate, schedTime, title);
     } else throw new Error(data.message);
   } catch(e) {
     bcCloseModal();
