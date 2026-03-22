@@ -2657,20 +2657,6 @@ function bhFormatTimestamp(ts) {
     + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-function bhFormatSendAt(ts) {
-  if (!ts) return '–';
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  // Handle dd/MM/yyyy HH:mm
-  var m = ts.toString().match(/^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/);
-  if (m) return m[1] + ' ' + months[parseInt(m[2],10)-1] + ' ' + m[3] + ' ' + m[4];
-  // Handle JS Date string e.g. "Sun Mar 22 2026 09:30:00 GMT+0000 (...)"
-  var d = new Date(ts);
-  if (isNaN(d.getTime())) return ts;
-  var pad = function(n){ return String(n).padStart(2,'0'); };
-  return pad(d.getDate()) + ' ' + months[d.getMonth()] + ' ' + d.getFullYear()
-    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-}
-
 // ── Pending scheduled emails ──────────────────────────────────────────────────
 
 async function bhLoadPending() {
@@ -2702,7 +2688,7 @@ async function bhLoadPending() {
       var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + escHtml(r.mode || 'to').toUpperCase() + '</span>';
       var recCount = (r.emails || []).length;
       html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
-        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(bhFormatSendAt(r.sendAt)) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(r.sendAt) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.title) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">'
         +   '<span onclick="bhToggleRec(\'' + rowId + '\',this)" style="cursor:pointer;color:var(--accent);font-weight:600;">'
@@ -2791,13 +2777,22 @@ async function bhLoad() {
         + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;text-align:center;">' + recCount + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;text-align:center;">'
+        +   '<span onclick="bhToggleRec(\'' + rowId + '\',this)" style="cursor:pointer;color:var(--accent);font-weight:600;" title="Show recipients">'
+        +     recCount + ' &#9660;'
+        +   '</span>'
+        + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
         + '<td style="padding:0.45rem 0.6rem;text-align:right;">'
         +   '<button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.2rem 0.6rem;" onclick="bhResend(' + i + ')">&#8635; Resend</button>'
         + '</td>'
+        + '</tr>'
+        + '<tr id="' + rowId + '" style="display:none;background:rgba(122,92,62,0.04);">'
+        +   '<td colspan="8" style="padding:0.4rem 0.8rem 0.6rem;font-size:0.78rem;color:var(--mid);">'
+        +     '<strong>Recipients:</strong> ' + escHtml(r.externalTo ? r.externalTo + ' + ' + recCount + ' resident(s)' : recCount + ' resident(s)')
+        +   '</td>'
         + '</tr>';
     });
     html += '</tbody></table>';
@@ -2811,6 +2806,7 @@ async function bhLoad() {
 function bhResend(i) {
   var r = (window._bhRows || [])[i];
   if (!r) return;
+  if (!confirm('Pre-fill the broadcast form with this email to resend?')) return;
   // Switch to broadcast panel and pre-fill
   showPanel('broadcast');
   setTimeout(function() {
