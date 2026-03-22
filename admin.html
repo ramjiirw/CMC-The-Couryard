@@ -356,6 +356,7 @@
       <div class="sidebar-label">Contact Tools</div>
       <div class="sidebar-link" data-panel="contacttools" id="nav-contacttools">&#9993; Contact Tools</div>
       <div class="sidebar-label">AGM</div>
+      <div class="sidebar-link" data-panel="agmagenda" id="nav-agmagenda">&#128196; Agenda</div>
       <div class="sidebar-link" data-panel="agmsubmissions" id="nav-agmsubmissions">&#128203; Submissions</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
@@ -504,6 +505,23 @@
             <button class="abtn abtn-muted" onclick="closeCTModal()">Close</button>
             <button class="abtn abtn-primary" id="ctModalActionBtn" style="display:none;"></button>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-agmagenda">
+        <div class="panel-title">AGM Agenda</div>
+        <div class="panel-desc">Edit the AGM agenda details, items and voting items. Changes save back to the <strong>AGMAgenda</strong> sheet.</div>
+        <div id="agmAgendaUnsaved" style="display:none;align-items:center;gap:0.6rem;background:#fff3cd;border:1px solid #f0c040;border-radius:6px;padding:0.5rem 0.9rem;margin-bottom:0.75rem;font-size:0.8rem;color:#7a5c00;font-weight:600;">
+          &#9888; Unsaved changes
+          <button class="abtn" onclick="agmAgendaSave()" style="margin-left:auto;background:#c4956a;color:#fff;border:none;">&#128190; Save</button>
+        </div>
+        <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;">
+          <button class="abtn abtn-muted" onclick="agmAgendaLoad()">&#8635; Refresh</button>
+          <button class="abtn" onclick="agmAgendaSave()" style="background:#c4956a;color:#fff;border:none;">&#128190; Save Changes</button>
+          <span id="agmAgendaStatus" style="font-size:0.78rem;color:var(--mid);align-self:center;"></span>
+        </div>
+        <div id="agmAgendaBody">
+          <p style="color:var(--mid);font-size:0.82rem;">Loading…</p>
         </div>
       </div>
 
@@ -965,6 +983,7 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'agmsubmissions') loadAgmSubmissions();
+  if (id === 'agmagenda') agmAgendaLoad();
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -1781,6 +1800,117 @@ document.getElementById('cepTextarea').addEventListener('keydown', function(e){
 });
 document.getElementById('footerYear').textContent = new Date().getFullYear();
 
+// ── AGM AGENDA ────────────────────────────────────────────────────────────────
+
+var agmAgendaDirty = false;
+
+function agmAgendaSetDirty() {
+  agmAgendaDirty = true;
+  document.getElementById('agmAgendaUnsaved').style.display = 'flex';
+}
+
+function agmAgendaClearDirty() {
+  agmAgendaDirty = false;
+  document.getElementById('agmAgendaUnsaved').style.display = 'none';
+}
+
+async function agmAgendaLoad() {
+  var body   = document.getElementById('agmAgendaBody');
+  var status = document.getElementById('agmAgendaStatus');
+  body.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">Loading…</p>';
+  status.textContent = '';
+  agmAgendaClearDirty();
+  try {
+    var res  = await fetch(SCRIPT_URL + '?action=readAgenda');
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    var a = data.agenda || [];
+
+    var fieldStyle = 'width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.83rem;color:var(--dark);background:#fff;outline:none;';
+    var labelStyle = 'font-size:0.75rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.2rem;display:block;';
+    var sectionTitle = 'font-size:0.8rem;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.06em;margin:1.2rem 0 0.6rem;border-bottom:1px solid rgba(184,173,158,0.4);padding-bottom:0.3rem;';
+
+    // Helper to get cell value safely
+    var cell = function(row, col) { return (a[row] && a[row][col] !== undefined) ? a[row][col].toString() : ''; };
+
+    var html = '';
+
+    // ── Meeting Details ──
+    html += '<div style="' + sectionTitle + '">Meeting Details</div>';
+    var detailLabels = ['Meeting Chair','Minutes','Venue','Date','Time'];
+    for (var i = 0; i < 5; i++) {
+      html += '<div style="margin-bottom:0.5rem;">'
+        + '<label style="' + labelStyle + '">' + detailLabels[i] + '</label>'
+        + '<input type="text" id="agmDetail_' + i + '" value="' + escAdm(cell(i, 1)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+        + '</div>';
+    }
+
+    // ── Agenda Items (rows 7-18, 0-indexed) ──
+    html += '<div style="' + sectionTitle + '">Agenda Items</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:0.5rem;">'
+      + '<thead><tr style="background:var(--dark);color:var(--cream);">'
+      + '<th style="padding:0.4rem 0.6rem;text-align:left;width:60px;">No.</th>'
+      + '<th style="padding:0.4rem 0.6rem;text-align:left;">Agenda Item</th>'
+      + '<th style="padding:0.4rem 0.6rem;text-align:left;width:160px;">Raised By</th>'
+      + '</tr></thead><tbody>';
+    for (var i = 0; i < 12; i++) {
+      var rowIdx = 7 + i; // sheet rows 8-19 (0-indexed 7-18)
+      html += '<tr style="background:' + (i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)') + ';border-bottom:1px solid rgba(184,173,158,0.15);">'
+        + '<td style="padding:0.3rem 0.6rem;color:var(--mid);font-size:0.75rem;">' + (i + 1) + '</td>'
+        + '<td style="padding:0.3rem 0.4rem;"><input type="text" id="agmItem_' + i + '" value="' + escAdm(cell(rowIdx, 1)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '"></td>'
+        + '<td style="padding:0.3rem 0.4rem;"><input type="text" id="agmRaisedBy_' + i + '" value="' + escAdm(cell(rowIdx, 2)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '"></td>'
+        + '</tr>';
+    }
+    html += '</tbody></table>';
+
+    // ── Vote Items (rows 25-28, 0-indexed) ──
+    html += '<div style="' + sectionTitle + '">Voting Items</div>';
+    for (var i = 0; i < 4; i++) {
+      var rowIdx = 25 + i;
+      html += '<div style="margin-bottom:0.5rem;display:flex;align-items:center;gap:0.6rem;">'
+        + '<span style="font-size:0.75rem;font-weight:700;color:var(--mid);white-space:nowrap;width:55px;">VOTE ' + (i + 1) + '</span>'
+        + '<input type="text" id="agmVote_' + i + '" value="' + escAdm(cell(rowIdx, 1)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+        + '</div>';
+    }
+
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load agenda — ' + e.message + '</p>';
+  }
+}
+
+async function agmAgendaSave() {
+  var status = document.getElementById('agmAgendaStatus');
+  status.textContent = 'Saving…';
+  try {
+    var details = [];
+    for (var i = 0; i < 5; i++) {
+      var el = document.getElementById('agmDetail_' + i);
+      details.push(el ? el.value : '');
+    }
+    var items = [];
+    for (var i = 0; i < 12; i++) {
+      var t = document.getElementById('agmItem_' + i);
+      var r = document.getElementById('agmRaisedBy_' + i);
+      items.push({ text: t ? t.value : '', raisedBy: r ? r.value : '' });
+    }
+    var votes = [];
+    for (var i = 0; i < 4; i++) {
+      var el = document.getElementById('agmVote_' + i);
+      votes.push(el ? el.value : '');
+    }
+    var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'writeAgenda', details: details, items: items, votes: votes }) });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    agmAgendaClearDirty();
+    status.textContent = '✓ Saved';
+    setTimeout(function(){ status.textContent = ''; }, 3000);
+  } catch(e) {
+    status.style.color = '#b05050';
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
 // ── AGM SUBMISSIONS ───────────────────────────────────────────────────────────
 
 var agmSubmissions = [];
@@ -1811,7 +1941,7 @@ function renderAgmSubmissions() {
     html += '<tr>'
       + '<td style="font-size:0.8rem;color:var(--mid);">' + escAdm(s.raisedBy) + '</td>'
       + '<td style="font-size:0.82rem;">' + escAdm(s.item) + '</td>'
-      + '<td style="font-size:0.78rem;color:var(--stone);">' + escAdm((s.timestamp || '').toString().substring(0, 10)) + '</td>'
+      + '<td style="font-size:0.78rem;color:var(--stone);">' + escAdm(s.timestamp || '') + '</td>'
       + '<td style="text-align:center;"><button class="abtn abtn-danger" style="padding:0.3rem 0.6rem;font-size:0.75rem;" onclick="agmDeleteOne(' + i + ')">&#128465;</button></td>'
       + '</tr>';
   });
