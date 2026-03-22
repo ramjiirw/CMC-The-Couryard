@@ -2541,6 +2541,7 @@ async function bcSend() {
       document.getElementById('bcCharCount').textContent = '0 words · 0 characters';
       bcResidents.forEach(function(r){ r.open = false; });
       bcSelectNone();
+      bcSetMode('to');
       var successText = later
         ? 'Email scheduled for ' + document.getElementById('bcSchedDate').value + ' at ' + document.getElementById('bcSchedTime').value + '.'
         : 'Email sent successfully to ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + '.';
