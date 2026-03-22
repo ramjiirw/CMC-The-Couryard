@@ -202,7 +202,9 @@
     padding-top: 0.35rem;
     border-top: 1px solid rgba(184,173,158,0.25);
   }
-  .legend-extra.visible { display: block; }
+  .legend-extra.visible ~ * { border-top: 1px solid rgba(184,173,158,0.25); }
+  .legend-extra.visible { display: block; padding-bottom: 0.4rem; }
+  .legend-row:has(.legend-extra.visible) { border-bottom: 1px solid rgba(184,173,158,0.35); }
   .legend-extra-row {
     display: flex; align-items: baseline; gap: 0.4rem;
     font-size: 0.7rem; color: var(--mid); margin-top: 0.15rem;
