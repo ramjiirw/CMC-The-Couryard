@@ -880,21 +880,75 @@ function showPanel(id) {
   resetAutoLock();
 }
 
+function buildOwnerName(address, residentRows) {
+  var matches = residentRows.filter(function(r) {
+    return (r.address || '').toString().trim().toLowerCase() === address.toString().trim().toLowerCase();
+  });
+  if (!matches.length) return '';
+
+  // Build a display name per person: "FirstName LastName" or just "FirstName"
+  var people = matches.map(function(r) {
+    var fn = (r.firstName || '').trim();
+    var ln = (r.lastName || '').trim();
+    return { first: fn, last: ln };
+  }).filter(function(p) { return p.first || p.last; })
+    .sort(function(a, b) { return a.first.localeCompare(b.first); });
+
+  if (!people.length) return '';
+  if (people.length === 1) {
+    return people[0].last ? people[0].first + ' ' + people[0].last : people[0].first;
+  }
+
+  // Group by surname (blank surnames treated as unique)
+  var bySurname = {};
+  people.forEach(function(p) {
+    var key = p.last || ('__' + p.first); // blank last = own group
+    if (!bySurname[key]) bySurname[key] = [];
+    bySurname[key].push(p);
+  });
+
+  var parts = [];
+  Object.keys(bySurname).forEach(function(key) {
+    var group = bySurname[key];
+    var firstNames = group.map(function(p) { return p.first; }).filter(Boolean);
+    var lastName = group[0].last;
+    if (firstNames.length === 0) return;
+    if (firstNames.length === 1) {
+      parts.push(lastName ? firstNames[0] + ' ' + lastName : firstNames[0]);
+    } else {
+      // Multiple people with same surname: "Alison & Marcus Earnshaw"
+      var joined = firstNames.slice(0, -1).join(', ') + ' & ' + firstNames[firstNames.length - 1];
+      parts.push(lastName ? joined + ' ' + lastName : joined);
+    }
+  });
+
+  // Join multiple surname groups with " & "
+  if (parts.length === 1) return parts[0];
+  return parts.slice(0, -1).join(', ') + ' & ' + parts[parts.length - 1];
+}
+
 function loadResidents() {
   var wrap = document.getElementById('residentsTableWrap');
   wrap.innerHTML = '<div class="state-msg"><div class="spinner"></div>Loading residents...</div>';
-  fetch(SCRIPT_URL + '?action=readResidentMap')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      residents = d.residents || d.rows || [];
-      editDraft = residents.map(function(r){ return Object.assign({}, r); });
-      var sc = document.getElementById('statResidents');
-      if (sc) sc.textContent = residents.length;
-      renderTable();
-    })
-    .catch(function(){
-      wrap.innerHTML = '<div class="state-msg" style="color:#b05050">Failed to load. Check connection and reload.</div>';
+  Promise.all([
+    fetch(SCRIPT_URL + '?action=readResidentMap').then(function(r){ return r.json(); }),
+    fetch(SCRIPT_URL + '?action=read').then(function(r){ return r.json(); })
+  ])
+  .then(function(results) {
+    var mapData = results[0];
+    var resData = results[1];
+    var residentRows = resData.rows || [];
+    residents = (mapData.residents || mapData.rows || []).map(function(r) {
+      return Object.assign({}, r, { owner: buildOwnerName(r.address, residentRows) });
     });
+    editDraft = residents.map(function(r){ return Object.assign({}, r); });
+    var sc = document.getElementById('statResidents');
+    if (sc) sc.textContent = residents.length;
+    renderTable();
+  })
+  .catch(function(){
+    wrap.innerHTML = '<div class="state-msg" style="color:#b05050">Failed to load. Check connection and reload.</div>';
+  });
 }
 
 function reloadResidents() { editDraft = []; loadResidents(); resetAutoLock(); }
@@ -907,19 +961,18 @@ function renderTable() {
   var wrap = document.getElementById('residentsTableWrap');
   if (!editDraft.length) { wrap.innerHTML = '<div class="state-msg">No residents found.</div>'; return; }
   var rows = editDraft.map(function(r, i) {
-    var ownerBtn = r.owner ? escHtml(r.owner) : '<span class="edit-cell-empty">Owner name</span>';
+    var ownerTxt = r.owner ? escHtml(r.owner) : '<span class="edit-cell-empty" style="font-style:italic;color:#aaa;">No residents found</span>';
     var tenantBtn = r.tenant ? escHtml(r.tenant) : '<span class="edit-cell-empty">Tenant / blank</span>';
     return '<tr id="row_' + i + '">' +
       '<td class="addr-cell">' + escHtml(r.address) + '</td>' +
-      '<td><button class="edit-cell-btn" id="eo_' + i + '">' + ownerBtn + '</button></td>' +
+      '<td style="padding:0.5rem 0.7rem;font-size:0.82rem;color:var(--dark);">' + ownerTxt + '</td>' +
       '<td><button class="edit-cell-btn" id="et_' + i + '">' + tenantBtn + '</button></td>' +
       '</tr>';
   }).join('');
   wrap.innerHTML = '<div style="overflow-x:auto"><table class="res-table">' +
-    '<thead><tr><th>Address</th><th>Owner</th><th>Tenant</th></tr></thead>' +
+    '<thead><tr><th>Address</th><th>Owner <span style="font-weight:400;font-size:0.65rem;color:var(--stone);text-transform:none;letter-spacing:0;">(from Residents)</span></th><th>Tenant</th></tr></thead>' +
     '<tbody>' + rows + '</tbody></table></div>';
   editDraft.forEach(function(r, i) {
-    document.getElementById('eo_' + i).addEventListener('click', function(){ openCep(i, 'owner'); });
     document.getElementById('et_' + i).addEventListener('click', function(){ openCep(i, 'tenant'); });
   });
 }
@@ -928,7 +981,7 @@ function saveResidents() {
   var btn = document.getElementById('resSaveBtn');
   var errEl = document.getElementById('resErrMsg');
   errEl.textContent = '';
-  var changed = editDraft.filter(function(r, i){ var o = residents[i]; return !o || r.owner !== o.owner || r.tenant !== o.tenant; });
+  var changed = editDraft.filter(function(r, i){ var o = residents[i]; return !o || r.tenant !== o.tenant; });
   if (!changed.length) { showToast('No changes to save', 'success'); return; }
   btn.textContent = 'Saving 1 of ' + changed.length;
   btn.disabled = true;
