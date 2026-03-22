@@ -2309,9 +2309,9 @@ async function bcLoad() {
       if (h === 9) opt.selected = true;
       hourSel.appendChild(opt);
     }
-    // Populate minute dropdown (hour only — :00)
+    // Populate minute dropdown (00, 15, 30, 45)
     var minSel = document.getElementById('bcSchedMin');
-    ['00'].forEach(function(m) {
+    ['00','15','30','45'].forEach(function(m) {
       var opt = document.createElement('option');
       opt.value = m; opt.textContent = m;
       minSel.appendChild(opt);
@@ -2661,11 +2661,11 @@ async function bhLoad() {
       + '<thead><tr style="background:var(--dark);color:var(--cream);">'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Timestamp</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Subject</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;min-width:200px;">Message</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Recipients</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Type</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">External</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;min-width:200px;">Message</th>'
       + '</tr></thead><tbody>';
     data.rows.forEach(function(r, i) {
       var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
@@ -2678,11 +2678,11 @@ async function bhLoad() {
       html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
         + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;text-align:center;">' + (r.recipients || 0) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
         + '</tr>';
     });
     html += '</tbody></table>';
