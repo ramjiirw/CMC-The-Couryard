@@ -397,23 +397,40 @@ function buildLegend(data) {
 }
 
 async function loadData() {
+  // ── Step 1: Load CSV immediately for fast display ─────────────────────────
+  try {
+    const res = await fetch(SHEET_CSV);
+    if (res.ok) {
+      const text = await res.text();
+      residents = parseCSV(text);
+      residents.sort((a, b) => a.num - b.num);
+      buildLegend(residents);
+    }
+  } catch(e) {
+    document.getElementById('legendList').innerHTML =
+      '<div class="error-msg">Could not load resident data. Please try refreshing.</div>';
+  }
+
+  // ── Step 2: Silently refresh from Apps Script for fresh data ──────────────
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'readResidentMap' })
     });
-    if (!res.ok) throw new Error('Network error');
+    if (!res.ok) return;
     const data = await res.json();
     const rows = data.residents || data.rows || [];
-    residents = rows.map(r => {
+    const fresh = rows.map(r => {
       const num = parseInt((r.address || '').match(/\d+/)?.[0]) || 0;
       return { num, address: r.address || '', owner: r.owner || '', tenant: r.tenant || '' };
     }).filter(r => r.num > 0).sort((a, b) => a.num - b.num);
-    buildLegend(residents);
+    if (fresh.length) {
+      residents = fresh;
+      buildLegend(residents);
+    }
   } catch(e) {
-    document.getElementById('legendList').innerHTML =
-      '<div class="error-msg">Could not load resident data. Please try refreshing.</div>';
+    // Silent fail — CSV data already showing
   }
 }
 
