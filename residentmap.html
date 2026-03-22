@@ -398,11 +398,18 @@ function buildLegend(data) {
 
 async function loadData() {
   try {
-    const res = await fetch(SHEET_CSV);
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'readResidentMap' })
+    });
     if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    residents = parseCSV(text);
-    residents.sort((a, b) => a.num - b.num);
+    const data = await res.json();
+    const rows = data.residents || data.rows || [];
+    residents = rows.map(r => {
+      const num = parseInt((r.address || '').match(/\d+/)?.[0]) || 0;
+      return { num, address: r.address || '', owner: r.owner || '', tenant: r.tenant || '' };
+    }).filter(r => r.num > 0).sort((a, b) => a.num - b.num);
     buildLegend(residents);
   } catch(e) {
     document.getElementById('legendList').innerHTML =
