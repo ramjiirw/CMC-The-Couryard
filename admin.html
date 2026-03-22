@@ -2631,6 +2631,18 @@ async function bcSend() {
 
 // ─── BROADCAST HISTORY ───────────────────────────────────────────────────────
 
+function bhFormatTimestamp(ts) {
+  if (!ts) return '–';
+  // Already in dd/MM/yyyy HH:mm format from Apps Script — return as-is
+  if (/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(ts)) return ts;
+  // Parse JS date string and reformat
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return ts;
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
 async function bhLoad() {
   var wrap   = document.getElementById('bhTableWrap');
   var status = document.getElementById('bhStatus');
@@ -2662,8 +2674,9 @@ async function bhLoad() {
         : '<span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span>';
       var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
       var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
+      var ts = bhFormatTimestamp(r.timestamp);
       html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
-        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(r.timestamp) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;text-align:center;">' + (r.recipients || 0) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
