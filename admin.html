@@ -786,7 +786,8 @@ function showDashboard() {
   startAutoLock();
   loadResidents();
   loadWelcomeStats();
-  loadMaintenanceIssues(true); // preload in background so data is ready when tab is clicked
+  loadMaintenanceIssues(true);
+  setInterval(function(){ loadResidents(); }, 60000);
 }
 
 function lockAdmin() {
@@ -871,7 +872,6 @@ function showPanel(id) {
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = null;
   }
-  if (id === 'residents') { editDraft = []; loadResidents(); }
   if (window.innerWidth <= 600) {
     adminSidebar.classList.add('collapsed');
     sidebarToggle.innerHTML = '&#10095;';
