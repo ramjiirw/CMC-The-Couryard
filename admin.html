@@ -2381,6 +2381,7 @@ async function bcSend() {
     if (data.status === 'ok') {
       document.getElementById('bcTitle').value = '';
       document.getElementById('bcMessage').value = '';
+      bcResidents.forEach(function(r){ r.open = false; });
       bcSelectNone();
       var successText = 'Email sent successfully to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + '.';
       // Large bold text
