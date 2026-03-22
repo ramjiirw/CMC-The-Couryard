@@ -700,8 +700,24 @@
       <div class="admin-panel" id="panel-broadcasthistory">
         <div class="panel-title">Broadcast Send History</div>
         <div class="panel-desc">A record of all broadcast emails sent — both immediate and scheduled. Loaded from the <strong>BroadcastHistory</strong> sheet, newest first.</div>
-        <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;align-items:center;">
+
+        <!-- Pending scheduled emails -->
+        <div style="margin-bottom:1.2rem;">
+          <div style="font-size:0.85rem;font-weight:700;color:var(--dark);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.6rem;">
+            &#9203; Pending Scheduled Emails
+            <span id="bhPendingStatus" style="font-size:0.75rem;font-weight:400;color:var(--mid);"></span>
+          </div>
+          <div id="bhPendingWrap">
+            <p style="color:var(--mid);font-size:0.82rem;">Loading…</p>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid rgba(184,173,158,0.3);margin-bottom:1rem;"></div>
+
+        <!-- Sent history -->
+        <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <button class="abtn abtn-muted" onclick="bhLoad()">&#8635; Refresh</button>
+          <button class="abtn abtn-danger" onclick="bhClearHistory()" style="background:rgba(176,80,80,0.08);color:#b05050;border:1px solid rgba(176,80,80,0.25);">&#128465; Clear History</button>
           <span id="bhStatus" style="font-size:0.78rem;color:var(--mid);"></span>
         </div>
         <div id="bhTableWrap" style="overflow-x:auto;">
@@ -2633,9 +2649,7 @@ async function bcSend() {
 
 function bhFormatTimestamp(ts) {
   if (!ts) return '–';
-  // Already in dd/MM/yyyy HH:mm format from Apps Script — return as-is
   if (/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(ts)) return ts;
-  // Parse JS date string and reformat
   var d = new Date(ts);
   if (isNaN(d.getTime())) return ts;
   var pad = function(n){ return String(n).padStart(2,'0'); };
@@ -2643,11 +2657,92 @@ function bhFormatTimestamp(ts) {
     + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
+// ── Pending scheduled emails ──────────────────────────────────────────────────
+
+async function bhLoadPending() {
+  var wrap   = document.getElementById('bhPendingWrap');
+  var status = document.getElementById('bhPendingStatus');
+  wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">Loading…</p>';
+  try {
+    var res  = await fetch(SCRIPT_URL + '?action=readScheduledEmails');
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    var pending = (data.rows || []).filter(function(r){ return r.status === 'Pending'; });
+    if (!pending.length) {
+      wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;font-style:italic;">No pending scheduled emails.</p>';
+      status.textContent = '';
+      return;
+    }
+    status.textContent = pending.length + ' pending';
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+      + '<thead><tr style="background:var(--dark);color:var(--cream);">'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Send At</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Subject</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Recipients</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;"></th>'
+      + '</tr></thead><tbody>';
+    pending.forEach(function(r, i) {
+      var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
+      var rowId = 'bhp-rec-' + i;
+      var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + escHtml(r.mode || 'to').toUpperCase() + '</span>';
+      var recCount = (r.emails || []).length;
+      html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
+        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(r.sendAt) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.title) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;">'
+        +   '<span onclick="bhToggleRec(\'' + rowId + '\',this)" style="cursor:pointer;color:var(--accent);font-weight:600;">'
+        +     recCount + ' &#9660;'
+        +   '</span>'
+        + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;text-align:right;">'
+        +   '<button class="abtn" style="font-size:0.72rem;padding:0.2rem 0.6rem;background:rgba(176,80,80,0.08);color:#b05050;border:1px solid rgba(176,80,80,0.25);border-radius:4px;" onclick="bhCancelPending(' + r.rowIndex + ',this)">Cancel</button>'
+        + '</td>'
+        + '</tr>'
+        + '<tr id="' + rowId + '" style="display:none;background:rgba(122,92,62,0.04);">'
+        +   '<td colspan="5" style="padding:0.4rem 0.8rem 0.6rem;font-size:0.78rem;color:var(--mid);">'
+        +     escHtml((r.emails || []).join(', '))
+        +   '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load pending — ' + e.message + '</p>';
+  }
+}
+
+function bhToggleRec(rowId, btn) {
+  var row = document.getElementById(rowId);
+  if (!row) return;
+  var visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'table-row';
+  btn.innerHTML = btn.innerHTML.replace(visible ? '▲' : '▼', visible ? '▼' : '▲');
+}
+
+async function bhCancelPending(rowIndex, btn) {
+  if (!confirm('Cancel this scheduled email?')) return;
+  btn.disabled = true; btn.textContent = 'Cancelling…';
+  try {
+    var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'cancelScheduledEmail', rowIndex: rowIndex }) });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    bhLoadPending();
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Cancel';
+    alert('Could not cancel — ' + e.message);
+  }
+}
+
+// ── Sent history ──────────────────────────────────────────────────────────────
+
 async function bhLoad() {
   var wrap   = document.getElementById('bhTableWrap');
   var status = document.getElementById('bhStatus');
   wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">Loading…</p>';
   status.textContent = '';
+  bhLoadPending();
   try {
     var res  = await fetch(SCRIPT_URL + '?action=readBroadcastHistory');
     var data = await res.json();
@@ -2666,29 +2761,72 @@ async function bhLoad() {
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Type</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">External</th>'
+      + '<th style="padding:0.5rem 0.6rem;text-align:left;"></th>'
       + '</tr></thead><tbody>';
     data.rows.forEach(function(r, i) {
       var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
+      var rowId = 'bh-rec-' + i;
       var typeChip = r.type === 'Scheduled'
         ? '<span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span>'
         : '<span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span>';
       var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
       var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
       var ts = bhFormatTimestamp(r.timestamp);
+      var recCount = r.recipients || 0;
       html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
         + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;text-align:center;">' + (r.recipients || 0) + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;text-align:center;">'
+        +   '<span onclick="bhToggleRec(\'' + rowId + '\',this)" style="cursor:pointer;color:var(--accent);font-weight:600;" title="Show recipients">'
+        +     recCount + ' &#9660;'
+        +   '</span>'
+        + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
+        + '<td style="padding:0.45rem 0.6rem;text-align:right;">'
+        +   '<button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.2rem 0.6rem;" onclick="bhResend(' + i + ')">&#8635; Resend</button>'
+        + '</td>'
+        + '</tr>'
+        + '<tr id="' + rowId + '" style="display:none;background:rgba(122,92,62,0.04);">'
+        +   '<td colspan="8" style="padding:0.4rem 0.8rem 0.6rem;font-size:0.78rem;color:var(--mid);">'
+        +     '<strong>Recipients:</strong> ' + escHtml(r.externalTo ? r.externalTo + ' + ' + recCount + ' resident(s)' : recCount + ' resident(s)')
+        +   '</td>'
         + '</tr>';
     });
     html += '</tbody></table>';
     wrap.innerHTML = html;
+    window._bhRows = data.rows;
   } catch(e) {
     wrap.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load history — ' + e.message + '</p>';
+  }
+}
+
+function bhResend(i) {
+  var r = (window._bhRows || [])[i];
+  if (!r) return;
+  // Switch to broadcast panel and pre-fill
+  showPanel('broadcast');
+  setTimeout(function() {
+    var titleEl = document.getElementById('bcTitle');
+    var msgEl   = document.getElementById('bcMessage');
+    if (titleEl) titleEl.value   = r.subject || '';
+    if (msgEl)   msgEl.value     = r.message || '';
+    if (typeof bcUpdateCharCount === 'function') bcUpdateCharCount();
+    if (typeof bcSetMode === 'function') bcSetMode((r.mode || 'to').toLowerCase());
+  }, 150);
+}
+
+async function bhClearHistory() {
+  if (!confirm('Clear all send history? This cannot be undone.')) return;
+  try {
+    var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'clearBroadcastHistory' }) });
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+    bhLoad();
+  } catch(e) {
+    alert('Could not clear history — ' + e.message);
   }
 }
 
