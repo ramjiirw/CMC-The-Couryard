@@ -589,22 +589,50 @@
 
       <div class="admin-panel" id="panel-broadcast">
         <div class="panel-title">Broadcast Email</div>
-        <div class="panel-desc">Send a one-off email to selected residents. One email is sent with all selected addresses in the To field.</div>
+        <div class="panel-desc">Compose and send a one-off email to selected residents.</div>
         <div id="bcMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
 
-        <!-- Address selector -->
+        <!-- Recipients & mode -->
         <div style="margin-bottom:1rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
             <label style="font-size:0.78rem;font-weight:600;color:var(--mid);">Recipients</label>
-            <div style="display:flex;gap:0.5rem;">
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:0.72rem;color:var(--mid);">Mode:</span>
+              <button id="bcModeTo"  class="abtn abtn-primary"  style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('to')">To</button>
+              <button id="bcModeCC"  class="abtn abtn-muted"    style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('cc')">CC</button>
+              <button id="bcModeBCC" class="abtn abtn-muted"    style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('bcc')">BCC</button>
+              <span style="width:1px;height:1rem;background:rgba(122,92,62,0.2);display:inline-block;"></span>
               <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectAll()">Select All</button>
               <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectNone()">Clear All</button>
             </div>
           </div>
+          <div id="bcModeDesc" style="font-size:0.72rem;color:var(--mid);margin-bottom:0.5rem;">All selected residents will appear in the To field.</div>
           <div id="bcAddressList" style="border:1px solid rgba(122,92,62,0.28);border-radius:6px;background:#fff;padding:0.4rem 0;">
             <div style="font-size:0.78rem;color:var(--stone);padding:0.5rem 0.75rem;font-style:italic;">Loading addresses…</div>
           </div>
           <div id="bcRecipientCount" style="font-size:0.72rem;color:var(--mid);margin-top:0.35rem;min-height:1rem;"></div>
+          <!-- External address -->
+          <div style="margin-top:0.5rem;">
+            <button class="abtn abtn-muted" id="bcExtToggleBtn" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcToggleExt()">+ Add external address</button>
+            <div id="bcExtRow" style="display:none;margin-top:0.5rem;display:none;align-items:center;gap:0.5rem;background:rgba(122,92,62,0.05);border:1px solid rgba(122,92,62,0.2);border-radius:6px;padding:0.4rem 0.75rem;">
+              <span style="font-size:0.72rem;color:var(--mid);white-space:nowrap;font-weight:600;">External To:</span>
+              <input type="email" id="bcExtEmail" placeholder="e.g. contractor@example.com" style="flex:1;border:none;background:none;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);outline:none;">
+              <button class="abtn abtn-danger" style="font-size:0.72rem;padding:0.2rem 0.5rem;" onclick="bcToggleExt()">Remove</button>
+            </div>
+            <div id="bcExtNote" style="display:none;font-size:0.7rem;color:var(--mid);margin-top:0.3rem;">External address will appear in To; residents will be in <span id="bcExtModeLabel">To</span>.</div>
+          </div>
+        </div>
+
+        <!-- Templates -->
+        <div style="margin-bottom:0.75rem;display:flex;gap:0.5rem;align-items:center;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--mid);white-space:nowrap;">Template:</label>
+          <select id="bcTplSel" onchange="bcApplyTemplate()" style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;">
+            <option value="">— Load a template —</option>
+            <option value="agm">AGM notice</option>
+            <option value="carpark">Car park works</option>
+            <option value="maintenance">Planned maintenance</option>
+            <option value="reminder">General reminder</option>
+          </select>
         </div>
 
         <!-- Subject -->
@@ -614,17 +642,54 @@
         </div>
 
         <!-- Message -->
-        <div style="margin-bottom:1rem;">
+        <div style="margin-bottom:0.4rem;">
           <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Message</label>
-          <textarea id="bcMessage" placeholder="Type your message here…" rows="6" style="width:100%;box-sizing:border-box;padding:0.5rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
+          <textarea id="bcMessage" placeholder="Type your message here…" rows="6" oninput="bcUpdateCharCount()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.75rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
+        </div>
+        <div id="bcCharCount" style="font-size:0.7rem;color:var(--mid);text-align:right;margin-bottom:0.75rem;">0 words · 0 characters</div>
+
+        <!-- Send timing -->
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--mid);display:block;margin-bottom:0.4rem;">Send timing</label>
+          <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;cursor:pointer;">
+              <input type="radio" name="bcSched" value="now" checked onchange="bcToggleSched()"> Send now
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;cursor:pointer;">
+              <input type="radio" name="bcSched" value="later" onchange="bcToggleSched()"> Schedule for later
+            </label>
+          </div>
+          <div id="bcSchedFields" style="display:none;margin-top:0.5rem;display:none;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <input type="date" id="bcSchedDate" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;">
+            <input type="time" id="bcSchedTime" value="09:00" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;">
+            <span style="font-size:0.72rem;color:var(--mid);">UK time</span>
+          </div>
         </div>
 
         <div id="bcButtonArea" style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
           <button class="abtn abtn-muted" onclick="bcClear()">&#10005; Clear</button>
-          <button class="abtn abtn-primary" id="bcSendBtn" onclick="bcSend()">&#128231; Send Email</button>
+          <button class="abtn abtn-primary" id="bcSendBtn" onclick="bcReview()">&#128231; Review &amp; Send</button>
         </div>
         <div id="bcSuccessArea" style="display:none;padding:0.75rem 0;">
           <p style="margin:0;font-size:1.1rem;font-weight:700;color:var(--accent);">&#10003; <span id="bcSuccessText"></span></p>
+        </div>
+
+        <!-- Review modal -->
+        <div id="bcModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.6);z-index:500;align-items:center;justify-content:center;">
+          <div style="background:var(--cream);border-radius:10px;border:1px solid rgba(122,92,62,0.3);padding:1.5rem;width:90%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+            <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:0.2rem;">Review &amp; Send</div>
+            <div id="bcModalSub" style="font-size:0.75rem;color:var(--mid);margin-bottom:1rem;"></div>
+            <div id="bcModalRecipList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;"></div>
+            <div style="font-size:0.72rem;font-weight:600;color:var(--mid);margin-bottom:0.25rem;">Subject / Title</div>
+            <div id="bcModalSubject" style="background:rgba(122,92,62,0.06);border:1px solid rgba(122,92,62,0.15);border-radius:6px;padding:0.5rem 0.75rem;font-size:0.85rem;color:var(--dark);margin-bottom:0.75rem;"></div>
+            <div style="font-size:0.72rem;font-weight:600;color:var(--mid);margin-bottom:0.25rem;">Message</div>
+            <div id="bcModalMessage" style="background:rgba(122,92,62,0.06);border:1px solid rgba(122,92,62,0.15);border-radius:6px;padding:0.5rem 0.75rem;font-size:0.85rem;color:var(--dark);white-space:pre-wrap;margin-bottom:1rem;"></div>
+            <div id="bcModalSchedNote" style="display:none;font-size:0.78rem;color:var(--mid);margin-bottom:0.75rem;padding:0.4rem 0.75rem;background:rgba(196,149,106,0.12);border-radius:6px;border:1px solid rgba(196,149,106,0.3);"></div>
+            <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+              <button class="abtn abtn-muted" onclick="bcCloseModal()">Cancel</button>
+              <button class="abtn abtn-primary" id="bcConfirmBtn" onclick="bcSend()">&#128231; Confirm &amp; Send</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2188,32 +2253,88 @@ async function nbNotify(i) {
 
 // ─── BROADCAST EMAIL ─────────────────────────────────────────────────────────
 
-var bcResidents = []; // [{address, emails:[]}]
+var bcResidents = [];
+var bcMode = 'to';
+var bcExtVisible = false;
+var bcTemplates = {
+  agm:         { subject: 'AGM Notice — CMC The Courtyard',   body: 'Dear residents,\n\nThis is a reminder that the Annual General Meeting will be held on [DATE] at [TIME] in [LOCATION].\n\nPlease confirm your attendance by replying to this email.\n\nCMC Management' },
+  carpark:     { subject: 'Car Park Works — CMC The Courtyard', body: 'Dear residents,\n\nPlease be aware that car park resurfacing works are scheduled for [DATE]. Access will be restricted between 8am and 4pm.\n\nWe apologise for any inconvenience.\n\nCMC Management' },
+  maintenance: { subject: 'Planned Maintenance Notice',        body: 'Dear residents,\n\nWe wish to inform you that planned maintenance will be carried out on [DATE] affecting [AREA/SERVICE].\n\nIf you have any questions please contact the management team.\n\nCMC Management' },
+  reminder:    { subject: 'Reminder — CMC The Courtyard',      body: 'Dear residents,\n\nThis is a friendly reminder regarding [SUBJECT].\n\nThank you for your cooperation.\n\nCMC Management' }
+};
 
 async function bcLoad() {
   try {
     const res = await fetch(SCRIPT_URL + '?action=read');
     const data = await res.json();
     var rows = data.rows || [];
-
-    // Group by address — include all, flag those with no emails
     var map = {};
     rows.forEach(function(r) {
       if (!map[r.address]) map[r.address] = [];
       if (r.email && r.email.indexOf('@') > -1) map[r.address].push(r.email);
     });
-
     bcResidents = Object.keys(map).sort(function(a,b){
       return a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'});
     }).map(function(addr) {
       var emails = map[addr];
       return { address: addr, emails: emails, checked: emails.map(function(){ return false; }), open: false };
     });
-
     bcRenderAddresses();
+    // Set default date for scheduler
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('bcSchedDate').value = today;
   } catch(e) {
     document.getElementById('bcAddressList').innerHTML = '<div style="font-size:0.78rem;color:#b05050;padding:0.5rem 0.75rem;">Could not load addresses.</div>';
   }
+}
+
+function bcSetMode(m) {
+  bcMode = m;
+  ['to','cc','bcc'].forEach(function(mode) {
+    var btn = document.getElementById('bcMode' + mode.charAt(0).toUpperCase() + mode.slice(1).toUpperCase().charAt(0) + mode.slice(2));
+    if (btn) { btn.className = 'abtn ' + (mode === m ? 'abtn-primary' : 'abtn-muted'); }
+  });
+  // fix id references: bcModeTo, bcModeCC, bcModeBCC
+  document.getElementById('bcModeTo').className  = 'abtn ' + (m==='to'  ? 'abtn-primary' : 'abtn-muted');
+  document.getElementById('bcModeCC').className  = 'abtn ' + (m==='cc'  ? 'abtn-primary' : 'abtn-muted');
+  document.getElementById('bcModeBCC').className = 'abtn ' + (m==='bcc' ? 'abtn-primary' : 'abtn-muted');
+  var descs = { to:'All selected residents will appear in the To field.', cc:'All selected residents will appear in the CC field.', bcc:'All selected residents will be BCC\'d — they won\'t see each other\'s addresses.' };
+  document.getElementById('bcModeDesc').textContent = descs[m];
+  if (bcExtVisible) document.getElementById('bcExtModeLabel').textContent = m.toUpperCase();
+  bcUpdateCount();
+}
+
+function bcToggleExt() {
+  bcExtVisible = !bcExtVisible;
+  var row  = document.getElementById('bcExtRow');
+  var note = document.getElementById('bcExtNote');
+  var btn  = document.getElementById('bcExtToggleBtn');
+  row.style.display  = bcExtVisible ? 'flex'   : 'none';
+  note.style.display = bcExtVisible ? 'block'  : 'none';
+  btn.textContent    = bcExtVisible ? '✕ Remove external address' : '+ Add external address';
+  if (bcExtVisible) document.getElementById('bcExtModeLabel').textContent = bcMode.toUpperCase();
+}
+
+function bcApplyTemplate() {
+  var val = document.getElementById('bcTplSel').value;
+  if (!val) return;
+  var t = bcTemplates[val];
+  document.getElementById('bcTitle').value   = t.subject;
+  document.getElementById('bcMessage').value = t.body;
+  bcUpdateCharCount();
+  document.getElementById('bcTplSel').value = '';
+}
+
+function bcUpdateCharCount() {
+  var msg = document.getElementById('bcMessage').value;
+  var words = msg.trim() ? msg.trim().split(/\s+/).length : 0;
+  document.getElementById('bcCharCount').textContent = words + ' word' + (words!==1?'s':'') + ' · ' + msg.length + ' character' + (msg.length!==1?'s':'');
+}
+
+function bcToggleSched() {
+  var later = document.querySelector('input[name=bcSched][value=later]').checked;
+  var fields = document.getElementById('bcSchedFields');
+  fields.style.display = later ? 'flex' : 'none';
 }
 
 function bcRenderAddresses() {
@@ -2236,9 +2357,9 @@ function bcRenderAddresses() {
     var anyOn = r.checked.some(Boolean);
     var allOn = r.checked.every(Boolean);
     var activeCnt = r.checked.filter(Boolean).length;
-    var rowBg = anyOn ? 'background:rgba(122,92,62,0.1);' : '';
+    var rowBg    = anyOn ? 'background:rgba(122,92,62,0.1);' : '';
     var rowColor = anyOn ? 'color:var(--accent);font-weight:600;' : 'color:var(--dark);';
-    var arrowRot = r.open ? 'transform:rotate(90deg);' : '';
+    var arrowRot   = r.open ? 'transform:rotate(90deg);' : '';
     var subDisplay = r.open ? 'block' : 'none';
     var countLabel = activeCnt > 0 && activeCnt < r.emails.length
       ? activeCnt + '/' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '')
@@ -2267,7 +2388,6 @@ function bcRenderAddresses() {
     + '<div style="background:var(--cream);">' + col1.map(function(r){ return renderItem(r, bcResidents.indexOf(r)); }).join('') + '</div>'
     + '<div style="background:var(--cream);">' + col2.map(function(r){ return renderItem(r, bcResidents.indexOf(r)); }).join('') + '</div>'
     + '</div>';
-  // Set indeterminate state on address checkboxes where needed
   bcResidents.forEach(function(r, i) {
     var chk = document.getElementById('bc-chk-' + i);
     if (chk) chk.indeterminate = r.checked.some(Boolean) && !r.checked.every(Boolean);
@@ -2282,15 +2402,15 @@ function bcUpdateCount() {
     var cnt = r.checked.filter(Boolean).length;
     if (cnt > 0) { totalEmails += cnt; addrCount++; }
   });
+  var modeLabel = bcMode.toUpperCase();
   var countEl = document.getElementById('bcRecipientCount');
   if (totalEmails === 0) {
     countEl.textContent = 'No addresses selected.';
   } else {
-    countEl.textContent = addrCount + ' address' + (addrCount > 1 ? 'es' : '') + ' selected — ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '') + ' in To field.';
+    countEl.textContent = addrCount + ' address' + (addrCount > 1 ? 'es' : '') + ' selected — ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '') + ' in ' + modeLabel + ' field.';
   }
 }
 
-// Called when user clicks the address row label area (toggles all emails for that address)
 function bcToggleAddr(i) {
   var r = bcResidents[i];
   if (!r.emails.length) return;
@@ -2299,7 +2419,6 @@ function bcToggleAddr(i) {
   bcRenderAddresses();
 }
 
-// Called when user clicks the checkbox directly (same behaviour as clicking the row)
 function bcClickAddrChk(i) {
   var r = bcResidents[i];
   var allOn = r.checked.every(Boolean);
@@ -2307,13 +2426,11 @@ function bcClickAddrChk(i) {
   bcRenderAddresses();
 }
 
-// Called when user clicks the expand arrow (multi-email addresses only)
 function bcToggleExpand(i) {
   bcResidents[i].open = !bcResidents[i].open;
   bcRenderAddresses();
 }
 
-// Called when user toggles an individual email checkbox
 function bcToggleEmail(i, ei) {
   bcResidents[i].checked[ei] = !bcResidents[i].checked[ei];
   bcRenderAddresses();
@@ -2330,83 +2447,114 @@ function bcSelectNone() {
 }
 
 function bcClear() {
-  document.getElementById('bcTitle').value = '';
+  document.getElementById('bcTitle').value   = '';
   document.getElementById('bcMessage').value = '';
   document.getElementById('bcMsg').textContent = '';
+  document.getElementById('bcCharCount').textContent = '0 words · 0 characters';
   bcResidents.forEach(function(r){ r.checked = r.checked.map(function(){ return false; }); r.open = false; });
   bcRenderAddresses();
 }
 
-async function bcSend() {
-  var title   = (document.getElementById('bcTitle').value || '').trim();
+function bcReview() {
+  var title   = (document.getElementById('bcTitle').value   || '').trim();
   var message = (document.getElementById('bcMessage').value || '').trim();
   var msg     = document.getElementById('bcMsg');
-
   if (!title)   { msg.style.color = '#b05050'; msg.textContent = '✗ Please enter a subject / title.'; return; }
   if (!message) { msg.style.color = '#b05050'; msg.textContent = '✗ Please enter a message.'; return; }
 
-  // Collect selected emails
   var selectedEmails = [];
-  var selectedAddrCount = 0;
+  var selectedAddrs  = [];
   bcResidents.forEach(function(r) {
-    r.emails.forEach(function(email, ei) {
-      if (r.checked[ei]) selectedEmails.push(email);
-    });
-    if (r.checked.some(Boolean)) selectedAddrCount++;
+    var addrEmails = [];
+    r.emails.forEach(function(email, ei) { if (r.checked[ei]) addrEmails.push(email); });
+    if (addrEmails.length) { selectedEmails = selectedEmails.concat(addrEmails); selectedAddrs.push({ address: r.address, emails: addrEmails }); }
   });
   if (!selectedEmails.length) { msg.style.color = '#b05050'; msg.textContent = '✗ Please select at least one address.'; return; }
 
-  var totalEmails = selectedEmails.length;
-  var totalAddresses = selectedAddrCount;
-  var confirmMsg = 'Send this email to ' + totalAddresses + ' address' + (totalAddresses > 1 ? 'es' : '') + ' (' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + ')?\n\nSubject: ' + title;
-  if (!confirm(confirmMsg)) return;
+  var extEmail = bcExtVisible ? (document.getElementById('bcExtEmail').value || '').trim() : '';
 
-  var btn = document.getElementById('bcSendBtn');
-  var titleEl   = document.getElementById('bcTitle');
-  var messageEl = document.getElementById('bcMessage');
-  btn.disabled = true; btn.textContent = 'Sending…';
-  titleEl.disabled = true;
-  messageEl.disabled = true;
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.disabled = true; });
-  document.querySelector('[onclick="bcSelectAll()"]').disabled = true;
-  document.querySelector('[onclick="bcSelectNone()"]').disabled = true;
-  document.querySelector('[onclick="bcClear()"]').disabled = true;
+  // Populate modal
+  var modeLabel = bcMode.toUpperCase();
+  var sub = selectedAddrs.length + ' address' + (selectedAddrs.length > 1 ? 'es' : '') + ' · ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + ' · ' + modeLabel;
+  if (extEmail) sub += ' · External To: ' + extEmail;
+  document.getElementById('bcModalSub').textContent = sub;
+
+  var listHtml = selectedAddrs.map(function(a) {
+    return '<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0.35rem 0.75rem;border-bottom:1px solid rgba(122,92,62,0.08);gap:0.75rem;">' +
+      '<span style="font-size:0.82rem;color:var(--dark);white-space:nowrap;">' + escHtml(a.address) + '</span>' +
+      '<span style="font-size:0.72rem;color:var(--mid);text-align:right;">' + a.emails.map(escHtml).join(', ') + '</span>' +
+    '</div>';
+  }).join('');
+  document.getElementById('bcModalRecipList').innerHTML = listHtml;
+  document.getElementById('bcModalSubject').textContent = title;
+  document.getElementById('bcModalMessage').textContent = message;
+
+  var later = document.querySelector('input[name=bcSched][value=later]').checked;
+  var schedNote = document.getElementById('bcModalSchedNote');
+  if (later) {
+    var d = document.getElementById('bcSchedDate').value;
+    var t = document.getElementById('bcSchedTime').value;
+    schedNote.style.display = 'block';
+    schedNote.textContent = '⏱ Scheduled for ' + d + ' at ' + t + ' UK time.';
+    document.getElementById('bcConfirmBtn').textContent = '⏱ Confirm & Schedule';
+  } else {
+    schedNote.style.display = 'none';
+    document.getElementById('bcConfirmBtn').innerHTML = '&#128231; Confirm &amp; Send';
+  }
+
+  document.getElementById('bcModalOverlay').style.display = 'flex';
+}
+
+function bcCloseModal() {
+  document.getElementById('bcModalOverlay').style.display = 'none';
+}
+
+async function bcSend() {
+  var title   = (document.getElementById('bcTitle').value   || '').trim();
+  var message = (document.getElementById('bcMessage').value || '').trim();
+  var msg     = document.getElementById('bcMsg');
+  var later   = document.querySelector('input[name=bcSched][value=later]').checked;
+
+  var selectedEmails = [];
+  var selectedAddrCount = 0;
+  bcResidents.forEach(function(r) {
+    r.emails.forEach(function(email, ei) { if (r.checked[ei]) selectedEmails.push(email); });
+    if (r.checked.some(Boolean)) selectedAddrCount++;
+  });
+
+  var extEmail = bcExtVisible ? (document.getElementById('bcExtEmail').value || '').trim() : '';
+
+  var btn = document.getElementById('bcConfirmBtn');
+  btn.disabled = true; btn.textContent = later ? 'Scheduling…' : 'Sending…';
+
+  var payload = { action: later ? 'scheduledEmail' : 'broadcastEmail', title: title, message: message, emails: selectedEmails, mode: bcMode };
+  if (extEmail) payload.externalTo = extEmail;
+  if (later) { payload.schedDate = document.getElementById('bcSchedDate').value; payload.schedTime = document.getElementById('bcSchedTime').value; }
 
   try {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'broadcastEmail', title: title, message: message, emails: selectedEmails })
-    });
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     const data = await res.json();
     if (data.status === 'ok') {
-      document.getElementById('bcTitle').value = '';
+      bcCloseModal();
+      document.getElementById('bcTitle').value   = '';
       document.getElementById('bcMessage').value = '';
+      document.getElementById('bcCharCount').textContent = '0 words · 0 characters';
       bcResidents.forEach(function(r){ r.open = false; });
       bcSelectNone();
-      var successText = 'Email sent successfully to ' + totalEmails + ' recipient' + (totalEmails > 1 ? 's' : '') + '.';
-      // Large bold text
+      var successText = later
+        ? 'Email scheduled for ' + document.getElementById('bcSchedDate').value + ' at ' + document.getElementById('bcSchedTime').value + '.'
+        : 'Email sent successfully to ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + '.';
       document.getElementById('bcSuccessText').textContent = successText;
       document.getElementById('bcButtonArea').style.display = 'none';
       document.getElementById('bcSuccessArea').style.display = 'block';
-      setTimeout(function(){
-        document.getElementById('bcButtonArea').style.display = 'flex';
-        document.getElementById('bcSuccessArea').style.display = 'none';
-      }, 4000);
-      // Small tick message
-      msg.style.color = 'var(--green)';
-      msg.textContent = '\u2713 ' + successText;
+      setTimeout(function(){ document.getElementById('bcButtonArea').style.display='flex'; document.getElementById('bcSuccessArea').style.display='none'; }, 4000);
+      msg.style.color = 'var(--green)'; msg.textContent = '\u2713 ' + successText;
     } else throw new Error(data.message);
   } catch(e) {
-    msg.style.color = '#b05050';
-    msg.textContent = '✗ Could not send — ' + e.message;
+    bcCloseModal();
+    msg.style.color = '#b05050'; msg.textContent = '✗ Could not send — ' + e.message;
   }
-  btn.disabled = false; btn.textContent = '📧 Send Email';
-  titleEl.disabled = false;
-  messageEl.disabled = false;
-  document.querySelectorAll('#bcAddressList input[type=checkbox]').forEach(function(cb){ cb.disabled = false; });
-  document.querySelector('[onclick="bcSelectAll()"]').disabled = false;
-  document.querySelector('[onclick="bcSelectNone()"]').disabled = false;
-  document.querySelector('[onclick="bcClear()"]').disabled = false;
+  btn.disabled = false;
   setTimeout(function(){ msg.textContent = ''; }, 5000);
 }
 
