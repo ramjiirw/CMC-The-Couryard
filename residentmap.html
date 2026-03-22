@@ -360,7 +360,7 @@
     </div>
 
     <div class="legend">
-      <div class="legend-header">Properties 1–14 <button class="btn-extra-info" id="extraInfoBtn" onclick="toggleExtraInfo()" title="Show extra property info">ℹ Extra Info</button></div>
+      <div class="legend-header">Properties 1–14 <button class="btn-extra-info" id="extraInfoBtn" onclick="toggleExtraInfo()" title="Show extra property info" style="display:none">ℹ Extra Info</button></div>
       <div class="legend-list" id="legendList">
         <div class="loading">Loading resident data…</div>
       </div>
@@ -432,6 +432,8 @@ function buildLegend(data) {
   `}).join('');
   // Keep button label in sync after any rebuild
   updateExtraInfoUI();
+  const btn = document.getElementById('extraInfoBtn');
+  if (btn) btn.style.display = '';
 }
 
 function buildExtraInfoRows(r) {
