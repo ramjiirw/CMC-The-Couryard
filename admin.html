@@ -1839,9 +1839,9 @@ async function agmAgendaLoad() {
     html += '<div style="' + sectionTitle + '">Meeting Details</div>';
     var detailLabels = ['Meeting Chair','Minutes','Venue','Date','Time'];
     for (var i = 0; i < 5; i++) {
-      html += '<div style="margin-bottom:0.5rem;">'
-        + '<label style="' + labelStyle + '">' + detailLabels[i] + '</label>'
-        + '<input type="text" id="agmDetail_' + i + '" value="' + escAdm(cell(i, 1)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+      html += '<div style="display:flex;align-items:center;margin-bottom:0.4rem;gap:0.75rem;">'
+        + '<label style="' + labelStyle + 'width:120px;min-width:120px;margin-bottom:0;">' + detailLabels[i] + '</label>'
+        + '<input type="text" id="agmDetail_' + i + '" value="' + escAdm(cell(i, 1)) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + 'flex:1;">'
         + '</div>';
     }
 
