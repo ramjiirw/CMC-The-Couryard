@@ -400,9 +400,10 @@ function parseCSV(text) {
     const num = parseInt(address.match(/\d+/)?.[0]) || 0;
     const owner = cols[1] || '';
     const tenant = cols[2] || '';
-    const waterMeter = cols[3] || '';
-    const tpo = cols[4] || '';
-    return { num, address, owner, tenant, waterMeter, tpo };
+    const propertyOwnership = cols[3] || '';
+    const waterMeter = cols[4] || '';
+    const tpo = cols[5] || '';
+    return { num, address, owner, tenant, propertyOwnership, waterMeter, tpo };
   }).filter(r => r.num > 0);
 }
 
@@ -441,6 +442,7 @@ function buildLegend(data) {
 
 function buildExtraInfoRows(r) {
   const items = [];
+  if (r.propertyOwnership) items.push({ label: 'Ownership', value: r.propertyOwnership });
   if (r.waterMeter) items.push({ label: 'Water Meter', value: r.waterMeter });
   if (r.tpo) items.push({ label: 'TPO', value: r.tpo });
   // Future columns can be added here
