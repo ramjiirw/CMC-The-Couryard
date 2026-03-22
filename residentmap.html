@@ -431,6 +431,8 @@ function buildLegend(data) {
       </div>
     </div>
   `}).join('');
+  // Keep button label in sync after any rebuild
+  updateExtraInfoUI();
 }
 
 function buildExtraInfoRows(r) {
@@ -758,9 +760,15 @@ let extraInfoOpen = false;
 
 function toggleExtraInfo() {
   extraInfoOpen = !extraInfoOpen;
+  updateExtraInfoUI();
+}
+
+function updateExtraInfoUI() {
   const btn = document.getElementById('extraInfoBtn');
-  if (btn) btn.classList.toggle('active', extraInfoOpen);
-  // Show/hide all extra sections
+  if (btn) {
+    btn.classList.toggle('active', extraInfoOpen);
+    btn.textContent = extraInfoOpen ? '✕ Hide Extra Info' : 'ℹ Extra Info';
+  }
   document.querySelectorAll('.legend-extra').forEach(el => {
     el.classList.toggle('visible', extraInfoOpen);
   });
