@@ -787,7 +787,18 @@ function showDashboard() {
   loadResidents();
   loadWelcomeStats();
   loadMaintenanceIssues(true);
-  setInterval(function(){ loadResidents(); }, 30000);
+  setInterval(function(){
+    // Silent background refresh — only update owner names, don't re-render
+    fetch(SCRIPT_URL + '?action=read').then(function(r){ return r.json(); }).then(function(resData) {
+      var residentRows = resData.rows || [];
+      residents.forEach(function(r) {
+        r.owner = buildOwnerName(r.address, residentRows);
+      });
+      editDraft.forEach(function(r) {
+        r.owner = buildOwnerName(r.address, residentRows);
+      });
+    }).catch(function(){});
+  }, 30000);
 }
 
 function lockAdmin() {
