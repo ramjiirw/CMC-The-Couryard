@@ -659,9 +659,11 @@
               <input type="radio" name="bcSched" value="later" onchange="bcToggleSched()"> Schedule for later
             </label>
           </div>
-          <div id="bcSchedFields" style="display:none;margin-top:0.5rem;display:none;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+          <div id="bcSchedFields" style="display:none;margin-top:0.5rem;align-items:center;gap:0.5rem;flex-wrap:wrap;">
             <input type="date" id="bcSchedDate" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;">
-            <input type="time" id="bcSchedTime" value="09:00" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;">
+            <select id="bcSchedHour" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;"></select>
+            <span style="font-size:0.82rem;color:var(--mid);">:</span>
+            <select id="bcSchedMin" style="padding:0.35rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);background:#fff;"></select>
             <span style="font-size:0.72rem;color:var(--mid);">UK time</span>
           </div>
         </div>
@@ -2283,6 +2285,22 @@ async function bcLoad() {
     // Set default date for scheduler
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('bcSchedDate').value = today;
+    // Populate hour dropdown (00–23)
+    var hourSel = document.getElementById('bcSchedHour');
+    for (var h = 0; h < 24; h++) {
+      var hStr = h < 10 ? '0' + h : '' + h;
+      var opt = document.createElement('option');
+      opt.value = hStr; opt.textContent = hStr;
+      if (h === 9) opt.selected = true;
+      hourSel.appendChild(opt);
+    }
+    // Populate minute dropdown (00, 15, 30, 45)
+    var minSel = document.getElementById('bcSchedMin');
+    ['00','15','30','45'].forEach(function(m) {
+      var opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      minSel.appendChild(opt);
+    });
   } catch(e) {
     document.getElementById('bcAddressList').innerHTML = '<div style="font-size:0.78rem;color:#b05050;padding:0.5rem 0.75rem;">Could not load addresses.</div>';
   }
@@ -2476,7 +2494,7 @@ function bcReview() {
   // Populate modal
   var modeLabel = bcMode.toUpperCase();
   var toFallback = 'irwoodland@googlemail.com';
-  var toField = extEmail || ((bcMode === 'bcc' || bcMode === 'cc') ? toFallback : '');
+  var toField = extEmail ? extEmail : (bcMode === 'bcc' ? toFallback : '');
 
   var sub = selectedAddrs.length + ' address' + (selectedAddrs.length > 1 ? 'es' : '') + ' · ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + ' · residents in ' + modeLabel;
   document.getElementById('bcModalSub').textContent = sub;
@@ -2507,7 +2525,7 @@ function bcReview() {
   var schedNote = document.getElementById('bcModalSchedNote');
   if (later) {
     var d = document.getElementById('bcSchedDate').value;
-    var t = document.getElementById('bcSchedTime').value;
+    var t = document.getElementById('bcSchedHour').value + ':' + document.getElementById('bcSchedMin').value;
     schedNote.style.display = 'block';
     schedNote.textContent = '⏱ Scheduled for ' + d + ' at ' + t + ' UK time.';
     document.getElementById('bcConfirmBtn').textContent = '⏱ Confirm & Schedule';
@@ -2543,7 +2561,7 @@ async function bcSend() {
 
   var payload = { action: later ? 'scheduledEmail' : 'broadcastEmail', title: title, message: message, emails: selectedEmails, mode: bcMode };
   if (extEmail) payload.externalTo = extEmail;
-  if (later) { payload.schedDate = document.getElementById('bcSchedDate').value; payload.schedTime = document.getElementById('bcSchedTime').value; }
+  if (later) { payload.schedDate = document.getElementById('bcSchedDate').value; payload.schedTime = document.getElementById('bcSchedHour').value + ':' + document.getElementById('bcSchedMin').value; }
 
   try {
     const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -2557,7 +2575,7 @@ async function bcSend() {
       bcSelectNone();
       bcSetMode('to');
       var successText = later
-        ? 'Email scheduled for ' + document.getElementById('bcSchedDate').value + ' at ' + document.getElementById('bcSchedTime').value + '.'
+        ? 'Email scheduled for ' + document.getElementById('bcSchedDate').value + ' at ' + document.getElementById('bcSchedHour').value + ':' + document.getElementById('bcSchedMin').value + '.'
         : 'Email sent successfully to ' + selectedEmails.length + ' recipient' + (selectedEmails.length > 1 ? 's' : '') + '.';
       document.getElementById('bcSuccessText').textContent = successText;
       document.getElementById('bcButtonArea').style.display = 'none';
