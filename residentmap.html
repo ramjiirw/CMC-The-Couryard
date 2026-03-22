@@ -391,7 +391,7 @@ let residents = [];
 
 // ── CSV fetch & parse ─────────────────────────────────────────────────────────
 function parseCSV(text) {
-  const lines = text.trim().split('\n').slice(1); // skip header
+  const lines = text.replace(/\r/g, '').trim().split('\n').slice(1); // skip header, strip \r
   return lines.map(line => {
     const cols = line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
     const address = cols[0] || '';
