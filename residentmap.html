@@ -184,6 +184,35 @@
   .loading { padding: 2rem 1rem; text-align: center; color: var(--stone); font-size: 0.82rem; }
   .error-msg { padding: 1rem; color: #c0392b; font-size: 0.8rem; text-align: center; }
 
+  /* Extra Info toggle pill */
+  .legend-header { display: flex; align-items: center; justify-content: space-between; }
+  .btn-extra-info {
+    padding: 0.18rem 0.6rem; border-radius: 20px; border: 1px solid rgba(196,149,106,0.35);
+    background: transparent; color: var(--stone); font-family: Arial, sans-serif;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-extra-info:hover { background: rgba(196,149,106,0.15); color: var(--accent2); border-color: var(--accent2); }
+  .btn-extra-info.active { background: rgba(196,149,106,0.2); color: var(--accent2); border-color: var(--accent2); }
+
+  /* Extra info section inside each legend row */
+  .legend-extra {
+    display: none;
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(184,173,158,0.25);
+  }
+  .legend-extra.visible { display: block; }
+  .legend-extra-row {
+    display: flex; align-items: baseline; gap: 0.4rem;
+    font-size: 0.7rem; color: var(--mid); margin-top: 0.15rem;
+  }
+  .legend-extra-label {
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 0.62rem; color: var(--stone); flex-shrink: 0;
+  }
+  .legend-extra-value { color: var(--dark); font-size: 0.72rem; }
+
   @media (max-width: 800px) {
     .map-layout { flex-direction: column; }
     .legend { flex: none; width: 100%; }
@@ -331,7 +360,7 @@
     </div>
 
     <div class="legend">
-      <div class="legend-header">Properties 1–14</div>
+      <div class="legend-header">Properties 1–14 <button class="btn-extra-info" id="extraInfoBtn" onclick="toggleExtraInfo()" title="Show extra property info">ℹ Extra Info</button></div>
       <div class="legend-list" id="legendList">
         <div class="loading">Loading resident data…</div>
       </div>
@@ -369,7 +398,8 @@ function parseCSV(text) {
     const num = parseInt(address.match(/\d+/)?.[0]) || 0;
     const owner = cols[1] || '';
     const tenant = cols[2] || '';
-    return { num, address, owner, tenant };
+    const waterMeter = cols[3] || '';
+    return { num, address, owner, tenant, waterMeter };
   }).filter(r => r.num > 0);
 }
 
@@ -385,15 +415,32 @@ function tenantDisplay(r) {
 
 function buildLegend(data) {
   const list = document.getElementById('legendList');
-  list.innerHTML = data.map(r => `
+  const extraVisible = extraInfoOpen ? 'visible' : '';
+  list.innerHTML = data.map(r => {
+    const extraRows = buildExtraInfoRows(r);
+    const extraSection = extraRows
+      ? `<div class="legend-extra ${extraVisible}" id="extra_${r.num}">${extraRows}</div>`
+      : '';
+    return `
     <div class="legend-row" data-num="${r.num}" onclick="selectProperty(${r.num})">
       <div class="legend-num">${r.num}</div>
       <div class="legend-info">
         <div class="legend-owner">${r.owner}</div>
         <div class="legend-tenant">${tenantDisplay(r)}</div>
+        ${extraSection}
       </div>
     </div>
-  `).join('');
+  `}).join('');
+}
+
+function buildExtraInfoRows(r) {
+  const items = [];
+  if (r.waterMeter) items.push({ label: 'Water Meter', value: r.waterMeter });
+  // Future columns can be added here
+  if (!items.length) return '';
+  return items.map(item =>
+    `<div class="legend-extra-row"><span class="legend-extra-label">${item.label}:</span><span class="legend-extra-value">${escHtml(item.value)}</span></div>`
+  ).join('');
 }
 
 async function loadData() {
@@ -421,9 +468,9 @@ async function loadData() {
     if (!res.ok) return;
     const data = await res.json();
     const rows = data.residents || data.rows || [];
-    const fresh = rows.map(r => {
+      const fresh = rows.map(r => {
       const num = parseInt((r.address || '').match(/\d+/)?.[0]) || 0;
-      return { num, address: r.address || '', owner: r.owner || '', tenant: r.tenant || '' };
+      return { num, address: r.address || '', owner: r.owner || '', tenant: r.tenant || '', waterMeter: r.waterMeter || r.water_meter || '' };
     }).filter(r => r.num > 0).sort((a, b) => a.num - b.num);
     if (fresh.length) {
       residents = fresh;
@@ -704,6 +751,19 @@ async function saveEditTable() {
 
 function escHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Extra Info Toggle ─────────────────────────────────────────────────────────
+let extraInfoOpen = false;
+
+function toggleExtraInfo() {
+  extraInfoOpen = !extraInfoOpen;
+  const btn = document.getElementById('extraInfoBtn');
+  if (btn) btn.classList.toggle('active', extraInfoOpen);
+  // Show/hide all extra sections
+  document.querySelectorAll('.legend-extra').forEach(el => {
+    el.classList.toggle('visible', extraInfoOpen);
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
