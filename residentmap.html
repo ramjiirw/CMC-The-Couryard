@@ -399,7 +399,8 @@ function parseCSV(text) {
     const owner = cols[1] || '';
     const tenant = cols[2] || '';
     const waterMeter = cols[3] || '';
-    return { num, address, owner, tenant, waterMeter };
+    const tpo = cols[4] || '';
+    return { num, address, owner, tenant, waterMeter, tpo };
   }).filter(r => r.num > 0);
 }
 
@@ -439,6 +440,7 @@ function buildLegend(data) {
 function buildExtraInfoRows(r) {
   const items = [];
   if (r.waterMeter) items.push({ label: 'Water Meter', value: r.waterMeter });
+  if (r.tpo) items.push({ label: 'TPO', value: r.tpo });
   // Future columns can be added here
   if (!items.length) return '';
   return items.map(item =>
