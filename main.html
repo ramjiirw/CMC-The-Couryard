@@ -348,7 +348,7 @@
   #adminLink:hover { color:var(--accent2); }
   /* ── Back to top button ── */
   #backToTop {
-    position: fixed; bottom: 2rem; right: 1.5rem;
+    position: fixed; bottom: 5rem; right: 1.5rem;
     background: var(--accent); color: white; border: none;
     border-radius: 50%; width: 38px; height: 38px;
     font-size: 1rem; cursor: pointer; z-index: 999;
@@ -1077,10 +1077,14 @@
   // ── Back to top ──────────────────────────────────────────────────────────
   (function() {
     const btn = document.getElementById('backToTop');
-    window.addEventListener('scroll', function() {
-      if (window.scrollY > 300) btn.classList.add('visible');
+    function checkScroll() {
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      if (scrollY > 300) btn.classList.add('visible');
       else btn.classList.remove('visible');
-    }, { passive: true });
+    }
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    document.addEventListener('scroll', checkScroll, { passive: true });
+    document.body && document.body.addEventListener('scroll', checkScroll, { passive: true });
   })();
 
   var _offlineShown = false;
