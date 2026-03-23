@@ -36,6 +36,10 @@
   .badge-new      { background: #fdeaea; color: #c0392b; border: 1px solid #f5c6c6; }
   .badge-progress { background: #fff4e0; color: #b8680a; border: 1px solid #f5dba0; }
   .badge-done     { background: var(--green-light); color: var(--green); border: 1px solid #c8e2ce; }
+  .badge-pri-high   { background: #fdeaea; color: #c0392b; border: 1px solid #f5c6c6; }
+  .badge-pri-medium { background: #fff4e0; color: #b8680a; border: 1px solid #f5dba0; }
+  .badge-pri-low    { background: #e6f5ec; color: #2e7d52; border: 1px solid #b2dfcb; }
+  .badge-pri-none   { background: #f0ece8; color: #aaa;    border: 1px solid #d4c9bb; font-style:italic; }
   .card { background: white; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 1.5rem; }
   .card-header { background: var(--dark); padding: 0.75rem 1.25rem; color: var(--cream); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 0.6rem; }
   .card-header-blue { background: var(--blue); padding: 0.75rem 1.25rem; color: white; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -332,6 +336,12 @@
         <option value="progress">In Progress</option>
         <option value="resolv">Resolved</option>
       </select>
+      <select id="filterPriority" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All Priorities</option>
+        <option value="High">🔴 High</option>
+        <option value="Medium">🟡 Medium</option>
+        <option value="Low">🟢 Low</option>
+      </select>
       <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Categories</option>
         <option>Waste &amp; Recycling</option>
@@ -570,8 +580,10 @@ function closeUnsavedModal() {
 }
 
 async function saveRow(rowIndex, i) {
-  let status    = document.getElementById('s_' + i).value;
-  const updates = document.getElementById('u_' + i).value.trim();
+  let status      = document.getElementById('s_' + i).value;
+  const updates   = document.getElementById('u_' + i).value.trim();
+  const priorityEl = document.getElementById('p_' + i);
+  const priority  = priorityEl ? priorityEl.value : '';
   // If updates cleared and status is In Progress, revert to New
   if (!updates && status === 'In Progress') status = 'New';
   const btn     = document.getElementById('b_' + i);
@@ -579,7 +591,7 @@ async function saveRow(rowIndex, i) {
   try {
     const res  = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex, status, updates })
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex, status, updates, priority })
     });
     const data = await res.json();
     if (data.status === 'ok') {
@@ -756,6 +768,7 @@ function closeReportModal() {
 function updateFilterBtn() {
   const count = [
     document.getElementById('filterStatus').value,
+    document.getElementById('filterPriority').value,
     document.getElementById('filterCat').value,
     document.getElementById('filterAddr').value,
     document.getElementById('filterSearch').value.trim()
@@ -773,6 +786,7 @@ function updateFilterBtn() {
 
 function clearFilters() {
   document.getElementById('filterStatus').value = '';
+  document.getElementById('filterPriority').value = '';
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAddr').value = '';
   document.getElementById('filterSearch').value = '';
@@ -780,18 +794,29 @@ function clearFilters() {
   renderIssues();
 }
 
+function priorityBadge(p) {
+  if (!p) return '<span class="badge badge-pri-none">—</span>';
+  const v = p.toLowerCase();
+  if (v === 'high')   return '<span class="badge badge-pri-high">High</span>';
+  if (v === 'medium') return '<span class="badge badge-pri-medium">Medium</span>';
+  if (v === 'low')    return '<span class="badge badge-pri-low">Low</span>';
+  return '<span class="badge badge-pri-none">' + p + '</span>';
+}
+
 function renderIssues() {
   const sf = document.getElementById('filterStatus').value;
+  const pf = document.getElementById('filterPriority').value;
   const cf = document.getElementById('filterCat').value.toLowerCase();
   const af = document.getElementById('filterAddr').value.toLowerCase();
   const sq = document.getElementById('filterSearch').value.trim().toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
     const matchS = !sf || sv.includes(sf);
+    const matchP = !pf || (r.priority||'') === pf;
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
     const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq);
-    return matchS && matchC && matchA && matchQ;
+    return matchS && matchP && matchC && matchA && matchQ;
   }).slice().sort((a, b) => {
     const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); if (p.length===3) { let yr=parseInt(p[2],10); if(yr<100)yr+=2000; return new Date(yr, parseInt(p[1],10)-1, parseInt(p[0],10)); } return new Date(v); };
     const av = parseD(a.dateAdded);
@@ -810,6 +835,7 @@ function renderIssues() {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
   }
+  const colspan = isAdmin ? 10 : 9;
   let html = '<table><thead><tr>';
   html += '<th class="col-num">#</th>';
   html += '<th class="col-addr">Address</th>';
@@ -819,6 +845,7 @@ function renderIssues() {
   html += '<th class="col-status">Status</th>';
   html += '<th class="col-update">Updates</th>';
   html += '<th class="col-date">Date Resolved</th>';
+  html += '<th style="width:90px;">Priority</th>';
   if (isAdmin) html += '<th style="width:40px;"></th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
@@ -832,10 +859,11 @@ function renderIssues() {
     html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
     html += '<td class="col-update">' + (r.updates||'') + '</td>';
     html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
+    html += '<td>' + priorityBadge(r.priority) + '</td>';
     if (isAdmin) html += '<td style="text-align:center;color:var(--stone);font-size:0.85rem;cursor:pointer;">✏️</td>';
     html += '</tr>';
     if (isAdmin) {
-      html += '<tr class="admin-expand-row" id="ep_' + i + '" style="display:none;"><td colspan="9">';
+      html += '<tr class="admin-expand-row" id="ep_' + i + '" style="display:none;"><td colspan="' + colspan + '">';
       html += '<div class="expand-panel">';
       html += '<div><label>Status</label><select id="s_' + i + '" onchange="onStatusChange()">';
       ['New','In Progress','Resolved'].forEach(s => {
@@ -843,6 +871,12 @@ function renderIssues() {
       });
       html += '</select></div>';
       html += '<div style="flex:1;"><label>Update Note</label><textarea id="u_' + i + '" oninput="onUpdateInput(' + i + ')">' + (r.updates||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea></div>';
+      html += '<div><label>Priority</label><select id="p_' + i + '" onchange="isDirty=true" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.88rem;min-width:130px;font-weight:700;">';
+      html += '<option value="" style="color:#aaa;font-weight:400;"' + (!(r.priority) ? ' selected' : '') + '>— Not set —</option>';
+      html += '<option value="High" style="color:#c0392b;"'   + (r.priority==='High'   ? ' selected' : '') + '>🔴 High</option>';
+      html += '<option value="Medium" style="color:#b8680a;"' + (r.priority==='Medium' ? ' selected' : '') + '>🟡 Medium</option>';
+      html += '<option value="Low" style="color:#2e7d52;"'    + (r.priority==='Low'    ? ' selected' : '') + '>🟢 Low</option>';
+      html += '</select></div>';
       html += '<div class="ep-actions">';
       html += '<button class="btn-cancel-edit" onclick="collapseRow(' + i + ')">Cancel</button>';
       html += '<button class="btn-save" id="b_' + i + '" onclick="saveRow(' + r.rowIndex + ',' + i + ')">Save</button>';
