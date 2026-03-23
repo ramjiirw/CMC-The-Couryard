@@ -346,6 +346,31 @@
   footer #footerYear { color: var(--stone); }
   #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
   #adminLink:hover { color:var(--accent2); }
+  /* ── Back to top button ── */
+  #backToTop {
+    position: fixed; bottom: 2rem; right: 1.5rem;
+    background: var(--accent); color: white; border: none;
+    border-radius: 50%; width: 38px; height: 38px;
+    font-size: 1rem; cursor: pointer; z-index: 999;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    transform: translateY(10px);
+    box-shadow: 0 3px 10px rgba(122,92,62,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #backToTop.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  #backToTop:hover { background: var(--accent2); }
+
+  /* ── Offline notice ── */
+  .offline-notice {
+    display: none; align-items: center; gap: 0.5rem;
+    background: #fff8ed; border: 1px solid #e8c87a;
+    color: #7a5500; border-radius: 8px;
+    padding: 0.55rem 1rem; font-size: 0.76rem; font-weight: 600;
+    margin-top: 0.75rem;
+  }
+  .offline-notice.show { display: flex; }
+
   #sessionWarningToast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(20px); background:#1a1410; color:var(--cream); border:1px solid rgba(176,80,80,0.6); border-radius:10px; padding:0.9rem 1.4rem; font-size:0.82rem; opacity:0; transition:all 0.35s; z-index:1100; pointer-events:none; white-space:nowrap; text-align:center; }
   #sessionWarningToast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
   #sessionWarningToast .sw-msg { margin-bottom:0.4rem; color:#e07070; font-weight:600; }
@@ -399,6 +424,10 @@
   <div class="welcome-block">
     <h2>Welcome</h2>
     <p>This is your resident portal for CMC The Courtyard. Use the links below to access information and resources.</p>
+  </div>
+
+  <div class="offline-notice" id="offlineNotice">
+    ⚠️ Some information could not be loaded — please check your connection and refresh.
   </div>
 
   <!-- Courtyard Noticeboard — hidden if no messages -->
@@ -696,6 +725,7 @@
         : '—';
     } catch(e) {
       document.getElementById('finLatest').textContent = '—';
+      showOfflineNotice();
     }
   })();
 
@@ -726,6 +756,7 @@
         : '—';
     } catch(e) {
       document.getElementById('bioLatest').textContent = '—';
+      showOfflineNotice();
     }
   })();
 
@@ -756,6 +787,7 @@
     } catch(e) {
       document.getElementById('dirNoMobile').textContent = '—';
       document.getElementById('dirNoEmail').textContent  = '—';
+      showOfflineNotice();
     }
   })();
 
@@ -801,6 +833,7 @@
       document.getElementById('mntNew').textContent = '—';
       document.getElementById('mntProgress').textContent = '—';
       document.getElementById('mntResolved').textContent = '—';
+      showOfflineNotice();
     }
   })();
 
@@ -874,6 +907,7 @@
     } catch(e) {
       document.getElementById('mapOwner').textContent  = '—';
       document.getElementById('mapTenant').textContent = '—';
+      showOfflineNotice();
     }
   })();
 
@@ -1040,6 +1074,22 @@
 </footer>
   <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
   <script>
+  // ── Back to top ──────────────────────────────────────────────────────────
+  (function() {
+    const btn = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 300) btn.classList.add('visible');
+      else btn.classList.remove('visible');
+    }, { passive: true });
+  })();
+
+  var _offlineShown = false;
+  function showOfflineNotice() {
+    if (_offlineShown) return;
+    _offlineShown = true;
+    document.getElementById('offlineNotice').classList.add('show');
+  }
+
   var WARNING_MS = 2 * 60 * 1000;
   var IDLE_MS_W = 30 * 60 * 1000;
   var warnTimer = null, warnShown = false;
@@ -1065,6 +1115,7 @@
     document.addEventListener(e, function(){ hideSessionWarning(); scheduleWarning(); }, { passive:true });
   });
   </script>
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
 <div id="sessionWarningToast">
   <div class="sw-msg">&#9200; Session expiring soon</div>
   <div class="sw-sub">You'll be logged out in 2 minutes due to inactivity</div>
