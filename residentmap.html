@@ -75,16 +75,23 @@
     background: transparent;
     border: none;
     transform: translate(-50%, -50%);
-    transition: transform 0.15s;
     z-index: 10;
   }
-  .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
-  .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
-  .tenant-dot-map {
-    position: absolute; width: 2%; aspect-ratio: 1; border-radius: 50%;
+  .hotspot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    transition: transform 0.15s;
+  }
+  .hotspot:hover::before { transform: scale(1.15); }
+  .hotspot.active { background: rgba(196,149,106,0.35); }
+  .hotspot.active::before { transform: scale(1.15); }
+  .hotspot .tenant-dot {
+    position: absolute; top: 8%; right: 8%;
+    width: 26%; aspect-ratio: 1; border-radius: 50%;
     background: #7a5c3e; border: 2px solid #fff;
-    pointer-events: none; z-index: 11;
-    transform: translate(50%, -50%);
+    display: block; pointer-events: none;
   }
   .hotspot.active::after {
     content: '';
@@ -451,23 +458,17 @@ function buildLegend(data) {
   const btn = document.getElementById('extraInfoBtn');
   if (btn) btn.style.display = '';
 
-  // Add/remove tenant dots on map — as siblings in map-wrap, not inside hotspot buttons
+  // Add/remove tenant dot on map hotspots based on live data
   const mapWrap = document.getElementById('mapWrap');
-  // Clear all existing map dots
-  mapWrap.querySelectorAll('.tenant-dot-map').forEach(d => d.remove());
+  mapWrap.querySelectorAll('.tenant-dot').forEach(d => d.remove());
   data.forEach(r => {
-    if (!r.tenant || r.tenant.trim() === '') return;
     const hotspot = mapWrap.querySelector(`.hotspot[data-num="${r.num}"]`);
     if (!hotspot) return;
-    // Position dot at top-right of hotspot using its % left/top + offset
-    const left = hotspot.style.left;
-    const top = hotspot.style.top;
-    const dot = document.createElement('span');
-    dot.className = 'tenant-dot-map';
-    // Offset: shift right by ~3% and up by ~3% from the hotspot centre
-    dot.style.left = `calc(${left} + 2.8%)`;
-    dot.style.top = `calc(${top} - 2.8%)`;
-    mapWrap.appendChild(dot);
+    if (r.tenant && r.tenant.trim() !== '') {
+      const dot = document.createElement('span');
+      dot.className = 'tenant-dot';
+      hotspot.appendChild(dot);
+    }
   });
 }
 
