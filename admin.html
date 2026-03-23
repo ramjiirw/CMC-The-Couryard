@@ -606,6 +606,12 @@
           <select id="mntFilterStatus" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Statuses</option>
           </select>
+          <select id="mntFilterPriority" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+            <option value="">All Priorities</option>
+            <option value="High">🔴 High</option>
+            <option value="Medium">🟡 Medium</option>
+            <option value="Low">🟢 Low</option>
+          </select>
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
@@ -1363,6 +1369,7 @@ function mntUpdateFilterBtn() {
   var count = 0;
   if (document.getElementById('mntSearch').value.trim()) count++;
   if (document.getElementById('mntFilterStatus').value) count++;
+  if (document.getElementById('mntFilterPriority').value) count++;
   if (document.getElementById('mntFilterCat').value) count++;
   if (document.getElementById('mntFilterAddr').value) count++;
   if (document.getElementById('mntDateFrom').value) count++;
@@ -1382,6 +1389,7 @@ function mntUpdateFilterBtn() {
 function mntClearFilters() {
   document.getElementById('mntSearch').value = '';
   document.getElementById('mntFilterStatus').value = '';
+  document.getElementById('mntFilterPriority').value = '';
   document.getElementById('mntFilterCat').value = '';
   document.getElementById('mntFilterAddr').value = '';
   document.getElementById('mntDateFrom').value = '';
@@ -1423,10 +1431,11 @@ function mntSortIcon(col) {
 }
 
 function renderMaintenanceTable() {
-  var searchText   = (document.getElementById('mntSearch').value || '').trim().toLowerCase();
-  var statusFilter = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
-  var catFilter    = document.getElementById('mntFilterCat').value.toLowerCase().trim();
-  var addrFilter   = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+  var searchText    = (document.getElementById('mntSearch').value || '').trim().toLowerCase();
+  var statusFilter  = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
+  var catFilter     = document.getElementById('mntFilterCat').value.toLowerCase().trim();
+  var addrFilter    = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
+  var priorityFilter = (document.getElementById('mntFilterPriority').value || '').toLowerCase().trim();
   var dateFrom     = document.getElementById('mntDateFrom').value;
   var dateTo       = document.getElementById('mntDateTo').value;
   var fromMs       = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
@@ -1444,6 +1453,7 @@ function renderMaintenanceTable() {
     }
     if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
     if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
+    if (priorityFilter && (r.priority || '').toLowerCase() !== priorityFilter) return false;
     // Free-text search — description and updates only
     if (searchText) {
       var hay = [(r.description||''), (r.updates||'')].join(' ').toLowerCase();
