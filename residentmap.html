@@ -80,6 +80,12 @@
   }
   .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
   .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
+  .hotspot .tenant-dot {
+    position: absolute; top: 8%; right: 8%;
+    width: 26%; aspect-ratio: 1; border-radius: 50%;
+    background: #7a5c3e; border: 2px solid #fff;
+    display: block; pointer-events: none;
+  }
   .hotspot.active::after {
     content: '';
     position: absolute;
@@ -438,6 +444,22 @@ function buildLegend(data) {
   updateExtraInfoUI();
   const btn = document.getElementById('extraInfoBtn');
   if (btn) btn.style.display = '';
+
+  // Add/remove tenant dot on map hotspots based on live data
+  data.forEach(r => {
+    const hotspot = document.querySelector(`.hotspot[data-num="${r.num}"]`);
+    if (!hotspot) return;
+    const existing = hotspot.querySelector('.tenant-dot');
+    if (r.tenant && r.tenant.trim() !== '') {
+      if (!existing) {
+        const dot = document.createElement('span');
+        dot.className = 'tenant-dot';
+        hotspot.appendChild(dot);
+      }
+    } else {
+      if (existing) existing.remove();
+    }
+  });
 }
 
 function buildExtraInfoRows(r) {
