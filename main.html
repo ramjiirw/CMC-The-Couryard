@@ -278,6 +278,21 @@
     padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--stone); font-style: italic;
   }
 
+  .bin-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 20px; padding: 0.32rem 1rem;
+    font-size: 0.76rem; font-weight: 700; letter-spacing: 0.02em;
+    border: 1px solid transparent;
+  }
+  .bin-pill.recycling {
+    background: #eaf4ed; border-color: #b2d9bb; color: #1e4d28;
+    box-shadow: 0 3px 8px rgba(45,100,60,0.22), 0 1px 3px rgba(45,100,60,0.14);
+  }
+  .bin-pill.waste {
+    background: #f5ede3; border-color: #d4b89a; color: #5c3512;
+    box-shadow: 0 3px 8px rgba(140,90,40,0.22), 0 1px 3px rgba(140,90,40,0.14);
+  }
+
   @media (max-width: 600px) {
     header { padding: 1rem; }
     main { padding: 1.5rem 1rem 4rem; }
@@ -824,6 +839,35 @@
     } catch(e) {}
   })();
 
+  // ── Bin collection tomorrow pill ─────────────────────────────────────────
+  function checkBinTomorrow(messages) {
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0,0,0,0);
+    var months = {january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
+    var pills = [];
+    messages.forEach(function(m) {
+      if (!m.title || m.title.trim().toLowerCase() !== 'bin collections') return;
+      (m.message || '').split('\n').forEach(function(line) {
+        var match = line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i);
+        if (!match) return;
+        var d = new Date(parseInt(match[3]), months[match[2].toLowerCase()], parseInt(match[1]));
+        if (isNaN(d.getTime())) return;
+        d.setHours(0,0,0,0);
+        if (d.getTime() !== tomorrow.getTime()) return;
+        var isRecycling = /recycling/i.test(line);
+        var isWaste = /general waste/i.test(line);
+        if (isRecycling) pills.push('<span class="bin-pill recycling">♻️ Mixed recycling collection tomorrow</span>');
+        else if (isWaste) pills.push('<span class="bin-pill waste">🗑️ General waste collection tomorrow</span>');
+      });
+    });
+    if (!pills.length) return;
+    var container = document.createElement('div');
+    container.style.cssText = 'margin-top:0.65rem;display:flex;gap:0.5rem;flex-wrap:wrap;';
+    container.innerHTML = pills.join('');
+    document.querySelector('.welcome-block').appendChild(container);
+  }
+
   // ── Courtyard Noticeboard ────────────────────────────────────────────────
   (async function loadNoticeboard() {
     try {
@@ -833,6 +877,7 @@
       const data = await res.json();
       const messages = (data.messages || []).filter(m => m.title || m.message);
       if (!messages.length) return;
+      checkBinTomorrow(messages);
       var months = {january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
       function filterPastDates(title, message) {
         if (!title || title.trim().toLowerCase() !== 'bin collections') return message;
