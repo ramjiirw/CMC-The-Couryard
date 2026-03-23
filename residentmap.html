@@ -85,7 +85,10 @@
     width: 26%; aspect-ratio: 1; border-radius: 50%;
     background: #7a5c3e; border: 2px solid #fff;
     display: block; pointer-events: none;
+    transition: transform 0.15s;
   }
+  .hotspot:hover .tenant-dot,
+  .hotspot.active .tenant-dot { transform: scale(calc(1 / 1.15)); }
   .hotspot.active::after {
     content: '';
     position: absolute;
