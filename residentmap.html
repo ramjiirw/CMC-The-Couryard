@@ -80,6 +80,7 @@
   }
   .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
   .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
+  .hotspot.tenanted { background: rgba(40,90,50,0.45); border: 2px solid rgba(40,100,55,0.85); }
   .hotspot.active::after {
     content: '';
     position: absolute;
@@ -434,6 +435,18 @@ function buildLegend(data) {
       </div>
     </div>
   `}).join('');
+  // Colour hotspots: tenanted = dark green, owner-occupied = transparent
+  data.forEach(r => {
+    const hotspot = document.querySelector(`.hotspot[data-num="${r.num}"]`);
+    if (hotspot) {
+      if (r.tenant && r.tenant.trim() !== '') {
+        hotspot.classList.add('tenanted');
+      } else {
+        hotspot.classList.remove('tenanted');
+      }
+    }
+  });
+
   // Keep button label in sync after any rebuild
   updateExtraInfoUI();
   const btn = document.getElementById('extraInfoBtn');
