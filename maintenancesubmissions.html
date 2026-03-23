@@ -844,8 +844,8 @@ function renderIssues() {
   html += '<th class="col-date sortable ' + dateDir + '" onclick="toggleDateSort()">Date Added<span class="sort-icon"></span></th>';
   html += '<th class="col-status">Status</th>';
   html += '<th class="col-update">Updates</th>';
-  html += '<th class="col-date">Date Resolved</th>';
   html += '<th style="width:90px;">Priority</th>';
+  html += '<th class="col-date">Date Resolved</th>';
   if (isAdmin) html += '<th style="width:40px;"></th>';
   html += '</tr></thead><tbody>';
   list.forEach((r,i) => {
@@ -858,8 +858,8 @@ function renderIssues() {
     html += '<td class="col-date">' + fmtDate(r.dateAdded) + '</td>';
     html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
     html += '<td class="col-update">' + (r.updates||'') + '</td>';
-    html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
     html += '<td>' + priorityBadge(r.priority) + '</td>';
+    html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
     if (isAdmin) html += '<td style="text-align:center;color:var(--stone);font-size:0.85rem;cursor:pointer;">✏️</td>';
     html += '</tr>';
     if (isAdmin) {
