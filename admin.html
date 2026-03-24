@@ -590,7 +590,7 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:visible;">
+      <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
         <!-- Dark card header -->
         <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
           &#128203; Issue Log
@@ -1588,7 +1588,7 @@ function renderMaintenanceTable() {
     // Right column: textarea (full height)
     html += '<div class="mnt-edit-right">';
     html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update</label>';
-    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:72px;flex:1;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:72px;max-height:300px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
     html += '</div>'; // end mnt-edit-right
 
     html += '</div>'; // end mnt-edit-layout
@@ -1719,16 +1719,28 @@ function toggleMntEdit(i, actualRowIndex) {
   document.querySelectorAll('[id^="mnt-edit-inner-"]').forEach(function(r){ r.style.maxHeight='0'; r.style.overflow='hidden'; });
   if (!isVisible && inner) {
     inner.style.maxHeight = inner.scrollHeight + 300 + 'px';
-    // After transition: remove max-height cap and allow overflow so textarea resize works freely
-    setTimeout(function(){ if(inner.style.maxHeight !== '0px') { inner.style.maxHeight = 'none'; inner.style.overflow = 'visible'; } }, 300);
+    setTimeout(function(){
+      if (inner.style.maxHeight !== '0px') {
+        inner.style.maxHeight = 'none';
+        inner.style.overflow = 'visible';
+        var tw = document.getElementById('mntTableWrap');
+        if (tw) tw.style.overflow = 'visible';
+      }
+    }, 300);
     _mntEditPanelOpen = true;
-  } else { _mntEditPanelOpen = false; }
+  } else {
+    var tw = document.getElementById('mntTableWrap');
+    if (tw) tw.style.overflow = '';
+    _mntEditPanelOpen = false;
+  }
   resetAutoLock();
 }
 
 function collapseMaintenanceRow(i) {
   var inner = document.getElementById('mnt-edit-inner-' + i);
-  if (inner) inner.style.maxHeight = '0';
+  if (inner) { inner.style.maxHeight = '0'; inner.style.overflow = 'hidden'; }
+  var tw = document.getElementById('mntTableWrap');
+  if (tw) tw.style.overflow = '';
   var mainRow = document.getElementById('mnt-row-' + i);
   if (mainRow) mainRow.classList.remove('mnt-row-dirty');
   _mntEditPanelOpen = false;
