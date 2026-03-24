@@ -75,20 +75,24 @@
     background: transparent;
     border: none;
     transform: translate(-50%, -50%);
-    transition: transform 0.15s;
     z-index: 10;
   }
-  .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
-  .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
+  .hotspot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    transition: transform 0.15s;
+  }
+  .hotspot:hover::before { transform: scale(1.15); }
+  .hotspot.active { background: rgba(196,149,106,0.35); }
+  .hotspot.active::before { transform: scale(1.15); }
   .hotspot .tenant-dot {
     position: absolute; top: 8%; right: 8%;
     width: 26%; aspect-ratio: 1; border-radius: 50%;
     background: #7a5c3e; border: 2px solid #fff;
     display: block; pointer-events: none;
-    transition: transform 0.15s;
   }
-  .hotspot:hover .tenant-dot,
-  .hotspot.active .tenant-dot { transform: scale(calc(1 / 1.15)); }
   .hotspot.active::after {
     content: '';
     position: absolute;
@@ -183,6 +187,12 @@
     background: rgba(122,92,62,0.12);
     color: var(--accent);
     border: 1px solid rgba(122,92,62,0.25);
+  }
+  .tenant-dot-sidebar {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #7a5c3e; border: 1.5px solid #fff;
+    vertical-align: middle; margin-left: 4px;
+    box-shadow: 0 0 0 1px rgba(122,92,62,0.3);
   }
   .badge-owner {
     background: rgba(61,107,74,0.1);
@@ -420,9 +430,9 @@ function tenantDisplay(r) {
   if (!r.tenant) {
     return '<span class="badge badge-owner">Owner occupied</span>';
   } else if (r.tenant.toLowerCase() === 'tenant') {
-    return '<span class="badge badge-tenant">Tenant</span>';
+    return '<span class="badge badge-tenant">Tenant</span> <span class="tenant-dot-sidebar"></span>';
   } else {
-    return '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span>';
+    return '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span> <span class="tenant-dot-sidebar"></span>';
   }
 }
 
@@ -449,18 +459,15 @@ function buildLegend(data) {
   if (btn) btn.style.display = '';
 
   // Add/remove tenant dot on map hotspots based on live data
+  const mapWrap = document.getElementById('mapWrap');
+  mapWrap.querySelectorAll('.tenant-dot').forEach(d => d.remove());
   data.forEach(r => {
-    const hotspot = document.querySelector(`.hotspot[data-num="${r.num}"]`);
+    const hotspot = mapWrap.querySelector(`.hotspot[data-num="${r.num}"]`);
     if (!hotspot) return;
-    const existing = hotspot.querySelector('.tenant-dot');
     if (r.tenant && r.tenant.trim() !== '') {
-      if (!existing) {
-        const dot = document.createElement('span');
-        dot.className = 'tenant-dot';
-        hotspot.appendChild(dot);
-      }
-    } else {
-      if (existing) existing.remove();
+      const dot = document.createElement('span');
+      dot.className = 'tenant-dot';
+      hotspot.appendChild(dot);
     }
   });
 }
