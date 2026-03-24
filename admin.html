@@ -3690,6 +3690,7 @@ document.addEventListener('click', function(e) {
   if (openPanel.contains(e.target)) return;
   if (document.getElementById('mntConfirmOverlay').contains(e.target)) return;
   if (e.target.closest && e.target.closest('[onclick*="mntEditClick"]')) return;
+  if (e.target.closest && e.target.closest('.sidebar-link')) return;
   // Get the uiIndex from the panel id
   var uiIndex = parseInt(openPanel.id.replace('mnt-edit-', ''), 10);
   if (isNaN(uiIndex)) return;
@@ -3714,6 +3715,10 @@ function mntMobOpen(uiIndex, actualRowIndex) {
   document.getElementById('mntMob_status').value     = row.status   || 'New';
   document.getElementById('mntMob_note').value       = row.updates  || '';
   document.getElementById('mntMob_priority').value   = row.priority || '';
+  // Restore any unsaved draft note for this issue
+  var draftKey = 'mnt_draft_' + actualRowIndex;
+  var draft = sessionStorage.getItem(draftKey);
+  if (draft !== null) document.getElementById('mntMob_note').value = draft;
   document.getElementById('mntMobileModal').classList.add('open');
 }
 
@@ -3729,6 +3734,7 @@ function mntMobIsDirty() {
 }
 
 function mntMobClose() {
+  sessionStorage.removeItem('mnt_draft_' + _mntMobActualRowIndex);
   document.getElementById('mntMobileModal').classList.remove('open');
   _mntMobActualRowIndex = null;
   _mntMobUiIndex        = null;
@@ -3864,7 +3870,7 @@ showPanel = function(id) {
     </div>
     <div>
       <label>Update Note</label>
-      <textarea id="mntMob_note" placeholder="Add a note…"></textarea>
+      <textarea id="mntMob_note" placeholder="Add a note…" oninput="sessionStorage.setItem('mnt_draft_'+_mntMobActualRowIndex, this.value)"></textarea>
     </div>
     <div>
       <label>Priority</label>
