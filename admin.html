@@ -1536,7 +1536,7 @@ function renderMaintenanceTable() {
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntPriBadge(row.priority) + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;text-align:center;" onclick="mntToggleDetail(' + i + ',' + actualRowIndex + ',event)">';
-    html += '<button id="mnt-det-btn-' + i + '" style="background:none;border:none;cursor:pointer;color:#c4a882;font-size:0.78rem;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:3px;padding:2px 4px;">Detail <span id="mnt-det-chev-' + i + '" style="font-size:0.65rem;display:inline-block;transition:transform 0.22s;">▼</span></button>';
+    html += '<button id="mnt-det-btn-' + i + '" style="background:none;border:none;cursor:pointer;color:#c4a882;font-size:0.78rem;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:3px;padding:2px 4px;"><span id="mnt-det-label-' + i + '">Detail</span> <span id="mnt-det-chev-' + i + '" style="font-size:0.65rem;display:inline-block;transition:transform 0.22s;">▼</span></button>';
     html += '</td>';
     html += '</tr>';
 
@@ -1560,8 +1560,9 @@ function renderMaintenanceTable() {
     html += '</div>';
 
     // Edit panel (mnt-edit-* — kept for compatibility with all existing JS)
-    html += '<tr id="mnt-edit-' + i + '" style="display:none;"><td colspan="8" style="padding:0;border-bottom:2px solid var(--accent2);">';
-    html += '<div style="padding:0.75rem 1rem;background:#2a2520;border-top:2px solid var(--accent2);">';
+    html += '<tr id="mnt-edit-' + i + '"><td colspan="8" style="padding:0;">'; 
+    html += '<div id="mnt-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.28s ease;">'; 
+    html += '<div style="padding:0.75rem 1rem;background:#2a2520;border-top:2px solid var(--accent2);border-bottom:2px solid var(--accent2);">'; 
 
     // Responsive edit layout: status+priority left, textarea right
     // On mobile (<600px) these stack vertically via a style block injected once
@@ -1598,7 +1599,7 @@ function renderMaintenanceTable() {
     html += '<button id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="background:var(--green);color:white;border:none;border-radius:5px;padding:0.45rem 1.1rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>';
     html += '</div>';
 
-    html += '</div></td></tr>'; // end edit panel
+    html += '</div></div></td></tr>'; // end edit panel
 
     html += '</td></tr>'; // end detail expand row
   });
@@ -1671,31 +1672,38 @@ function loadMaintenanceIssues(silent) {
 }
 
 
+function mntDetSetOpen(i, open) {
+  var chev  = document.getElementById('mnt-det-chev-' + i);
+  var label = document.getElementById('mnt-det-label-' + i);
+  if (chev)  chev.style.transform = open ? 'rotate(180deg)' : '';
+  if (label) label.textContent    = open ? 'Close' : 'Detail';
+}
+
 function mntToggleDetail(i, actualRowIndex, evt) {
   if (evt) evt.stopPropagation();
   var detRow  = document.getElementById('mnt-det-' + i);
   var editRow = document.getElementById('mnt-edit-' + i);
-  var chev    = document.getElementById('mnt-det-chev-' + i);
   if (!detRow) return;
   var isOpen = detRow.style.display !== 'none';
+  // Close all other open detail rows
   document.querySelectorAll('[id^="mnt-det-"]').forEach(function(r) {
     if (r.id !== 'mnt-det-' + i) {
       r.style.display = 'none';
       var idx = r.id.replace('mnt-det-', '');
-      var c = document.getElementById('mnt-det-chev-' + idx);
-      if (c) c.style.transform = '';
-      var er = document.getElementById('mnt-edit-' + idx);
-      if (er) er.style.display = 'none';
+      mntDetSetOpen(idx, false);
+      var er = document.getElementById('mnt-edit-inner-' + idx);
+      if (er) er.style.maxHeight = '0';
     }
   });
   if (isOpen) {
     detRow.style.display = 'none';
-    if (editRow) editRow.style.display = 'none';
-    if (chev) chev.style.transform = '';
+    var editInner = document.getElementById('mnt-edit-inner-' + i);
+    if (editInner) editInner.style.maxHeight = '0';
+    mntDetSetOpen(i, false);
     _mntEditPanelOpen = false;
   } else {
     detRow.style.display = '';
-    if (chev) chev.style.transform = 'rotate(180deg)';
+    mntDetSetOpen(i, true);
   }
   resetAutoLock();
 }
@@ -1704,20 +1712,20 @@ function toggleMntEdit(i, actualRowIndex) {
   var detRow = document.getElementById('mnt-det-' + i);
   if (detRow && detRow.style.display === 'none') {
     detRow.style.display = '';
-    var chev = document.getElementById('mnt-det-chev-' + i);
-    if (chev) chev.style.transform = 'rotate(180deg)';
+    mntDetSetOpen(i, true);
   }
-  var editRow = document.getElementById('mnt-edit-' + i);
-  var isVisible = editRow.style.display !== 'none';
-  document.querySelectorAll('[id^="mnt-edit-"]').forEach(function(r){ r.style.display='none'; });
-  if (!isVisible) { editRow.style.display = ''; _mntEditPanelOpen = true; }
+  var inner = document.getElementById('mnt-edit-inner-' + i);
+  var isVisible = inner && inner.style.maxHeight !== '0px' && inner.style.maxHeight !== '';
+  // Close all other edit panels
+  document.querySelectorAll('[id^="mnt-edit-inner-"]').forEach(function(r){ r.style.maxHeight='0'; });
+  if (!isVisible && inner) { inner.style.maxHeight = inner.scrollHeight + 300 + 'px'; _mntEditPanelOpen = true; }
   else { _mntEditPanelOpen = false; }
   resetAutoLock();
 }
 
 function collapseMaintenanceRow(i) {
-  var editRow = document.getElementById('mnt-edit-' + i);
-  if (editRow) editRow.style.display = 'none';
+  var inner = document.getElementById('mnt-edit-inner-' + i);
+  if (inner) inner.style.maxHeight = '0';
   var mainRow = document.getElementById('mnt-row-' + i);
   if (mainRow) mainRow.classList.remove('mnt-row-dirty');
   _mntEditPanelOpen = false;
@@ -3771,7 +3779,7 @@ function mntEditClick(i, actualRowIndex, evt) {
     mntMobOpen(i, actualRowIndex);
   } else {
     // Check if a different edit panel is already open and dirty
-    var openPanel = document.querySelector('[id^="mnt-edit-"]:not([style*="display:none"])');
+    var openPanel = document.querySelector('[id^="mnt-edit-inner-"]') ? (function(){ var found=null; document.querySelectorAll('[id^="mnt-edit-inner-"]').forEach(function(el){ if(el.style.maxHeight && el.style.maxHeight!=="0px" && el.style.maxHeight!=="") found=el; }); return found ? {id: found.id.replace("mnt-edit-inner-","mnt-edit-")} : null; })() : null;
     if (openPanel) {
       var openIndex = parseInt(openPanel.id.replace('mnt-edit-', ''), 10);
       if (!isNaN(openIndex) && openIndex !== i && mntDesktopIsDirty(openIndex)) {
