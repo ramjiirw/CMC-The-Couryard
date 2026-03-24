@@ -1426,10 +1426,11 @@ function mntSortIcon(col) {
   return '<span style="margin-left:0.25rem;font-size:0.6rem;color:var(--accent2);">' + (mntSortDir === 'desc' ? '▼' : '▲') + '</span>';
 }
 
+var _mntEditPanelOpen = false;
+
 function renderMaintenanceTable() {
   // Don't re-render while an edit panel is open — it would destroy unsaved content
-  var openPanel = document.querySelector('[id^="mnt-edit-"]:not([style*="display:none"])');
-  if (openPanel) return;
+  if (_mntEditPanelOpen) return;
   var searchText    = (document.getElementById('mntSearch').value || '').trim().toLowerCase();
   var statusFilter  = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
   var catFilter     = document.getElementById('mntFilterCat').value.toLowerCase().trim();
@@ -1625,7 +1626,8 @@ function toggleMntEdit(i, actualRowIndex) {
   var editRow = document.getElementById('mnt-edit-' + i);
   var isVisible = editRow.style.display !== 'none';
   document.querySelectorAll('[id^="mnt-edit-"]').forEach(function(r){ r.style.display='none'; });
-  if (!isVisible) editRow.style.display = '';
+  if (!isVisible) { editRow.style.display = ''; _mntEditPanelOpen = true; }
+  else { _mntEditPanelOpen = false; }
   resetAutoLock();
 }
 
@@ -1634,6 +1636,7 @@ function collapseMaintenanceRow(i) {
   if (editRow) editRow.style.display = 'none';
   var mainRow = document.getElementById('mnt-row-' + i);
   if (mainRow) mainRow.classList.remove('mnt-row-dirty');
+  _mntEditPanelOpen = false;
 }
 
 async function saveMaintenanceRow(actualRowIndex, uiIndex) {
