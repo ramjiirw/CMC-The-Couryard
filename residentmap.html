@@ -80,12 +80,15 @@
   }
   .hotspot:hover { transform: translate(-50%, -50%) scale(1.15); }
   .hotspot.active { transform: translate(-50%, -50%) scale(1.15); background: rgba(196,149,106,0.35); }
-  .tenant-dot-map {
-    position: absolute; width: 2%; aspect-ratio: 1; border-radius: 50%;
+  .hotspot .tenant-dot {
+    position: absolute; top: 8%; right: 8%;
+    width: 26%; aspect-ratio: 1; border-radius: 50%;
     background: #7a5c3e; border: 2px solid #fff;
-    pointer-events: none; z-index: 11;
-    transform: translate(50%, -50%);
+    display: block; pointer-events: none;
+    transition: transform 0.15s;
   }
+  .hotspot:hover .tenant-dot,
+  .hotspot.active .tenant-dot { transform: scale(calc(1 / 1.15)); }
   .hotspot.active::after {
     content: '';
     position: absolute;
@@ -180,12 +183,6 @@
     background: rgba(122,92,62,0.12);
     color: var(--accent);
     border: 1px solid rgba(122,92,62,0.25);
-  }
-  .tenant-dot-sidebar {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: #7a5c3e; border: 1.5px solid #fff;
-    vertical-align: middle; margin-left: 4px;
-    box-shadow: 0 0 0 1px rgba(122,92,62,0.3);
   }
   .badge-owner {
     background: rgba(61,107,74,0.1);
@@ -423,9 +420,9 @@ function tenantDisplay(r) {
   if (!r.tenant) {
     return '<span class="badge badge-owner">Owner occupied</span>';
   } else if (r.tenant.toLowerCase() === 'tenant') {
-    return '<span class="badge badge-tenant">Tenant</span> <span class="tenant-dot-sidebar"></span>';
+    return '<span class="badge badge-tenant">Tenant</span>';
   } else {
-    return '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span> <span class="tenant-dot-sidebar"></span>';
+    return '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span>';
   }
 }
 
@@ -451,23 +448,20 @@ function buildLegend(data) {
   const btn = document.getElementById('extraInfoBtn');
   if (btn) btn.style.display = '';
 
-  // Add/remove tenant dots on map — as siblings in map-wrap, not inside hotspot buttons
-  const mapWrap = document.getElementById('mapWrap');
-  // Clear all existing map dots
-  mapWrap.querySelectorAll('.tenant-dot-map').forEach(d => d.remove());
+  // Add/remove tenant dot on map hotspots based on live data
   data.forEach(r => {
-    if (!r.tenant || r.tenant.trim() === '') return;
-    const hotspot = mapWrap.querySelector(`.hotspot[data-num="${r.num}"]`);
+    const hotspot = document.querySelector(`.hotspot[data-num="${r.num}"]`);
     if (!hotspot) return;
-    // Position dot at top-right of hotspot using its % left/top + offset
-    const left = hotspot.style.left;
-    const top = hotspot.style.top;
-    const dot = document.createElement('span');
-    dot.className = 'tenant-dot-map';
-    // Offset: shift right by ~3% and up by ~3% from the hotspot centre
-    dot.style.left = `calc(${left} + 2.8%)`;
-    dot.style.top = `calc(${top} - 2.8%)`;
-    mapWrap.appendChild(dot);
+    const existing = hotspot.querySelector('.tenant-dot');
+    if (r.tenant && r.tenant.trim() !== '') {
+      if (!existing) {
+        const dot = document.createElement('span');
+        dot.className = 'tenant-dot';
+        hotspot.appendChild(dot);
+      }
+    } else {
+      if (existing) existing.remove();
+    }
   });
 }
 
