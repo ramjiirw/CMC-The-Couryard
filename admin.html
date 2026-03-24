@@ -1427,6 +1427,9 @@ function mntSortIcon(col) {
 }
 
 function renderMaintenanceTable() {
+  // Don't re-render while an edit panel is open — it would destroy unsaved content
+  var openPanel = document.querySelector('[id^="mnt-edit-"]:not([style*="display:none"])');
+  if (openPanel) return;
   var searchText    = (document.getElementById('mntSearch').value || '').trim().toLowerCase();
   var statusFilter  = document.getElementById('mntFilterStatus').value.toLowerCase().trim();
   var catFilter     = document.getElementById('mntFilterCat').value.toLowerCase().trim();
