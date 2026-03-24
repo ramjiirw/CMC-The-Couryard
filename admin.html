@@ -3670,6 +3670,20 @@ function mntEditClick(i, actualRowIndex, evt) {
   if (window.innerWidth <= 768) {
     mntMobOpen(i, actualRowIndex);
   } else {
+    // Check if a different edit panel is already open and dirty
+    var openPanel = document.querySelector('[id^="mnt-edit-"]:not([style*="display:none"])');
+    if (openPanel) {
+      var openIndex = parseInt(openPanel.id.replace('mnt-edit-', ''), 10);
+      if (!isNaN(openIndex) && openIndex !== i && mntDesktopIsDirty(openIndex)) {
+        var mainRow = document.getElementById('mnt-row-' + i);
+        var newActual = actualRowIndex;
+        mntShowConfirm(
+          function() { saveMaintenanceRow(parseInt(document.getElementById('mnt-row-' + openIndex).dataset.actualIndex || '0', 10), openIndex); setTimeout(function(){ mntEditClick(i, newActual, null); }, 400); },
+          function() { collapseMaintenanceRow(openIndex); toggleMntEdit(i, newActual); var r = document.getElementById('mnt-row-' + i); if (r) r.dataset.actualIndex = newActual; }
+        );
+        return;
+      }
+    }
     toggleMntEdit(i, actualRowIndex);
     // Store actualRowIndex on the main row for dirty-check lookup
     var mainRow = document.getElementById('mnt-row-' + i);
@@ -3682,20 +3696,7 @@ function mntEditClick(i, actualRowIndex, evt) {
   }
 }
 
-// Click-away on desktop expand panel
-document.addEventListener('click', function(e) {
-  var openPanel = document.querySelector('[id^="mnt-edit-"]:not([style*="display:none"])');
-  if (!openPanel) return;
-  // Ignore clicks inside the edit panel, on the confirm overlay, or on an edit button
-  if (openPanel.contains(e.target)) return;
-  if (document.getElementById('mntConfirmOverlay').contains(e.target)) return;
-  if (e.target.closest && e.target.closest('[onclick*="mntEditClick"]')) return;
-  if (e.target.closest && e.target.closest('.sidebar-link')) return;
-  // Get the uiIndex from the panel id
-  var uiIndex = parseInt(openPanel.id.replace('mnt-edit-', ''), 10);
-  if (isNaN(uiIndex)) return;
-  mntTryCollapse(uiIndex);
-}, true);
+// Desktop edit panel closes only via Save or Cancel — no click-away.
 
 // ── Mobile modal ──────────────────────────────────────────────────────────────
 var _mntMobActualRowIndex = null;
@@ -3728,8 +3729,11 @@ function mntMobIsDirty() {
     if (mntAllIssues[k].rowIndex == _mntMobActualRowIndex) { row = mntAllIssues[k]; break; }
   }
   if (!row) return true;
-  return document.getElementById('mntMob_status').value   !== (row.status   || 'New')  ||
-         document.getElementById('mntMob_note').value.trim() !== (row.updates  || '')  ||
+  var noteVal = (document.getElementById('mntMob_note').value || '').trim();
+  var origNote = (row.updates || '').trim();
+  // If there's any text typed at all that differs from original, treat as dirty
+  if (noteVal !== origNote) return true;
+  return document.getElementById('mntMob_status').value   !== (row.status   || 'New') ||
          document.getElementById('mntMob_priority').value !== (row.priority || '');
 }
 
@@ -3800,13 +3804,27 @@ async function mntMobSave() {
   }
 }
 
-// Tap-away to close mobile modal
-var _mntModal = document.getElementById('mntMobileModal');
-if (_mntModal) {
-  _mntModal.addEventListener('click', function(e) {
-    if (!e.target.closest('.mnt-mob-box')) mntMobTryClose();
+// Tap-away to close mobile modal — robust version
+// Only fires if the pointer STARTED on the backdrop AND ended on the backdrop.
+// This prevents accidental closes when the virtual keyboard shifts the layout,
+// or when a tap inside the box is misregistered as outside it.
+(function() {
+  var modal = document.getElementById('mntMobileModal');
+  if (!modal) return;
+  var _pointerStartedOnBackdrop = false;
+
+  modal.addEventListener('pointerdown', function(e) {
+    _pointerStartedOnBackdrop = !e.target.closest('.mnt-mob-box');
   });
-}
+
+  modal.addEventListener('pointerup', function(e) {
+    var endedOnBackdrop = !e.target.closest('.mnt-mob-box');
+    if (_pointerStartedOnBackdrop && endedOnBackdrop) {
+      mntMobTryClose();
+    }
+    _pointerStartedOnBackdrop = false;
+  });
+})();
 
 
 var _origShowPanel2 = showPanel;
