@@ -1406,12 +1406,8 @@ function mntMarkDirty(i) {
   if (mainRow) mainRow.classList.add('mnt-row-dirty');
 }
 
-// Auto-bump status New → In Progress when user starts typing a note
+// Note input — just mark dirty, do NOT auto-change status
 function mntOnNoteInput(i) {
-  var statusSel = document.getElementById('mnt-status-' + i);
-  if (statusSel && statusSel.value === 'New') {
-    statusSel.value = 'In Progress';
-  }
   mntMarkDirty(i);
 }
 
@@ -1563,7 +1559,7 @@ function renderMaintenanceTable() {
     html += '</select></div>';
     // Buttons
     html += '<div style="display:flex;gap:0.6rem;align-items:flex-end;padding-bottom:0.1rem;margin-left:auto;">';
-    html += '<button style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.85rem;cursor:pointer;" onclick="mntTryCollapse(' + i + ')">Cancel</button>';
+    html += '<button style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.85rem;cursor:pointer;" onclick="mntTryCollapse(' + i + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();}">Cancel</button>';
     html += '<button id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="background:var(--green);color:white;border:none;border-radius:5px;padding:0.45rem 1.1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>';
     html += '</div></div></td></tr>';
   });
@@ -1647,8 +1643,6 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   var newStatus   = statusEl.value;
   var newNote     = noteEl ? noteEl.value.trim() : '';
   var newPriority = priorityEl ? priorityEl.value : '';
-  // Mirror source page: if note cleared and status is In Progress, revert to New
-  if (!newNote && newStatus === 'In Progress') newStatus = 'New';
 
   if (saveBtn) { saveBtn.textContent = 'Saving\u2026'; saveBtn.disabled = true; }
 
@@ -3614,7 +3608,13 @@ var _mntConfirmDiscardFn = null;
 function mntShowConfirm(onSave, onDiscard) {
   _mntConfirmSaveFn    = onSave;
   _mntConfirmDiscardFn = onDiscard;
-  document.getElementById('mntConfirmOverlay').classList.add('open');
+  var overlay = document.getElementById('mntConfirmOverlay');
+  overlay.classList.add('open');
+  // Focus the Save button so spacebar/Enter defaults to saving, not discarding
+  setTimeout(function() {
+    var saveBtn = overlay.querySelector('.mnt-confirm-btns button:last-child');
+    if (saveBtn) saveBtn.focus();
+  }, 50);
 }
 function mntConfirmSave() {
   document.getElementById('mntConfirmOverlay').classList.remove('open');
@@ -3760,7 +3760,6 @@ async function mntMobSave() {
   var newStatus   = document.getElementById('mntMob_status').value;
   var newNote     = document.getElementById('mntMob_note').value.trim();
   var newPriority = document.getElementById('mntMob_priority').value;
-  if (!newNote && newStatus === 'In Progress') newStatus = 'New';
 
   var btn = document.getElementById('mntMobSaveBtn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
@@ -3827,7 +3826,15 @@ async function mntMobSave() {
 })();
 
 
-var _origShowPanel2 = showPanel;
+// Keyboard trap for confirm overlay — Escape does nothing, must click a button
+document.addEventListener('DOMContentLoaded', function() {
+  var _overlay = document.getElementById('mntConfirmOverlay');
+  if (_overlay) _overlay.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+  });
+});
+
+
 var _dirPendingPanel = null;
 
 function dir_showUnsavedBanner(pendingId) {
