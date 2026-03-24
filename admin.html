@@ -1650,6 +1650,16 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   var newNote     = noteEl ? noteEl.value.trim() : '';
   var newPriority = priorityEl ? priorityEl.value : '';
 
+  if (newStatus === 'In Progress' && !newPriority) {
+    if (priorityEl) {
+      priorityEl.style.border = '2px solid #c0392b';
+      priorityEl.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.2)';
+      setTimeout(function(){ priorityEl.style.border = ''; priorityEl.style.boxShadow = ''; }, 3000);
+    }
+    showToast('Please set a Priority before marking as In Progress.', 'error');
+    return;
+  }
+
   if (saveBtn) { saveBtn.textContent = 'Saving\u2026'; saveBtn.disabled = true; }
 
   try {
@@ -3766,6 +3776,17 @@ async function mntMobSave() {
   var newStatus   = document.getElementById('mntMob_status').value;
   var newNote     = document.getElementById('mntMob_note').value.trim();
   var newPriority = document.getElementById('mntMob_priority').value;
+
+  if (newStatus === 'In Progress' && !newPriority) {
+    var priSel = document.getElementById('mntMob_priority');
+    if (priSel) {
+      priSel.style.border = '2px solid #c0392b';
+      priSel.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.2)';
+      setTimeout(function(){ priSel.style.border = ''; priSel.style.boxShadow = ''; }, 3000);
+    }
+    showToast('Please set a Priority before marking as In Progress.', 'error');
+    return;
+  }
 
   var btn = document.getElementById('mntMobSaveBtn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
