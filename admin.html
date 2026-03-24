@@ -1535,8 +1535,8 @@ function renderMaintenanceTable() {
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntPriBadge(row.priority) + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;text-align:center;" onclick="mntToggleDetail(' + i + ',' + actualRowIndex + ',event)">';
-    html += '<button id="mnt-det-btn-' + i + '" style="background:none;border:none;cursor:pointer;color:#c4a882;font-size:0.78rem;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:3px;padding:2px 4px;"><span id="mnt-det-label-' + i + '">Detail</span> <span id="mnt-det-chev-' + i + '" style="font-size:0.65rem;display:inline-block;transition:transform 0.22s;">▼</span></button>';
+    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;text-align:center;">';
+    html += '<button id="mnt-det-btn-' + i + '" onclick="mntToggleDetail(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;color:#c4a882;font-size:0.78rem;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:3px;padding:2px 4px;"><span id="mnt-det-label-' + i + '">Detail</span> <span id="mnt-det-chev-' + i + '" style="font-size:0.65rem;display:inline-block;transition:transform 0.22s;">▼</span></button>';
     html += '</td>';
     html += '</tr>';
 
@@ -1681,12 +1681,11 @@ function mntDetSetOpen(i, open) {
 
 function mntToggleDetail(i, actualRowIndex, evt) {
   if (evt) evt.stopPropagation();
-  var detRow  = document.getElementById('mnt-det-' + i);
-  var editRow = document.getElementById('mnt-edit-' + i);
+  var detRow = document.getElementById('mnt-det-' + i);
   if (!detRow) return;
   var isOpen = detRow.style.display !== 'none';
-  // Close all other open detail rows
-  document.querySelectorAll('[id^="mnt-det-"]').forEach(function(r) {
+  // Close all other open detail rows — match only tr rows (numeric suffix only)
+  document.querySelectorAll('tr[id^="mnt-det-"]').forEach(function(r) {
     if (r.id !== 'mnt-det-' + i) {
       r.style.display = 'none';
       var idx = r.id.replace('mnt-det-', '');
