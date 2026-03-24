@@ -1716,9 +1716,13 @@ function toggleMntEdit(i, actualRowIndex) {
   var inner = document.getElementById('mnt-edit-inner-' + i);
   var isVisible = inner && inner.style.maxHeight !== '0px' && inner.style.maxHeight !== '';
   // Close all other edit panels
-  document.querySelectorAll('[id^="mnt-edit-inner-"]').forEach(function(r){ r.style.maxHeight='0'; });
-  if (!isVisible && inner) { inner.style.maxHeight = inner.scrollHeight + 300 + 'px'; _mntEditPanelOpen = true; }
-  else { _mntEditPanelOpen = false; }
+  document.querySelectorAll('[id^="mnt-edit-inner-"]').forEach(function(r){ r.style.maxHeight='0'; r.style.overflow='hidden'; });
+  if (!isVisible && inner) {
+    inner.style.maxHeight = inner.scrollHeight + 300 + 'px';
+    // After transition: remove max-height cap and allow overflow so textarea resize works freely
+    setTimeout(function(){ if(inner.style.maxHeight !== '0px') { inner.style.maxHeight = 'none'; inner.style.overflow = 'visible'; } }, 300);
+    _mntEditPanelOpen = true;
+  } else { _mntEditPanelOpen = false; }
   resetAutoLock();
 }
 
