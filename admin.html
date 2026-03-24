@@ -1560,8 +1560,8 @@ function renderMaintenanceTable() {
     html += '</div>';
 
     // Edit panel (mnt-edit-* — kept for compatibility with all existing JS)
-    html += '<tr id="mnt-edit-' + i + '"><td colspan="8" style="padding:0;">'; 
-    html += '<div id="mnt-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.28s ease;">'; 
+    html += '<tr id="mnt-edit-' + i + '" style="position:relative;z-index:10;"><td colspan="8" style="padding:0;position:relative;z-index:10;">'; 
+    html += '<div id="mnt-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.28s ease;position:relative;z-index:10;">'; 
     html += '<div style="padding:0.75rem 1rem;background:#2a2520;border-top:2px solid var(--accent2);border-bottom:2px solid var(--accent2);">'; 
 
     // Responsive edit layout: status+priority left, textarea right
