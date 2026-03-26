@@ -2768,7 +2768,7 @@ function nbNotifyRenderList() {
   listEl.innerHTML = _nbNotifyResidents.map(function(r, idx) {
     return '<label class="nb-notify-recip-item' + (r.selected ? '' : ' deselected') + '" id="nbNotifyItem-' + idx + '">' +
       '<input type="checkbox" ' + (r.selected ? 'checked' : '') + ' onchange="nbNotifyToggle(' + idx + ', this.checked)">' +
-      (r.address ? '<span class="nr-name">Flat ' + r.address + '</span>' : '') +
+      (r.address ? '<span class="nr-name">' + r.address + '</span>' : '') +
       '<span>' + r.email + '</span>' +
       '</label>';
   }).join('');
