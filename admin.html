@@ -730,15 +730,15 @@
             <label style="font-size:0.78rem;font-weight:600;color:var(--mid);">Recipients</label>
             <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
               <span style="font-size:0.72rem;color:var(--mid);">Mode:</span>
-              <button id="bcModeTo"  class="abtn abtn-primary"  style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('to')">To</button>
+              <button id="bcModeTo"  class="abtn abtn-muted"    style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('to')">To</button>
               <button id="bcModeCC"  class="abtn abtn-muted"    style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('cc')">CC</button>
-              <button id="bcModeBCC" class="abtn abtn-muted"    style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('bcc')">BCC</button>
+              <button id="bcModeBCC" class="abtn abtn-primary"  style="font-size:0.72rem;padding:0.25rem 0.7rem;" onclick="bcSetMode('bcc')">BCC</button>
               <span style="width:1px;height:1rem;background:rgba(122,92,62,0.2);display:inline-block;"></span>
               <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectAll()">Select All</button>
               <button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="bcSelectNone()">Clear All</button>
             </div>
           </div>
-          <div id="bcModeDesc" style="font-size:0.72rem;color:var(--mid);margin-bottom:0.5rem;">All selected residents will appear in the To field.</div>
+          <div id="bcModeDesc" style="font-size:0.72rem;color:var(--mid);margin-bottom:0.5rem;">All selected residents will appear in the BCC field — they cannot see each other's addresses.</div>
           <div id="bcAddressList" style="border:1px solid rgba(122,92,62,0.28);border-radius:6px;background:#fff;padding:0.4rem 0;">
             <div style="font-size:0.78rem;color:var(--stone);padding:0.5rem 0.75rem;font-style:italic;">Loading addresses…</div>
           </div>
@@ -2849,7 +2849,7 @@ async function nbNotifySend() {
 // ─── BROADCAST EMAIL ─────────────────────────────────────────────────────────
 
 var bcResidents = [];
-var bcMode = 'to';
+var bcMode = 'bcc';
 var bcExtVisible = false;
 var bcTemplates = {
   agm:         { subject: 'AGM Notice — CMC The Courtyard',   body: 'Dear residents,\n\nThis is a reminder that the Annual General Meeting will be held on [DATE] at [TIME] in [LOCATION].\n\nPlease confirm your attendance by replying to this email.\n\nCMC Management' },
@@ -3183,7 +3183,7 @@ async function bcSend() {
       document.getElementById('bcCharCount').textContent = '0 words · 0 characters';
       bcResidents.forEach(function(r){ r.open = false; });
       bcSelectNone();
-      bcSetMode('to');
+      bcSetMode('bcc');
       // Reset schedule to Send now
       document.querySelector('input[name=bcSched][value=now]').checked = true;
       document.getElementById('bcSchedFields').style.display = 'none';
