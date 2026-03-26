@@ -300,6 +300,19 @@
     background: linear-gradient(135deg, #b04020, #e07040) !important;
     animation: pulse-badge 1.4s infinite;
   }
+  .agm-countdown.today {
+    background: linear-gradient(135deg, #b8860b, #ffd700) !important;
+    color: #3a2800 !important;
+    box-shadow: 0 2px 8px rgba(184,134,11,0.4);
+  }
+  .link-card.agm-urgent {
+    background: #2c1a10 !important;
+    border-color: #e07040 !important;
+  }
+  .link-card.agm-urgent h3,
+  .link-card.agm-urgent .agm-cta { color: #f5e8d8 !important; }
+  .link-card.agm-urgent .agm-detail-label { color: #8a7060 !important; }
+  .link-card.agm-urgent .agm-detail-val { color: #c4956a !important; }
 
   /* ── Maintenance all-clear ── */
   .mnt-all-clear {
@@ -655,12 +668,16 @@
             d.setHours(0,0,0,0);
             const diff = Math.round((d - today) / (1000*60*60*24));
             const el = document.getElementById('agmCountdown');
+            const agmCard = document.querySelector('a.link-card.agm-card');
+            if (diff > 30 || diff < 0) { el.style.display = 'none'; } else {
             el.style.display = 'block';
             if (diff > 0) {
               const urgent = diff <= 7;
               el.innerHTML = `<span class="agm-countdown${urgent ? ' urgent' : ''}">📅 AGM in ${diff} day${diff===1?'':'s'}</span>`;
+              if (urgent && agmCard) agmCard.classList.add('agm-urgent');
             } else if (diff === 0) {
-              el.innerHTML = `<span class="agm-countdown">🎉 AGM is today!</span>`;
+              el.innerHTML = `<span class="agm-countdown today">🎉 AGM is today!</span>`;
+              if (agmCard) agmCard.classList.add('agm-urgent');
               // Show full-width banner
               const banner = document.getElementById('agmTodayBanner');
               banner.style.display = 'flex';
@@ -673,8 +690,7 @@
                 const v = venueEl ? venueEl.textContent : '';
                 detail.textContent = [t ? 'Tonight at ' + t : '', v].filter(Boolean).join(' · ');
               }, 400);
-            } else {
-              el.innerHTML = `<span class="agm-countdown past">AGM was ${Math.abs(diff)} day${Math.abs(diff)===1?'':'s'} ago</span>`;
+            }
             }
           } else {
             // No confirmed date — use already-loaded availability result
