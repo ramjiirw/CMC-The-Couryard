@@ -168,6 +168,59 @@
   .nb-notify-btn:hover { background:rgba(122,92,62,0.18); color:var(--accent); }
   .nb-notify-btn.nb-notify-disabled { opacity:0.3; cursor:not-allowed; }
   .nb-notify-btn.nb-notify-disabled:hover { background:var(--warm); color:var(--mid); }
+
+  /* Notify review modal */
+  #nbNotifyModal { display:none; position:fixed; inset:0; z-index:950; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; padding:1rem; }
+  #nbNotifyModal.open { display:flex; }
+  .nb-notify-box {
+    background:var(--cream); border-radius:12px; width:100%; max-width:560px;
+    max-height:88vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.5);
+    display:flex; flex-direction:column;
+  }
+  .nb-notify-header {
+    padding:1.1rem 1.3rem 0.8rem; border-bottom:1px solid rgba(122,92,62,0.18);
+    display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+  }
+  .nb-notify-header h3 { font-size:0.95rem; font-weight:700; color:var(--accent); }
+  .nb-notify-close { background:none; border:none; cursor:pointer; font-size:1.1rem; color:var(--stone); line-height:1; padding:0.2rem; }
+  .nb-notify-close:hover { color:var(--accent); }
+  .nb-notify-body { padding:1rem 1.3rem; flex:1; overflow-y:auto; }
+  .nb-notify-preview {
+    background:#fff; border:1px solid rgba(122,92,62,0.22); border-radius:8px;
+    padding:0.75rem 1rem; margin-bottom:1rem;
+  }
+  .nb-notify-preview .np-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); font-weight:700; margin-bottom:0.25rem; }
+  .nb-notify-preview .np-title { font-size:0.92rem; font-weight:700; color:var(--dark); margin-bottom:0.4rem; }
+  .nb-notify-preview .np-message { font-size:0.82rem; color:var(--mid); line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+  .nb-notify-recip-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:0.5rem; flex-wrap:wrap; gap:0.4rem;
+  }
+  .nb-notify-recip-header .nr-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--mid); }
+  .nb-notify-recip-header .nr-actions { display:flex; gap:0.35rem; }
+  .nb-notify-recip-header .nr-actions button { font-size:0.68rem; padding:0.18rem 0.55rem; }
+  .nb-notify-recip-list {
+    border:1px solid rgba(122,92,62,0.22); border-radius:8px; background:#fff;
+    max-height:200px; overflow-y:auto; padding:0.3rem 0;
+  }
+  .nb-notify-recip-item {
+    display:flex; align-items:center; gap:0.6rem;
+    padding:0.38rem 0.75rem; border-bottom:1px solid rgba(122,92,62,0.1);
+    font-size:0.82rem; color:var(--dark); cursor:pointer; transition:background 0.12s;
+    user-select:none;
+  }
+  .nb-notify-recip-item:last-child { border-bottom:none; }
+  .nb-notify-recip-item:hover { background:rgba(122,92,62,0.06); }
+  .nb-notify-recip-item input[type=checkbox] { accent-color:var(--accent); width:14px; height:14px; flex-shrink:0; cursor:pointer; }
+  .nb-notify-recip-item.deselected { opacity:0.4; text-decoration:line-through; }
+  .nb-notify-recip-item .nr-name { font-weight:600; color:var(--accent); min-width:90px; font-size:0.78rem; }
+  .nb-notify-count { font-size:0.72rem; color:var(--mid); margin-top:0.4rem; min-height:1rem; }
+  .nb-notify-footer {
+    padding:0.9rem 1.3rem; border-top:1px solid rgba(122,92,62,0.18);
+    display:flex; gap:0.6rem; justify-content:flex-end; flex-shrink:0;
+    background:var(--cream); border-radius:0 0 12px 12px;
+  }
+  .nb-notify-footer button { min-width:90px; }
   .nb-delete-btn { background:transparent; color:var(--stone); border:1px solid rgba(122,92,62,0.2); }
   .nb-delete-btn:hover { background:rgba(139,58,58,0.1); color:#b05050; border-color:rgba(139,58,58,0.3); }
   .nb-row-actions { display:flex; flex-direction:column; gap:0.4rem; align-items:center; flex-shrink:0; }
@@ -2662,6 +2715,9 @@ function escHtml(s) {
 
 // ─── NOTICEBOARD NOTIFY ──────────────────────────────────────────────────────
 
+var _nbNotifyIndex = null;
+var _nbNotifyResidents = [];
+
 async function nbNotify(i) {
   var m = nbMessages[i];
   if (!m) return;
@@ -2669,39 +2725,124 @@ async function nbNotify(i) {
     alert('This notice has no title or message.');
     return;
   }
+  _nbNotifyIndex = i;
 
-  // Get resident count
-  var resCount = 0;
+  // Populate preview
+  document.getElementById('nbNotifyPreviewTitle').textContent = m.title || '(No title)';
+  document.getElementById('nbNotifyPreviewMessage').textContent = m.message || '(No message)';
+
+  // Load residents
+  var listEl = document.getElementById('nbNotifyRecipList');
+  var countEl = document.getElementById('nbNotifyCount');
+  listEl.innerHTML = '<div style="padding:0.5rem 0.75rem;font-size:0.78rem;color:var(--stone);font-style:italic;">Loading…</div>';
+  countEl.textContent = '';
+  document.getElementById('nbNotifyModal').classList.add('open');
+
   try {
     const res = await fetch(SCRIPT_URL + '?action=read');
     const data = await res.json();
-    resCount = (data.rows || []).filter(function(r){ return r.email && r.email.indexOf('@') > -1; }).length;
-  } catch(e) {}
+    _nbNotifyResidents = (data.rows || [])
+      .filter(function(r){ return r.email && r.email.indexOf('@') > -1; })
+      .map(function(r){ return { address: r.address || '', email: r.email.trim(), selected: true }; })
+      .sort(function(a, b) {
+        var aNum = parseInt(a.address, 10) || 0;
+        var bNum = parseInt(b.address, 10) || 0;
+        if (aNum !== bNum) return aNum - bNum;
+        return a.email.toLowerCase().localeCompare(b.email.toLowerCase());
+      });
+  } catch(e) {
+    _nbNotifyResidents = [];
+  }
 
-  var confirmMsg = 'Send this notice to all residents?' + (resCount > 0 ? '\n\nThis will email ' + resCount + ' resident' + (resCount === 1 ? '' : 's') + '.' : '');
-  if (!confirm(confirmMsg)) return;
+  nbNotifyRenderList();
+}
+
+function nbNotifyRenderList() {
+  var listEl = document.getElementById('nbNotifyRecipList');
+  var countEl = document.getElementById('nbNotifyCount');
+  if (!_nbNotifyResidents.length) {
+    listEl.innerHTML = '<div style="padding:0.5rem 0.75rem;font-size:0.78rem;color:var(--stone);font-style:italic;">No resident emails found.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  listEl.innerHTML = _nbNotifyResidents.map(function(r, idx) {
+    return '<label class="nb-notify-recip-item' + (r.selected ? '' : ' deselected') + '" id="nbNotifyItem-' + idx + '">' +
+      '<input type="checkbox" ' + (r.selected ? 'checked' : '') + ' onchange="nbNotifyToggle(' + idx + ', this.checked)">' +
+      (r.address ? '<span class="nr-name">Flat ' + r.address + '</span>' : '') +
+      '<span>' + r.email + '</span>' +
+      '</label>';
+  }).join('');
+  nbNotifyUpdateCount();
+}
+
+function nbNotifyToggle(idx, checked) {
+  _nbNotifyResidents[idx].selected = checked;
+  var item = document.getElementById('nbNotifyItem-' + idx);
+  if (item) item.classList.toggle('deselected', !checked);
+  nbNotifyUpdateCount();
+}
+
+function nbNotifyUpdateCount() {
+  var sel = _nbNotifyResidents.filter(function(r){ return r.selected; }).length;
+  var total = _nbNotifyResidents.length;
+  var countEl = document.getElementById('nbNotifyCount');
+  countEl.textContent = sel + ' of ' + total + ' recipient' + (total === 1 ? '' : 's') + ' selected';
+  document.getElementById('nbNotifySendBtn').disabled = sel === 0;
+}
+
+function nbNotifySelectAll() {
+  _nbNotifyResidents.forEach(function(r){ r.selected = true; });
+  nbNotifyRenderList();
+}
+
+function nbNotifySelectNone() {
+  _nbNotifyResidents.forEach(function(r){ r.selected = false; });
+  nbNotifyRenderList();
+}
+
+function nbNotifyClose() {
+  document.getElementById('nbNotifyModal').classList.remove('open');
+  _nbNotifyIndex = null;
+  _nbNotifyResidents = [];
+}
+
+async function nbNotifySend() {
+  var i = _nbNotifyIndex;
+  var m = nbMessages[i];
+  if (!m) return;
+
+  var selectedEmails = _nbNotifyResidents.filter(function(r){ return r.selected; }).map(function(r){ return r.email; });
+  if (!selectedEmails.length) { alert('No recipients selected.'); return; }
+
+  var sendBtn = document.getElementById('nbNotifySendBtn');
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending…';
+
+  nbNotifyClose();
 
   var rowEl = document.getElementById('nb-row-' + i);
-  var btns = rowEl ? rowEl.querySelectorAll('.abtn-muted') : [];
-  var notifyBtn = btns.length > 0 ? btns[btns.length - 1] : null;
+  var btns = rowEl ? rowEl.querySelectorAll('.nb-notify-btn') : [];
+  var notifyBtn = btns.length > 0 ? btns[0] : null;
   if (notifyBtn) { notifyBtn.disabled = true; notifyBtn.textContent = 'Sending…'; }
   var msg = document.getElementById('nbMsg');
 
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'notifyResidents', title: m.title, message: m.message })
+      body: JSON.stringify({ action: 'notifyResidents', title: m.title, message: m.message, recipients: selectedEmails })
     });
     const data = await res.json();
     if (data.status === 'ok') {
       msg.style.color = 'var(--green)';
-      msg.textContent = '✓ Notice emailed to all residents';
+      msg.textContent = '✓ Notice emailed to ' + selectedEmails.length + ' resident' + (selectedEmails.length === 1 ? '' : 's');
     } else throw new Error(data.message);
   } catch(e) {
     msg.style.color = '#b05050';
     msg.textContent = '✗ Could not send — ' + e.message;
   }
   if (notifyBtn) { notifyBtn.disabled = false; notifyBtn.innerHTML = '&#128231; Notify'; }
+  sendBtn.disabled = false;
+  sendBtn.innerHTML = '&#128231; Send';
   setTimeout(function(){ msg.textContent = ''; }, 5000);
 }
 
@@ -3960,6 +4101,15 @@ async function mntMobSave() {
 })();
 
 
+// Close nbNotifyModal on backdrop click
+(function(){
+  var modal = document.getElementById('nbNotifyModal');
+  if (!modal) return;
+  var _down = false;
+  modal.addEventListener('pointerdown', function(e){ _down = !e.target.closest('.nb-notify-box'); });
+  modal.addEventListener('pointerup', function(e){ if (_down && !e.target.closest('.nb-notify-box')) nbNotifyClose(); _down = false; });
+})();
+
 // Keyboard trap for confirm overlay — Escape does nothing, must click a button
 document.addEventListener('DOMContentLoaded', function() {
   var _overlay = document.getElementById('mntConfirmOverlay');
@@ -4012,6 +4162,38 @@ showPanel = function(id) {
 
 
 </script>
+
+<!-- Noticeboard notify review modal -->
+<div id="nbNotifyModal">
+  <div class="nb-notify-box">
+    <div class="nb-notify-header">
+      <h3>&#128231; Review &amp; Send Notice</h3>
+      <button class="nb-notify-close" onclick="nbNotifyClose()" title="Cancel">&#10005;</button>
+    </div>
+    <div class="nb-notify-body">
+      <!-- Notice preview -->
+      <div class="nb-notify-preview">
+        <div class="np-label">Notice preview</div>
+        <div class="np-title" id="nbNotifyPreviewTitle"></div>
+        <div class="np-message" id="nbNotifyPreviewMessage"></div>
+      </div>
+      <!-- Recipient list -->
+      <div class="nb-notify-recip-header">
+        <span class="nr-label">Recipients</span>
+        <div class="nr-actions">
+          <button class="abtn abtn-muted" onclick="nbNotifySelectAll()">Select All</button>
+          <button class="abtn abtn-muted" onclick="nbNotifySelectNone()">Clear All</button>
+        </div>
+      </div>
+      <div class="nb-notify-recip-list" id="nbNotifyRecipList"></div>
+      <div class="nb-notify-count" id="nbNotifyCount"></div>
+    </div>
+    <div class="nb-notify-footer">
+      <button class="abtn abtn-muted" onclick="nbNotifyClose()">Cancel</button>
+      <button class="abtn abtn-primary" id="nbNotifySendBtn" onclick="nbNotifySend()">&#128231; Send</button>
+    </div>
+  </div>
+</div>
 
 <!-- Maintenance mobile edit modal -->
 <div id="mntMobileModal">
