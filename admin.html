@@ -314,9 +314,18 @@
   .stat-tile { background:rgba(122,92,62,0.1); border:1px solid rgba(122,92,62,0.2); border-radius:10px; padding:0.9rem 1.5rem; min-width:110px; text-align:center; }
   .stat-tile .stat-num { font-size:1.9rem; font-weight:700; color:var(--accent); line-height:1; }
   .stat-tile .stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--mid); margin-top:0.3rem; }
+  .stat-tile .stat-sub { font-size:0.62rem; color:#b8ad9e; margin-top:0.2rem; }
   .stat-tile.stat-alert .stat-num { color:#b05050; }
   .stat-tile.stat-clickable { cursor:pointer; transition:background 0.15s, border-color 0.15s; }
   .stat-tile.stat-clickable:hover { background:rgba(122,92,62,0.2); border-color:rgba(122,92,62,0.4); }
+  .stat-tile.stat-red { background:#4a1008; border-color:#7a1a0a; }
+  .stat-tile.stat-red .stat-num { color:#f0e0dc; }
+  .stat-tile.stat-red .stat-lbl { color:#c8a8a0; }
+  .stat-tile.stat-red:hover { background:#5a1a10; border-color:#9a2a10; }
+  .stat-tile.stat-green { background:#0d3018; border-color:#1a5a28; }
+  .stat-tile.stat-green .stat-num { color:#dff0e5; }
+  .stat-tile.stat-green .stat-lbl { color:#98c0a8; }
+  .stat-tile.stat-green:hover { background:#123d20; border-color:#226b32; }
 
   /* ── Dashboard rich cards ── */
   .dash-cards { display:flex; gap:1rem; margin-top:1.2rem; flex-wrap:wrap; justify-content:center; width:100%; max-width:780px; }
@@ -506,10 +515,10 @@
           <div style="font-size:0.78rem;color:var(--mid);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.3rem;">Admin Portal</div>
           <!-- Top row: 4 equal stat tiles -->
           <div class="welcome-stats">
-            <div class="stat-tile stat-clickable" onclick="showPanel('residents')" title="Go to Resident Map"><div class="stat-num" id="statResidents">—</div><div class="stat-lbl">Residents</div></div>
+            <div class="stat-tile stat-clickable" onclick="showPanel('residents')" title="Go to Resident Map"><div class="stat-num" id="statResidents">—</div><div class="stat-lbl">Residents</div><div class="stat-sub" id="statResidentSub"></div></div>
             <div class="stat-tile stat-clickable" id="statOpenTile" onclick="showMaintenanceFiltered('','',true)" title="View open issues"><div class="stat-num" id="statOpen">—</div><div class="stat-lbl">Open Issues</div></div>
             <div class="stat-tile stat-clickable" id="statHighPriTile" onclick="showMaintenanceFiltered('','High')" title="View high priority issues"><div class="stat-num" id="dcHighPriCount">—</div><div class="stat-lbl">High Priority</div></div>
-            <div class="stat-tile stat-clickable" onclick="showMaintenanceFiltered('Resolved','')" title="View resolved issues"><div class="stat-num" id="statClosed">—</div><div class="stat-lbl">Resolved</div></div>
+            <div class="stat-tile stat-clickable stat-green" onclick="showMaintenanceFiltered('Resolved','')" title="View resolved issues"><div class="stat-num" id="statClosed">—</div><div class="stat-lbl">Resolved</div></div>
           </div>
           <!-- Bottom row: 3 rich cards -->
           <div class="dash-cards">
@@ -2000,6 +2009,10 @@ function loadWelcomeStats() {
   // Resident count (top tiles)
   if (residents.length) {
     document.getElementById('statResidents').textContent = residents.length;
+    var owners = residents.filter(function(r){ return r.owner && r.owner.trim(); }).length;
+    var tenants = residents.filter(function(r){ return r.tenant && r.tenant.trim(); }).length;
+    var subEl = document.getElementById('statResidentSub');
+    if (subEl) subEl.textContent = owners + ' owners · ' + tenants + ' tenants';
   }
 
   // ── Resident Map card ──────────────────────────────────────────────────
@@ -2075,6 +2088,12 @@ function dcLoadResidentMap() {
       renderTenantCard(resList);
       var el = document.getElementById('statResidents');
       if (el && resList.length) el.textContent = resList.length;
+      var subEl = document.getElementById('statResidentSub');
+      if (subEl) {
+        var owners = resList.filter(function(r){ return r.owner && r.owner.trim(); }).length;
+        var tenants = resList.filter(function(r){ return r.tenant && r.tenant.trim(); }).length;
+        subEl.textContent = owners + ' owners · ' + tenants + ' tenants';
+      }
     }).catch(function() {
       var listEl = document.getElementById('dcTenantList');
       if (listEl) listEl.innerHTML = '<li><span class="dcl-empty">Could not load</span></li>';
@@ -2090,8 +2109,8 @@ function dcLoadHighPriority(rows) {
   var tile = document.getElementById('statHighPriTile');
   if (countEl) countEl.textContent = highPri.length;
   if (tile) {
-    if (highPri.length > 0) tile.classList.add('stat-alert');
-    else tile.classList.remove('stat-alert');
+    if (highPri.length > 0) tile.classList.add('stat-red');
+    else tile.classList.remove('stat-red');
   }
 }
 
