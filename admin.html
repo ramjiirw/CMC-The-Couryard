@@ -1576,8 +1576,12 @@ function showMaintenanceFiltered(status, priority, hideResolved) {
 
 function mntApplyPendingFilter() {
   if (!_mntPendingStatus && !_mntPendingPriority && !_mntPendingHideResolved) return;
+  console.log('[MNT] applyPending: status=', _mntPendingStatus, 'priority=', _mntPendingPriority);
   if (_mntPendingStatus)   document.getElementById('mntFilterStatus').value   = _mntPendingStatus;
   if (_mntPendingPriority) document.getElementById('mntFilterPriority').value = _mntPendingPriority;
+  console.log('[MNT] dropdown after set:', document.getElementById('mntFilterStatus').value);
+  var opts = Array.from(document.getElementById('mntFilterStatus').options).map(function(o){ return o.value; });
+  console.log('[MNT] available options:', opts);
   if (_mntPendingHideResolved) {
     mntHideResolvedOn = true;
     var btn = document.getElementById('mntHideResolved');
