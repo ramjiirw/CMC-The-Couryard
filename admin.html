@@ -1817,7 +1817,7 @@ function mntPopulateDropdowns() {
   var hasProgress = mntAllIssues.some(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; });
   var hasResolved = mntAllIssues.some(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; });
   var statusSel = document.getElementById('mntFilterStatus');
-  var curStatus = statusSel.value;
+  var curStatus = statusSel.value || _mntPendingStatus || '';
   statusSel.innerHTML = '<option value="">All Statuses</option>';
   if (hasNew)      statusSel.innerHTML += '<option value="New">New</option>';
   if (hasProgress) statusSel.innerHTML += '<option value="In Progress">In Progress</option>';
