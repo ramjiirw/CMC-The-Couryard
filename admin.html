@@ -1196,14 +1196,32 @@ function showPanel(id) {
     } else {
       // Data already preloaded — render instantly
       mntPopulateDropdowns();
-      mntApplyPendingFilter();
-      renderMaintenanceTable();
+      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved) {
+        mntApplyPendingFilter(); // applies filters and renders
+      } else {
+        renderMaintenanceTable();
+      }
     }
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = setInterval(function(){ loadMaintenanceIssues(true); }, 60000);
   } else {
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = null;
+    // Reset filters when leaving maintenance so next visit starts clean
+    if (mntLoaded) {
+      document.getElementById('mntSearch').value = '';
+      document.getElementById('mntFilterStatus').value = '';
+      document.getElementById('mntFilterPriority').value = '';
+      document.getElementById('mntFilterCat').value = '';
+      document.getElementById('mntFilterAddr').value = '';
+      document.getElementById('mntDateFrom').value = '';
+      document.getElementById('mntDateTo').value = '';
+      mntHideResolvedOn = false;
+      var hrbtn = document.getElementById('mntHideResolved');
+      if (hrbtn) { hrbtn.style.background = '#fff'; hrbtn.style.color = '#6b5f52'; hrbtn.style.borderColor = '#b8ad9e'; }
+      var cfbtn = document.getElementById('mntClearFiltersBtn');
+      if (cfbtn) cfbtn.style.display = 'none';
+    }
   }
   if (window.innerWidth <= 600) {
     adminSidebar.classList.add('collapsed');
@@ -1831,8 +1849,11 @@ function loadMaintenanceIssues(silent) {
       mntAllIssues = d.rows || d.issues || [];
       mntLoaded = true;
       mntPopulateDropdowns();
-      mntApplyPendingFilter();
-      renderMaintenanceTable();
+      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved) {
+        mntApplyPendingFilter(); // applies filters and renders
+      } else {
+        renderMaintenanceTable();
+      }
     })
     .catch(function(e) {
       console.error('Maintenance load error:', e);
