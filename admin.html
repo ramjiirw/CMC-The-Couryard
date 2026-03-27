@@ -286,8 +286,8 @@
   .nb-header-row span { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent); }
   .nb-header-row .nb-ht { flex:0 0 200px; }
   .nb-header-row .nb-hm { flex:1; }
-  .welcome-stats { display:flex; gap:0.75rem; margin-top:1.4rem; flex-wrap:wrap; justify-content:center; width:100%; max-width:820px; }
-  .welcome-stats .stat-tile { flex:1 1 0; min-width:0; }
+  .welcome-stats { display:flex; gap:0.75rem; margin-top:1.4rem; flex-wrap:wrap; justify-content:center; }
+  .welcome-stats .stat-tile { flex:0 0 110px; width:110px; min-width:0; }
   /* ── Dashboard rich cards ── */
   .dash-cards { display:flex; gap:1rem; margin-top:1.2rem; flex-wrap:wrap; justify-content:center; width:100%; max-width:820px; }
   .dash-card { background:rgba(122,92,62,0.08); border:1px solid rgba(122,92,62,0.22); border-radius:12px; padding:1rem 1.1rem; flex:1 1 180px; min-width:170px; max-width:260px; cursor:pointer; transition:background 0.15s, border-color 0.15s, transform 0.15s; text-align:left; position:relative; }
@@ -1196,6 +1196,7 @@ function showPanel(id) {
     } else {
       // Data already preloaded — render instantly
       mntPopulateDropdowns();
+      mntApplyPendingFilter();
       renderMaintenanceTable();
     }
     clearInterval(mntRefreshTimer);
@@ -1203,6 +1204,8 @@ function showPanel(id) {
   } else {
     clearInterval(mntRefreshTimer);
     mntRefreshTimer = null;
+    // Clear maintenance filters when leaving the panel
+    if (typeof mntClearFilters === 'function') mntClearFilters();
   }
   if (window.innerWidth <= 600) {
     adminSidebar.classList.add('collapsed');
@@ -1546,17 +1549,27 @@ function mntClearFilters() {
   renderMaintenanceTable();
 }
 
+var _mntPendingStatus = null, _mntPendingPriority = null, _mntPendingHideResolved = false;
+
 function showMaintenanceFiltered(status, priority, hideResolved) {
+  _mntPendingStatus       = status       || null;
+  _mntPendingPriority     = priority     || null;
+  _mntPendingHideResolved = !!hideResolved;
+  showPanel('maintenance');
+}
+
+function mntApplyPendingFilter() {
+  if (!_mntPendingStatus && !_mntPendingPriority && !_mntPendingHideResolved) return;
   mntClearFilters();
-  if (status)       document.getElementById('mntFilterStatus').value = status;
-  if (priority)     document.getElementById('mntFilterPriority').value = priority;
-  if (hideResolved) {
+  if (_mntPendingStatus)   document.getElementById('mntFilterStatus').value   = _mntPendingStatus;
+  if (_mntPendingPriority) document.getElementById('mntFilterPriority').value = _mntPendingPriority;
+  if (_mntPendingHideResolved) {
     mntHideResolvedOn = true;
     var btn = document.getElementById('mntHideResolved');
     if (btn) { btn.style.background = '#2e7d52'; btn.style.color = 'white'; btn.style.borderColor = '#2e7d52'; }
   }
-  showPanel('maintenance');
-  if (typeof mntAllIssues !== 'undefined' && mntAllIssues.length) mntApplyFilters();
+  _mntPendingStatus = null; _mntPendingPriority = null; _mntPendingHideResolved = false;
+  mntApplyFilters();
 }
 
 function mntMarkDirty(i) {
@@ -1821,6 +1834,7 @@ function loadMaintenanceIssues(silent) {
       mntAllIssues = d.rows || d.issues || [];
       mntLoaded = true;
       mntPopulateDropdowns();
+      mntApplyPendingFilter();
       renderMaintenanceTable();
     })
     .catch(function(e) {
