@@ -68,6 +68,19 @@
   .sz { color:var(--stone); font-size:0.75rem; }
   .folder-label { color:var(--mid); font-size:0.75rem; font-style:italic; }
   .empty-msg { padding:1.5rem; text-align:center; color:var(--stone); font-style:italic; font-size:0.85rem; }
+  .doc-link { color:var(--accent); text-decoration:none; font-weight:500; word-break:break-word; }
+  .doc-link:hover { color:var(--accent2); text-decoration:underline; }
+  .doc-table { width:100%; border-collapse:collapse; }
+  .doc-table thead th { background:rgba(122,92,62,0.07); padding:0.7rem 1.5rem; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--mid); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .doc-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+  .doc-table tbody tr:last-child { border-bottom:none; }
+  .doc-table tbody tr:hover { background:rgba(196,149,106,0.06); }
+  .doc-table tbody td { padding:0.85rem 1.5rem; font-size:0.875rem; }
+  .sortable { cursor:pointer; user-select:none; }
+  .sortable .sort-icon { margin-left:4px; font-size:0.7rem; opacity:0.35; }
+  .sortable.sort-asc .sort-icon::after { content:' ▲'; opacity:1; color:var(--accent2); }
+  .sortable.sort-desc .sort-icon::after { content:' ▼'; opacity:1; color:var(--accent2); }
+  .sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:' ▲▼'; }
   footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   footer p > span:first-child { color:var(--accent2); }
@@ -109,6 +122,7 @@
       <div>
         <h1>CMC The Courtyard</h1>
         <p>Seller's Information Pack</p>
+        <p id="welcomeMsg" style="font-size:0.78rem;color:var(--accent2);font-style:italic;margin-top:0.2rem;"></p>
       </div>
     </div>
     <div class="header-right">
@@ -122,7 +136,7 @@
     </div>
     <div class="doc-card" id="pinnedCard">
       <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
-      <table><thead><tr><th>Document</th><th>Size</th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
+      <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
     </div>
     <div class="doc-card">
       <div class="doc-card-hdr all">&#128193; All Documents <span class="count-pill" id="allCount">0</span></div>
@@ -132,7 +146,7 @@
         <label>Folder</label>
         <select id="folderFilter" onchange="renderAll()"><option value="">All folders</option></select>
       </div>
-      <table><thead><tr><th>Document</th><th>Folder</th><th>Size</th><th></th></tr></thead><tbody id="allBody"></tbody></table>
+      <table class="doc-table" id="allTable"><thead><tr><th class="sortable sort-asc" id="allSortTh" onclick="toggleSortAll()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="allBody"></tbody></table>
     </div>
   </div>
   <footer>
@@ -199,6 +213,13 @@ function showSip() {
   s.style.display = 'flex';
   loadDocuments();
   resetIdle();
+  (function(){
+    var now = new Date();
+    var hour = now.getHours();
+    var greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    var day = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+    document.getElementById('welcomeMsg').textContent = (greeting + ' — ' + day).toUpperCase();
+  })();
 }
 
 function loadDocuments() {
@@ -233,15 +254,30 @@ function processDocs(data) {
   renderAll();
 }
 
+var pinnedSortDir = 'asc';
+function sortPinned() {
+  pinnedSortDir = pinnedSortDir === 'asc' ? 'desc' : 'asc';
+  renderPinned();
+}
 function renderPinned() {
   var body = document.getElementById('pinnedBody');
   document.getElementById('pinnedCount').textContent = pinnedDocs.length;
-  if (!pinnedDocs.length) { body.innerHTML = '<tr><td colspan="3" class="empty-msg">No pinned documents.</td></tr>'; return; }
-  body.innerHTML = pinnedDocs.map(function(d){
-    return '<tr><td><span class="pin-badge">pinned</span>' + esc(d.name) + '</td><td class="sz">' + fmt(d.size) + '</td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+  if (!pinnedDocs.length) { body.innerHTML = '<tr><td colspan="2" class="empty-msg">No pinned documents.</td></tr>'; return; }
+  var sorted = pinnedDocs.slice().sort(function(a,b){
+    return pinnedSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+  });
+  body.innerHTML = sorted.map(function(d){
+    return '<tr><td><span class="pin-badge">pinned</span><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
+var allSortDir = 'asc';
+function toggleSortAll() {
+  allSortDir = allSortDir === 'asc' ? 'desc' : 'asc';
+  var th = document.getElementById('allSortTh');
+  th.className = 'sortable ' + (allSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  renderAll();
+}
 function renderAll() {
   var q = document.getElementById('searchInput').value.toLowerCase().trim();
   var fld = document.getElementById('folderFilter').value;
@@ -249,10 +285,13 @@ function renderAll() {
   var filtered = allDocs.filter(function(d){
     return (!q || d.name.toLowerCase().indexOf(q) !== -1) && (!fld || d.folder === fld);
   });
+  filtered.sort(function(a,b){
+    return allSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+  });
   document.getElementById('allCount').textContent = filtered.length;
-  if (!filtered.length) { body.innerHTML = '<tr><td colspan="4" class="empty-msg">No documents found.</td></tr>'; return; }
+  if (!filtered.length) { body.innerHTML = '<tr><td colspan="2" class="empty-msg">No documents found.</td></tr>'; return; }
   body.innerHTML = filtered.map(function(d){
-    return '<tr><td>' + esc(d.name) + '</td><td class="folder-label">' + esc(d.folder) + '</td><td class="sz">' + fmt(d.size) + '</td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
