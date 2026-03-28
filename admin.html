@@ -455,6 +455,29 @@
   #dirMobileModal .dir-btn-modal-save { background:var(--accent); color:white; }
   #dirMobileModal .dir-btn-modal-cancel { background:transparent; color:var(--mid); border:1px solid var(--border) !important; }
 
+  /* ── Sunset night mode — dashboard cards only ── */
+  #adminScreen { transition:background 1800s linear; }
+  #adminScreen.night-mode { background:#1e1a16; }
+  #adminScreen.night-mode .dash-card { background:rgba(250,247,242,0.05); border-color:rgba(196,149,106,0.28); }
+  #adminScreen.night-mode .dash-card:hover { background:rgba(250,247,242,0.09); border-color:rgba(196,149,106,0.5); }
+  #adminScreen.night-mode .dash-card-title { color:var(--stone); }
+  #adminScreen.night-mode .dash-card-num { color:var(--accent2); }
+  #adminScreen.night-mode .dash-card-sub { color:var(--stone); }
+  #adminScreen.night-mode .dash-card-list li { border-bottom-color:rgba(255,255,255,0.06); color:var(--cream); }
+  #adminScreen.night-mode .dash-card-list .dcl-addr { color:var(--accent2); }
+  #adminScreen.night-mode .dash-card-list .dcl-name { color:var(--stone); }
+  #adminScreen.night-mode .dash-card-list .dcl-empty { color:rgba(184,173,158,0.35); }
+  #adminScreen.night-mode .dash-card.dash-card-alert { background:rgba(139,58,58,0.18); border-color:rgba(176,80,80,0.45); }
+  #adminScreen.night-mode .stat-tile { background:rgba(250,247,242,0.05); border-color:rgba(196,149,106,0.2); }
+  #adminScreen.night-mode .stat-tile .stat-num { color:var(--accent2); }
+  #adminScreen.night-mode .stat-tile .stat-lbl { color:var(--stone); }
+  #adminScreen.night-mode .stat-tile.stat-clickable:hover { background:rgba(250,247,242,0.09); border-color:rgba(196,149,106,0.4); }
+  #adminScreen.night-mode .stat-tile.stat-green { background:#0d3018; border-color:#1a5a28; }
+  #adminScreen.night-mode .stat-tile.stat-green .stat-num { color:#dff0e5; }
+  #adminScreen.night-mode .stat-tile.stat-green .stat-lbl { color:#98c0a8; }
+  #adminScreen.night-mode .panel-title { color:var(--accent2); }
+  #adminScreen.night-mode .panel-desc { color:var(--stone); }
+
 </style>
 </head>
 <body>
@@ -4534,6 +4557,78 @@ showPanel = function(id) {
     </div>
   </div>
 </div>
+
+
+<script>
+(function() {
+  var LAT = 51.5, LNG = -0.1; // UK central — good enough for sunrise/sunset
+  var FADE_MINS = 20; // crossfade duration in minutes
+
+  function applyMode(isNight, instant) {
+    var el = document.getElementById('adminScreen');
+    if (!el) return;
+    if (!instant) {
+      el.style.transition = 'background ' + (FADE_MINS * 60) + 's linear';
+      var cards = el.querySelectorAll('.dash-card, .stat-tile, .dash-card-title, .dash-card-num, .dash-card-sub, .dash-card-list li, .dcl-addr, .dcl-name, .panel-title, .panel-desc');
+      cards.forEach(function(c) { c.style.transition = 'background ' + (FADE_MINS * 60) + 's linear, border-color ' + (FADE_MINS * 60) + 's linear, color ' + (FADE_MINS * 60) + 's linear'; });
+    }
+    if (isNight) {
+      el.classList.add('night-mode');
+    } else {
+      el.classList.remove('night-mode');
+    }
+  }
+
+  function scheduleTransition(atMs, toNight) {
+    var delay = atMs - Date.now();
+    if (delay < 0) return;
+    // Start the fade FADE_MINS before the actual moment
+    var fadeStart = delay - (FADE_MINS * 60 * 1000);
+    if (fadeStart > 0) {
+      setTimeout(function() { applyMode(toNight, false); }, fadeStart);
+    } else {
+      // Already within the fade window — apply immediately with remaining fade time
+      applyMode(toNight, true);
+    }
+  }
+
+  function initSunsetMode() {
+    var today = new Date().toISOString().split('T')[0];
+    var url = 'https://api.sunrise-sunset.org/json?lat=' + LAT + '&lng=' + LNG + '&date=' + today + '&formatted=0';
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (!d.results) return;
+        var sunrise = new Date(d.results.sunrise).getTime();
+        var sunset  = new Date(d.results.sunset).getTime();
+        var now     = Date.now();
+        var isNight = (now < sunrise || now >= sunset);
+        // Set current state instantly
+        applyMode(isNight, true);
+        // Schedule the next transition
+        if (!isNight) {
+          scheduleTransition(sunset, true);   // fade to night at sunset
+        } else if (now < sunrise) {
+          scheduleTransition(sunrise, false); // fade to day at sunrise
+        }
+      })
+      .catch(function() {
+        // API unreachable — stay on day mode, no breakage
+      });
+  }
+
+  // Run once the admin screen is visible (it starts hidden)
+  // Poll briefly until it appears, then init
+  var attempts = 0;
+  var poll = setInterval(function() {
+    var el = document.getElementById('adminScreen');
+    if ((el && el.style.display !== 'none') || ++attempts > 60) {
+      clearInterval(poll);
+      if (el && el.style.display !== 'none') initSunsetMode();
+    }
+  }, 500);
+})();
+</script>
 
 </body>
 </html>
