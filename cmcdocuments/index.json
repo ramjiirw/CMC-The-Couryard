@@ -233,8 +233,8 @@
           "modified": "2026-03-28T18:00:56Z"
         },
         {
-          "name": "CMC Sewage Treatment \u2013 Bio Filter & Water Pumping Station.pdf",
-          "path": "cmcdocuments/cmcbiofilter/cmcbiofilterdocumentation/CMC Sewage Treatment \u2013 Bio Filter & Water Pumping Station.pdf",
+          "name": "CMC Sewage Treatment – Bio Filter & Water Pumping Station.pdf",
+          "path": "cmcdocuments/cmcbiofilter/cmcbiofilterdocumentation/CMC Sewage Treatment – Bio Filter & Water Pumping Station.pdf",
           "size": 843329,
           "modified": "2026-03-28T18:00:56Z"
         }
@@ -1750,8 +1750,8 @@
           "modified": "2026-03-28T18:00:56Z"
         },
         {
-          "name": "CMC Legal 2018-07-20\u00a0UK\u00a0Power\u00a0Networks\u00a0Wayleave.pdf",
-          "path": "cmcdocuments/cmcmaintenance/CMC Legal 2018-07-20\u00a0UK\u00a0Power\u00a0Networks\u00a0Wayleave.pdf",
+          "name": "CMC Legal 2018-07-20 UK Power Networks Wayleave.pdf",
+          "path": "cmcdocuments/cmcmaintenance/CMC Legal 2018-07-20 UK Power Networks Wayleave.pdf",
           "size": 2833962,
           "modified": "2026-03-28T18:00:56Z"
         },
@@ -1934,6 +1934,42 @@
       "key": "cmcsitearchive",
       "label": "Cmcsitearchive",
       "files": []
+    },
+    {
+      "key": "cmcsip",
+      "label": "Seller's Information Pack",
+      "files": [
+        {
+          "name": "PIN_CMC Car Parking Guidance 2016 & CMC Car Parks.pdf",
+          "path": "cmcdocuments/cmcsip/PIN_CMC Car Parking Guidance 2016 & CMC Car Parks.pdf",
+          "size": 526930,
+          "modified": "2026-03-25T20:02:53Z"
+        },
+        {
+          "name": "PIN_Tree Survey Rock Lane Farm Liscombe Park 2011-11.pdf",
+          "path": "cmcdocuments/cmcsip/PIN_Tree Survey Rock Lane Farm Liscombe Park 2011-11.pdf",
+          "size": 1520268,
+          "modified": "2026-03-25T20:02:53Z"
+        },
+        {
+          "name": "CMC Legal CMC Certificate of Incorporation 2 May 2008.pdf",
+          "path": "cmcdocuments/cmcsip/CMC Legal CMC Certificate of Incorporation 2 May 2008.pdf",
+          "size": 269665,
+          "modified": "2026-03-25T20:02:53Z"
+        },
+        {
+          "name": "CMC Legal CMC DEED OF COVENANT for Courtyard Purchasers 2013 Standard Text.pdf",
+          "path": "cmcdocuments/cmcsip/CMC Legal CMC DEED OF COVENANT for Courtyard Purchasers 2013 Standard Text.pdf",
+          "size": 132625,
+          "modified": "2026-03-25T20:02:53Z"
+        },
+        {
+          "name": "CMC Legal CMC New Memorandum and Articles 21 April 08.pdf",
+          "path": "cmcdocuments/cmcsip/CMC Legal CMC New Memorandum and Articles 21 April 08.pdf",
+          "size": 60240,
+          "modified": "2026-03-25T20:02:53Z"
+        }
+      ]
     }
   ]
 }
