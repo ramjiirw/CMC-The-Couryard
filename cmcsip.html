@@ -160,11 +160,11 @@
         </span>
       </button>
       <div class="collapsible-panel" id="panel-sipdocs">
-        <div class="doc-card" id="pinnedCard" style="border-radius:0;border:none;border-bottom:1px solid var(--border);margin-bottom:0;">
+        <div class="doc-card" id="pinnedCard" style="border-radius:0;border:none;border-bottom:2px solid var(--border);margin-bottom:0;">
           <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
           <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
         </div>
-        <div class="doc-card" style="border-radius:0;border:none;margin-bottom:0;">
+        <div class="doc-card" style="border-radius:0;border:none;border-top:6px solid var(--warm);margin-bottom:0;">
           <div class="doc-card-hdr all">&#128193; All Documents <span class="count-pill" id="allCount">0</span></div>
           <div class="filter-bar">
             <label>Search</label>
@@ -323,11 +323,6 @@ function toggleSipDocs() {
   var open  = panel.classList.toggle('open');
   btn.classList.toggle('open', open);
   btn.setAttribute('aria-expanded', open);
-  if (open) {
-    setTimeout(function() {
-      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
-  }
 }
 
 function onSipSearch() {
@@ -354,7 +349,7 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-var IDLE_LIMIT = 15 * 60 * 1000;
+var IDLE_LIMIT = 30 * 60 * 1000;
 var WARN_BEFORE = 2 * 60 * 1000;
 var _idleTimer = null;
 var _warnTimer = null;
