@@ -247,6 +247,7 @@ var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8
 var SESSION_KEY = 'cmc_sip_auth';
 var sipPassword = null;
 var allDocs = [], pinnedDocs = [];
+var allSortDir = 'asc';
 
 function init() {
   var inp = document.getElementById('pwInput');
@@ -287,7 +288,6 @@ function doLogin() {
 }
 
 function resetUI() {
-  // Close panels
   ['toggle-sipqa','toggle-sipdocs'].forEach(function(btnId) {
     var panelId = btnId.replace('toggle-','panel-');
     var btn = document.getElementById(btnId);
@@ -295,12 +295,10 @@ function resetUI() {
     if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
     if (panel) { panel.classList.remove('open'); }
   });
-  // Clear doc search
   var si = document.getElementById('searchInput');
   var scb = document.getElementById('sipClearBtn');
   if (si) si.value = '';
   if (scb) scb.style.display = 'none';
-  // Clear QA filters
   var qi = document.getElementById('qaSearchInput');
   var qt = document.getElementById('qaTopicFilter');
   var qcb = document.getElementById('qaClearBtn');
