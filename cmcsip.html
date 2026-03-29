@@ -107,7 +107,7 @@
   .btn-toggle.open .toggle-hint .hint-close { display:inline; }
   .btn-toggle:not(.open) .toggle-hint .hint-close { display:none; }
   .collapsible-panel { overflow:hidden; max-height:0; transition:max-height 0.35s ease; }
-  .collapsible-panel.open { max-height:8000px; }
+  .collapsible-panel.open { max-height:8000px; overflow:visible; }
   .doc-filter-clear { padding:0.28rem 0.7rem; border-radius:5px; border:none; background:#c0622a; color:white; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; display:none; align-items:center; gap:0.3rem; transition:background 0.2s; }
   .doc-filter-clear:hover { background:#a0501e; }
 </style>
@@ -148,7 +148,7 @@
   <div class="sip-body">
     <div class="page-title">
       <h2>Seller's Information Pack</h2>
-      <p>Documents provided for conveyancing purposes. Please download the files relevant to your enquiry.</p>
+      <p>Information and documents provided for conveyancing purposes. All information is provided in good faith — the CMC is not liable for any inaccuracies.</p>
     </div>
     <div class="doc-card-wrapper">
       <button class="btn-toggle" id="toggle-sipdocs" onclick="toggleSipDocs()" aria-expanded="false">
@@ -164,8 +164,8 @@
           <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
           <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
         </div>
-        <div style="height:1.4rem;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);"></div>
-        <div class="doc-card" style="border-radius:0;border:none;margin-bottom:0;">
+        <div style="height:1.5rem;background:var(--cream);"></div>
+        <div class="doc-card" style="border-radius:0;border:none;border-top:1px solid var(--border);margin-bottom:0;">
           <div class="doc-card-hdr all">&#128193; All Documents <span class="count-pill" id="allCount">0</span></div>
           <div class="filter-bar">
             <label>Search</label>
