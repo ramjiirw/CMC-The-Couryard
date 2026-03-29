@@ -313,7 +313,7 @@ function showSip() {
 function loadDocuments() {
   document.getElementById('pinnedBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Loading…</td></tr>';
   document.getElementById('allBody').innerHTML = '<tr><td colspan="4" class="empty-msg">Loading…</td></tr>';
-  fetch('cmcdocuments/index.json?v=' + Date.now())
+  fetch('/cmcdocuments/index.json?v=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(data){ processDocs(data); })
     .catch(function(){
