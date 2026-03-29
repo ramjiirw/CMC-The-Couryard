@@ -94,6 +94,22 @@
   .timeout-countdown { font-size:2.4rem; font-weight:700; color:var(--red); margin-bottom:1.2rem; font-variant-numeric:tabular-nums; }
   .timeout-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:6px; padding:0.7rem 1.8rem; font-family:Arial,sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; letter-spacing:0.05em; }
   .timeout-btn:hover { opacity:0.9; }
+
+  /* ── COLLAPSIBLE DOCS PANEL ── */
+  .doc-card-wrapper { background:white; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:1.4rem; }
+  .btn-toggle { display:flex; align-items:center; justify-content:space-between; width:100%; padding:0.75rem 1.25rem; background:var(--dark); color:var(--cream); border:none; border-radius:10px 10px 0 0; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+  .btn-toggle:hover { background:#2a2520; }
+  .btn-toggle .toggle-hint { font-size:0.72rem; font-weight:400; opacity:0.6; letter-spacing:0.03em; text-transform:none; display:flex; align-items:center; gap:0.4rem; }
+  .btn-toggle .chevron { display:inline-block; transition:transform 0.25s; font-size:0.75rem; }
+  .btn-toggle.open .chevron { transform:rotate(90deg); }
+  .btn-toggle.open .toggle-hint .hint-open { display:none; }
+  .btn-toggle:not(.open) .toggle-hint .hint-open { display:inline; }
+  .btn-toggle.open .toggle-hint .hint-close { display:inline; }
+  .btn-toggle:not(.open) .toggle-hint .hint-close { display:none; }
+  .collapsible-panel { overflow:hidden; max-height:0; transition:max-height 0.35s ease; }
+  .collapsible-panel.open { max-height:8000px; }
+  .doc-filter-clear { padding:0.28rem 0.7rem; border-radius:5px; border:none; background:#c0622a; color:white; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; display:none; align-items:center; gap:0.3rem; transition:background 0.2s; }
+  .doc-filter-clear:hover { background:#a0501e; }
 </style>
 </head>
 <body>
@@ -134,19 +150,30 @@
       <h2>Seller's Information Pack</h2>
       <p>Documents provided for conveyancing purposes. Please download the files relevant to your enquiry.</p>
     </div>
-    <div class="doc-card" id="pinnedCard">
-      <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
-      <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
-    </div>
-    <div class="doc-card">
-      <div class="doc-card-hdr all">&#128193; All Documents <span class="count-pill" id="allCount">0</span></div>
-      <div class="filter-bar">
-        <label>Search</label>
-        <input type="text" id="searchInput" placeholder="Filter documents..." oninput="renderAll()" style="width:200px;">
-        <label>Folder</label>
-        <select id="folderFilter" onchange="renderAll()"><option value="">All folders</option></select>
+    <div class="doc-card-wrapper">
+      <button class="btn-toggle" id="toggle-sipdocs" onclick="toggleSipDocs()" aria-expanded="false">
+        <span>&#128196; Documents</span>
+        <span class="toggle-hint">
+          <span class="hint-open">Tap to expand &amp; view</span>
+          <span class="hint-close">Tap to close</span>
+          <span class="chevron">&#9658;</span>
+        </span>
+      </button>
+      <div class="collapsible-panel" id="panel-sipdocs">
+        <div class="doc-card" id="pinnedCard" style="border-radius:0;border:none;border-bottom:1px solid var(--border);margin-bottom:0;">
+          <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
+          <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
+        </div>
+        <div class="doc-card" style="border-radius:0;border:none;margin-bottom:0;">
+          <div class="doc-card-hdr all">&#128193; All Documents <span class="count-pill" id="allCount">0</span></div>
+          <div class="filter-bar">
+            <label>Search</label>
+            <input type="text" id="searchInput" placeholder="Filter documents..." oninput="onSipSearch()" style="width:200px;">
+            <button class="doc-filter-clear" id="sipClearBtn" onclick="clearSipSearch()">&#x2715; Clear</button>
+          </div>
+          <table class="doc-table" id="allTable"><thead><tr><th class="sortable sort-asc" id="allSortTh" onclick="toggleSortAll()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="allBody"></tbody></table>
+        </div>
       </div>
-      <table class="doc-table" id="allTable"><thead><tr><th class="sortable sort-asc" id="allSortTh" onclick="toggleSortAll()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="allBody"></tbody></table>
     </div>
   </div>
   <footer>
@@ -236,7 +263,6 @@ function loadDocuments() {
 
 function processDocs(data) {
   pinnedDocs = []; allDocs = [];
-  var folders = [];
   (data.folders || []).forEach(function(folder) {
     (folder.files || []).forEach(function(file) {
       if (file.path.indexOf('cmcsip') === -1) return;
@@ -244,12 +270,9 @@ function processDocs(data) {
       var displayName = file.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
       var doc = { name: displayName, path: file.path, size: file.size, folder: folder.label, pinned: isPinned };
       if (isPinned) { pinnedDocs.push(doc); }
-      else { allDocs.push(doc); if (folders.indexOf(folder.label) === -1) folders.push(folder.label); }
+      else { allDocs.push(doc); }
     });
   });
-  var sel = document.getElementById('folderFilter');
-  sel.innerHTML = '<option value="">All folders</option>';
-  folders.sort().forEach(function(f){ var o = document.createElement('option'); o.value = f; o.textContent = f; sel.appendChild(o); });
   renderPinned();
   renderAll();
 }
@@ -280,10 +303,9 @@ function toggleSortAll() {
 }
 function renderAll() {
   var q = document.getElementById('searchInput').value.toLowerCase().trim();
-  var fld = document.getElementById('folderFilter').value;
   var body = document.getElementById('allBody');
   var filtered = allDocs.filter(function(d){
-    return (!q || d.name.toLowerCase().indexOf(q) !== -1) && (!fld || d.folder === fld);
+    return (!q || d.name.toLowerCase().indexOf(q) !== -1);
   });
   filtered.sort(function(a,b){
     return allSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
@@ -293,6 +315,32 @@ function renderAll() {
   body.innerHTML = filtered.map(function(d){
     return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
+}
+
+function toggleSipDocs() {
+  var btn   = document.getElementById('toggle-sipdocs');
+  var panel = document.getElementById('panel-sipdocs');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    setTimeout(function() {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+}
+
+function onSipSearch() {
+  var val = document.getElementById('searchInput').value;
+  var clearBtn = document.getElementById('sipClearBtn');
+  clearBtn.style.display = val ? 'inline-flex' : 'none';
+  renderAll();
+}
+
+function clearSipSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('sipClearBtn').style.display = 'none';
+  renderAll();
 }
 
 function fmt(b) {
