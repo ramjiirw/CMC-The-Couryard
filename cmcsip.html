@@ -124,9 +124,12 @@
   .qa-table tbody tr:last-child { border-bottom:none; }
   .qa-table tbody tr:hover { background:rgba(196,149,106,0.06); }
   .qa-table tbody td { padding:0.75rem 1.2rem; font-size:0.82rem; vertical-align:top; }
-  .qa-table tbody td:first-child { font-weight:600; color:var(--dark); width:38%; }
-  .qa-table tbody td:nth-child(2) { color:var(--mid); }
-  .qa-table tbody td:last-child { width:18%; }
+  .qa-table tbody td:first-child { width:16%; }
+  .qa-table tbody td:nth-child(2) { font-weight:600; color:var(--dark); width:38%; }
+  .qa-table tbody td:nth-child(3) { color:var(--mid); }
+  .qa-table tbody tr { border-bottom:1px solid rgba(184,173,158,0.35); }
+  .bio-filter-btn { padding:0.28rem 0.7rem; border-radius:5px; border:1px solid rgba(122,92,62,0.35); background:rgba(122,92,62,0.08); color:var(--accent); font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .bio-filter-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
   .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.1); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:10px; font-size:0.68rem; font-weight:700; padding:0.1rem 0.5rem; letter-spacing:0.03em; white-space:nowrap; }
   .qa-count-pill { background:rgba(255,255,255,0.2); color:white; border-radius:10px; font-size:0.68rem; padding:0.1rem 0.5rem; font-weight:700; }
 </style>
@@ -185,19 +188,19 @@
           <div class="qa-filter-bar">
             <label>Search</label>
             <input type="text" id="qaSearchInput" placeholder="Filter questions..." oninput="onQaSearch()" style="width:200px;">
-            <button class="doc-filter-clear" id="qaClearBtn" onclick="clearQaSearch()">&#x2715; Clear</button>
             <label style="margin-left:0.4rem;">Topic</label>
             <select id="qaTopicFilter" onchange="onQaSearch()">
               <option value="">All topics</option>
             </select>
-            <button class="doc-filter-clear" id="qaTopicClearBtn" onclick="clearQaTopic()">&#x2715; Clear</button>
+            <button class="bio-filter-btn" id="bioFilterBtn" onclick="toggleBioFilter()">Bio Filter</button>
+            <button class="doc-filter-clear" id="qaClearBtn" onclick="clearAllQaFilters()" style="display:none;">&#x2715; Clear</button>
           </div>
           <table class="qa-table">
             <thead>
               <tr>
+                <th class="sortable sort-asc" id="qaSortT" onclick="sortQA('topic')">Topic<span class="sort-icon"></span></th>
                 <th class="sortable" id="qaSortQ" onclick="sortQA('question')">Question<span class="sort-icon"></span></th>
                 <th class="sortable" id="qaSortA" onclick="sortQA('answer')">Answer<span class="sort-icon"></span></th>
-                <th class="sortable" id="qaSortT" onclick="sortQA('topic')">Topic<span class="sort-icon"></span></th>
               </tr>
             </thead>
             <tbody id="qaBody"></tbody>
@@ -353,8 +356,9 @@ function renderPinned() {
 }
 
 var qaData = [];
-var qaSortCol = 'question';
+var qaSortCol = 'topic';
 var qaSortDir = 'asc';
+var biFilterActive = false;
 
 function loadQA() {
   fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
@@ -404,23 +408,31 @@ function sortQA(col) {
   renderQA();
 }
 
-function onQaSearch() {
+function updateQaClearBtn() {
   var qVal = document.getElementById('qaSearchInput').value;
   var tVal = document.getElementById('qaTopicFilter').value;
-  document.getElementById('qaClearBtn').style.display = qVal ? 'inline-flex' : 'none';
-  document.getElementById('qaTopicClearBtn').style.display = tVal ? 'inline-flex' : 'none';
+  var anyActive = qVal || tVal || biFilterActive;
+  document.getElementById('qaClearBtn').style.display = anyActive ? 'inline-flex' : 'none';
+}
+
+function onQaSearch() {
+  updateQaClearBtn();
   renderQA();
 }
 
-function clearQaSearch() {
+function toggleBioFilter() {
+  biFilterActive = !biFilterActive;
+  document.getElementById('bioFilterBtn').classList.toggle('active', biFilterActive);
+  updateQaClearBtn();
+  renderQA();
+}
+
+function clearAllQaFilters() {
   document.getElementById('qaSearchInput').value = '';
-  document.getElementById('qaClearBtn').style.display = 'none';
-  renderQA();
-}
-
-function clearQaTopic() {
   document.getElementById('qaTopicFilter').value = '';
-  document.getElementById('qaTopicClearBtn').style.display = 'none';
+  biFilterActive = false;
+  document.getElementById('bioFilterBtn').classList.remove('active');
+  document.getElementById('qaClearBtn').style.display = 'none';
   renderQA();
 }
 
@@ -434,7 +446,10 @@ function renderQA() {
                     || r.answer.toLowerCase().indexOf(q) !== -1
                     || r.topic.toLowerCase().indexOf(q) !== -1;
     var matchT = !t || r.topic.toLowerCase() === t;
-    return matchQ && matchT;
+    var matchBio = !biFilterActive || (
+      (r.question + ' ' + r.answer + ' ' + r.topic).toLowerCase().indexOf('bio filter') !== -1
+    );
+    return matchQ && matchT && matchBio;
   });
 
   filtered.sort(function(a, b){
@@ -452,9 +467,9 @@ function renderQA() {
 
   body.innerHTML = filtered.map(function(r){
     return '<tr>'
+      + '<td>' + (r.topic ? '<span class="qa-topic-pill">' + esc(r.topic) + '</span>' : '') + '</td>'
       + '<td>' + esc(r.question) + '</td>'
       + '<td>' + esc(r.answer).replace(/\n/g, '<br>') + '</td>'
-      + '<td>' + (r.topic ? '<span class="qa-topic-pill">' + esc(r.topic) + '</span>' : '') + '</td>'
       + '</tr>';
   }).join('');
 }
