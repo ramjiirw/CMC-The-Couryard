@@ -112,6 +112,23 @@
   .collapsible-panel.open { max-height:8000px; }
   .doc-filter-clear { padding:0.28rem 0.7rem; border-radius:5px; border:none; background:#c0622a; color:white; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; display:none; align-items:center; gap:0.3rem; transition:background 0.2s; }
   .doc-filter-clear:hover { background:#a0501e; }
+
+  /* ── Q&A PANEL ── */
+  .qa-filter-bar { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; padding:0.55rem 1.2rem; background:var(--warm); border-bottom:1px solid var(--border); }
+  .qa-filter-bar label { font-size:0.68rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; }
+  .qa-filter-bar input, .qa-filter-bar select { padding:0.28rem 0.55rem; border:1px solid var(--border); border-radius:5px; font-family:Arial,sans-serif; font-size:0.82rem; background:white; color:var(--dark); }
+  .qa-filter-bar input:focus, .qa-filter-bar select:focus { outline:none; border-color:var(--accent2); }
+  .qa-table { width:100%; border-collapse:collapse; }
+  .qa-table thead th { background:rgba(122,92,62,0.07); padding:0.7rem 1.2rem; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--mid); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .qa-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+  .qa-table tbody tr:last-child { border-bottom:none; }
+  .qa-table tbody tr:hover { background:rgba(196,149,106,0.06); }
+  .qa-table tbody td { padding:0.75rem 1.2rem; font-size:0.82rem; vertical-align:top; }
+  .qa-table tbody td:first-child { font-weight:600; color:var(--dark); width:38%; }
+  .qa-table tbody td:nth-child(2) { color:var(--mid); }
+  .qa-table tbody td:last-child { width:18%; }
+  .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.1); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:10px; font-size:0.68rem; font-weight:700; padding:0.1rem 0.5rem; letter-spacing:0.03em; white-space:nowrap; }
+  .qa-count-pill { background:rgba(255,255,255,0.2); color:white; border-radius:10px; font-size:0.68rem; padding:0.1rem 0.5rem; font-weight:700; }
 </style>
 </head>
 <body>
@@ -152,6 +169,43 @@
       <h2>Seller's Information Pack</h2>
       <p>Information and documents provided for conveyancing purposes. All information is provided in good faith — the CMC is not liable for any inaccuracies.</p>
     </div>
+    <!-- Q&A PANEL -->
+    <div class="doc-card-wrapper">
+      <button class="btn-toggle" id="toggle-sipqa" onclick="togglePanel('toggle-sipqa','panel-sipqa')" aria-expanded="false">
+        <span>&#10067; Q &amp; A</span>
+        <span class="toggle-hint">
+          <span class="hint-open">Tap to expand &amp; view</span>
+          <span class="hint-close">Tap to close</span>
+          <span class="chevron">&#9658;</span>
+        </span>
+      </button>
+      <div class="collapsible-panel" id="panel-sipqa">
+        <div style="background:white;">
+          <div class="doc-card-hdr all">&#128203; Questions &amp; Answers <span class="qa-count-pill" id="qaCount">0</span></div>
+          <div class="qa-filter-bar">
+            <label>Search</label>
+            <input type="text" id="qaSearchInput" placeholder="Filter questions..." oninput="onQaSearch()" style="width:200px;">
+            <button class="doc-filter-clear" id="qaClearBtn" onclick="clearQaSearch()">&#x2715; Clear</button>
+            <label style="margin-left:0.4rem;">Topic</label>
+            <select id="qaTopicFilter" onchange="onQaSearch()">
+              <option value="">All topics</option>
+            </select>
+            <button class="doc-filter-clear" id="qaTopicClearBtn" onclick="clearQaTopic()">&#x2715; Clear</button>
+          </div>
+          <table class="qa-table">
+            <thead>
+              <tr>
+                <th class="sortable" id="qaSortQ" onclick="sortQA('question')">Question<span class="sort-icon"></span></th>
+                <th class="sortable" id="qaSortA" onclick="sortQA('answer')">Answer<span class="sort-icon"></span></th>
+                <th class="sortable" id="qaSortT" onclick="sortQA('topic')">Topic<span class="sort-icon"></span></th>
+              </tr>
+            </thead>
+            <tbody id="qaBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="doc-card-wrapper">
       <button class="btn-toggle" id="toggle-sipdocs" onclick="togglePanel('toggle-sipdocs','panel-sipdocs')" aria-expanded="false">
         <span>&#128196; Documents</span>
@@ -242,6 +296,7 @@ function showSip() {
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
   loadDocuments();
+  loadQA();
   resetIdle();
   (function(){
     var now = new Date();
@@ -297,7 +352,114 @@ function renderPinned() {
   }).join('');
 }
 
-var allSortDir = 'asc';
+var qaData = [];
+var qaSortCol = 'question';
+var qaSortDir = 'asc';
+
+function loadQA() {
+  fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.status === 'ok') {
+        qaData = d.rows || [];
+        buildQaTopicFilter();
+        renderQA();
+      } else {
+        document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+      }
+    })
+    .catch(function(){
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+    });
+}
+
+function buildQaTopicFilter() {
+  var sel = document.getElementById('qaTopicFilter');
+  var topics = [];
+  qaData.forEach(function(r){ if (r.topic && topics.indexOf(r.topic) === -1) topics.push(r.topic); });
+  topics.sort();
+  // keep existing "All topics" option
+  sel.options.length = 1;
+  topics.forEach(function(t){
+    var o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+function sortQA(col) {
+  if (qaSortCol === col) {
+    qaSortDir = qaSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    qaSortCol = col;
+    qaSortDir = 'asc';
+  }
+  ['Q','A','T'].forEach(function(x){
+    var el = document.getElementById('qaSort' + x);
+    el.className = 'sortable';
+  });
+  var colMap = { question:'Q', answer:'A', topic:'T' };
+  var active = document.getElementById('qaSort' + colMap[col]);
+  active.className = 'sortable ' + (qaSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  renderQA();
+}
+
+function onQaSearch() {
+  var qVal = document.getElementById('qaSearchInput').value;
+  var tVal = document.getElementById('qaTopicFilter').value;
+  document.getElementById('qaClearBtn').style.display = qVal ? 'inline-flex' : 'none';
+  document.getElementById('qaTopicClearBtn').style.display = tVal ? 'inline-flex' : 'none';
+  renderQA();
+}
+
+function clearQaSearch() {
+  document.getElementById('qaSearchInput').value = '';
+  document.getElementById('qaClearBtn').style.display = 'none';
+  renderQA();
+}
+
+function clearQaTopic() {
+  document.getElementById('qaTopicFilter').value = '';
+  document.getElementById('qaTopicClearBtn').style.display = 'none';
+  renderQA();
+}
+
+function renderQA() {
+  var q = document.getElementById('qaSearchInput').value.toLowerCase().trim();
+  var t = document.getElementById('qaTopicFilter').value.toLowerCase().trim();
+  var body = document.getElementById('qaBody');
+
+  var filtered = qaData.filter(function(r){
+    var matchQ = !q || r.question.toLowerCase().indexOf(q) !== -1
+                    || r.answer.toLowerCase().indexOf(q) !== -1
+                    || r.topic.toLowerCase().indexOf(q) !== -1;
+    var matchT = !t || r.topic.toLowerCase() === t;
+    return matchQ && matchT;
+  });
+
+  filtered.sort(function(a, b){
+    var av = (a[qaSortCol] || '').toLowerCase();
+    var bv = (b[qaSortCol] || '').toLowerCase();
+    return qaSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+
+  document.getElementById('qaCount').textContent = filtered.length;
+
+  if (!filtered.length) {
+    body.innerHTML = '<tr><td colspan="3" class="empty-msg">No results found.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = filtered.map(function(r){
+    return '<tr>'
+      + '<td>' + esc(r.question) + '</td>'
+      + '<td>' + esc(r.answer).replace(/\n/g, '<br>') + '</td>'
+      + '<td>' + (r.topic ? '<span class="qa-topic-pill">' + esc(r.topic) + '</span>' : '') + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+
 function toggleSortAll() {
   allSortDir = allSortDir === 'asc' ? 'desc' : 'asc';
   var th = document.getElementById('allSortTh');
