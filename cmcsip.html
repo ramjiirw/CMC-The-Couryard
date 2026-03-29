@@ -286,8 +286,35 @@ function doLogin() {
   }
 }
 
+function resetUI() {
+  // Close panels
+  ['toggle-sipqa','toggle-sipdocs'].forEach(function(btnId) {
+    var panelId = btnId.replace('toggle-','panel-');
+    var btn = document.getElementById(btnId);
+    var panel = document.getElementById(panelId);
+    if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+    if (panel) { panel.classList.remove('open'); }
+  });
+  // Clear doc search
+  var si = document.getElementById('searchInput');
+  var scb = document.getElementById('sipClearBtn');
+  if (si) si.value = '';
+  if (scb) scb.style.display = 'none';
+  // Clear QA filters
+  var qi = document.getElementById('qaSearchInput');
+  var qt = document.getElementById('qaTopicFilter');
+  var qcb = document.getElementById('qaClearBtn');
+  var bio = document.getElementById('bioFilterBtn');
+  if (qi) qi.value = '';
+  if (qt) qt.value = '';
+  if (qcb) qcb.style.display = 'none';
+  if (bio) bio.classList.remove('active');
+  biFilterActive = false;
+}
+
 function doLock() {
   sessionStorage.removeItem(SESSION_KEY);
+  resetUI();
   document.getElementById('sipScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('pwInput').value = '';
