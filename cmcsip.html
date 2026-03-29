@@ -68,8 +68,8 @@
   .sz { color:var(--stone); font-size:0.75rem; }
   .folder-label { color:var(--mid); font-size:0.75rem; font-style:italic; }
   .empty-msg { padding:1.5rem; text-align:center; color:var(--stone); font-style:italic; font-size:0.85rem; }
-  .doc-link { color:#6090b0; text-decoration:none; font-weight:500; word-break:break-word; }
-  .doc-link:hover { color:#3a5a70; text-decoration:underline; }
+  .doc-link { color:#3a5a70; text-decoration:none; font-weight:500; word-break:break-word; }
+  .doc-link:hover { color:#6090b0; text-decoration:underline; }
   .doc-table { width:100%; border-collapse:collapse; }
   .doc-table thead th { background:rgba(122,92,62,0.07); padding:0.7rem 1.5rem; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--mid); border-bottom:1px solid var(--border); white-space:nowrap; }
   .doc-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
@@ -83,7 +83,7 @@
   .sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:' ▲▼'; }
   footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
-  footer p > span:first-child { color:var(--accent2); }
+  footer p > span:first-child { color:#6090b0; }
   footer #footerYear { color:var(--stone); }
 
   /* ── TIMEOUT WARNING ── */
@@ -376,7 +376,7 @@ function renderPinned() {
     return pinnedSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
   });
   body.innerHTML = sorted.map(function(d){
-    return '<tr><td><span class="pin-badge">pinned</span><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
