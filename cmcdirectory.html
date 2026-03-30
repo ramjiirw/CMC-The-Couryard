@@ -23,8 +23,7 @@
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 12px; background: var(--cream); color: var(--dark); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
-  main { flex: 1; }
+  body { font-family: Arial, sans-serif; font-size: 12px; background: var(--cream); color: var(--dark); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; align-items: stretch; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -75,7 +74,7 @@
   tr.row-editing .btn-del { display: flex !important; }
   tr.row-editing .btn-edit-row { background: var(--accent); color: white; }
 
-  main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
+  main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 4rem; flex: 1; }
   .toolbar { display: flex; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
   .stat-inline { display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; padding: 0.5rem 1.1rem; border-radius: 5px; font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.03em; background: var(--border); color: var(--mid); }
   .stat-num { font-weight: 700; color: var(--accent2); }
