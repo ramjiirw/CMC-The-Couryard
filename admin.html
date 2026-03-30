@@ -2345,13 +2345,13 @@ setupMatchHint('sipNew', 'sipConfirm', 'sipMatchHint');
 
 // ── Unsaved resident edits warning ─────────────────────────────────
 function hasPwChanges() {
-  return ['cpCurrent','cpNew','cpConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
+  return ['cpNew','cpConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
 }
 function hasSpwChanges() {
-  return ['spCurrent','spNew','spConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
+  return ['spNew','spConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
 }
 function hasSipwChanges() {
-  return ['sipCurrent','sipNew','sipConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
+  return ['sipNew','sipConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
 }
 function clearPwFields() {
   ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el){ el.value=''; el.readOnly=false; } });
