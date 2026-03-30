@@ -529,6 +529,7 @@
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
+      <div class="sidebar-link" data-panel="changesippw" id="nav-changesippw">&#128196; SIP Password</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -1051,6 +1052,17 @@
           <button class="abtn abtn-primary" id="spwSaveBtn">Update Site Password</button>
         </div>
       </div>
+      <div class="admin-panel" id="panel-changesippw">
+        <div class="panel-title">Change SIP Password</div>
+        <div class="panel-desc">Update the password used to access the Seller's Information Pack (SIP) by solicitors.</div>
+        <div class="cpw-form">
+          <div class="field"><label>Current SIP Password</label><input type="text" id="sipCurrent" autocomplete="off" placeholder="Enter current SIP password" oninput="this.value=this.value.toLowerCase()"></div>
+          <div class="field"><label>New SIP Password</label><input type="text" id="sipNew" autocomplete="off" placeholder="Enter new SIP password" oninput="this.value=this.value.toLowerCase()"></div>
+          <div class="field"><label>Confirm New Password</label><input type="text" id="sipConfirm" autocomplete="off" placeholder="Repeat new password" oninput="this.value=this.value.toLowerCase()"><div id="sipMatchHint" style="font-size:0.72rem;margin-top:0.3rem;min-height:1rem;"></div></div>
+          <div id="sipwErr" style="color:#b05050;font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+          <button class="abtn abtn-primary" id="sipwSaveBtn">Update SIP Password</button>
+        </div>
+      </div>
     </main>
   </div>
   <footer class="admin-footer">
@@ -1086,6 +1098,7 @@ var SESSION_KEY = 'cmc_admin_auth';
 var LOCK_MINS = 10;
 var adminPassword = null;
 var portalPassword = null;
+var sipPassword = null;
 var residents = [], editDraft = [];
 var cepIdx = null, cepField = null;
 var lockInterval = null, lockDeadline = 0;
@@ -1101,6 +1114,7 @@ function fetchAdminPassword() {
     .then(function(d){
       if (d.password) adminPassword = d.password;
       if (d.portalPassword) portalPassword = d.portalPassword;
+      if (d.sipPassword) sipPassword = d.sipPassword;
       btn.disabled = false;
       btn.style.opacity = '';
       btn.style.cursor = '';
@@ -2250,6 +2264,52 @@ document.getElementById('spwSaveBtn').addEventListener('click', doChangeSitePass
 document.getElementById('spConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
 document.getElementById('spNew').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
 document.getElementById('spCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('spwSaveBtn'); doChangeSitePassword(); } });
+
+function doChangeSipPassword() {
+  var current = document.getElementById('sipCurrent').value.trim();
+  var newPw = document.getElementById('sipNew').value.trim();
+  var conf = document.getElementById('sipConfirm').value.trim();
+  var errEl = document.getElementById('sipwErr');
+  errEl.textContent = '';
+  if (!current) { errEl.textContent = 'Please enter the current SIP password.'; return; }
+  if (current.toLowerCase() !== sipPassword.toLowerCase()) { errEl.textContent = 'Current SIP password is incorrect.'; return; }
+  if (!newPw) { errEl.textContent = 'Please enter a new SIP password.'; return; }
+  if (newPw !== conf) { errEl.textContent = 'Passwords do not match.'; return; }
+  ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){ var el = document.getElementById(id); el.type = 'password'; el.readOnly = true; });
+  var sipBtn = document.getElementById('sipwSaveBtn');
+  sipBtn.disabled = true; sipBtn.textContent = 'Updating…';
+  fetch(SCRIPT_URL, {
+    method: 'POST', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'writeSipPassword', password: newPw })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status !== 'ok') throw new Error(d.message);
+    sipPassword = newPw;
+    sipBtn.disabled = false; sipBtn.textContent = 'Update SIP Password';
+    ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){
+      var el = document.getElementById(id);
+      el.value = '';
+      el.type = 'text';
+      el.readOnly = false;
+      el.classList.remove('input-mismatch');
+      el.blur();
+    });
+    var sipHint = document.getElementById('sipMatchHint');
+    if (sipHint) { sipHint.textContent = ''; sipHint.className = ''; }
+    showToast('SIP password updated', 'success');
+  })
+  .catch(function(e){
+    ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){ var el = document.getElementById(id); el.type = 'text'; el.readOnly = false; });
+    sipBtn.disabled = false; sipBtn.textContent = 'Update SIP Password';
+    errEl.textContent = 'Error: ' + e.message;
+  });
+}
+document.getElementById('sipwSaveBtn').addEventListener('click', doChangeSipPassword);
+document.getElementById('sipConfirm').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('sipwSaveBtn'); doChangeSipPassword(); } });
+document.getElementById('sipNew').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('sipwSaveBtn'); doChangeSipPassword(); } });
+document.getElementById('sipCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('sipwSaveBtn'); doChangeSipPassword(); } });
 document.getElementById('mntFilterStatus').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterAddr').addEventListener('change', mntApplyFilters);
 document.getElementById('mntFilterCat').addEventListener('change', mntApplyFilters);
@@ -2281,6 +2341,7 @@ function setupMatchHint(newId, confirmId, hintId) {
 }
 setupMatchHint('cpNew', 'cpConfirm', 'cpMatchHint');
 setupMatchHint('spNew', 'spConfirm', 'spMatchHint');
+setupMatchHint('sipNew', 'sipConfirm', 'sipMatchHint');
 
 // ── Unsaved resident edits warning ─────────────────────────────────
 function hasPwChanges() {
@@ -2288,6 +2349,9 @@ function hasPwChanges() {
 }
 function hasSpwChanges() {
   return ['spCurrent','spNew','spConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
+}
+function hasSipwChanges() {
+  return ['sipCurrent','sipNew','sipConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
 }
 function clearPwFields() {
   ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
@@ -2299,6 +2363,11 @@ function clearSpwFields() {
   var h = document.getElementById('spMatchHint'); if(h){ h.textContent=''; h.className=''; }
   var e = document.getElementById('spwErr'); if(e) e.textContent='';
 }
+function clearSipwFields() {
+  ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+  var h = document.getElementById('sipMatchHint'); if(h){ h.textContent=''; h.className=''; }
+  var e = document.getElementById('sipwErr'); if(e) e.textContent='';
+}
 function hasUnsavedResidentEdits() {
   if (!residents.length || !editDraft.length) return false;
   return editDraft.some(function(r, i) {
@@ -2307,7 +2376,7 @@ function hasUnsavedResidentEdits() {
   });
 }
 window.addEventListener('beforeunload', function(e) {
-  if (hasUnsavedResidentEdits() || nbDirty || uiDirty || hasPwChanges() || hasSpwChanges()) {
+  if (hasUnsavedResidentEdits() || nbDirty || uiDirty || hasPwChanges() || hasSpwChanges() || hasSipwChanges()) {
     e.preventDefault();
     e.returnValue = '';
   }
@@ -2335,6 +2404,10 @@ showPanel = function(id) {
   if (id !== 'changesitepw' && hasSpwChanges()) {
     if (!confirm('You have unsaved site password changes. Leave without saving?')) return;
     clearSpwFields();
+  }
+  if (id !== 'changesippw' && hasSipwChanges()) {
+    if (!confirm('You have unsaved SIP password changes. Leave without saving?')) return;
+    clearSipwFields();
   }
   _origShowPanel(id);
   if (id === 'noticeboard') nbLoad();
