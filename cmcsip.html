@@ -42,7 +42,7 @@
   }
 
   /* ── SIP SCREEN ── */
-  #sipScreen { display:none; flex-direction:column; min-height:100vh; height:100%; background:var(--cream); }
+  #sipScreen { display:none; flex-direction:column; min-height:100vh; background:var(--cream); flex-grow:1; }
   header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; }
   .header-brand { display:flex; align-items:center; gap:1rem; }
   .header-brand img { height:90px; width:120px; object-fit:cover; border-radius:10px; }
@@ -341,9 +341,9 @@ function showSip() {
   document.getElementById('loginScreen').style.display = 'none';
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
-  setTimeout(function(){ window.scrollTo(0, 0); }, 50);
-  setTimeout(function(){ window.scrollTo(0, 0); }, 200);
-  setTimeout(function(){ window.scrollTo(0, 0); }, 500);
+  setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
+  setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 200);
+  setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 500);
   setTimeout(function(){ alert('scrollY='+window.scrollY+' pageYOffset='+window.pageYOffset+' bodyScrollTop='+document.body.scrollTop); }, 600);
   loadDocuments();
   loadQA();
