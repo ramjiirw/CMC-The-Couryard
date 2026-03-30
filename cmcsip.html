@@ -623,6 +623,17 @@ function fmtCountdown(s) {
 });
 
 init();
+
+// TEMP DIAGNOSTIC - remove after testing
+setTimeout(function(){
+  var all = document.querySelectorAll('*');
+  var w = document.documentElement.offsetWidth;
+  var offenders = [];
+  all.forEach(function(el){
+    if (el.offsetWidth > w) offenders.push(el.tagName + (el.id?'#'+el.id:'') + (el.className?' .'+el.className:'') + ' w='+el.offsetWidth);
+  });
+  alert('Page width: ' + w + '\nOffenders:\n' + (offenders.join('\n') || 'none'));
+}, 1000);
 </script>
 
 <div id="timeoutOverlay">
