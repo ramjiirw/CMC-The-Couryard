@@ -11,6 +11,7 @@
     --border:#ddd5c8; --warm:#faf7f2;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
   body { font-family:Arial,sans-serif; font-size:12px; background:var(--dark); min-height:100vh; overflow-x:hidden; }
 
   /* ── LOGIN SCREEN ── */
@@ -41,7 +42,7 @@
   }
 
   /* ── SIP SCREEN ── */
-  #sipScreen { display:none; flex-direction:column; min-height:100vh; background:var(--cream); }
+  #sipScreen { display:none; flex-direction:column; min-height:100vh; height:100%; background:var(--cream); }
   header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; }
   .header-brand { display:flex; align-items:center; gap:1rem; }
   .header-brand img { height:90px; width:120px; object-fit:cover; border-radius:10px; }
@@ -623,17 +624,6 @@ function fmtCountdown(s) {
 });
 
 init();
-
-// TEMP DIAGNOSTIC - remove after testing
-setTimeout(function(){
-  var all = document.querySelectorAll('*');
-  var w = document.documentElement.offsetWidth;
-  var offenders = [];
-  all.forEach(function(el){
-    if (el.offsetWidth > w) offenders.push(el.tagName + (el.id?'#'+el.id:'') + (el.className?' .'+el.className:'') + ' w='+el.offsetWidth);
-  });
-  alert('Page width: ' + w + '\nOffenders:\n' + (offenders.join('\n') || 'none'));
-}, 1000);
 </script>
 
 <div id="timeoutOverlay">
