@@ -11,8 +11,7 @@
     --border:#ddd5c8; --warm:#faf7f2;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html { height: -webkit-fill-available; }
-  body { font-family:Arial,sans-serif; font-size:12px; background:var(--dark); min-height:100vh; min-height:-webkit-fill-available; overflow-x:hidden; }
+  body { font-family:Arial,sans-serif; font-size:12px; background:var(--dark); min-height:100vh; overflow-x:hidden; }
 
   /* ── LOGIN SCREEN ── */
   #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:#121820; position:relative; overflow:hidden; }
@@ -36,7 +35,7 @@
   @media(max-width:480px) { .login-card{padding:2rem 1.5rem;} .login-emblem{width:200px;height:150px;} header{padding:1rem 1.2rem;} }
 
   /* ── SIP SCREEN ── */
-  #sipScreen { display:none; flex-direction:column; min-height:100vh; min-height:-webkit-fill-available; background:var(--cream); }
+  #sipScreen { display:none; flex-direction:column; min-height:100vh; min-height:100dvh; background:var(--cream); }
   header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; }
   .header-brand { display:flex; align-items:center; gap:1rem; }
   .header-brand img { height:90px; width:120px; object-fit:cover; border-radius:10px; }
