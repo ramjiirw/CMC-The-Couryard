@@ -1125,9 +1125,9 @@ function fetchAdminPassword() {
       inp.placeholder = 'Enter admin password';
       inp.focus();
       var el;
-      el = document.getElementById('cpCurrent');  if (el) { el.placeholder = 'Enter current password';      el.disabled = false; }
-      el = document.getElementById('spCurrent');  if (el) { el.placeholder = 'Enter current site password'; el.disabled = false; }
-      el = document.getElementById('sipCurrent'); if (el) { el.placeholder = 'Enter current SIP password';  el.disabled = false; }
+      el = document.getElementById('cpCurrent');  if (el) { el.placeholder = 'Enter current password';      el.disabled = false; if (adminPassword)  { el.value = adminPassword;  el.readOnly = true; } }
+      el = document.getElementById('spCurrent');  if (el) { el.placeholder = 'Enter current site password'; el.disabled = false; if (portalPassword) { el.value = portalPassword; el.readOnly = true; } }
+      el = document.getElementById('sipCurrent'); if (el) { el.placeholder = 'Enter current SIP password';  el.disabled = false; if (sipPassword)    { el.value = sipPassword;    el.readOnly = true; } }
     })
     .catch(function(){
       inp.placeholder = 'Enter admin password';
