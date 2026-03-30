@@ -144,6 +144,15 @@
     header { padding: 1rem; }
     .fab { bottom: 4rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
   }
+
+  /* ── Mobile/tablet: horizontal scroll on issue log table ── */
+  @media (max-width: 1024px) {
+    #issuesBody { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    #issuesBody table { min-width: 900px; }
+    #issuesBody .col-update { min-width: 260px; }
+    #issuesBody td:nth-child(4),
+    #issuesBody th:nth-child(4) { min-width: 240px; } /* Description column */
+  }
   footer {
     background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
     padding: 0.9rem 2.5rem; display: flex; align-items: center; justify-content: center;
