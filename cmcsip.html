@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CMC The Courtyard — Seller's Information Pack</title>
 <style>
   :root {
@@ -341,7 +341,7 @@ function showSip() {
   document.getElementById('loginScreen').style.display = 'none';
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
-  setTimeout(function(){ window.scrollTo(0, 0); }, 50);
+  setTimeout(function(){ window.scrollTo(0, 0); }, 200);
   loadDocuments();
   loadQA();
   resetIdle();
