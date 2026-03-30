@@ -345,7 +345,7 @@ function showSip() {
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
   var hdr = document.querySelector('header');
   var body = document.querySelector('.sip-body');
-  if (hdr && body) { body.style.paddingTop = (hdr.offsetHeight + 16) + 'px'; }
+  if (hdr && body && window.innerWidth <= 768) { body.style.paddingTop = (hdr.offsetHeight + 4) + 'px'; }
   loadDocuments();
   loadQA();
   resetIdle();
