@@ -12,7 +12,7 @@
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { height:100%; }
-  body { font-family:Arial,sans-serif; font-size:12px; background:var(--dark); min-height:100vh; overflow-x:hidden; }
+  body { font-family:Arial,sans-serif; font-size:12px; background:var(--dark); min-height:100vh; overflow-x:hidden; display:flex; flex-direction:column; }
 
   /* ── LOGIN SCREEN ── */
   #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:#121820; position:relative; overflow:hidden; }
@@ -337,9 +337,6 @@ function showSip() {
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
-  var hdr = document.querySelector('header');
-  var body = document.querySelector('.sip-body');
-  if (hdr && body && window.innerWidth <= 768) { body.style.paddingTop = hdr.offsetHeight + 'px'; }
   loadDocuments();
   loadQA();
   resetIdle();
