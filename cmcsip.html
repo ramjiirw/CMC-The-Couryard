@@ -342,7 +342,7 @@ function showSip() {
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
-  setTimeout(function(){ var h = document.querySelector('header'); var pt = document.querySelector('.page-title'); alert('header height='+h.offsetHeight+' header bottom='+h.getBoundingClientRect().bottom+' page-title top='+pt.getBoundingClientRect().top); }, 600);
+  setTimeout(function(){ var h = document.querySelector('header'); var pt = document.querySelector('.page-title'); var ls = document.getElementById('loginScreen'); alert('header height='+h.offsetHeight+' page-title top='+pt.getBoundingClientRect().top+' loginScreen display='+ls.style.display+' loginScreen height='+ls.offsetHeight); }, 600);
   loadDocuments();
   loadQA();
   resetIdle();
