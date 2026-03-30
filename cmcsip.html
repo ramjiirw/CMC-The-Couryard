@@ -52,7 +52,7 @@
   .lock-btn { background:#1e2a35; color:rgba(184,173,158,0.85); border:1px solid rgba(96,144,176,0.3); border-radius:999px; padding:0.45rem 1.2rem; font-family:Arial,sans-serif; font-size:0.78rem; cursor:pointer; transition:all 0.2s; }
   .lock-btn:hover { background:#253545; color:#f5f0e8; border-color:rgba(96,144,176,0.5); }
   .sip-body { max-width:1100px; width:100%; margin:0 auto; padding:1.8rem 1.5rem 4rem; flex:1; }
-  @media(max-width:768px) { .sip-body { padding-top:5.2rem; } }
+  @media(max-width:768px) { .sip-body { padding-top:1.8rem; } }
   .page-title { margin-bottom:1.4rem; }
   .page-title h2 { font-size:1.3rem; font-weight:500; color:var(--accent); }
   .page-title p { color:var(--mid); font-size:0.82rem; margin-top:0.3rem; }
@@ -343,6 +343,9 @@ function showSip() {
   var s = document.getElementById('sipScreen');
   s.style.display = 'flex';
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
+  var hdr = document.querySelector('header');
+  var body = document.querySelector('.sip-body');
+  if (hdr && body) { body.style.paddingTop = (hdr.offsetHeight + 16) + 'px'; }
   loadDocuments();
   loadQA();
   resetIdle();
