@@ -337,7 +337,7 @@
             <th style="width:120px">Last Name</th>
             <th style="width:140px">Mobile Number</th>
             <th style="width:260px">Email Address</th>
-            <th>Actions</th>
+            <th style="width:80px;text-align:center">Actions</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -614,38 +614,36 @@ function sortResidents() {
 
 function renderTable() {
   sortResidents();
-  const filter = document.getElementById('filterSelect')?.value || '';
-  const tbody  = document.getElementById('tableBody');
-  const list   = filter ? residents.filter(r => r.address === filter) : residents;
+  const filter   = document.getElementById('filterSelect')?.value || '';
+  const tbody    = document.getElementById('tableBody');
+  const list     = filter ? residents.filter(r => r.address === filter) : residents;
+  const onMobile = window.innerWidth <= 1023;
+
+  // Move Actions <th> to first or last to stay in sync with rows
+  const theadRow = document.getElementById('theadRow');
+  if (theadRow) {
+    const actTh = Array.from(theadRow.children).find(th => th.textContent.trim() === 'Actions');
+    if (actTh) {
+      if (onMobile && theadRow.firstElementChild !== actTh) {
+        theadRow.insertBefore(actTh, theadRow.firstElementChild);
+      } else if (!onMobile && theadRow.lastElementChild !== actTh) {
+        theadRow.appendChild(actTh);
+      }
+    }
+  }
+
   if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem">No residents match this filter.</td></tr>`;
     return;
   }
-  const mobile = window.innerWidth <= 1023;
-
-  // Reorder header to match rows
-  const theadRow = document.getElementById('theadRow');
-  if (theadRow) {
-    const ths = Array.from(theadRow.querySelectorAll('th'));
-    const actTh = ths[ths.length - 1];
-    if (mobile && theadRow.firstElementChild !== actTh) {
-      theadRow.insertBefore(actTh, theadRow.firstElementChild);
-    } else if (!mobile && theadRow.lastElementChild !== actTh) {
-      theadRow.appendChild(actTh);
-    }
-  }
-
   tbody.innerHTML = list.map(r => {
-    const actionsTd = `<td>
-        <div class="row-actions">
-          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="isMobile() ? openMobileModal('${r.id}') : toggleRowEdit('${r.id}', this)">✎ Edit</button>
-          <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
-        </div>
-      </td>`;
-    const dataCells = `
-      <td>
+    const act = `<td><div class="row-actions">
+          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="isMobile() ? openMobileModal('${r.id}') : toggleRowEdit('${r.id}', this)">&#9998; Edit</button>
+          <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">&#10005;</button>
+        </div></td>`;
+    const data = `<td>
         <select class="addr-sel" onchange="markUnsaved()">
-          <option value="">— Select address —</option>
+          <option value="">&#8212; Select address &#8212;</option>
           ${ADDRESSES.map(a=>`<option value="${a}"${r.address===a?' selected':''}>${a}</option>`).join('')}
         </select>
       </td>
@@ -659,7 +657,7 @@ function renderTable() {
         <input class="cell-input email-inp" type="email" placeholder="email@example.com" value="${esc(r.email)}" oninput="markUnsaved()">
         ${r.email ? `<a class="tap-link" href="mailto:${r.email}" title="Email ${r.email}"></a>` : ''}
       </td>`;
-    return `<tr data-id="${r.id}">${mobile ? actionsTd + dataCells : dataCells + actionsTd}</tr>`;
+    return `<tr data-id="${r.id}">${onMobile ? act + data : data + act}</tr>`;
   }).join('');
 }
 
