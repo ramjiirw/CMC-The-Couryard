@@ -128,8 +128,17 @@
   .qa-table tbody td:nth-child(2) { font-weight:600; color:var(--dark); width:38%; }
   .qa-table tbody td:nth-child(3) { color:var(--mid); }
   .qa-table tbody tr { border-bottom:1px solid rgba(184,173,158,0.35); }
-  .bio-filter-btn { padding:0.28rem 0.7rem; border-radius:5px; border:1px solid rgba(122,92,62,0.35); background:rgba(122,92,62,0.08); color:var(--accent); font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
-  .bio-filter-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+  /* ── Q&A TABLE MOBILE/TABLET SCROLL ── */
+  @media (max-width:1023px) {
+    #panel-sipqa .qa-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    #panel-sipqa .qa-table { min-width:700px; }
+    #panel-sipqa .qa-table tbody td:first-child { width:140px; min-width:140px; }
+    #panel-sipqa .qa-table tbody td:nth-child(2) { width:260px; min-width:260px; }
+    #panel-sipqa .qa-table tbody td:nth-child(3) { min-width:280px; white-space:normal; word-wrap:break-word; }
+  }
+  .bio-filter-btn { padding:0.3rem 0.8rem; border-radius:5px; border:none; background:linear-gradient(135deg,#3a5a70,#6090b0); color:white; font-family:Arial,sans-serif; font-size:0.75rem; font-weight:600; cursor:pointer; transition:opacity 0.15s; }
+  .bio-filter-btn:hover { opacity:0.85; }
+  .bio-filter-btn.active { background:linear-gradient(135deg,#6090b0,#3a5a70); opacity:1; }
   .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.1); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:10px; font-size:0.68rem; font-weight:700; padding:0.1rem 0.5rem; letter-spacing:0.03em; white-space:nowrap; }
   .qa-count-pill { background:rgba(255,255,255,0.2); color:white; border-radius:10px; font-size:0.68rem; padding:0.1rem 0.5rem; font-weight:700; }
 </style>
@@ -195,6 +204,7 @@
             <button class="bio-filter-btn" id="bioFilterBtn" onclick="toggleBioFilter()">Bio Filter</button>
             <button class="doc-filter-clear" id="qaClearBtn" onclick="clearAllQaFilters()" style="display:none;">&#x2715; Clear</button>
           </div>
+          <div class="qa-table-wrap">
           <table class="qa-table">
             <thead>
               <tr>
@@ -205,6 +215,7 @@
             </thead>
             <tbody id="qaBody"></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
@@ -221,7 +232,7 @@
       <div class="collapsible-panel" id="panel-sipdocs">
         <div id="pinnedCard" style="background:white;">
           <div class="doc-card-hdr pinned">&#128204; Pinned Documents <span class="count-pill" id="pinnedCount">0</span></div>
-          <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="pinnedBody"></tbody></table>
+          <table class="doc-table" id="pinnedTable"><thead><tr><th class="sortable" onclick="sortPinned()">Document<span class="sort-icon"></span></th><th style="width:110px;text-align:right;"></th></tr></thead><tbody id="pinnedBody"></tbody></table>
         </div>
         <hr style="height:14px;background:var(--cream);border:none;margin:0;">
         <div style="background:white;">
@@ -376,7 +387,7 @@ function renderPinned() {
     return pinnedSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
   });
   body.innerHTML = sorted.map(function(d){
-    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
@@ -518,7 +529,7 @@ function renderAll() {
   document.getElementById('allCount').textContent = filtered.length;
   if (!filtered.length) { body.innerHTML = '<tr><td colspan="2" class="empty-msg">No documents found.</td></tr>'; return; }
   body.innerHTML = filtered.map(function(d){
-    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
