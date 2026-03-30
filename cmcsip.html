@@ -34,12 +34,6 @@
   .login-btn:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 4px 16px rgba(60,100,130,0.5); }
   .session-msg { margin-top:1.5rem; font-size:0.75rem; color:rgba(184,173,158,0.5); letter-spacing:0.03em; }
   @media(max-width:480px) { .login-card{padding:2rem 1.5rem;} .login-emblem{width:200px;height:150px;} header{padding:1rem 1.2rem;} }
-  @media(max-width:768px) {
-    header { padding:1rem 1.2rem; }
-    .header-brand img { height:60px; width:80px; }
-    .header-brand h1 { font-size:1.2rem; }
-    .sip-body { padding:1.2rem 1rem 4rem; }
-  }
 
   /* ── SIP SCREEN ── */
   #sipScreen { display:none; flex-direction:column; min-height:100vh; background:var(--cream); flex-grow:1; }
@@ -52,7 +46,7 @@
   .lock-btn { background:#1e2a35; color:rgba(184,173,158,0.85); border:1px solid rgba(96,144,176,0.3); border-radius:999px; padding:0.45rem 1.2rem; font-family:Arial,sans-serif; font-size:0.78rem; cursor:pointer; transition:all 0.2s; }
   .lock-btn:hover { background:#253545; color:#f5f0e8; border-color:rgba(96,144,176,0.5); }
   .sip-body { max-width:1100px; width:100%; margin:0 auto; padding:1.8rem 1.5rem 4rem; flex:1; }
-  @media(max-width:768px) { .sip-body { padding-top:1.8rem; } }
+  @media(max-width:768px) { .sip-body { padding-left:1rem; padding-right:1rem; padding-bottom:4rem; } }
   .page-title { margin-bottom:1.4rem; }
   .page-title h2 { font-size:1.3rem; font-weight:500; color:var(--accent); }
   .page-title p { color:var(--mid); font-size:0.82rem; margin-top:0.3rem; }
@@ -345,7 +339,7 @@ function showSip() {
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 50);
   var hdr = document.querySelector('header');
   var body = document.querySelector('.sip-body');
-  if (hdr && body && window.innerWidth <= 768) { body.style.paddingTop = (hdr.offsetHeight + 4) + 'px'; }
+  if (hdr && body && window.innerWidth <= 768) { body.style.paddingTop = hdr.offsetHeight + 'px'; }
   loadDocuments();
   loadQA();
   resetIdle();
