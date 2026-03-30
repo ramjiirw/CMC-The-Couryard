@@ -141,11 +141,6 @@
   .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   .toast.error { background: #2a1515; }
 
-  @media (max-width: 1023px) {
-    thead th:last-child { display: none; }
-    thead th.th-actions-first { display: table-cell; text-align: center; width: 80px; }
-  }
-
   @media (max-width: 680px) {
     header { padding: 0.9rem 1rem; }
     .header-brand h1 { font-size: 1.2rem; }
@@ -336,8 +331,7 @@
     <div class="table-scroll">
       <table>
         <thead>
-          <tr>
-            <th class="th-actions-first" style="display:none;width:80px;text-align:center">Actions</th>
+          <tr id="theadRow">
             <th style="width:200px">Address</th>
             <th style="width:120px">First Name</th>
             <th style="width:120px">Last Name</th>
@@ -624,10 +618,23 @@ function renderTable() {
   const tbody  = document.getElementById('tableBody');
   const list   = filter ? residents.filter(r => r.address === filter) : residents;
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem">No residents match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem">No residents match this filter.</td></tr>`;
     return;
   }
   const mobile = window.innerWidth <= 1023;
+
+  // Reorder header to match rows
+  const theadRow = document.getElementById('theadRow');
+  if (theadRow) {
+    const ths = Array.from(theadRow.querySelectorAll('th'));
+    const actTh = ths[ths.length - 1];
+    if (mobile && theadRow.firstElementChild !== actTh) {
+      theadRow.insertBefore(actTh, theadRow.firstElementChild);
+    } else if (!mobile && theadRow.lastElementChild !== actTh) {
+      theadRow.appendChild(actTh);
+    }
+  }
+
   tbody.innerHTML = list.map(r => {
     const actionsTd = `<td>
         <div class="row-actions">
