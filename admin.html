@@ -2218,7 +2218,7 @@ function dcLoadNoticeboardCard() {
           : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3a7d52;margin-right:4px;flex-shrink:0;"></span>';
         var title = (m.title || '(no title)').toString();
         var shortTitle = title.length > 26 ? title.substring(0, 24) + '…' : title;
-        return '<li style="align-items:center;">' + dot + '<span class="dcl-name" style="color:var(--dark);font-weight:600;">' + escAdm(shortTitle) + '</span></li>';
+        return '<li style="align-items:center;">' + dot + '<span class="dcl-name" style="color:var(--dark);">' + escAdm(shortTitle) + '</span></li>';
       }).join('');
     })
     .catch(function() {
