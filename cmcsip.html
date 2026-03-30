@@ -35,7 +35,7 @@
   @media(max-width:480px) { .login-card{padding:2rem 1.5rem;} .login-emblem{width:200px;height:150px;} header{padding:1rem 1.2rem;} }
 
   /* ── SIP SCREEN ── */
-  #sipScreen { display:none; flex-direction:column; min-height:100vh; min-height:100dvh; background:var(--cream); }
+  #sipScreen { display:none; flex-direction:column; min-height:100vh; background:var(--cream); }
   header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; }
   .header-brand { display:flex; align-items:center; gap:1rem; }
   .header-brand img { height:90px; width:120px; object-fit:cover; border-radius:10px; }
@@ -81,7 +81,7 @@
   .sortable.sort-asc .sort-icon::after { content:' ▲'; opacity:1; color:var(--accent2); }
   .sortable.sort-desc .sort-icon::after { content:' ▼'; opacity:1; color:var(--accent2); }
   .sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:' ▲▼'; }
-  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; }
+  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; position:sticky; bottom:0; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   footer p > span:first-child { color:#6090b0; }
   footer #footerYear { color:var(--stone); }
