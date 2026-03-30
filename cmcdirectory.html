@@ -339,7 +339,7 @@
 </main>
 
 <!-- Admin modals -->
-<div class="admin-modal-overlay" id="adminModalOverlay">
+<div class="admin-modal-overlay" id="adminModalOverlay" style="display:none;">
   <div class="admin-modal" id="adminModalInner">
     <h3 id="adminModalTitle"></h3>
     <div id="adminModalBody"></div>
@@ -905,7 +905,7 @@ function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
   } else {
     btn.style.display = 'none';
   }
-  document.getElementById('adminModalOverlay').classList.add('open');
+  document.getElementById('adminModalOverlay').style.display = 'flex';
   setTimeout(() => {
     document.querySelectorAll('#adminModalInner input').forEach(inp => {
       inp.addEventListener('keydown', e => {
@@ -919,7 +919,7 @@ function openAdminModal(title, bodyHTML, actionLabel, actionFn) {
 }
 
 function closeAdminModal() {
-  document.getElementById('adminModalOverlay').classList.remove('open');
+  document.getElementById('adminModalOverlay').style.display = 'none';
 }
 
 document.getElementById('adminModalOverlay').addEventListener('click', function(e) {
