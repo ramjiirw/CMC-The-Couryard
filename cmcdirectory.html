@@ -141,6 +141,11 @@
   .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   .toast.error { background: #2a1515; }
 
+  @media (max-width: 1023px) {
+    thead th:last-child { display: none; }
+    thead th.th-actions-first { display: table-cell; text-align: center; width: 80px; }
+  }
+
   @media (max-width: 680px) {
     header { padding: 0.9rem 1rem; }
     .header-brand h1 { font-size: 1.2rem; }
@@ -332,6 +337,7 @@
       <table>
         <thead>
           <tr>
+            <th class="th-actions-first" style="display:none;width:80px;text-align:center">Actions</th>
             <th style="width:200px">Address</th>
             <th style="width:120px">First Name</th>
             <th style="width:120px">Last Name</th>
@@ -618,11 +624,18 @@ function renderTable() {
   const tbody  = document.getElementById('tableBody');
   const list   = filter ? residents.filter(r => r.address === filter) : residents;
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem">No residents match this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--mid);font-size:0.85rem">No residents match this filter.</td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(r => `
-    <tr data-id="${r.id}">
+  const mobile = window.innerWidth <= 1023;
+  tbody.innerHTML = list.map(r => {
+    const actionsTd = `<td>
+        <div class="row-actions">
+          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="isMobile() ? openMobileModal('${r.id}') : toggleRowEdit('${r.id}', this)">✎ Edit</button>
+          <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
+        </div>
+      </td>`;
+    const dataCells = `
       <td>
         <select class="addr-sel" onchange="markUnsaved()">
           <option value="">— Select address —</option>
@@ -638,14 +651,9 @@ function renderTable() {
       <td class="cell-wrap">
         <input class="cell-input email-inp" type="email" placeholder="email@example.com" value="${esc(r.email)}" oninput="markUnsaved()">
         ${r.email ? `<a class="tap-link" href="mailto:${r.email}" title="Email ${r.email}"></a>` : ''}
-      </td>
-      <td>
-        <div class="row-actions">
-          <button class="btn-icon btn-edit-row" title="Edit this resident" onclick="isMobile() ? openMobileModal('${r.id}') : toggleRowEdit('${r.id}', this)">✎ Edit</button>
-          <button class="btn-icon btn-del" title="Remove this resident" onclick="deleteRow('${r.id}')">✕</button>
-        </div>
-      </td>
-    </tr>`).join('');
+      </td>`;
+    return `<tr data-id="${r.id}">${mobile ? actionsTd + dataCells : dataCells + actionsTd}</tr>`;
+  }).join('');
 }
 
 function updateStats() {
