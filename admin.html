@@ -2354,17 +2354,17 @@ function hasSipwChanges() {
   return ['sipCurrent','sipNew','sipConfirm'].some(function(id){ return (document.getElementById(id)||{}).value; });
 }
 function clearPwFields() {
-  ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+  ['cpCurrent','cpNew','cpConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el){ el.value=''; el.readOnly=false; } });
   var h = document.getElementById('cpMatchHint'); if(h){ h.textContent=''; h.className=''; }
   var e = document.getElementById('cpwErr'); if(e) e.textContent='';
 }
 function clearSpwFields() {
-  ['spCurrent','spNew','spConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+  ['spCurrent','spNew','spConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el){ el.value=''; el.readOnly=false; } });
   var h = document.getElementById('spMatchHint'); if(h){ h.textContent=''; h.className=''; }
   var e = document.getElementById('spwErr'); if(e) e.textContent='';
 }
 function clearSipwFields() {
-  ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value=''; });
+  ['sipCurrent','sipNew','sipConfirm'].forEach(function(id){ var el = document.getElementById(id); if(el){ el.value=''; el.readOnly=false; } });
   var h = document.getElementById('sipMatchHint'); if(h){ h.textContent=''; h.className=''; }
   var e = document.getElementById('sipwErr'); if(e) e.textContent='';
 }
@@ -2410,6 +2410,9 @@ showPanel = function(id) {
     clearSipwFields();
   }
   _origShowPanel(id);
+  if (id === 'changepw')     { var el = document.getElementById('cpCurrent');  if (el && adminPassword)  { el.value = adminPassword;  el.readOnly = true; } }
+  if (id === 'changesitepw') { var el = document.getElementById('spCurrent');  if (el && portalPassword) { el.value = portalPassword; el.readOnly = true; } }
+  if (id === 'changesippw')  { var el = document.getElementById('sipCurrent'); if (el && sipPassword)    { el.value = sipPassword;    el.readOnly = true; } }
   if (id === 'noticeboard') nbLoad();
   if (id === 'usefulinfo') uiLoad();
   if (id === 'broadcast') bcLoad();
