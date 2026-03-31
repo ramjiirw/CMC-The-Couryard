@@ -280,7 +280,14 @@ function init() {
     });
 
   if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-    showSip();
+    // Check session hasn't expired while the tab was inactive
+    var lastActive = parseInt(sessionStorage.getItem(SESSION_KEY + '_ts') || '0', 10);
+    if (lastActive && (Date.now() - lastActive) >= IDLE_LIMIT) {
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY + '_ts');
+    } else {
+      showSip();
+    }
   }
 }
 
@@ -290,6 +297,7 @@ function doLogin() {
   if (!sipPassword) { err.textContent = 'Still loading — please wait.'; return; }
   if (val === sipPassword.toLowerCase()) {
     sessionStorage.setItem(SESSION_KEY, 'true');
+    sessionStorage.setItem(SESSION_KEY + '_ts', Date.now().toString());
     showSip();
   } else {
     err.textContent = 'Incorrect password — please try again.';
@@ -326,6 +334,7 @@ function resetUI() {
 
 function doLock() {
   sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY + '_ts');
   resetUI();
   document.getElementById('sipScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -599,7 +608,12 @@ function showWarning() {
   document.getElementById('countdownNum').textContent = fmtCountdown(secs);
   _countdownInterval = setInterval(function(){
     secs--;
-    if (secs <= 0) { clearInterval(_countdownInterval); return; }
+    if (secs <= 0) {
+      secs = 0;
+      document.getElementById('countdownNum').textContent = fmtCountdown(secs);
+      clearInterval(_countdownInterval);
+      return;
+    }
     document.getElementById('countdownNum').textContent = fmtCountdown(secs);
   }, 1000);
 }
@@ -612,6 +626,11 @@ function hideWarning() {
 
 function stayLoggedIn() {
   hideWarning();
+  if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+    // Session already expired while warning was showing — go to login cleanly
+    doLock();
+    return;
+  }
   resetIdle();
 }
 
@@ -622,7 +641,12 @@ function fmtCountdown(s) {
 }
 
 ['mousemove','keydown','click','scroll','touchstart'].forEach(function(evt){
-  document.addEventListener(evt, function(){ if (sessionStorage.getItem(SESSION_KEY) === 'true') resetIdle(); }, true);
+  document.addEventListener(evt, function(){
+    if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+      sessionStorage.setItem(SESSION_KEY + '_ts', Date.now().toString());
+      resetIdle();
+    }
+  }, true);
 });
 
 init();
