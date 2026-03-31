@@ -584,8 +584,8 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-var IDLE_LIMIT = 2 * 60 * 1000;   // 2 min (testing — restore to 30 * 60 * 1000)
-var WARN_BEFORE = 30 * 1000;       // 30 sec (testing — restore to 2 * 60 * 1000)
+var IDLE_LIMIT = 30 * 60 * 1000;
+var WARN_BEFORE = 2 * 60 * 1000;
 var _lockDeadline = 0;
 var _lockInterval = null;
 var _warnShown = false;
