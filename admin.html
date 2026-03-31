@@ -4762,10 +4762,10 @@ function qaRenderTable() {
   }
 
   function sortArrow(col) {
-    if (_qaSortCol !== col) return ' <span style="color:#c8bfb4;font-size:0.65rem;">&#8597;</span>';
+    if (_qaSortCol !== col) return ' <span style="color:#c8bfb4;font-size:0.75rem;">\u21c5</span>';
     return _qaSortDir[col] === 'asc'
-      ? ' <span style="color:#7a5c3e;font-size:0.7rem;">&#9650;</span>'
-      : ' <span style="color:#7a5c3e;font-size:0.7rem;">&#9660;</span>';
+      ? ' <span style="color:#7a5c3e;font-size:0.75rem;">\u2191</span>'
+      : ' <span style="color:#7a5c3e;font-size:0.75rem;">\u2193</span>';
   }
 
   var thStyle = 'padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;cursor:pointer;user-select:none;white-space:nowrap;';
