@@ -4619,12 +4619,12 @@ showPanel = function(id) {
 
 var qaAllRows = [];
 var qaFiltered = [];
-var qaEditIndex = null; // null = adding new, number = editing existing (0-based)
+var qaEditIndex = null;
 var _qaEditPanelOpen = false;
 
 function qaLoad(silent) {
   if (!silent) {
-    document.getElementById('qaTableWrap').innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading Q&amp;A…</div>';
+    document.getElementById('qaTableWrap').innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading Q&amp;A\u2026</div>';
   }
   fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
     .then(function(r){ return r.json(); })
@@ -4652,7 +4652,6 @@ function qaPopulateTopicFilter() {
     sel.appendChild(o);
   });
   if (current) sel.value = current;
-  // Also populate datalist for mobile modal
   var dl = document.getElementById('qaTopicSuggest');
   if (dl) {
     dl.innerHTML = '';
@@ -4665,12 +4664,11 @@ function qaPopulateTopicFilter() {
 }
 
 function qaApplyFilter() {
-  var topic = document.getElementById('qaFilterTopic').value.toLowerCase().trim();
+  var topic  = document.getElementById('qaFilterTopic').value.toLowerCase().trim();
   var search = document.getElementById('qaFilterSearch').value.toLowerCase().trim();
-  var clearBtn = document.getElementById('qaClearFilterBtn');
-  clearBtn.style.display = (topic || search) ? 'inline-block' : 'none';
+  document.getElementById('qaClearFilterBtn').style.display = (topic || search) ? 'inline-block' : 'none';
   qaFiltered = qaAllRows.filter(function(r){
-    var matchT = !topic || r.topic.toLowerCase() === topic;
+    var matchT = !topic  || r.topic.toLowerCase() === topic;
     var matchS = !search || r.question.toLowerCase().indexOf(search) !== -1
                           || r.answer.toLowerCase().indexOf(search) !== -1
                           || r.topic.toLowerCase().indexOf(search) !== -1;
@@ -4691,57 +4689,62 @@ function qaClearFilter() {
 
 function qaIsMobile() { return window.innerWidth <= 768; }
 
+function qaEsc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'\u003c').replace(/>/g,'\u003e').replace(/"/g,'&quot;');
+}
+
 function qaRenderTable() {
   var wrap = document.getElementById('qaTableWrap');
   if (!qaFiltered.length) {
-    wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">' + (qaAllRows.length ? 'No matching Q&amp;A entries.' : 'No Q&amp;A entries yet. Click + Add Q&amp;A to create the first one.') + '</div>';
+    wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">'
+      + (qaAllRows.length ? 'No matching Q&amp;A entries.' : 'No Q&amp;A entries yet. Click + Add Q&amp;A to create the first one.')
+      + '</div>';
     return;
   }
   var isMob = qaIsMobile();
+  var cols = isMob ? 3 : 4;
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr style="background:#faf7f2;">';
-  html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:1px solid #ddd5c8;white-space:nowrap;width:140px;">Topic</th>';
+  html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:1px solid #ddd5c8;width:140px;">Topic</th>';
   html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:1px solid #ddd5c8;">Question</th>';
   if (!isMob) html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:1px solid #ddd5c8;">Answer</th>';
-  html += '<th style="padding:0.55rem 0.75rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:right;border-bottom:1px solid #ddd5c8;white-space:nowrap;width:90px;"></th>';
+  html += '<th style="padding:0.55rem 0.75rem;border-bottom:1px solid #ddd5c8;width:90px;"></th>';
   html += '</tr></thead><tbody>';
 
   qaFiltered.forEach(function(row, i) {
     var actualIndex = qaAllRows.indexOf(row);
+    var topicHtml = row.topic ? '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.1rem 0.5rem;white-space:nowrap;">' + qaEsc(row.topic) + '</span>' : '';
+    var answerPreview = qaEsc(row.answer).substring(0, 160) + (row.answer.length > 160 ? '\u2026' : '');
+
     html += '<tr id="qa-row-' + i + '" style="border-bottom:1px solid #f0ebe3;cursor:pointer;" onclick="qaToggleDetail(' + i + ',' + actualIndex + ',event)">';
-    html += '<td style="padding:0.65rem 1rem;font-size:0.78rem;vertical-align:top;">';
-    if (row.topic) html += '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.1rem 0.5rem;white-space:nowrap;">' + esc(row.topic) + '</span>';
-    html += '</td>';
-    html += '<td style="padding:0.65rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;">' + esc(row.question) + '</td>';
-    if (!isMob) html += '<td style="padding:0.65rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;max-width:320px;">' + esc(row.answer).replace(/
-/g,'<br>').substring(0,160) + (row.answer.length > 160 ? '…' : '') + '</td>';
+    html += '<td style="padding:0.65rem 1rem;font-size:0.78rem;vertical-align:top;">' + topicHtml + '</td>';
+    html += '<td style="padding:0.65rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;">' + qaEsc(row.question) + '</td>';
+    if (!isMob) html += '<td style="padding:0.65rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;max-width:320px;">' + answerPreview + '</td>';
     html += '<td style="padding:0.65rem 0.75rem;text-align:right;vertical-align:top;white-space:nowrap;">';
-    html += '<button id="qa-chev-' + i + '" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#6b5f52;padding:0.2rem 0.4rem;transition:transform 0.2s;" onclick="qaToggleDetail(' + i + ',' + actualIndex + ',event)">Detail &#9660;</button>';
+    html += '<button id="qa-chev-' + i + '" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:#6b5f52;padding:0.2rem 0.4rem;" onclick="qaToggleDetail(' + i + ',' + actualIndex + ',event)">Detail &#9660;</button>';
     html += '</td></tr>';
 
-    // Detail / edit row
     html += '<tr id="qa-det-' + i + '" style="display:none;background:#fdfbf8;">';
-    html += '<td colspan="' + (isMob ? 3 : 4) + '" style="padding:0;border-bottom:2px solid #e8dfd6;">';
-    // Detail view
-    html += '<div id="qa-detail-' + i + '" style="padding:1rem 1.25rem;">';
+    html += '<td colspan="' + cols + '" style="padding:0;border-bottom:2px solid #e8dfd6;">';
+    html += '<div style="padding:1rem 1.25rem;">';
     html += '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#b8ad9e;margin-bottom:0.35rem;">Question</div>';
-    html += '<div style="font-size:0.88rem;color:#1e1a16;margin-bottom:0.85rem;font-weight:600;">' + esc(row.question) + '</div>';
+    html += '<div style="font-size:0.88rem;color:#1e1a16;margin-bottom:0.85rem;font-weight:600;">' + qaEsc(row.question) + '</div>';
     html += '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#b8ad9e;margin-bottom:0.35rem;">Answer</div>';
-    html += '<div style="font-size:0.85rem;color:#6b5f52;margin-bottom:1rem;white-space:pre-wrap;">' + esc(row.answer) + '</div>';
+    html += '<div style="font-size:0.85rem;color:#6b5f52;margin-bottom:1rem;white-space:pre-wrap;">' + qaEsc(row.answer) + '</div>';
     html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">';
     html += '<button class="abtn" style="font-size:0.78rem;padding:0.3rem 0.75rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="qaOpenEdit(' + actualIndex + ',event)">&#9998; Edit</button>';
     html += '<button class="abtn abtn-danger" style="font-size:0.78rem;padding:0.3rem 0.75rem;" onclick="qaDeleteRow(' + actualIndex + ',event)">&#128465; Delete</button>';
     html += '</div></div>';
-    // Inline edit panel (desktop)
+
     html += '<div id="qa-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">';
     html += '<div style="padding:1rem 1.25rem;background:#f5f0e8;border-top:1px solid #ddd5c8;">';
     html += '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">Edit Q&amp;A</div>';
     html += '<div style="margin-bottom:0.6rem;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>';
-    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + esc(row.topic) + '" list="qaTopicSuggest" style="width:100%;max-width:300px;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>';
+    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;max-width:300px;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>';
     html += '<div style="margin-bottom:0.6rem;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>';
-    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;">' + esc(row.question) + '</textarea></div>';
+    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;">' + qaEsc(row.question) + '</textarea></div>';
     html += '<div style="margin-bottom:0.75rem;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>';
-    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:100px;resize:vertical;">' + esc(row.answer) + '</textarea></div>';
+    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:100px;resize:vertical;">' + qaEsc(row.answer) + '</textarea></div>';
     html += '<div id="qa-edit-err-' + i + '" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>';
     html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">';
     html += '<button class="abtn abtn-primary" id="qa-save-' + i + '" onclick="qaSaveRow(' + actualIndex + ',' + i + ',event)">&#128190; Save</button>';
@@ -4759,7 +4762,6 @@ function qaToggleDetail(i, actualIndex, evt) {
   var detRow = document.getElementById('qa-det-' + i);
   if (!detRow) return;
   var isOpen = detRow.style.display !== 'none';
-  // Close all others
   document.querySelectorAll('tr[id^="qa-det-"]').forEach(function(r){
     if (r.id !== 'qa-det-' + i) {
       r.style.display = 'none';
@@ -4785,21 +4787,14 @@ function qaToggleDetail(i, actualIndex, evt) {
 
 function qaOpenEdit(actualIndex, evt) {
   if (evt) evt.stopPropagation();
-  if (qaIsMobile()) {
-    qaOpenMobileModal(actualIndex);
-    return;
-  }
-  // Find UI index
+  if (qaIsMobile()) { qaOpenMobileModal(actualIndex); return; }
   var row = qaAllRows[actualIndex];
   var i = qaFiltered.indexOf(row);
   if (i === -1) return;
-  // Ensure detail row is open
   var detRow = document.getElementById('qa-det-' + i);
   if (detRow) detRow.style.display = '';
-  // Open edit inner
   var inner = document.getElementById('qa-edit-inner-' + i);
   if (!inner) return;
-  // Close all others
   document.querySelectorAll('[id^="qa-edit-inner-"]').forEach(function(r){ r.style.maxHeight = '0'; r.style.overflow = 'hidden'; });
   inner.style.maxHeight = inner.scrollHeight + 200 + 'px';
   setTimeout(function(){
@@ -4816,18 +4811,17 @@ function qaCloseEdit(i, evt) {
 }
 
 function qaOpenAdd() {
-  if (qaIsMobile()) {
-    qaOpenMobileModal(null);
-  } else {
-    qaOpenDesktopAddForm();
-  }
+  if (qaIsMobile()) { qaOpenMobileModal(null); } else { qaOpenDesktopAddForm(); }
+}
+
+function qaRemoveAddForm() {
+  var f = document.getElementById('qa-add-form');
+  if (f) f.remove();
 }
 
 function qaOpenDesktopAddForm() {
-  // Show an add form at the top of the table wrap
   var wrap = document.getElementById('qaTableWrap');
-  var existing = document.getElementById('qa-add-form');
-  if (existing) { existing.remove(); return; }
+  if (document.getElementById('qa-add-form')) { qaRemoveAddForm(); return; }
   var div = document.createElement('div');
   div.id = 'qa-add-form';
   div.style.cssText = 'padding:1rem 1.25rem;background:#f5f0e8;border-bottom:2px solid #ddd5c8;';
@@ -4841,35 +4835,34 @@ function qaOpenDesktopAddForm() {
     + '<div id="qa-add-err" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>'
     + '<div style="display:flex;gap:0.5rem;">'
     + '<button class="abtn abtn-primary" id="qa-add-save-btn" onclick="qaSubmitAdd()">&#128190; Add Entry</button>'
-    + '<button class="abtn abtn-muted" onclick="document.getElementById('qa-add-form').remove()">Cancel</button>'
+    + '<button class="abtn abtn-muted" onclick="qaRemoveAddForm()">Cancel</button>'
     + '</div>';
   wrap.insertBefore(div, wrap.firstChild);
   document.getElementById('qa-add-topic').focus();
 }
 
 function qaSubmitAdd() {
-  var topic    = (document.getElementById('qa-add-topic').value || '').trim();
+  var topic    = (document.getElementById('qa-add-topic').value    || '').trim();
   var question = (document.getElementById('qa-add-question').value || '').trim();
-  var answer   = (document.getElementById('qa-add-answer').value || '').trim();
+  var answer   = (document.getElementById('qa-add-answer').value   || '').trim();
   var errEl    = document.getElementById('qa-add-err');
   var saveBtn  = document.getElementById('qa-add-save-btn');
   if (!question) { errEl.textContent = 'Question is required.'; return; }
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
-  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
     body: JSON.stringify({ action:'addSIPQARow', question:question, answer:answer, topic:topic })
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Save failed');
-    var form = document.getElementById('qa-add-form');
-    if (form) form.remove();
+    qaRemoveAddForm();
     qaLoad(true);
   })
   .catch(function(e){
     errEl.textContent = 'Error: ' + (e.message || 'network error');
-    saveBtn.disabled = false; saveBtn.textContent = '💾 Add Entry';
+    saveBtn.disabled = false; saveBtn.textContent = '&#128190; Add Entry';
   });
 }
 
@@ -4883,7 +4876,7 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   if (!question) { errEl.textContent = 'Question is required.'; return; }
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
-  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
     body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, question:question, answer:answer, topic:topic })
   })
@@ -4895,16 +4888,14 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   })
   .catch(function(e){
     errEl.textContent = 'Error: ' + (e.message || 'network error');
-    saveBtn.disabled = false; saveBtn.textContent = '💾 Save';
+    saveBtn.disabled = false; saveBtn.textContent = '&#128190; Save';
   });
 }
 
 function qaDeleteRow(actualIndex, evt) {
   if (evt) evt.stopPropagation();
   var row = qaAllRows[actualIndex];
-  if (!confirm('Delete this Q&A entry?
-
-"' + (row ? row.question : '') + '"')) return;
+  if (!confirm('Delete this entry? ' + (row ? row.question : ''))) return;
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
     body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: actualIndex + 2 })
   })
@@ -4918,22 +4909,17 @@ function qaDeleteRow(actualIndex, evt) {
   });
 }
 
-// ── Mobile modal ──────────────────────────────────────────────────────────────
-
 function qaOpenMobileModal(actualIndex) {
   qaEditIndex = actualIndex;
   var modal = document.getElementById('qaMobileModal');
-  var title = document.getElementById('qaMobileTitle');
-  var errEl = document.getElementById('qaMobileErr');
-  errEl.textContent = '';
+  document.getElementById('qaMobileErr').textContent = '';
+  document.getElementById('qaMobileTitle').textContent = actualIndex === null ? 'Add Q&A' : 'Edit Q&A';
   if (actualIndex === null) {
-    title.textContent = 'Add Q&A';
     document.getElementById('qaMobileTopic').value    = '';
     document.getElementById('qaMobileQuestion').value = '';
     document.getElementById('qaMobileAnswer').value   = '';
   } else {
     var row = qaAllRows[actualIndex];
-    title.textContent = 'Edit Q&A';
     document.getElementById('qaMobileTopic').value    = row.topic    || '';
     document.getElementById('qaMobileQuestion').value = row.question || '';
     document.getElementById('qaMobileAnswer').value   = row.answer   || '';
@@ -4957,15 +4943,10 @@ function qaMobileSave() {
   if (!question) { errEl.textContent = 'Question is required.'; return; }
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
-  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-
-  var payload;
-  if (qaEditIndex === null) {
-    payload = { action:'addSIPQARow', question:question, answer:answer, topic:topic };
-  } else {
-    payload = { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic };
-  }
-
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
+  var payload = qaEditIndex === null
+    ? { action:'addSIPQARow',    question:question, answer:answer, topic:topic }
+    : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic };
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) })
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -4977,10 +4958,6 @@ function qaMobileSave() {
     errEl.textContent = 'Error: ' + (e.message || 'network error');
     saveBtn.disabled = false; saveBtn.textContent = 'Save';
   });
-}
-
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'\u003c').replace(/>/g,'\u003e').replace(/"/g,'&quot;');
 }
 
 document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qaLoad(); resetAutoLock(); });
