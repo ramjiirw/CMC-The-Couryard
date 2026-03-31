@@ -583,44 +583,44 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-var IDLE_LIMIT = 30 * 60 * 1000;
-var WARN_BEFORE = 2 * 60 * 1000;
-var _idleTimer = null;
-var _warnTimer = null;
-var _countdownInterval = null;
+var IDLE_LIMIT = 2 * 60 * 1000;   // 2 min (testing — restore to 30 * 60 * 1000)
+var WARN_BEFORE = 30 * 1000;       // 30 sec (testing — restore to 2 * 60 * 1000)
+var _lockDeadline = 0;
+var _lockInterval = null;
+var _warnShown = false;
 
 function resetIdle() {
-  clearTimeout(_idleTimer);
-  clearTimeout(_warnTimer);
-  clearInterval(_countdownInterval);
-  hideWarning();
   if (sessionStorage.getItem(SESSION_KEY) !== 'true') return;
-  _warnTimer = setTimeout(showWarning, IDLE_LIMIT - WARN_BEFORE);
-  _idleTimer = setTimeout(function(){ sessionStorage.removeItem(SESSION_KEY); doLock(); }, IDLE_LIMIT);
-}
-
-function showWarning() {
-  // Don't show warning if session already expired
-  if (sessionStorage.getItem(SESSION_KEY) !== 'true') { doLock(); return; }
-  var overlay = document.getElementById('timeoutOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'flex';
-  // _idleTimer already scheduled to call doLock() after WARN_BEFORE — no countdown needed
-}
-
-function hideWarning() {
-  var overlay = document.getElementById('timeoutOverlay');
-  if (overlay) overlay.style.display = 'none';
-  clearInterval(_countdownInterval);
+  _lockDeadline = Date.now() + IDLE_LIMIT;
+  sessionStorage.setItem(SESSION_KEY + '_ts', String(Date.now()));
+  if (_warnShown) {
+    _warnShown = false;
+    var ov = document.getElementById('timeoutOverlay');
+    if (ov) ov.style.display = 'none';
+  }
+  if (!_lockInterval) {
+    _lockInterval = setInterval(function() {
+      if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+        clearInterval(_lockInterval); _lockInterval = null; doLock(); return;
+      }
+      var rem = _lockDeadline - Date.now();
+      if (rem <= 0) {
+        clearInterval(_lockInterval); _lockInterval = null;
+        var ov = document.getElementById('timeoutOverlay');
+        if (ov) ov.style.display = 'none';
+        doLock(); return;
+      }
+      if (rem <= WARN_BEFORE && !_warnShown) {
+        _warnShown = true;
+        var ov = document.getElementById('timeoutOverlay');
+        if (ov) ov.style.display = 'flex';
+      }
+    }, 1000);
+  }
 }
 
 function stayLoggedIn() {
-  hideWarning();
-  if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-    // Session already expired while warning was showing — go to login cleanly
-    doLock();
-    return;
-  }
+  if (sessionStorage.getItem(SESSION_KEY) !== 'true') { doLock(); return; }
   resetIdle();
 }
 
