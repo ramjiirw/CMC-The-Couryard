@@ -610,8 +610,8 @@ function showWarning() {
     secs--;
     if (secs <= 0) {
       secs = 0;
-      document.getElementById('countdownNum').textContent = fmtCountdown(secs);
-      clearInterval(_countdownInterval);
+  clearInterval(_countdownInterval);
+  doLock();
       return;
     }
     document.getElementById('countdownNum').textContent = fmtCountdown(secs);
