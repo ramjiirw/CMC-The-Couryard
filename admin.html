@@ -4613,16 +4613,29 @@ showPanel = function(id) {
   _origShowPanel2(id);
   if (id === 'directory' && !dirResidents.length) dir_loadFromSheets();
   if (id === 'sipqa') qaLoad();
+  if (id !== 'sipqa' && qaHasUnsaved()) {
+    if (!qaConfirmAbandon()) { _origShowPanel2(id === 'sipqa' ? id : 'sipqa'); return; }
+    if (_qaEditingRow !== null && _qaEditingRow.uiIndex !== 'mobile') {
+      var er = document.getElementById('qa-edit-row-' + _qaEditingRow.uiIndex);
+      if (er) er.style.display = 'none';
+    }
+    qaRemoveAddForm();
+    _qaEditingRow = null;
+    _qaEditPanelOpen = false;
+  }
 };
 
 
 // ─── SIP Q&A ADMIN ────────────────────────────────────────────────────────────
 
-var qaAllRows = [];
-var qaFiltered = [];
-var qaEditIndex = null;
+var qaAllRows    = [];
+var qaFiltered   = [];
+var qaEditIndex  = null;
 var _qaEditPanelOpen = false;
 var _qaBioFilterActive = false;
+var _qaEditingRow = null; // { uiIndex, actualIndex } when an edit row is open
+var _qaSortCol   = 'topic'; // default sort by topic
+var _qaSortDir   = { topic: 'asc', question: 'asc', answer: 'asc' };
 
 function qaLoad(silent) {
   if (!silent) {
@@ -4633,6 +4646,8 @@ function qaLoad(silent) {
     .then(function(d){
       if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Bad response');
       qaAllRows = d.rows || [];
+      _qaEditingRow = null;
+      _qaEditPanelOpen = false;
       qaPopulateTopicFilter();
       qaApplyFilter();
     })
@@ -4649,19 +4664,14 @@ function qaPopulateTopicFilter() {
   topics.sort();
   sel.innerHTML = '<option value="">All Topics</option>';
   topics.forEach(function(t){
-    var o = document.createElement('option');
-    o.value = t; o.textContent = t;
+    var o = document.createElement('option'); o.value = t; o.textContent = t;
     sel.appendChild(o);
   });
   if (current) sel.value = current;
   var dl = document.getElementById('qaTopicSuggest');
   if (dl) {
     dl.innerHTML = '';
-    topics.forEach(function(t){
-      var o = document.createElement('option');
-      o.value = t;
-      dl.appendChild(o);
-    });
+    topics.forEach(function(t){ var o = document.createElement('option'); o.value = t; dl.appendChild(o); });
   }
 }
 
@@ -4669,17 +4679,40 @@ function qaApplyFilter() {
   var topic  = document.getElementById('qaFilterTopic').value.toLowerCase().trim();
   var search = document.getElementById('qaFilterSearch').value.toLowerCase().trim();
   var clearBtn = document.getElementById('qaClearFilterBtn');
-  var anyActive = topic || search || _qaBioFilterActive;
-  clearBtn.style.display = anyActive ? 'inline-block' : 'none';
+  clearBtn.style.display = (topic || search || _qaBioFilterActive) ? 'inline-block' : 'none';
   qaFiltered = qaAllRows.filter(function(r){
     var combined = (r.topic + ' ' + r.question + ' ' + r.answer).toLowerCase();
-    var matchT   = !topic  || r.topic.toLowerCase() === topic;
-    var matchS   = !search || combined.indexOf(search) !== -1;
-    var matchBio = !_qaBioFilterActive || combined.indexOf('bio filter') !== -1;
-    return matchT && matchS && matchBio;
+    return (!topic  || r.topic.toLowerCase() === topic)
+        && (!search || combined.indexOf(search) !== -1)
+        && (!_qaBioFilterActive || combined.indexOf('bio filter') !== -1);
   });
+  qaSort();
+}
+
+function qaSort() {
+  var col = _qaSortCol;
+  var dir = _qaSortDir[col] || 'asc';
+  if (col) {
+    qaFiltered.sort(function(a, b){
+      var av = (a[col] || '').toLowerCase();
+      var bv = (b[col] || '').toLowerCase();
+      if (av < bv) return dir === 'asc' ? -1 : 1;
+      if (av > bv) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
   document.getElementById('qaCountPill').textContent = qaFiltered.length + ' / ' + qaAllRows.length;
   qaRenderTable();
+}
+
+function qaSortBy(col) {
+  if (_qaSortCol === col) {
+    _qaSortDir[col] = (_qaSortDir[col] === 'asc') ? 'desc' : 'asc';
+  } else {
+    _qaSortCol = col;
+    if (!_qaSortDir[col]) _qaSortDir[col] = 'asc';
+  }
+  qaSort();
 }
 
 function qaClearFilter() {
@@ -4687,19 +4720,19 @@ function qaClearFilter() {
   document.getElementById('qaFilterSearch').value = '';
   _qaBioFilterActive = false;
   var bioBtn = document.getElementById('qaBioFilterBtn');
-  if (bioBtn) { bioBtn.style.background = ''; bioBtn.style.color = ''; }
+  if (bioBtn) { bioBtn.style.background = ''; bioBtn.style.color = ''; bioBtn.style.borderColor = ''; }
   document.getElementById('qaClearFilterBtn').style.display = 'none';
   qaFiltered = qaAllRows.slice();
-  document.getElementById('qaCountPill').textContent = qaFiltered.length + ' / ' + qaAllRows.length;
-  qaRenderTable();
+  qaSort();
 }
 
 function qaToggleBioFilter() {
   _qaBioFilterActive = !_qaBioFilterActive;
   var bioBtn = document.getElementById('qaBioFilterBtn');
   if (bioBtn) {
-    bioBtn.style.background = _qaBioFilterActive ? '#3a5a70' : '';
-    bioBtn.style.color      = _qaBioFilterActive ? 'white'  : '';
+    bioBtn.style.background   = _qaBioFilterActive ? '#3a5a70' : '';
+    bioBtn.style.color        = _qaBioFilterActive ? 'white'   : '';
+    bioBtn.style.borderColor  = _qaBioFilterActive ? '#3a5a70' : '';
   }
   qaApplyFilter();
 }
@@ -4710,6 +4743,15 @@ function qaEsc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'\u003c').replace(/>/g,'\u003e').replace(/"/g,'&quot;');
 }
 
+function qaHasUnsaved() {
+  return _qaEditingRow !== null;
+}
+
+function qaConfirmAbandon() {
+  if (!qaHasUnsaved()) return true;
+  return confirm('You have unsaved Q&A changes. Abandon them?');
+}
+
 function qaRenderTable() {
   var wrap = document.getElementById('qaTableWrap');
   if (!qaFiltered.length) {
@@ -4718,96 +4760,118 @@ function qaRenderTable() {
       + '</div>';
     return;
   }
+
+  function sortArrow(col) {
+    if (_qaSortCol !== col) return ' <span style="color:#c8bfb4;font-size:0.65rem;">&#8597;</span>';
+    return _qaSortDir[col] === 'asc'
+      ? ' <span style="color:#7a5c3e;font-size:0.7rem;">&#9650;</span>'
+      : ' <span style="color:#7a5c3e;font-size:0.7rem;">&#9660;</span>';
+  }
+
+  var thStyle = 'padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;cursor:pointer;user-select:none;white-space:nowrap;';
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr style="background:#faf7f2;">';
-  html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;width:140px;">Topic</th>';
-  html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;">Question</th>';
-  html += '<th style="padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;">Answer</th>';
+  html += '<th style="' + thStyle + 'width:140px;" onclick="qaSortBy(\'topic\')">Topic' + sortArrow('topic') + '</th>';
+  html += '<th style="' + thStyle + '" onclick="qaSortBy(\'question\')">Question' + sortArrow('question') + '</th>';
+  html += '<th style="' + thStyle + '" onclick="qaSortBy(\'answer\')">Answer' + sortArrow('answer') + '</th>';
   html += '<th style="padding:0.55rem 0.75rem;border-bottom:2px solid #c8bfb4;width:70px;"></th>';
   html += '</tr></thead><tbody>';
 
   qaFiltered.forEach(function(row, i) {
     var actualIndex = qaAllRows.indexOf(row);
-    var isEven = i % 2 === 0;
-    var rowBg = isEven ? '#ffffff' : '#fdfbf8';
+    var rowBg = i % 2 === 0 ? '#ffffff' : '#fdfbf8';
 
     html += '<tr id="qa-row-' + i + '" style="background:' + rowBg + ';border-bottom:1px solid #ddd5c8;">';
-
-    // Topic
     html += '<td style="padding:0.75rem 1rem;font-size:0.78rem;vertical-align:top;border-right:1px solid #ede8e1;">';
     if (row.topic) html += '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.15rem 0.55rem;white-space:nowrap;">' + qaEsc(row.topic) + '</span>';
     html += '</td>';
-
-    // Question — full text
     html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">' + qaEsc(row.question) + '</td>';
-
-    // Answer — full text, pre-wrap for multi-line
     html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;white-space:pre-wrap;border-right:1px solid #ede8e1;">' + qaEsc(row.answer) + '</td>';
-
-    // Actions
     html += '<td style="padding:0.75rem 0.6rem;vertical-align:top;text-align:center;">';
-    html += '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;white-space:nowrap;" onclick="qaOpenEdit(' + actualIndex + ',event)">&#9998; Edit</button>';
+    html += '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;white-space:nowrap;" onclick="qaOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button>';
     html += '</td></tr>';
 
-    // Inline edit row (desktop) — hidden by default
+    // Inline edit row
     html += '<tr id="qa-edit-row-' + i + '" style="display:none;background:#f5f0e8;">';
     html += '<td colspan="4" style="padding:1rem 1.25rem;border-bottom:2px solid #c8bfb4;">';
     html += '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">Edit Q&amp;A</div>';
     html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;">';
     html += '<div style="flex:0 0 220px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>';
-    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>';
+    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;" oninput="_qaEditingRow=_qaEditingRow||{}"></div>';
     html += '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>';
-    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;">' + qaEsc(row.question) + '</textarea></div>';
+    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.question) + '</textarea></div>';
     html += '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>';
-    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;">' + qaEsc(row.answer) + '</textarea></div>';
+    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.answer) + '</textarea></div>';
     html += '</div>';
     html += '<div id="qa-edit-err-' + i + '" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>';
     html += '<div style="display:flex;gap:0.5rem;">';
     html += '<button class="abtn abtn-primary" id="qa-save-' + i + '" onclick="qaSaveRow(' + actualIndex + ',' + i + ',event)">&#128190; Save</button>';
     html += '<button class="abtn abtn-muted" onclick="qaCloseEdit(' + i + ',event)">Cancel</button>';
     html += '<button class="abtn abtn-danger" style="margin-left:auto;" onclick="qaDeleteRow(' + actualIndex + ',event)">&#128465; Delete</button>';
-    html += '</div>';
-    html += '</td></tr>';
+    html += '</div></td></tr>';
   });
 
   html += '</tbody></table>';
   wrap.innerHTML = html;
 }
 
-function qaOpenEdit(actualIndex, evt) {
+function qaOpenEdit(actualIndex, uiIndex, evt) {
   if (evt) evt.stopPropagation();
   if (qaIsMobile()) { qaOpenMobileModal(actualIndex); return; }
-  var row = qaAllRows[actualIndex];
-  var i   = qaFiltered.indexOf(row);
-  if (i === -1) return;
-  // Close all other edit rows
-  document.querySelectorAll('tr[id^="qa-edit-row-"]').forEach(function(r){
-    if (r.id !== 'qa-edit-row-' + i) r.style.display = 'none';
-  });
-  var editRow = document.getElementById('qa-edit-row-' + i);
+  // If another row is open, warn before switching
+  if (_qaEditingRow !== null && _qaEditingRow.uiIndex !== uiIndex) {
+    if (!qaConfirmAbandon()) return;
+    var oldRow = document.getElementById('qa-edit-row-' + _qaEditingRow.uiIndex);
+    if (oldRow) oldRow.style.display = 'none';
+  }
+  var editRow = document.getElementById('qa-edit-row-' + uiIndex);
   if (!editRow) return;
   var isOpen = editRow.style.display !== 'none';
-  editRow.style.display = isOpen ? 'none' : '';
-  _qaEditPanelOpen = !isOpen;
+  if (isOpen) {
+    if (!qaConfirmAbandon()) return;
+    editRow.style.display = 'none';
+    _qaEditingRow = null;
+    _qaEditPanelOpen = false;
+  } else {
+    editRow.style.display = '';
+    _qaEditingRow = { uiIndex: uiIndex, actualIndex: actualIndex };
+    _qaEditPanelOpen = true;
+    editRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
-function qaCloseEdit(i, evt) {
+function qaCloseEdit(uiIndex, evt) {
   if (evt) evt.stopPropagation();
-  var editRow = document.getElementById('qa-edit-row-' + i);
+  var editRow = document.getElementById('qa-edit-row-' + uiIndex);
   if (editRow) editRow.style.display = 'none';
+  _qaEditingRow = null;
   _qaEditPanelOpen = false;
 }
 
 function qaOpenAdd() {
-  if (qaIsMobile()) { qaOpenMobileModal(null); } else { qaOpenDesktopAddForm(); }
+  if (qaIsMobile()) {
+    if (!qaConfirmAbandon()) return;
+    qaOpenMobileModal(null);
+  } else {
+    qaOpenDesktopAddForm();
+  }
 }
 
 function qaRemoveAddForm() {
   var f = document.getElementById('qa-add-form');
   if (f) f.remove();
+  _qaEditingRow = null;
+  _qaEditPanelOpen = false;
 }
 
 function qaOpenDesktopAddForm() {
+  if (!qaConfirmAbandon()) return;
+  // Close any open edit rows
+  if (_qaEditingRow !== null) {
+    var oldRow = document.getElementById('qa-edit-row-' + _qaEditingRow.uiIndex);
+    if (oldRow) oldRow.style.display = 'none';
+    _qaEditingRow = null;
+  }
   var wrap = document.getElementById('qaTableWrap');
   if (document.getElementById('qa-add-form')) { qaRemoveAddForm(); return; }
   var div = document.createElement('div');
@@ -4818,9 +4882,9 @@ function qaOpenDesktopAddForm() {
     + '<div style="flex:0 0 220px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>'
     + '<input type="text" id="qa-add-topic" list="qaTopicSuggest" placeholder="e.g. Bio Filter Capacity" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>'
     + '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>'
-    + '<textarea id="qa-add-question" placeholder="Enter the question" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;"></textarea></div>'
+    + '<textarea id="qa-add-question" placeholder="Enter the question" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
     + '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>'
-    + '<textarea id="qa-add-answer" placeholder="Enter the answer" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;"></textarea></div>'
+    + '<textarea id="qa-add-answer" placeholder="Enter the answer" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
     + '</div>'
     + '<div id="qa-add-err" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>'
     + '<div style="display:flex;gap:0.5rem;">'
@@ -4828,6 +4892,8 @@ function qaOpenDesktopAddForm() {
     + '<button class="abtn abtn-muted" onclick="qaRemoveAddForm()">Cancel</button>'
     + '</div>';
   wrap.insertBefore(div, wrap.firstChild);
+  _qaEditingRow = { uiIndex: 'add', actualIndex: null };
+  _qaEditPanelOpen = true;
   document.getElementById('qa-add-topic').focus();
 }
 
@@ -4873,7 +4939,8 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Save failed');
-    qaCloseEdit(uiIndex);
+    _qaEditingRow = null;
+    _qaEditPanelOpen = false;
     qaLoad(true);
   })
   .catch(function(e){
@@ -4892,6 +4959,8 @@ function qaDeleteRow(actualIndex, evt) {
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Delete failed');
+    _qaEditingRow = null;
+    _qaEditPanelOpen = false;
     qaLoad(true);
   })
   .catch(function(e){
@@ -4916,11 +4985,15 @@ function qaOpenMobileModal(actualIndex) {
   document.getElementById('qaMobileSaveBtn').disabled = false;
   document.getElementById('qaMobileSaveBtn').textContent = 'Save';
   document.getElementById('qaMobileModal').classList.add('open');
+  _qaEditingRow = { uiIndex: 'mobile', actualIndex: actualIndex };
+  _qaEditPanelOpen = true;
 }
 
 function qaMobileCancel() {
   document.getElementById('qaMobileModal').classList.remove('open');
   qaEditIndex = null;
+  _qaEditingRow = null;
+  _qaEditPanelOpen = false;
 }
 
 function qaMobileSave() {
