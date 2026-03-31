@@ -94,6 +94,7 @@
   .timeout-box { background:white; border-radius:12px; padding:2rem 2.5rem; max-width:340px; width:90%; text-align:center; box-shadow:0 16px 48px rgba(0,0,0,0.4); }
   .timeout-box h3 { font-size:1rem; font-weight:700; color:var(--accent); margin-bottom:0.6rem; }
   .timeout-box p { font-size:0.82rem; color:var(--mid); margin-bottom:1rem; }
+  .timeout-countdown { font-size:2.4rem; font-weight:700; color:var(--red); margin-bottom:1.2rem; font-variant-numeric:tabular-nums; }
   .timeout-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:6px; padding:0.7rem 1.8rem; font-family:Arial,sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; letter-spacing:0.05em; }
   .timeout-btn:hover { opacity:0.9; }
 
@@ -615,6 +616,14 @@ function resetIdle() {
         var ov = document.getElementById('timeoutOverlay');
         if (ov) ov.style.display = 'flex';
       }
+      if (_warnShown) {
+        var cd = document.getElementById('countdownNum');
+        if (cd) {
+          var s = Math.max(0, Math.ceil(rem / 1000));
+          var m = Math.floor(s / 60);
+          cd.textContent = m + ':' + ((s % 60) < 10 ? '0' : '') + (s % 60);
+        }
+      }
     }, 1000);
   }
 }
@@ -641,7 +650,8 @@ init();
 <div id="timeoutOverlay">
   <div class="timeout-box">
     <h3>Still there?</h3>
-    <p>For security, you will be logged out in 2 minutes.</p>
+    <p>For security, you will be logged out in</p>
+    <div class="timeout-countdown" id="countdownNum">0:30</div>
     <button class="timeout-btn" onclick="stayLoggedIn()">Stay Logged In</button>
   </div>
 </div>
