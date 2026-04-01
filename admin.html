@@ -1865,7 +1865,7 @@ function renderMaintenanceTable() {
     var actualRowIndex = row.rowIndex;
     var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
     var tdFontSize = window.innerWidth <= 480 ? '0.76rem' : '0.84rem';
-    var detFontSize = window.innerWidth <= 480 ? '0.78rem' : (window.innerWidth <= 1100 ? '1.05rem' : '0.82rem');
+    var detFontSize = window.innerWidth <= 480 ? '0.78rem' : (window.innerWidth <= 1100 ? '2rem' : '0.82rem');
     var tdBase = 'padding:0.65rem 1rem;font-size:' + tdFontSize + ';vertical-align:middle;background:white;' + (isResolved ? 'color:#999590;' : 'color:#1e1a16;');
 
     // ── Main data row (single line) ───────────────────────────────────────────
