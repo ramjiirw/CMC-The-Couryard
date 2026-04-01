@@ -1864,6 +1864,7 @@ function renderMaintenanceTable() {
   issues.forEach(function(row, i) {
     var actualRowIndex = row.rowIndex;
     var isResolved = (row.status || '').toLowerCase().indexOf('resolv') >= 0 || !!row.dateResolved;
+    alert('width=' + window.innerWidth);
     var tdFontSize = window.innerWidth <= 480 ? '0.72rem' : (window.innerWidth <= 1100 ? '1rem' : '0.84rem');
     var detFontSize = window.innerWidth <= 480 ? '0.75rem' : (window.innerWidth <= 1100 ? '1rem' : '0.82rem');
     var tdBase = 'padding:0.65rem 1rem;font-size:' + tdFontSize + ';vertical-align:middle;background:white;' + (isResolved ? 'color:#999590;' : 'color:#1e1a16;');
