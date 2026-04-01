@@ -512,6 +512,19 @@
   #adminScreen.night-mode .panel-title { color:var(--accent2); }
   #adminScreen.night-mode .panel-desc { color:var(--stone); }
 
+  /* iPad mini: slightly larger text in issues section */
+  @media(min-width:601px) and (max-width:900px) {
+    #mntTableWrap table td { font-size:0.88rem !important; }
+    #mntTableWrap .mnt-det-desc-text, #mntTableWrap .mnt-det-upd-text { font-size:0.86rem !important; }
+  }
+  /* iPhone: smaller text in issues section */
+  @media(max-width:480px) {
+    #mntTableWrap table td { font-size:0.72rem !important; }
+    #mntTableWrap table th { font-size:0.6rem !important; padding:0.5rem 0.5rem !important; }
+    #mntTableWrap .mnt-det-desc-text, #mntTableWrap .mnt-det-upd-text { font-size:0.75rem !important; }
+    #mntTableWrap .mnt-det-label { font-size:0.62rem !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -1954,18 +1967,6 @@ function renderMaintenanceTable() {
   html += '.mnt-edit-left{flex:0 0 auto;width:100%;flex-direction:row;gap:0.75rem;}';
   html += '.mnt-edit-left>div{flex:1;}';
   html += '.mnt-edit-right{width:100%;}';
-  html += '}';
-  /* iPad mini: 601–900px — nudge table and detail text slightly larger */
-  html += '@media(min-width:601px) and (max-width:900px){';
-  html += '#mntTableWrap table td{font-size:0.88rem !important;}';
-  html += '#mntTableWrap .mnt-det-desc-text,#mntTableWrap .mnt-det-upd-text{font-size:0.86rem !important;}';
-  html += '}';
-  /* iPhone: 480px and below — reduce table and expanded detail text */
-  html += '@media(max-width:480px){';
-  html += '#mntTableWrap table td{font-size:0.72rem !important;}';
-  html += '#mntTableWrap table th{font-size:0.6rem !important;padding:0.5rem 0.5rem !important;}';
-  html += '#mntTableWrap .mnt-det-desc-text,#mntTableWrap .mnt-det-upd-text{font-size:0.75rem !important;}';
-  html += '#mntTableWrap .mnt-det-label{font-size:0.62rem !important;}';
   html += '}';
   html += '</style>';
 
