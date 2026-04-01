@@ -5047,6 +5047,20 @@ function qaMobileDelete() {
 
 document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qaLoad(); resetAutoLock(); });
 
+// Keep sidebar top in sync with the sticky header height
+(function() {
+  var sidebar = document.getElementById('adminSidebar');
+  var header  = document.querySelector('.admin-header');
+  function syncSidebarTop() {
+    if (!sidebar || !header) return;
+    var h = header.getBoundingClientRect().height;
+    sidebar.style.top    = h + 'px';
+    sidebar.style.height = 'calc(100vh - ' + h + 'px)';
+  }
+  syncSidebarTop();
+  window.addEventListener('resize', syncSidebarTop);
+})();
+
 </script>
 
 <!-- Noticeboard notify review modal -->
