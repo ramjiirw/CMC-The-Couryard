@@ -1912,11 +1912,18 @@ function renderMaintenanceTable() {
     html += '<option value="Medium" style="color:#b8680a;"' + (row.priority==='Medium'?' selected':'') + '>🟡 Medium</option>';
     html += '<option value="Low" style="color:#2e7d52;"' + (row.priority==='Low'?' selected':'') + '>🟢 Low</option>';
     html += '</select></div>';
+    html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Category</label>';
+    html += '<select id="mnt-category-' + i + '" onchange="mntMarkDirty(' + i + ')" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;">';
+    var cats = ['Waste & Recycling','Lighting','Car Parks','Grounds & Common Areas','Farmhouse','Other'];
+    cats.forEach(function(c){ html += '<option value="' + c + '"' + ((row.category||'')===c?' selected':'') + '>' + c + '</option>'; });
+    html += '</select></div>';
     html += '</div>'; // end mnt-edit-left
 
-    // Right column: textarea (full height)
+    // Right column: description + update note
     html += '<div class="mnt-edit-right">';
-    html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update</label>';
+    html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Description</label>';
+    html += '<textarea id="mnt-desc-' + i + '" oninput="mntMarkDirty(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:60px;max-height:200px;margin-bottom:0.6rem;">' + (row.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
     html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:72px;max-height:300px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
     html += '</div>'; // end mnt-edit-right
 
@@ -2077,15 +2084,19 @@ function collapseMaintenanceRow(i) {
 }
 
 async function saveMaintenanceRow(actualRowIndex, uiIndex) {
-  var statusEl   = document.getElementById('mnt-status-' + uiIndex);
-  var noteEl     = document.getElementById('mnt-note-' + uiIndex);
+  var statusEl   = document.getElementById('mnt-status-'   + uiIndex);
+  var noteEl     = document.getElementById('mnt-note-'     + uiIndex);
   var priorityEl = document.getElementById('mnt-priority-' + uiIndex);
-  var saveBtn    = document.getElementById('mnt-save-' + uiIndex);
+  var categoryEl = document.getElementById('mnt-category-' + uiIndex);
+  var descEl     = document.getElementById('mnt-desc-'     + uiIndex);
+  var saveBtn    = document.getElementById('mnt-save-'     + uiIndex);
   if (!statusEl) return;
 
-  var newStatus   = statusEl.value;
-  var newNote     = noteEl ? noteEl.value.trim() : '';
-  var newPriority = priorityEl ? priorityEl.value : '';
+  var newStatus      = statusEl.value;
+  var newNote        = noteEl     ? noteEl.value.trim()     : '';
+  var newPriority    = priorityEl ? priorityEl.value        : '';
+  var newCategory    = categoryEl ? categoryEl.value        : '';
+  var newDescription = descEl     ? descEl.value.trim()     : '';
 
   if (newStatus === 'In Progress' && !newPriority) {
     if (priorityEl) {
@@ -2102,7 +2113,7 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: actualRowIndex, status: newStatus, updates: newNote, priority: newPriority })
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: actualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription })
     });
     var data = await res.json();
     if (data.status === 'ok') {
@@ -2121,9 +2132,11 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
           await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: actualRowIndex, dateResolved: '' }) });
           rowObj.dateResolved = '';
         }
-        rowObj.status   = newStatus;
-        rowObj.updates  = newNote;
-        rowObj.priority = newPriority;
+        rowObj.status       = newStatus;
+        rowObj.updates      = newNote;
+        rowObj.priority     = newPriority;
+        rowObj.category     = newCategory;
+        rowObj.description  = newDescription;
       }
       collapseMaintenanceRow(uiIndex);
       renderMaintenanceTable();
@@ -4539,9 +4552,11 @@ function mntMobOpen(uiIndex, actualRowIndex) {
 
   document.getElementById('mntMobTitle').textContent = 'Issue #' + (row.issueNumber || (uiIndex + 1));
   document.getElementById('mntMobAddr').textContent  = (row.address || '') + (row.category ? ' · ' + row.category : '');
-  document.getElementById('mntMob_status').value     = row.status   || 'New';
-  document.getElementById('mntMob_note').value       = row.updates  || '';
-  document.getElementById('mntMob_priority').value   = row.priority || '';
+  document.getElementById('mntMob_category').value    = row.category    || '';
+  document.getElementById('mntMob_description').value  = row.description || '';
+  document.getElementById('mntMob_status').value       = row.status      || 'New';
+  document.getElementById('mntMob_note').value         = row.updates     || '';
+  document.getElementById('mntMob_priority').value     = row.priority    || '';
   // Restore any unsaved draft note for this issue
   var draftKey = 'mnt_draft_' + actualRowIndex;
   var draft = sessionStorage.getItem(draftKey);
@@ -4559,8 +4574,11 @@ function mntMobIsDirty() {
   var origNote = (row.updates || '').trim();
   // If there's any text typed at all that differs from original, treat as dirty
   if (noteVal !== origNote) return true;
-  return document.getElementById('mntMob_status').value   !== (row.status   || 'New') ||
-         document.getElementById('mntMob_priority').value !== (row.priority || '');
+  return document.getElementById('mntMob_category').value    !== (row.category    || '') ||
+         document.getElementById('mntMob_description').value  !== (row.description || '') ||
+         document.getElementById('mntMob_status').value       !== (row.status      || 'New') ||
+         noteVal                                                                            ||
+         document.getElementById('mntMob_priority').value     !== (row.priority    || '');
 }
 
 function mntMobClose() {
@@ -4583,9 +4601,11 @@ function mntMobTryClose() {
 
 async function mntMobSave() {
   if (_mntMobActualRowIndex === null) return;
-  var newStatus   = document.getElementById('mntMob_status').value;
-  var newNote     = document.getElementById('mntMob_note').value.trim();
-  var newPriority = document.getElementById('mntMob_priority').value;
+  var newCategory    = document.getElementById('mntMob_category').value;
+  var newDescription = document.getElementById('mntMob_description').value.trim();
+  var newStatus      = document.getElementById('mntMob_status').value;
+  var newNote        = document.getElementById('mntMob_note').value.trim();
+  var newPriority    = document.getElementById('mntMob_priority').value;
 
   if (newStatus === 'In Progress' && !newPriority) {
     var priSel = document.getElementById('mntMob_priority');
@@ -4604,7 +4624,7 @@ async function mntMobSave() {
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: _mntMobActualRowIndex, status: newStatus, updates: newNote, priority: newPriority })
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: _mntMobActualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription })
     });
     var data = await res.json();
     if (data.status === 'ok') {
@@ -4623,9 +4643,11 @@ async function mntMobSave() {
           await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaintenanceDate', rowIndex: _mntMobActualRowIndex, dateResolved: '' }) });
           rowObj.dateResolved = '';
         }
-        rowObj.status   = newStatus;
-        rowObj.updates  = newNote;
-        rowObj.priority = newPriority;
+        rowObj.status       = newStatus;
+        rowObj.updates      = newNote;
+        rowObj.priority     = newPriority;
+        rowObj.category     = newCategory;
+        rowObj.description  = newDescription;
       }
       mntMobClose();
       renderMaintenanceTable();
@@ -5264,6 +5286,21 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     <div>
       <h3 id="mntMobTitle">Edit Issue</h3>
       <p class="mnt-mob-addr" id="mntMobAddr"></p>
+    </div>
+    <div>
+      <label>Category</label>
+      <select id="mntMob_category">
+        <option value="Waste &amp; Recycling">Waste &amp; Recycling</option>
+        <option value="Lighting">Lighting</option>
+        <option value="Car Parks">Car Parks</option>
+        <option value="Grounds &amp; Common Areas">Grounds &amp; Common Areas</option>
+        <option value="Farmhouse">Farmhouse</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div>
+      <label>Description</label>
+      <textarea id="mntMob_description" placeholder="Issue description…" style="min-height:80px;"></textarea>
     </div>
     <div>
       <label>Status</label>
