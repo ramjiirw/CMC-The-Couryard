@@ -2541,80 +2541,74 @@ document.getElementById('cepTextarea').addEventListener('keydown', function(e){
 });
 document.getElementById('footerYear').textContent = new Date().getFullYear();
 
-// ── ADMIN ADD ISSUE ────────────────────────────────────────────────────────────
+// ── ADMIN ADD DIRECTOR ISSUE ──────────────────────────────────────────────────
 
-var _mntAddAddressesLoaded = false;
+function mntAddIsDirty() {
+  var cat  = document.getElementById('mntAddCategory').value;
+  var desc = (document.getElementById('mntAddDescription').value || '').trim();
+  return !!(cat || desc);
+}
 
 function mntAddIssueOpen() {
   document.getElementById('mntAddErr').textContent = '';
-  document.getElementById('mntAddAddress').value = '';
   document.getElementById('mntAddCategory').value = '';
   document.getElementById('mntAddStatus').value = 'New';
   document.getElementById('mntAddPriority').value = '';
   document.getElementById('mntAddDescription').value = '';
   var btn = document.getElementById('mntAddSubmitBtn');
-  btn.disabled = false; btn.textContent = '💾 Add Issue';
+  btn.disabled = false; btn.textContent = '💾 Add Director Issue';
+  document.getElementById('mntAddDiscardOverlay').style.display = 'none';
   document.getElementById('mntAddModal').classList.add('open');
-  if (!_mntAddAddressesLoaded) mntAddLoadAddresses();
   resetAutoLock();
 }
 
 function mntAddIssueClose() {
   document.getElementById('mntAddModal').classList.remove('open');
+  document.getElementById('mntAddDiscardOverlay').style.display = 'none';
 }
 
-function mntAddLoadAddresses() {
-  fetch(SCRIPT_URL + '?action=read')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (!d || d.status !== 'ok') return;
-      var rows = d.rows || [];
-      var seen = {};
-      var addrs = [];
-      rows.forEach(function(r){ if (r.address && !seen[r.address]) { seen[r.address] = 1; addrs.push(r.address); } });
-      addrs.sort(function(a,b){
-        var na = parseInt((a.match(/\d+/)||[0])[0]);
-        var nb = parseInt((b.match(/\d+/)||[0])[0]);
-        return na - nb || a.localeCompare(b);
-      });
-      var sel = document.getElementById('mntAddAddress');
-      // Keep Director at top, then add resident addresses
-      addrs.forEach(function(a){
-        var o = document.createElement('option');
-        o.value = o.textContent = a;
-        sel.appendChild(o);
-      });
-      _mntAddAddressesLoaded = true;
-    })
-    .catch(function(e){ console.warn('Could not load addresses for add-issue', e); });
+function mntAddIssueGuardedClose() {
+  if (mntAddIsDirty()) {
+    document.getElementById('mntAddDiscardOverlay').style.display = 'flex';
+  } else {
+    mntAddIssueClose();
+  }
+}
+
+function mntAddIssueOverlayClick(e) {
+  if (e.target === document.getElementById('mntAddModal')) {
+    mntAddIssueGuardedClose();
+  }
+}
+
+function mntAddIssueDiscardConfirm() {
+  mntAddIssueClose();
 }
 
 async function mntAddIssueSubmit() {
-  var address     = document.getElementById('mntAddAddress').value.trim();
   var category    = document.getElementById('mntAddCategory').value;
   var status      = document.getElementById('mntAddStatus').value;
   var priority    = document.getElementById('mntAddPriority').value;
   var description = document.getElementById('mntAddDescription').value.trim();
   var err         = document.getElementById('mntAddErr');
   err.textContent = '';
-  if (!address)     { err.textContent = 'Please select an address.';       return; }
-  if (!category)    { err.textContent = 'Please select a category.';       return; }
-  if (!description) { err.textContent = 'Please enter a description.';     return; }
+  if (!category)    { err.textContent = 'Please select a category.';   return; }
+  if (!description) { err.textContent = 'Please enter a description.'; return; }
   var btn = document.getElementById('mntAddSubmitBtn');
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
-      body: JSON.stringify({ action:'addMaintenanceIssue', address: address, category: category, description: description, status: status, priority: priority })
+      body: JSON.stringify({ action:'addMaintenanceIssue', address:'Director', category:category, description:description, status:status, priority:priority })
     });
     var data = await res.json();
     if (!data || data.status !== 'ok') throw new Error(data && data.message ? data.message : 'Error');
     mntAddIssueClose();
-    showToast('Issue added successfully', 'success');
+    showToast('Director issue added', 'success');
     loadMaintenanceIssues();
   } catch(e) {
     err.textContent = 'Failed to add issue: ' + (e.message || 'network error');
-    btn.disabled = false; btn.textContent = '💾 Add Issue';
+    btn.disabled = false; btn.textContent = '💾 Add Director Issue';
   }
   resetAutoLock();
 }
@@ -5195,20 +5189,17 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 </div>
 
 <!-- Admin Add Issue modal -->
-<div id="mntAddModal">
+<div id="mntAddModal" onclick="mntAddIssueOverlayClick(event)">
   <div class="mnt-add-box">
     <div class="mnt-add-header">
-      <span>&#128295; Add New Issue</span>
-      <button class="mnt-add-close" onclick="mntAddIssueClose()" title="Cancel">&#10005;</button>
+      <span>&#128295; Add Director Issue</span>
+      <button class="mnt-add-close" onclick="mntAddIssueGuardedClose()" title="Cancel">&#10005;</button>
     </div>
     <div class="mnt-add-body">
       <div class="mnt-add-err" id="mntAddErr"></div>
       <div class="mnt-add-field">
         <label>Address</label>
-        <select id="mntAddAddress">
-          <option value="">— Select address —</option>
-          <option value="Director">Director</option>
-        </select>
+        <div style="padding:0.6rem 0.75rem;border:1px solid rgba(122,92,62,0.18);border-radius:7px;background:rgba(184,173,158,0.12);color:rgba(107,95,82,0.7);font-family:Arial,sans-serif;font-size:0.88rem;letter-spacing:0.04em;">Director</div>
       </div>
       <div class="mnt-add-row">
         <div class="mnt-add-field">
@@ -5249,8 +5240,20 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       </div>
     </div>
     <div class="mnt-add-footer">
-      <button class="abtn abtn-muted" onclick="mntAddIssueClose()">Cancel</button>
-      <button class="abtn abtn-primary" id="mntAddSubmitBtn" onclick="mntAddIssueSubmit()">&#128190; Add Issue</button>
+      <button class="abtn abtn-muted" onclick="mntAddIssueGuardedClose()">Cancel</button>
+      <button class="abtn abtn-primary" id="mntAddSubmitBtn" onclick="mntAddIssueSubmit()">&#128190; Add Director Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Director Issue — discard confirm overlay -->
+<div id="mntAddDiscardOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:830;align-items:center;justify-content:center;">
+  <div class="mnt-confirm-box">
+    <h4>Discard Issue?</h4>
+    <p>You've started filling in a Director issue. If you close now your details will be lost.</p>
+    <div class="mnt-confirm-btns">
+      <button onclick="mntAddIssueDiscardConfirm()" style="background:rgba(122,92,62,0.1);color:var(--mid);">Discard &amp; Close</button>
+      <button onclick="document.getElementById('mntAddDiscardOverlay').style.display='none';" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Go Back</button>
     </div>
   </div>
 </div>
