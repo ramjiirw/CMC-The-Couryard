@@ -1107,6 +1107,7 @@
           </div>
           <div id="qaMobileErr" style="color:#b05050;font-size:0.78rem;min-height:1rem;"></div>
           <div class="nb-mobile-btns">
+            <button id="qaMobileDeleteBtn" onclick="qaMobileDelete()" style="background:rgba(139,58,58,0.1);color:#b05050;border:1px solid rgba(139,58,58,0.22);flex:0 0 auto;padding:0.8rem 1rem;display:none;">&#128465; Delete</button>
             <button onclick="qaMobileCancel()" style="background:#e8e0d5;color:var(--mid);">Cancel</button>
             <button id="qaMobileSaveBtn" onclick="qaMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Save</button>
           </div>
@@ -4984,6 +4985,7 @@ function qaOpenMobileModal(actualIndex) {
   }
   document.getElementById('qaMobileSaveBtn').disabled = false;
   document.getElementById('qaMobileSaveBtn').textContent = 'Save';
+  document.getElementById('qaMobileDeleteBtn').style.display = actualIndex === null ? 'none' : '';
   document.getElementById('qaMobileModal').classList.add('open');
   _qaEditingRow = { uiIndex: 'mobile', actualIndex: actualIndex };
   _qaEditPanelOpen = true;
@@ -5019,6 +5021,27 @@ function qaMobileSave() {
   .catch(function(e){
     errEl.textContent = 'Error: ' + (e.message || 'network error');
     saveBtn.disabled = false; saveBtn.textContent = 'Save';
+  });
+}
+
+function qaMobileDelete() {
+  if (qaEditIndex === null) return;
+  var row = qaAllRows[qaEditIndex];
+  if (!confirm('Delete this entry: ' + (row ? row.question : '') + '?')) return;
+  var delBtn = document.getElementById('qaMobileDeleteBtn');
+  delBtn.disabled = true; delBtn.textContent = 'Deleting\u2026';
+  fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
+    body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: qaEditIndex + 2 })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Delete failed');
+    qaMobileCancel();
+    qaLoad(true);
+  })
+  .catch(function(e){
+    alert('Delete failed: ' + (e.message || 'network error'));
+    delBtn.disabled = false; delBtn.textContent = '&#128465; Delete';
   });
 }
 
