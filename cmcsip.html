@@ -335,6 +335,10 @@ function resetUI() {
 function doLock() {
   sessionStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(SESSION_KEY + '_ts');
+  clearInterval(lockInterval);
+  lockWarningShown = false;
+  var ov = document.getElementById('timeoutOverlay');
+  if (ov) ov.style.display = 'none';
   resetUI();
   document.getElementById('sipScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -355,7 +359,7 @@ function showSip() {
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 400);
   loadDocuments();
   loadQA();
-  resetIdle();
+  startAutoLock();
   (function(){
     var now = new Date();
     var hour = now.getHours();
@@ -586,63 +590,60 @@ function esc(s) {
 
 var IDLE_LIMIT = 30 * 60 * 1000;
 var WARN_BEFORE = 2 * 60 * 1000;
-var _lockDeadline = 0;
-var _lockInterval = null;
-var _warnShown = false;
+var lockDeadline = 0;
+var lockInterval = null;
+var lockWarningShown = false;
 
-function resetIdle() {
+function startAutoLock() {
+  clearInterval(lockInterval);
+  lockDeadline = Date.now() + IDLE_LIMIT;
+  lockWarningShown = false;
+  var ov = document.getElementById('timeoutOverlay');
+  if (ov) ov.style.display = 'none';
+  lockInterval = setInterval(function() {
+    var rem = lockDeadline - Date.now();
+    if (rem <= 0) {
+      clearInterval(lockInterval);
+      var ov2 = document.getElementById('timeoutOverlay');
+      if (ov2) ov2.style.display = 'none';
+      doLock();
+      return;
+    }
+    if (rem <= WARN_BEFORE) {
+      if (!lockWarningShown) {
+        lockWarningShown = true;
+        var ov3 = document.getElementById('timeoutOverlay');
+        if (ov3) ov3.style.display = 'flex';
+      }
+      var cd = document.getElementById('countdownNum');
+      if (cd) {
+        var s = Math.max(0, Math.ceil(rem / 1000));
+        var m = Math.floor(s / 60);
+        cd.textContent = m + ':' + ((s % 60) < 10 ? '0' : '') + (s % 60);
+      }
+    }
+  }, 1000);
+}
+
+function resetAutoLock() {
   if (sessionStorage.getItem(SESSION_KEY) !== 'true') return;
-  _lockDeadline = Date.now() + IDLE_LIMIT;
+  lockDeadline = Date.now() + IDLE_LIMIT;
   sessionStorage.setItem(SESSION_KEY + '_ts', String(Date.now()));
-  if (_warnShown) {
-    _warnShown = false;
+  if (lockWarningShown) {
+    lockWarningShown = false;
     var ov = document.getElementById('timeoutOverlay');
     if (ov) ov.style.display = 'none';
-  }
-  if (!_lockInterval) {
-    _lockInterval = setInterval(function() {
-      if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        clearInterval(_lockInterval); _lockInterval = null; doLock(); return;
-      }
-      var rem = _lockDeadline - Date.now();
-      if (rem <= 0) {
-        clearInterval(_lockInterval); _lockInterval = null;
-        var ov = document.getElementById('timeoutOverlay');
-        if (ov) ov.style.display = 'none';
-        doLock(); return;
-      }
-      if (rem <= WARN_BEFORE && !_warnShown) {
-        _warnShown = true;
-        var ov = document.getElementById('timeoutOverlay');
-        if (ov) ov.style.display = 'flex';
-      }
-      if (_warnShown) {
-        var cd = document.getElementById('countdownNum');
-        if (cd) {
-          var s = Math.max(0, Math.ceil(rem / 1000));
-          var m = Math.floor(s / 60);
-          cd.textContent = m + ':' + ((s % 60) < 10 ? '0' : '') + (s % 60);
-        }
-      }
-    }, 1000);
   }
 }
 
 function stayLoggedIn() {
   if (sessionStorage.getItem(SESSION_KEY) !== 'true') { doLock(); return; }
-  resetIdle();
+  resetAutoLock();
 }
 
-
-
-['mousemove','keydown','click','scroll','touchstart'].forEach(function(evt){
-  document.addEventListener(evt, function(){
-    if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-      sessionStorage.setItem(SESSION_KEY + '_ts', Date.now().toString());
-      resetIdle();
-    }
-  }, true);
-});
+document.addEventListener('click', resetAutoLock);
+document.addEventListener('keydown', resetAutoLock);
+document.addEventListener('touchstart', resetAutoLock);
 
 init();
 </script>
