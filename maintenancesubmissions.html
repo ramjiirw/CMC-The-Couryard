@@ -1055,6 +1055,7 @@ function renderMaintDocs() {
     if (f.name.startsWith('PIN_'))   { pinned.push(f);   return; }
     if (f.name.startsWith('SITE_'))  { site.push(f);     return; }
     if (f.name.startsWith('LEGAL_')) { legal.push(f);    return; }
+    if (f.name.startsWith('GEN_'))   { general.push(f);  return; }
     general.push(f);
   });
 
@@ -1078,7 +1079,7 @@ function renderMaintDocs() {
   function applyFilter(arr, prefix) {
     if (!q) return arr;
     return arr.filter(function(f) {
-      return fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '')).toLowerCase().indexOf(q) !== -1;
+      return fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/^GEN_/, '')).toLowerCase().indexOf(q) !== -1;
     });
   }
   var filteredSite    = applyFilter(site,    'SITE_');
@@ -1103,7 +1104,7 @@ function renderMaintDocs() {
       return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     var rows = sorted.map(function(f) {
-      var dn = fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/\.pdf$/i, ''));
+      var dn = fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/^GEN_/, '').replace(/\.pdf$/i, ''));
       return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + dn + '</a></td></tr>';
     }).join('');
     if (!rows && q) rows = '<tr><td class="doc-state-empty" style="padding:0.75rem 1.5rem;">No matches in this section.</td></tr>';
