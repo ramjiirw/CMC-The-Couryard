@@ -1020,62 +1020,73 @@ function clearMaintDocSearch() {
   renderMaintDocs();
 }
 
-function reSortMaintDocs(col) {
-  if (maintDocState.sortCol === col) {
-    maintDocState.sortDir = maintDocState.sortDir === 'asc' ? 'desc' : 'asc';
-  } else {
-    maintDocState.sortCol = col;
-    maintDocState.sortDir = 'asc';
-  }
+// Per-group sort and open state — persisted on the function object
+if (!renderMaintDocs) { function renderMaintDocs(){} }
+
+function sortMaintDocGroup(groupKey) {
+  if (!renderMaintDocs._sort) renderMaintDocs._sort = {};
+  renderMaintDocs._sort[groupKey] = (renderMaintDocs._sort[groupKey] || 'asc') === 'asc' ? 'desc' : 'asc';
   renderMaintDocs();
+}
+
+function toggleMaintDocGroup(groupKey) {
+  if (!renderMaintDocs._open) renderMaintDocs._open = {};
+  var panel = document.getElementById('grp-panel-' + groupKey);
+  var isOpen = panel && panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '0';
+  renderMaintDocs._open[groupKey] = !isOpen;
+  var hint = document.getElementById('grp-hint-' + groupKey);
+  var chev = document.getElementById('grp-chev-' + groupKey);
+  if (panel) panel.style.maxHeight = !isOpen ? '8000px' : '0';
+  if (hint)  hint.textContent      = !isOpen ? 'Collapse' : 'Expand';
+  if (chev)  chev.style.transform  = !isOpen ? 'rotate(90deg)' : '';
 }
 
 function renderMaintDocs() {
   var state = maintDocState;
   var wrap  = document.getElementById('wrap-maintdocs');
 
-  // Categorise files by prefix — HIDE_ silently dropped
-  var pinned  = [];
-  var legal   = [];
-  var site    = [];
-  var general = [];
+  if (!renderMaintDocs._open) renderMaintDocs._open = {};
+  if (!renderMaintDocs._sort) renderMaintDocs._sort = {};
+  var openState = renderMaintDocs._open;
+  var sortState = renderMaintDocs._sort;
 
+  // Categorise files by prefix — HIDE_ silently dropped
+  var pinned = [], site = [], legal = [], general = [];
   state.files.forEach(function(f) {
     if (f.name.startsWith('HIDE_'))  { return; }
-    if (f.name.startsWith('PIN_'))   { pinned.push(f);  return; }
-    if (f.name.startsWith('LEGAL_')) { legal.push(f);   return; }
-    if (f.name.startsWith('SITE_'))  { site.push(f);    return; }
+    if (f.name.startsWith('PIN_'))   { pinned.push(f);   return; }
+    if (f.name.startsWith('SITE_'))  { site.push(f);     return; }
+    if (f.name.startsWith('LEGAL_')) { legal.push(f);    return; }
     general.push(f);
   });
 
+  // Render pinned buttons (always visible, always A-Z)
   pinned.sort(function(a,b){ return a.name.localeCompare(b.name); });
-
-  // Render pinned buttons
   var pinnedHtml = '';
   pinned.forEach(function(f) {
     var displayName = fixMaintDocTitle(f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, ''));
-    pinnedHtml += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
-      '📌 ' + displayName + '</a>';
+    pinnedHtml += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">📌 ' + displayName + '</a>';
   });
   var pinnedWrap = document.getElementById('wrap-pinned-maintdocs');
   if (pinnedWrap) pinnedWrap.innerHTML = pinnedHtml;
 
-  // Total visible (non-pinned, non-hidden) for count pill
-  var allVisible = legal.concat(site).concat(general);
+  if (!state.files.length) {
+    wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
+    return;
+  }
 
-  // Apply search filter across all groups
+  // Search filter
   var q = state.filter ? state.filter.toLowerCase() : '';
   function applyFilter(arr, prefix) {
     if (!q) return arr;
     return arr.filter(function(f) {
-      return fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), ''))
-        .toLowerCase().indexOf(q) !== -1;
+      return fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '')).toLowerCase().indexOf(q) !== -1;
     });
   }
+  var filteredSite    = applyFilter(site,    'SITE_');
   var filteredLegal   = applyFilter(legal,   'LEGAL_');
-  var filteredSite    = applyFilter(site,     'SITE_');
-  var filteredGeneral = applyFilter(general,  '');
-  var totalFiltered   = filteredLegal.length + filteredSite.length + filteredGeneral.length;
+  var filteredGeneral = applyFilter(general, '');
+  var totalFiltered   = filteredSite.length + filteredLegal.length + filteredGeneral.length;
 
   // Update count pill and clear button
   var docCountEl = document.getElementById('maintDocCount');
@@ -1083,39 +1094,42 @@ function renderMaintDocs() {
   var clearBtn = document.getElementById('maintDocClearBtn');
   if (clearBtn) clearBtn.style.display = state.filter ? 'inline-flex' : 'none';
 
-  if (!state.files.length) {
-    wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
-    return;
-  }
-
-  // Build a group section (returns HTML string)
-  function buildGroup(label, files, prefix) {
-    if (!files.length) return '';
+  // Build a collapsible group section
+  function buildGroup(label, files, prefix, groupKey) {
+    if (!files.length && !q) return '';
+    var isOpen = q ? files.length > 0 : openState[groupKey] === true; // default collapsed
+    var dir = sortState[groupKey] || 'asc';
     var sorted = files.slice().sort(function(a, b) {
       var va = fixMaintDocTitle(a.name.replace(new RegExp('^' + prefix), '')).toLowerCase();
       var vb = fixMaintDocTitle(b.name.replace(new RegExp('^' + prefix), '')).toLowerCase();
-      return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     var rows = sorted.map(function(f) {
-      var displayName = fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/\.pdf$/i, ''));
-      return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
-        displayName + '</a></td></tr>';
+      var dn = fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/\.pdf$/i, ''));
+      return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + dn + '</a></td></tr>';
     }).join('');
-    return '<div style="padding:0.5rem 1.25rem 0.2rem;background:var(--warm);border-bottom:1px solid var(--border);">' +
-      '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">' + label + '</span>' +
+    if (!rows && q) rows = '<tr><td class="doc-state-empty" style="padding:0.75rem 1.5rem;">No matches in this section.</td></tr>';
+    var countPill = '<span style="background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;margin-left:0.5rem;">' + files.length + '</span>';
+    var sortBtn = '<button onclick="event.stopPropagation();sortMaintDocGroup(\'' + groupKey + '\')" style="margin-left:0.7rem;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid var(--border);background:white;font-family:Arial,sans-serif;font-size:0.68rem;font-weight:700;color:var(--mid);cursor:pointer;">' + (dir === 'asc' ? 'A–Z ▲' : 'Z–A ▼') + '</button>';
+    return '<div style="border-bottom:1px solid var(--border);">' +
+      '<button onclick="toggleMaintDocGroup(\'' + groupKey + '\')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:var(--warm);border:none;border-top:1px solid var(--border);cursor:pointer;font-family:Arial,sans-serif;text-align:left;">' +
+        '<span style="display:flex;align-items:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">' + label + countPill + sortBtn + '</span>' +
+        '<span style="font-size:0.72rem;color:var(--stone);display:flex;align-items:center;gap:0.3rem;">' +
+          '<span id="grp-hint-' + groupKey + '">' + (isOpen ? 'Collapse' : 'Expand') + '</span>' +
+          '<span id="grp-chev-' + groupKey + '" style="display:inline-block;transition:transform 0.25s;font-size:0.7rem;' + (isOpen ? 'transform:rotate(90deg)' : '') + '">&#9654;</span>' +
+        '</span>' +
+      '</button>' +
+      '<div id="grp-panel-' + groupKey + '" style="overflow:hidden;max-height:' + (isOpen ? '8000px' : '0') + ';transition:max-height 0.3s ease;">' +
+        '<table class="doc-table"><tbody>' + rows + '</tbody></table>' +
       '</div>' +
-      '<table class="doc-table"><tbody>' + rows + '</tbody></table>';
+    '</div>';
   }
 
-  var html = buildGroup('CMC Legal',   filteredLegal,   'LEGAL_')
-           + buildGroup('CMC Site',    filteredSite,    'SITE_')
-           + buildGroup('CMC General', filteredGeneral, '');
+  var html = buildGroup('CMC Site',    filteredSite,    'SITE_',  'site')
+           + buildGroup('CMC Legal',   filteredLegal,   'LEGAL_', 'legal')
+           + buildGroup('CMC General', filteredGeneral, '',       'general');
 
-  if (!html) {
-    html = '<div class="doc-state-empty">No documents match your filter.</div>';
-  }
-
-  wrap.innerHTML = html;
+  wrap.innerHTML = html || '<div class="doc-state-empty">No documents match your filter.</div>';
 }
 
 (async function loadMaintDocs() {
