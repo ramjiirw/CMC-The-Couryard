@@ -2740,9 +2740,36 @@ async function agmAgendaLoad() {
 
     body.innerHTML = html;
     agmAgendaApplyLayout();
+    // Wire up date field: reformat on blur
+    var agmDateEl = document.getElementById('agmDetail_3');
+    if (agmDateEl) {
+      agmDateEl.addEventListener('blur', function() {
+        var formatted = agmFormatDateInput(this.value);
+        if (formatted) { this.value = formatted; agmAgendaSetDirty(); }
+      });
+    }
   } catch(e) {
     body.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load agenda — ' + e.message + '</p>';
   }
+}
+
+// ── AGM date formatter ────────────────────────────────────────────────────────
+// Accepts: DD/MM/YY, DD/MM/YYYY, or already-formatted "Day D Month YYYY"
+// Returns: "Sunday 3 May 2026" style string, or null if unrecognised
+function agmFormatDateInput(val) {
+  val = (val || '').trim();
+  if (!val) return null;
+  var m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!m) return null; // not a short date — leave as-is
+  var day  = parseInt(m[1], 10);
+  var mon  = parseInt(m[2], 10) - 1; // zero-based
+  var yr   = parseInt(m[3], 10);
+  if (yr < 100) yr += 2000;
+  var d = new Date(yr, mon, day);
+  if (isNaN(d.getTime())) return null;
+  var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 function agmAgendaApplyLayout() {
