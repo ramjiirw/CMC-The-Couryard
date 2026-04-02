@@ -660,7 +660,7 @@
           const d = new Date(val);
           const isValid = !isNaN(d.getTime()) && val.includes('-');
           document.getElementById('agmDate').textContent = isValid
-            ? d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'})
+            ? d.toLocaleDateString('en-GB', {weekday:'long'}) + ' ' + d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
             : val;
           if (isValid) {
             const today = new Date();
