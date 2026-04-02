@@ -1034,72 +1034,85 @@ function renderMaintDocs() {
   var state = maintDocState;
   var wrap  = document.getElementById('wrap-maintdocs');
 
-  // Split into pinned (PIN_ prefix) and regular files
-  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); }).sort(function(a,b){ return a.name.localeCompare(b.name); });
-  var rest   = state.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
+  // Categorise files by prefix — HIDE_ silently dropped
+  var pinned  = [];
+  var legal   = [];
+  var site    = [];
+  var general = [];
 
-  // Update header count (pinned + rest)
-  var count = state.files.length;
-  var headerSpan = document.querySelector('#toggle-maintdocs span:first-child');
-  if (headerSpan) {
-    headerSpan.textContent = '📄 Maintenance and Site Documents';
+  state.files.forEach(function(f) {
+    if (f.name.startsWith('HIDE_'))  { return; }
+    if (f.name.startsWith('PIN_'))   { pinned.push(f);  return; }
+    if (f.name.startsWith('LEGAL_')) { legal.push(f);   return; }
+    if (f.name.startsWith('SITE_'))  { site.push(f);    return; }
+    general.push(f);
+  });
+
+  pinned.sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+  // Render pinned buttons
+  var pinnedHtml = '';
+  pinned.forEach(function(f) {
+    var displayName = fixMaintDocTitle(f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, ''));
+    pinnedHtml += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
+      '📌 ' + displayName + '</a>';
+  });
+  var pinnedWrap = document.getElementById('wrap-pinned-maintdocs');
+  if (pinnedWrap) pinnedWrap.innerHTML = pinnedHtml;
+
+  // Total visible (non-pinned, non-hidden) for count pill
+  var allVisible = legal.concat(site).concat(general);
+
+  // Apply search filter across all groups
+  var q = state.filter ? state.filter.toLowerCase() : '';
+  function applyFilter(arr, prefix) {
+    if (!q) return arr;
+    return arr.filter(function(f) {
+      return fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), ''))
+        .toLowerCase().indexOf(q) !== -1;
+    });
   }
+  var filteredLegal   = applyFilter(legal,   'LEGAL_');
+  var filteredSite    = applyFilter(site,     'SITE_');
+  var filteredGeneral = applyFilter(general,  '');
+  var totalFiltered   = filteredLegal.length + filteredSite.length + filteredGeneral.length;
+
+  // Update count pill and clear button
+  var docCountEl = document.getElementById('maintDocCount');
+  if (docCountEl) docCountEl.textContent = totalFiltered;
+  var clearBtn = document.getElementById('maintDocClearBtn');
+  if (clearBtn) clearBtn.style.display = state.filter ? 'inline-flex' : 'none';
 
   if (!state.files.length) {
     wrap.innerHTML = '<div class="doc-state-empty">No documents have been uploaded yet — check back soon.</div>';
     return;
   }
 
-  // Render pinned files into their own static div
-  var pinnedHtml = '';
-  pinned.forEach(function(f) {
-    var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
-    displayName = fixMaintDocTitle(displayName);
-    pinnedHtml += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">' +
-      '📌 ' + displayName +
-      '</a>';
-  });
-  var pinnedWrap = document.getElementById('wrap-pinned-maintdocs');
-  if (pinnedWrap) pinnedWrap.innerHTML = pinnedHtml;
-
-  // Filter and sort the remaining (non-pinned) files
-  var filtered = rest;
-  if (state.filter) {
-    var q = state.filter.toLowerCase();
-    filtered = rest.filter(function(f) {
-      return fixMaintDocTitle(f.name).toLowerCase().indexOf(q) !== -1;
-    });
-  }
-
-  // Update count pill and clear button directly (they're static elements)
-  var docCountEl = document.getElementById('maintDocCount');
-  if (docCountEl) docCountEl.textContent = filtered.length;
-  var clearBtn = document.getElementById('maintDocClearBtn');
-  if (clearBtn) clearBtn.style.display = state.filter ? 'inline-flex' : 'none';
-
-  var html = '';
-  if (filtered.length) {
-    var sorted = filtered.slice().sort(function(a, b) {
-      var va = fixMaintDocTitle(a.name).toLowerCase();
-      var vb = fixMaintDocTitle(b.name).toLowerCase();
+  // Build a group section (returns HTML string)
+  function buildGroup(label, files, prefix) {
+    if (!files.length) return '';
+    var sorted = files.slice().sort(function(a, b) {
+      var va = fixMaintDocTitle(a.name.replace(new RegExp('^' + prefix), '')).toLowerCase();
+      var vb = fixMaintDocTitle(b.name.replace(new RegExp('^' + prefix), '')).toLowerCase();
       return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
-
-    function thCls(col) {
-      if (col !== state.sortCol) return '';
-      return state.sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
-    }
-
     var rows = sorted.map(function(f) {
+      var displayName = fixMaintDocTitle(f.name.replace(new RegExp('^' + prefix), '').replace(/\.pdf$/i, ''));
       return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
-        fixMaintDocTitle(f.name) + '</a></td></tr>';
+        displayName + '</a></td></tr>';
     }).join('');
+    return '<div style="padding:0.5rem 1.25rem 0.2rem;background:var(--warm);border-bottom:1px solid var(--border);">' +
+      '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">' + label + '</span>' +
+      '</div>' +
+      '<table class="doc-table"><tbody>' + rows + '</tbody></table>';
+  }
 
-    html += '<table class="doc-table"><thead><tr>' +
-      '<th class="' + thCls('name') + '" onclick="reSortMaintDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table>';
-  } else if (!pinned.length) {
-    html += '<div class="doc-state-empty">No documents match your filter.</div>';
+  var html = buildGroup('CMC Legal',   filteredLegal,   'LEGAL_')
+           + buildGroup('CMC Site',    filteredSite,    'SITE_')
+           + buildGroup('CMC General', filteredGeneral, '');
+
+  if (!html) {
+    html = '<div class="doc-state-empty">No documents match your filter.</div>';
   }
 
   wrap.innerHTML = html;
