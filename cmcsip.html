@@ -386,6 +386,7 @@ function processDocs(data) {
   (data.folders || []).forEach(function(folder) {
     (folder.files || []).forEach(function(file) {
       if (file.path.indexOf('cmcsip') === -1) return;
+      if (file.name.indexOf('HIDE_') === 0) return;
       var isPinned = file.name.indexOf('PIN_') === 0;
       var displayName = file.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
       var doc = { name: displayName, path: file.path, size: file.size, folder: folder.label, pinned: isPinned };
