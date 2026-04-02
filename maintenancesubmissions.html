@@ -1037,7 +1037,7 @@ function toggleMaintDocGroup(groupKey) {
   var hint = document.getElementById('grp-hint-' + groupKey);
   var chev = document.getElementById('grp-chev-' + groupKey);
   if (panel) panel.style.maxHeight = !isOpen ? '8000px' : '0';
-  if (hint)  hint.textContent      = !isOpen ? 'Collapse' : 'Expand';
+  if (hint)  hint.textContent      = !isOpen ? 'Tap to close' : 'Tap to expand';
   if (chev)  chev.style.transform  = !isOpen ? 'rotate(90deg)' : '';
 }
 
@@ -1109,13 +1109,13 @@ function renderMaintDocs() {
       return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + dn + '</a></td></tr>';
     }).join('');
     if (!rows && q) rows = '<tr><td class="doc-state-empty" style="padding:0.75rem 1.5rem;">No matches in this section.</td></tr>';
-    var countPill = '<span style="background:rgba(196,149,106,0.2);color:var(--accent2);border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;margin-left:0.5rem;">' + files.length + '</span>';
-    var sortBtn = '<button onclick="event.stopPropagation();sortMaintDocGroup(\'' + groupKey + '\')" style="margin-left:0.7rem;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid var(--border);background:white;font-family:Arial,sans-serif;font-size:0.68rem;font-weight:700;color:var(--mid);cursor:pointer;">' + (dir === 'asc' ? 'A–Z ▲' : 'Z–A ▼') + '</button>';
+    var countPill = '<span style="background:rgba(255,255,255,0.15);color:white;border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;margin-left:0.5rem;">' + files.length + '</span>';
+    var sortBtn = '<button onclick="event.stopPropagation();sortMaintDocGroup(\'' + groupKey + '\')" style="margin-left:0.7rem;padding:0.15rem 0.5rem;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);font-family:Arial,sans-serif;font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.8);cursor:pointer;letter-spacing:0.03em;">' + (dir === 'asc' ? 'A–Z ▲' : 'Z–A ▼') + '</button>';
     return '<div style="border-bottom:1px solid var(--border);">' +
-      '<button onclick="toggleMaintDocGroup(\'' + groupKey + '\')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:var(--warm);border:none;border-top:1px solid var(--border);cursor:pointer;font-family:Arial,sans-serif;text-align:left;">' +
-        '<span style="display:flex;align-items:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">' + label + countPill + sortBtn + '</span>' +
+      '<button onclick="toggleMaintDocGroup(\'' + groupKey + '\')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:#2a2520;border:none;border-top:1px solid rgba(196,149,106,0.15);cursor:pointer;font-family:Arial,sans-serif;text-align:left;">\' +
+        '<span style="display:flex;align-items:center;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">' + label + countPill + sortBtn + '</span>' +
         '<span style="font-size:0.72rem;color:var(--stone);display:flex;align-items:center;gap:0.3rem;">' +
-          '<span id="grp-hint-' + groupKey + '">' + (isOpen ? 'Collapse' : 'Expand') + '</span>' +
+          '<span id="grp-hint-' + groupKey + '">Tap to ' + (isOpen ? 'close' : 'expand') + '</span>' +
           '<span id="grp-chev-' + groupKey + '" style="display:inline-block;transition:transform 0.25s;font-size:0.7rem;' + (isOpen ? 'transform:rotate(90deg)' : '') + '">&#9654;</span>' +
         '</span>' +
       '</button>' +
