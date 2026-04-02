@@ -1021,8 +1021,6 @@ function clearMaintDocSearch() {
 }
 
 // Per-group sort and open state — persisted on the function object
-if (!renderMaintDocs) { function renderMaintDocs(){} }
-
 function sortMaintDocGroup(groupKey) {
   if (!renderMaintDocs._sort) renderMaintDocs._sort = {};
   renderMaintDocs._sort[groupKey] = (renderMaintDocs._sort[groupKey] || 'asc') === 'asc' ? 'desc' : 'asc';
