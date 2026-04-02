@@ -2758,6 +2758,19 @@ async function agmAgendaLoad() {
 // ── AGM date formatter ────────────────────────────────────────────────────────
 // Accepts: DD/MM/YY, DD/MM/YYYY, or already-formatted "Day D Month YYYY"
 // Returns: "Sunday 3 May 2026" style string, or null if unrecognised
+// Converts "Sunday 3 May 2026" back to "03/05/2026" for saving to sheet
+function agmUnformatDate(val) {
+  val = (val || '').trim();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var m = val.match(/^(?:\w+\s+)?(\d{1,2})\s+(\w+)\s+(\d{4})$/);
+  if (!m) return null;
+  var day = parseInt(m[1], 10);
+  var mon = months.indexOf(m[2]);
+  var yr  = parseInt(m[3], 10);
+  if (mon === -1 || isNaN(day) || isNaN(yr)) return null;
+  return ('0' + day).slice(-2) + '/' + ('0' + (mon + 1)).slice(-2) + '/' + yr;
+}
+
 function agmFormatDateInput(val) {
   val = (val || '').trim();
   if (!val) return null;
@@ -2773,11 +2786,12 @@ function agmFormatDateInput(val) {
     if (yr < 100) yr += 2000;
     d = new Date(yr, mon, day);
   }
-  // ISO timestamp: 2026-05-02T23:00:00.000Z (treat as UTC date, extract date part only)
+  // ISO timestamp: 2026-05-02T23:00:00.000Z — parse fully and use LOCAL date
+  // (sheet stores midnight BST as 23:00 UTC the day before)
   var mIso = val.match(/^(\d{4})-(\d{2})-(\d{2})T/);
   if (!d && mIso) {
-    // Use the date portion directly to avoid timezone shifting the day
-    d = new Date(parseInt(mIso[1],10), parseInt(mIso[2],10)-1, parseInt(mIso[3],10));
+    var utc = new Date(val);
+    d = new Date(utc.getFullYear(), utc.getMonth(), utc.getDate());
   }
   if (!d || isNaN(d.getTime())) return null;
   return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
@@ -2854,7 +2868,9 @@ async function agmAgendaSave() {
     var details = [];
     for (var i = 0; i < 5; i++) {
       var el = document.getElementById('agmDetail_' + i);
-      details.push(el ? el.value : '');
+      var val = el ? el.value : '';
+      if (i === 3) val = agmUnformatDate(val) || val; // convert back to DD/MM/YY for sheet
+      details.push(val);
     }
     var items = [];
     for (var i = 0; i < 12; i++) {
