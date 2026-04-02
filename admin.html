@@ -106,6 +106,8 @@
   .res-table tr.row-changed .addr-cell::after { content:' ●'; color:var(--accent2); font-size:0.65rem; vertical-align:middle; }
   tr.mnt-row-dirty td { background:rgba(196,149,106,0.08) !important; }
   tr.mnt-row-dirty td:first-child { border-left:3px solid var(--accent2); }
+  .bh-main-row:hover .bh-arrow { opacity:1 !important; }
+  .bh-main-row.bh-expanded .bh-arrow { opacity:1 !important; transform:rotate(-180deg) !important; }
 
   /* Priority badges */
   .mnt-pri { display:inline-block;border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.15rem 0.6rem;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap; }
@@ -3881,11 +3883,12 @@ function bhToggleRec(rowId, btn) {
   btn.innerHTML = btn.innerHTML.replace(visible ? '▲' : '▼', visible ? '▼' : '▲');
 }
 
-function bhToggleMsg(rowId, btn) {
+function bhToggleMsg(rowId, mainRow) {
   var row = document.getElementById(rowId);
   if (!row) return;
   var visible = row.style.display !== 'none';
   row.style.display = visible ? 'none' : 'table-row';
+  if (mainRow) mainRow.classList.toggle('bh-expanded', !visible);
 }
 
 async function bhCancelPending(rowIndex, btn) {
@@ -3938,8 +3941,11 @@ async function bhLoad() {
       var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
       var ts = bhFormatTimestamp(r.timestamp);
       var msgRowId = 'bh-msg-' + i;
-      html += '<tr onclick="bhToggleMsg(\'' + msgRowId + '\',this)" style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);cursor:pointer;" onmouseover="this.style.background=\'rgba(122,92,62,0.07)\'" onmouseout="this.style.background=\'' + bg + '\'">'
-        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
+      html += '<tr class="bh-main-row" onclick="bhToggleMsg(\'' + msgRowId + '\',this)" style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);cursor:pointer;" onmouseover="this.style.background=\'rgba(122,92,62,0.07)\'" onmouseout="this.style.background=\'' + bg + '\'">'
+        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">'
+        +   '<span class="bh-arrow" style="display:inline-block;opacity:0;margin-right:0.3rem;font-size:0.65rem;color:var(--accent);transition:opacity 0.15s,transform 0.2s;transform:rotate(0deg);">&#9660;</span>'
+        +   escHtml(ts)
+        + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
