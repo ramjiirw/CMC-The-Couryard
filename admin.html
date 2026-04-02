@@ -3881,6 +3881,14 @@ function bhToggleRec(rowId, btn) {
   btn.innerHTML = btn.innerHTML.replace(visible ? '▲' : '▼', visible ? '▼' : '▲');
 }
 
+function bhToggleMsg(rowId, btn) {
+  var row = document.getElementById(rowId);
+  if (!row) return;
+  var visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'table-row';
+  btn.innerHTML = visible ? 'View full &#9660;' : 'Hide &#9650;';
+}
+
 async function bhCancelPending(rowIndex, btn) {
   if (!confirm('Cancel this scheduled email?')) return;
   btn.disabled = true; btn.textContent = 'Cancelling…';
@@ -3917,7 +3925,6 @@ async function bhLoad() {
       + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Timestamp</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Subject</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;min-width:200px;">Message</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Recipients</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">Type</th>'
       + '<th style="padding:0.5rem 0.6rem;text-align:left;">External</th>'
@@ -3925,22 +3932,20 @@ async function bhLoad() {
       + '</tr></thead><tbody>';
     data.rows.forEach(function(r, i) {
       var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
-      var rowId = 'bh-rec-' + i;
       var typeChip = r.type === 'Scheduled'
         ? '<span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span>'
         : '<span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span>';
       var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
       var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
       var ts = bhFormatTimestamp(r.timestamp);
-      var recCount = r.recipients || 0;
+      var msgRowId = 'bh-msg-' + i;
+      var hasLong = (r.message || '').length > 80;
       html += '<tr style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);">'
         + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">' + escHtml(ts) + '</td>'
         + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;text-align:center;">'
-        +   '<span onclick="bhToggleRec(\'' + rowId + '\',this)" style="cursor:pointer;color:var(--accent);font-weight:600;" title="Show recipients">'
-        +     recCount + ' &#9660;'
-        +   '</span>'
+        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">'
+        +   escHtml(msgPreview)
+        +   (hasLong ? ' <span onclick="bhToggleMsg(\'' + msgRowId + '\',this)" style="cursor:pointer;color:var(--accent);font-size:0.72rem;white-space:nowrap;">View full &#9660;</span>' : '')
         + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
         + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
@@ -3949,9 +3954,13 @@ async function bhLoad() {
         +   '<button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.2rem 0.6rem;" onclick="bhResend(' + i + ')">&#8635; Resend</button>'
         + '</td>'
         + '</tr>'
-        + '<tr id="' + rowId + '" style="display:none;background:rgba(122,92,62,0.04);">'
-        +   '<td colspan="8" style="padding:0.4rem 0.8rem 0.6rem;font-size:0.78rem;color:var(--mid);">'
-        +     '<strong>Recipients:</strong> ' + escHtml(r.externalTo ? r.externalTo + ' + ' + recCount + ' resident(s)' : recCount + ' resident(s)')
+        + '<tr id="' + msgRowId + '" style="display:none;background:rgba(122,92,62,0.03);">'
+        +   '<td colspan="7" style="padding:0.5rem 0.8rem 0.7rem;">'
+        +     '<div style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;overflow:hidden;font-size:0.82rem;max-width:600px;">'
+        +       '<div style="padding:0.35rem 0.75rem;background:rgba(122,92,62,0.07);border-bottom:1px dashed rgba(122,92,62,0.2);color:#aaa;font-style:italic;">Dear Resident,</div>'
+        +       '<div style="padding:0.5rem 0.75rem;color:var(--dark);white-space:pre-wrap;line-height:1.55;">' + escHtml(r.message || '') + '</div>'
+        +       '<div style="padding:0.35rem 0.75rem;background:rgba(122,92,62,0.07);border-top:1px dashed rgba(122,92,62,0.2);color:#aaa;font-style:italic;">Kind regards,<br>CMC The Courtyard</div>'
+        +     '</div>'
         +   '</td>'
         + '</tr>';
     });
