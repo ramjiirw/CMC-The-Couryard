@@ -303,6 +303,30 @@
     .btn-availability { width: 100%; justify-content: center; }
   }
 
+  /* ── AGM Countdown pill ── */
+  .agm-countdown {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.04em; padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(122,92,62,0.3);
+    white-space: nowrap;
+  }
+  .agm-countdown.urgent {
+    background: linear-gradient(135deg, #b04020, #e07040) !important;
+    animation: pulse-badge 1.4s infinite;
+  }
+  .agm-countdown.today {
+    background: linear-gradient(135deg, #b8860b, #ffd700) !important;
+    color: #3a2800 !important;
+    box-shadow: 0 2px 8px rgba(184,134,11,0.4);
+  }
+  @keyframes pulse-badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
   /* ── AGM Availability button ── */
   .btn-availability {
     display: inline-flex; align-items: center; gap: 0.45rem;
@@ -442,6 +466,7 @@
       <h2>AGM Agenda</h2>
       <p>Annual General Meeting — agenda items and resident submissions.</p>
     </div>
+    <div id="agmCountdownPill" style="display:none;"></div>
     <button class="btn-availability" id="btn-availability" onclick="openAvailModal()" style="display:none;">
       📅 Click here to Select Your AGM Availability
     </button>
@@ -627,7 +652,12 @@ function renderAgenda(rows, submissions) {
     const key = (row[0]||'').toString().trim();
     let val = (row[1]||'').toString().trim();
     if (detailKeys.includes(key) && val) {
-      if (key === 'Date') val = formatDate(val);
+      if (key === 'Date') {
+        var _rawDate = (row[1]||'').toString().trim();
+        var _d = new Date(_rawDate);
+        if (!isNaN(_d.getTime()) && _rawDate.includes('-')) { _agmParsedDate = _d; }
+        val = formatDate(_rawDate);
+      }
       detailsHtml += '<div class="meeting-label">' + key + '</div><div class="meeting-value">' + val + '</div>';
     }
   });
@@ -801,6 +831,7 @@ setInterval(() => { loadAgenda(); }, 60000);
 
 var availData = null;       // { dates: [], rows: [{address, values:[bool]}] }
 var availEditingRow = null; // index of row currently being edited
+var _agmParsedDate = null;  // parsed AGM Date object, set by renderAgenda
 
 function formatAvailDate(raw) {
   if (!raw) return raw;
@@ -972,11 +1003,40 @@ function escHtml(str) {
     if (data.status === 'ok' && data.switchOn) {
       document.getElementById('btn-availability').style.display = 'inline-flex';
       availData = data; // cache for when modal opens
+    } else {
+      // Availability switch is off — show countdown pill in its place if AGM is within 30 days
+      showAgmCountdownPill();
     }
   } catch(e) {
     // silently ignore — button stays hidden
+    showAgmCountdownPill();
   }
 })();
+
+function showAgmCountdownPill() {
+  // Poll briefly for renderAgenda to set _agmParsedDate
+  var attempts = 0;
+  var interval = setInterval(function() {
+    attempts++;
+    if (_agmParsedDate || attempts > 25) {
+      clearInterval(interval);
+      if (!_agmParsedDate) return;
+      var today = new Date(); today.setHours(0,0,0,0);
+      var d = new Date(_agmParsedDate); d.setHours(0,0,0,0);
+      var diff = Math.round((d - today) / (1000*60*60*24));
+      if (diff < 0 || diff > 30) return;
+      var pill = document.getElementById('agmCountdownPill');
+      if (!pill) return;
+      var cls = 'agm-countdown';
+      var text = '';
+      if (diff === 0)      { cls += ' today';  text = '🎉 AGM is today!'; }
+      else if (diff <= 7)  { cls += ' urgent'; text = '📅 AGM in ' + diff + ' day' + (diff === 1 ? '' : 's'); }
+      else                 {                   text = '📅 AGM in ' + diff + ' days'; }
+      pill.innerHTML = '<span class="' + cls + '">' + text + '</span>';
+      pill.style.display = 'block';
+    }
+  }, 200);
+}
 
 // ── AGM Documents ─────────────────────────────────────────────────────────────
 var agmDocState = { files: [], sortCol: 'name', sortDir: 'asc' };
