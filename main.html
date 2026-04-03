@@ -435,7 +435,12 @@
 
 <main>
   <div class="welcome-block">
-    <h2>Welcome</h2>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+      <h2 style="margin-bottom:0;">Welcome</h2>
+      <a href="agmagenda.html" id="agmCountdownWrap" style="display:none;text-decoration:none;">
+        <div id="agmCountdown"></div>
+      </a>
+    </div>
     <p>This is your resident portal for CMC The Courtyard. Use the links below to access information and resources.</p>
   </div>
 
@@ -485,7 +490,7 @@
           <span class="icon" style="margin:0">📋</span>
           <h3 style="margin:0">AGM</h3>
         </div>
-        <div id="agmCountdown" style="display:none;"></div>
+
       </div>
       <div class="agm-details" id="agmDetails">
         <div class="agm-detail-row"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
@@ -674,9 +679,10 @@
             d.setHours(0,0,0,0);
             const diff = Math.round((d - today) / (1000*60*60*24));
             const el = document.getElementById('agmCountdown');
+            const wrap = document.getElementById('agmCountdownWrap');
             const agmCard = document.querySelector('a.link-card.agm-card');
-            if (diff > 30 || diff < 0) { el.style.display = 'none'; } else {
-            el.style.display = 'block';
+            if (diff > 30 || diff < 0) { if (wrap) wrap.style.display = 'none'; } else {
+            if (wrap) wrap.style.display = 'inline-flex';
             if (diff > 0) {
               const urgent = diff <= 7;
               el.innerHTML = `<span class="agm-countdown${urgent ? ' urgent' : ''}">📅 AGM in ${diff} day${diff===1?'':'s'}</span>`;
@@ -702,7 +708,8 @@
             // No confirmed date — use already-loaded availability result
             if (avail.status === 'ok' && avail.switchOn) {
               const el = document.getElementById('agmCountdown');
-              el.style.display = 'block';
+              const wrap = document.getElementById('agmCountdownWrap');
+              if (wrap) wrap.style.display = 'inline-flex';
               el.innerHTML = `<span class="agm-countdown">📅 Select your AGM Availability</span>`;
             }
           }
