@@ -512,7 +512,7 @@
   <!-- AGM Minutes -->
   <div class="agenda-card" style="margin-bottom: 1.5rem;">
     <button class="btn-toggle" id="toggle-agmminutes" onclick="toggleMinutes()" aria-expanded="false">
-      <span>📋 AGM Minutes</span>
+      <span>📋 AGM Minutes<span id="minutesPinBadge" style="display:none;background:#e8f2eb;color:#3d6b4a;border:1px solid #c8e2ce;border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.1rem 0.5rem;margin-left:0.5rem;letter-spacing:0.02em;">📌 Latest minutes available</span></span>
       <span class="toggle-hint">
         <span class="hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
@@ -711,7 +711,7 @@ function renderAgenda(rows, submissions) {
 
   // Resident submissions in green zone
   if (submissions && submissions.length > 0) {
-    agendaHtml += '<tr class="section-resident-header"><td colspan="3">Resident Agenda Items</td></tr>';
+    agendaHtml += '<tr class="section-resident-header"><td colspan="3">Resident Agenda Items <span style="background:#3d6b4a;color:white;font-size:0.68rem;font-weight:700;border-radius:10px;padding:0.15rem 0.5rem;letter-spacing:0.02em;margin-left:0.4rem;">' + submissions.length + '</span></td></tr>';
     submissions.forEach(s => {
       agendaHtml += '<tr class="row-resident"><td class="col-num">' + itemNum++ + '.</td><td>' + s.item + '</td><td class="col-raised"><span class="resident-badge">' + s.raisedBy + '</span></td></tr>';
     });
@@ -1174,23 +1174,34 @@ function renderMinutes() {
   var state = agmMinutesState;
   var wrap  = document.getElementById('wrap-agmminutes');
 
-  // Split into pinned (PIN_ prefix) and regular files
-  var pinned = state.files.filter(function(f) { return f.name.startsWith('PIN_'); }).sort(function(a,b){ return a.name.localeCompare(b.name); });
-  var rest   = state.files.filter(function(f) { return !f.name.startsWith('PIN_'); });
-
   if (!state.files.length) {
     wrap.innerHTML = '<div class="state-empty">No minutes have been uploaded yet — check back soon.</div>';
     return;
   }
 
+  // Auto-pin the file with the most recent date in its filename
+  var withDates = state.files.map(function(f) {
+    return { file: f, date: extractDateFromTitle(f.name) };
+  }).filter(function(x) { return x.date && x.date.getTime() > 0; });
+
+  var pinned = null;
+  var rest = state.files.slice();
+  if (withDates.length > 0) {
+    withDates.sort(function(a, b) { return b.date - a.date; });
+    pinned = withDates[0].file;
+    rest = state.files.filter(function(f) { return f !== pinned; });
+    // Show badge on toggle button
+    var badge = document.getElementById('minutesPinBadge');
+    if (badge) badge.style.display = 'inline';
+  }
+
   var html = '';
 
-  // Render pinned files as buttons above the table
-  pinned.forEach(function(f) {
-    var displayName = f.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
-    displayName = fixDocTitle(displayName);
-    html += '<a class="pinned-doc-btn" href="' + f.path + '" target="_blank" rel="noopener">📌 ' + displayName + '</a>';
-  });
+  // Render auto-pinned latest file as prominent button
+  if (pinned) {
+    var displayName = fixDocTitle(pinned.name.replace(/\.pdf$/i, ''));
+    html += '<a class="pinned-doc-btn" href="' + pinned.path + '" target="_blank" rel="noopener">📌 ' + displayName + '</a>';
+  }
 
   // Sort and render remaining files
   var sorted = rest.slice().sort(function(a, b) {
