@@ -618,10 +618,14 @@
 
     const easter = getEaster(year);
     const eq = getSeasonDates();
-    // Good Friday = 2 days before Easter
+    // Easter weekend dates
     const easterDate = new Date(year, easter.m - 1, easter.d);
-    const gfDate = new Date(easterDate); gfDate.setDate(gfDate.getDate() - 2);
-    const gfM = gfDate.getMonth() + 1, gfD = gfDate.getDate();
+    const gfDate  = new Date(easterDate); gfDate.setDate(gfDate.getDate() - 2);
+    const esDate  = new Date(easterDate); esDate.setDate(esDate.getDate() - 1);
+    const emDate  = new Date(easterDate); emDate.setDate(emDate.getDate() + 1);
+    const gfM = gfDate.getMonth() + 1,  gfD = gfDate.getDate();
+    const esM = esDate.getMonth() + 1,  esD = esDate.getDate();
+    const emM = emDate.getMonth() + 1,  emD = emDate.getDate();
 
     let seasonal = '';
     if      (month === 12 && date === 25)           seasonal = ' 🎄 Merry Christmas!';
@@ -631,8 +635,10 @@
     else if (month === 1  && date === 1)            seasonal = ' 🎉 Happy New Year!';
     else if (month === 2  && date === 14)           seasonal = ' 💝 Happy Valentine\'s Day!';
     else if (month === eq.spring.m && date === eq.spring.d) seasonal = ' 🌷';
-    else if (month === gfM && date === gfD)         seasonal = '';
+    else if (month === gfM && date === gfD)         seasonal = ' 🐰 Happy Easter!';
+    else if (month === esM && date === esD)         seasonal = ' 🥚 Happy Easter!';
     else if (month === easter.m && date === easter.d) seasonal = ' 🐣 Happy Easter!';
+    else if (month === emM && date === emD)         seasonal = ' 🌸 Happy Easter!';
     else if (month === eq.summer.m && date === eq.summer.d) seasonal = ' 🌻';
     else if (month === eq.autumn.m && date === eq.autumn.d) seasonal = ' 🍂';
     else if (month === 10 && date === 31)           seasonal = ' 👻';
