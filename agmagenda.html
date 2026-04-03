@@ -1190,17 +1190,23 @@ function renderMinutes() {
     withDates.sort(function(a, b) { return b.date - a.date; });
     pinned = withDates[0].file;
     rest = state.files.filter(function(f) { return f !== pinned; });
-    // Show badge on toggle button
-    var badge = document.getElementById('minutesPinBadge');
-    if (badge) badge.style.display = 'inline';
+    // Show badge on toggle button only if latest minutes are within 60 days
+    var daysSince = Math.round((new Date() - withDates[0].date) / (1000*60*60*24));
+    if (daysSince <= 60) {
+      var badge = document.getElementById('minutesPinBadge');
+      if (badge) badge.style.display = 'inline';
+    }
   }
 
   var html = '';
 
-  // Render auto-pinned latest file as prominent button
+  // Render auto-pinned latest file with Option A style — dark green tag to the left
   if (pinned) {
     var displayName = fixDocTitle(pinned.name.replace(/\.pdf$/i, ''));
-    html += '<a class="pinned-doc-btn" href="' + pinned.path + '" target="_blank" rel="noopener">📌 ' + displayName + '</a>';
+    html += '<div style="display:flex;align-items:stretch;border-bottom:1.5px solid #c8e2ce;">' +
+      '<div style="background:#3d6b4a;color:white;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:0 0.75rem;display:flex;align-items:center;white-space:nowrap;">Latest minutes</div>' +
+      '<a class="pinned-doc-btn" href="' + pinned.path + '" target="_blank" rel="noopener" style="border-bottom:none;">📌 ' + displayName + '</a>' +
+      '</div>';
   }
 
   // Sort and render remaining files
