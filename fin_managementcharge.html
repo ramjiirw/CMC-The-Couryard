@@ -287,7 +287,7 @@
   .val-owed { color: #c62828; font-weight: 600; }
   .val-clear { color: #2e7d32; font-weight: 600; }
   .val-over { color: #6a1b9a; font-weight: 600; }
-  .prop-chevron { text-align: right; font-size: 0.7rem; color: var(--stone); transition: transform 0.2s; }
+  .prop-chevron { text-align: right; font-size: 0.75rem; color: var(--stone); transition: transform 0.25s; display: inline-block; }
   .prop-chevron.open { transform: rotate(90deg); }
   .month-panel { display: none; border-top: 1px solid var(--border); background: rgba(245,240,232,0.5); }
   .month-panel.open { display: block; }
@@ -300,7 +300,7 @@
   .month-row.m-green { background: rgba(76,175,80,0.07); }
   .month-row.m-red { background: rgba(229,57,53,0.07); }
   .month-row.m-amber { background: rgba(251,140,0,0.07); }
-  .month-row.m-future { opacity: 0.45; }
+  .month-row.m-future { display: none; }
   .month-dot { width: 8px; height: 8px; border-radius: 50%; }
   .month-name { font-size: 0.875rem; color: var(--mid); padding-left: 6px; font-weight: 500; }
   .month-val { text-align: right; font-size: 0.875rem; }
@@ -308,15 +308,7 @@
   .month-val.owed { color: #c62828; font-weight: 600; }
   .month-val.clear { color: #2e7d32; }
   .month-val.muted { color: var(--stone); }
-  .badge-paidfull {
-    display: inline-block; background: rgba(46,125,50,0.12); color: #2e7d32;
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
-    padding: 0.1rem 0.5rem; border-radius: 4px; text-transform: uppercase;
-  }
-  .badge-covered {
-    display: inline-block; background: rgba(46,125,50,0.08); color: #388e3c;
-    font-size: 0.72rem; letter-spacing: 0.03em; padding: 0.1rem 0.5rem; border-radius: 4px;
-  }
+
   .txn-row {
     display: grid; grid-template-columns: 28px 1fr 140px 140px 150px 28px;
     padding: 0.3rem 1.5rem 0.3rem 2.5rem;
@@ -327,13 +319,13 @@
   .txn-date { font-size: 0.82rem; color: var(--stone); grid-column: 2; }
   .txn-amount { font-size: 0.82rem; color: #2e7d32; font-weight: 600; text-align: right; grid-column: 4; }
   .tracker-summary {
-    display: flex; gap: 2rem; flex-wrap: wrap; padding: 0.75rem 1.5rem;
+    display: flex; gap: 2rem; flex-wrap: wrap; padding: 1rem 1.5rem;
     background: rgba(122,92,62,0.06); border-top: 1px solid var(--border);
-    font-size: 0.82rem; color: var(--mid);
+    font-size: 1rem; color: var(--mid); align-items: center;
   }
-  .tracker-summary strong { color: var(--accent); }
-  .tracker-summary .sum-owed { color: #c62828; font-weight: 600; }
-  .tracker-summary .sum-clear { color: #2e7d32; font-weight: 600; }
+  .tracker-summary strong { color: var(--accent); font-size: 1.1rem; }
+  .tracker-summary .sum-owed { color: #c62828; font-weight: 700; font-size: 1.1rem; }
+  .tracker-summary .sum-clear { color: #2e7d32; font-weight: 700; font-size: 1.1rem; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
       grid-template-columns: 20px 1fr 90px 90px 100px 20px;
@@ -570,42 +562,55 @@
     var payments = getPayments(addr, activeYear);
     var yearPaidTotal = payments.reduce(function(s,p){ return s + p.amount; }, 0);
     var paidFullUpfront = (yearPaidTotal >= due && due > 0);
+    var isCurrentYear = (activeYear === currentYear);
     var html = '';
 
     MONTHS.forEach(function(mName, mi) {
+      /* For current year: hide future months (after current month) */
+      var isFuture = isCurrentYear && (mi > currentMonth);
+      if (isFuture) return;
+
       var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
       var mPaid = mPayments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var st = monthStatus(mPaid, dueMonthly, mi, activeYear, yearPaidTotal, due);
+
+      /* Determine status */
+      var isGreen = paidFullUpfront || mPaid >= dueMonthly;
+      var isRed   = !isGreen && mPaid === 0;
+      var isAmber = !isGreen && !isRed;
 
       var rowClass = 'month-row';
-      if (st === 'green') rowClass += ' m-green';
-      else if (st === 'red') rowClass += ' m-red';
-      else if (st === 'amber') rowClass += ' m-amber';
-      else if (st === 'future') rowClass += ' m-future';
+      if (isGreen) rowClass += ' m-green';
+      else if (isRed) rowClass += ' m-red';
+      else if (isAmber) rowClass += ' m-amber';
 
       html += '<div class="' + rowClass + '">';
-      html += '<span>' + (st !== 'future' ? '<span class="month-dot dot-' + (st === 'green' ? 'green' : st === 'amber' ? 'amber' : 'red') + '"></span>' : '') + '</span>';
+
+      /* Status dot */
+      var dotCol = isGreen ? 'green' : isAmber ? 'amber' : 'red';
+      html += '<span><span class="month-dot dot-' + dotCol + '"></span></span>';
       html += '<span class="month-name">' + mName + '</span>';
       html += '<span class="month-val">' + fmt(dueMonthly) + '</span>';
 
-      if (st === 'future') {
-        html += '<span class="month-val muted">—</span><span class="month-val muted" style="font-size:0.72rem;color:var(--stone);">Pending</span>';
-      } else if (paidFullUpfront && mi === 0 && mPayments.length > 0) {
-        html += '<span class="month-val paid">' + fmt(mPaid) + '</span>';
-        html += '<span class="month-val"><span class="badge-paidfull">Paid in full (year)</span></span>';
-      } else if (paidFullUpfront && mi > 0) {
-        html += '<span class="month-val paid">£0.00</span>';
-        html += '<span class="month-val"><span class="badge-covered">Covered</span></span>';
+      if (paidFullUpfront) {
+        /* Upfront payment: show amount on Jan (first payment month), tick on rest */
+        if (mPayments.length > 0 && mi === payments[0].month - 1) {
+          html += '<span class="month-val paid">' + fmt(mPaid) + '</span>';
+        } else {
+          html += '<span class="month-val paid">—</span>';
+        }
+        html += '<span class="month-val clear">✓</span>';
       } else {
+        /* Normal monthly payment */
         var mOut = dueMonthly - mPaid;
         html += '<span class="month-val paid">' + fmt(mPaid) + '</span>';
         html += '<span class="month-val ' + (mOut > 0 ? 'owed' : mOut < 0 ? 'val-over' : 'clear') + '">' +
           (mOut > 0 ? fmt(mOut) : mOut < 0 ? '+' + fmt(Math.abs(mOut)) : '✓') + '</span>';
       }
+
       html += '<span></span></div>';
 
-      /* Individual transactions */
-      if (mPayments.length > 1 || (mPayments.length === 1 && Math.abs(mPaid - dueMonthly) > 0.01)) {
+      /* Individual transactions - show if more than one payment in month */
+      if (mPayments.length > 1) {
         mPayments.forEach(function(p) {
           html += '<div class="txn-row">';
           html += '<span></span>';
