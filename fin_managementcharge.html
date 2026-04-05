@@ -325,13 +325,22 @@
   .txn-date { font-size: 0.82rem; color: var(--stone); grid-column: 2; }
   .txn-amount { font-size: 0.82rem; color: #2e7d32; font-weight: 600; text-align: right; grid-column: 4; }
   .tracker-summary {
-    display: flex; gap: 2rem; flex-wrap: wrap; padding: 1rem 1.5rem;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px; padding: 0.85rem 1.5rem 1rem;
     background: rgba(122,92,62,0.06); border-top: 1px solid var(--border);
-    font-size: 1rem; color: var(--mid); align-items: center;
   }
-  .tracker-summary strong { color: var(--accent); font-size: 1.1rem; }
-  .tracker-summary .sum-owed { color: #c62828; font-weight: 700; font-size: 1.1rem; }
-  .tracker-summary .sum-clear { color: #2e7d32; font-weight: 700; font-size: 1.1rem; }
+  .sum-card { border-radius: 6px; padding: 0.55rem 0.85rem; }
+  .sum-card-due { background: rgba(122,92,62,0.1); }
+  .sum-card-paid { background: rgba(46,125,50,0.09); }
+  .sum-card-owed { background: rgba(198,40,40,0.08); }
+  .sum-card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 3px; }
+  .sum-card-due .sum-card-label { color: #6b5f52; }
+  .sum-card-paid .sum-card-label { color: #2e7d32; }
+  .sum-card-owed .sum-card-label { color: #c62828; }
+  .sum-card-val { font-size: 1.1rem; font-weight: 700; display: block; }
+  .sum-card-due .sum-card-val { color: #7a5c3e; }
+  .sum-card-paid .sum-card-val { color: #2e7d32; }
+  .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
       grid-template-columns: 20px 1fr 90px 90px 100px 20px;
