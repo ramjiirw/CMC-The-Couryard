@@ -576,7 +576,6 @@
     var dueMonthly = due > 0 ? (due / 12) : 0;
     var payments = getPayments(addr, activeYear);
     var yearPaidTotal = payments.reduce(function(s,p){ return s + p.amount; }, 0);
-    var paidFullUpfront = (yearPaidTotal >= due && due > 0);
     var isCurrentYear = (activeYear === currentYear);
     var html = '';
 
@@ -587,40 +586,26 @@
 
       var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
       var mPaid = mPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var mOut = dueMonthly - mPaid;
 
-      /* Determine status */
-      var isGreen = paidFullUpfront || mPaid >= dueMonthly;
+      /* Determine status purely from what was paid vs what was due */
+      var isGreen = mPaid >= dueMonthly;
       var isRed   = !isGreen && mPaid === 0;
       var isAmber = !isGreen && !isRed;
 
+      /* No due column on months - just show what was paid */
       var rowClass = 'month-row';
-      if (isGreen) rowClass += ' m-green';
-      else if (isRed) rowClass += ' m-red';
-      else if (isAmber) rowClass += ' m-amber';
+      if (mPaid > 0) rowClass += ' m-green';
+      else if (!isFuture) rowClass += ' m-red';
 
       html += '<div class="' + rowClass + '">';
 
-      /* Status dot */
-      var dotCol = isGreen ? 'green' : isAmber ? 'amber' : 'red';
+      var dotCol = mPaid > 0 ? 'green' : 'red';
       html += '<span><span class="month-dot dot-' + dotCol + '"></span></span>';
       html += '<span class="month-name">' + mName + '</span>';
-      html += '<span class="month-val">' + fmt(dueMonthly) + '</span>';
-
-      if (paidFullUpfront) {
-        /* Upfront payment: show amount on Jan (first payment month), tick on rest */
-        if (mPayments.length > 0 && mi === payments[0].month - 1) {
-          html += '<span class="month-val paid">' + fmt(mPaid) + '</span>';
-        } else {
-          html += '<span class="month-val paid">—</span>';
-        }
-        html += '<span class="month-val clear">✓</span>';
-      } else {
-        /* Normal monthly payment */
-        var mOut = dueMonthly - mPaid;
-        html += '<span class="month-val paid">' + fmt(mPaid) + '</span>';
-        html += '<span class="month-val ' + (mOut > 0 ? 'owed' : mOut < 0 ? 'val-over' : 'clear') + '">' +
-          (mOut > 0 ? fmt(mOut) : mOut < 0 ? '+' + fmt(Math.abs(mOut)) : '✓') + '</span>';
-      }
+      html += '<span></span>';
+      html += '<span class="month-val ' + (mPaid > 0 ? 'paid' : 'muted') + '">' + (mPaid > 0 ? fmt(mPaid) : '—') + '</span>';
+      html += '<span></span>';
 
       html += '<span></span></div>';
 
