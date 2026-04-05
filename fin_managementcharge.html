@@ -325,11 +325,12 @@
   .txn-date { font-size: 0.82rem; color: var(--stone); grid-column: 2; }
   .txn-amount { font-size: 0.82rem; color: #2e7d32; font-weight: 600; text-align: right; grid-column: 4; }
   .tracker-summary {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px; padding: 0.85rem 1.5rem 1rem;
+    display: grid; grid-template-columns: 28px 1fr 140px 140px 150px 28px;
+    gap: 0 8px; padding: 0.75rem 1.5rem;
     background: rgba(122,92,62,0.06); border-top: 1px solid var(--border);
+    align-items: center;
   }
-  .sum-card { border-radius: 6px; padding: 0.55rem 0.85rem; }
+  .sum-card { border-radius: 6px; padding: 0.45rem 0.65rem; text-align: right; }
   .sum-card-due { background: rgba(122,92,62,0.1); }
   .sum-card-paid { background: rgba(46,125,50,0.09); }
   .sum-card-owed { background: rgba(198,40,40,0.08); }
@@ -560,12 +561,14 @@
     /* Summary bar */
     var totalOut = totalDue - totalPaid;
     html += '<div class="tracker-summary">';
-    
-    html += '<span>Due: <strong>' + fmt(totalDue) + '</strong></span>';
-    html += '<span>Collected: <strong class="sum-clear">' + fmt(totalPaid) + '</strong></span>';
+    html += '<span></span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Totals</span>';
+    html += '<div class="sum-card sum-card-due"><span class="sum-card-label">Due</span><span class="sum-card-val">' + fmt(totalDue) + '</span></div>';
+    html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Paid</span><span class="sum-card-val">' + fmt(totalPaid) + '</span></div>';
     html += totalOut > 0
-      ? '<span>Outstanding: <strong class="sum-owed">' + fmt(totalOut) + '</strong></span>'
-      : '<span>Outstanding: <strong class="sum-clear">✓ All paid</strong></span>';
+      ? '<div class="sum-card sum-card-owed"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">' + fmt(totalOut) + '</span></div>'
+      : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">✓ All paid</span></div>';
+    html += '<span></span>';
     html += '</div>';
 
     document.getElementById('tracker-inner').innerHTML = html;
