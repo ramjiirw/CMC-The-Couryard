@@ -403,6 +403,26 @@
     </div>
   </div>
 
+  <div class="finance-section">
+    <h3 class="section-heading">Year-by-Year Breakdown</h3>
+
+    <button class="btn-toggle btn-loading" id="toggle-yearview" onclick="togglePanel('yearview')" aria-expanded="false">
+      <span class="toggle-left"><span>📅 Year-by-Year Breakdown</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+
+    <div class="collapsible-panel" id="panel-yearview">
+      <div id="yearview-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -446,11 +466,16 @@
       if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
       chargeData = json;
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
+      document.getElementById('toggle-yearview').classList.remove('btn-loading');
       renderTracker();
+      renderYearView();
     } catch(err) {
       document.getElementById('tracker-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data. Check the Apps Script is deployed.<br><small>' + err.message + '</small></div>';
+      document.getElementById('yearview-inner').innerHTML =
+        '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
+      document.getElementById('toggle-yearview').classList.remove('btn-loading');
     }
   }
 
@@ -686,6 +711,111 @@
     document.querySelectorAll('.yr-btn').forEach(function(btn) { btn.classList.remove('active'); });
     var active = document.getElementById('yrbtn-' + activeYear);
     if (active) active.classList.add('active');
+  }
+
+  function renderYearView() {
+    var years = getAvailableYears(); // already sorted desc (latest first)
+    var html = '';
+
+    /* Column headers */
+    html += '<div class="tracker-col-heads">';
+    html += '<span></span><span>Property</span>';
+    html += '<span style="text-align:right;">Cumulative Outstanding</span>';
+    html += '<span></span><span></span><span></span></div>';
+
+    /* Property rows */
+    html += '<div id="yearview-rows">';
+    var grandTotalDue = 0, grandTotalPaid = 0;
+
+    PROPERTIES.forEach(function(addr) {
+      var propTotalDue = 0, propTotalPaid = 0;
+
+      /* Build year rows html */
+      var yearRowsHtml = '';
+      years.forEach(function(yr) {
+        var due = getDue(yr);
+        if (!due) return; // skip years with no charge defined
+        var payments = getPayments(addr, yr);
+        var paid = payments.reduce(function(s,p){ return s + p.amount; }, 0);
+        var outstanding = due - paid;
+        propTotalDue += due;
+        propTotalPaid += paid;
+
+        var dotClass = outstanding > 0 ? 'dot-red' : outstanding < 0 ? 'dot-amber' : 'dot-green';
+        if (paid === 0 && due > 0) dotClass = 'dot-red';
+        var outClass = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
+        var outText = outstanding > 0 ? fmt(outstanding) :
+                      outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '✓ Paid in full';
+
+        yearRowsHtml += '<div class="month-row' + (paid > 0 && outstanding <= 0 ? ' m-green' : outstanding < due && paid > 0 ? ' m-amber' : ' m-red') + '">';
+        yearRowsHtml += '<span><span class="month-dot ' + dotClass + '"></span></span>';
+        yearRowsHtml += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
+        yearRowsHtml += '<span class="month-val ' + (outstanding > 0 ? 'owed' : outstanding < 0 ? '' : 'clear') + '" style="text-align:right;">' + fmt(due) + '</span>';
+        yearRowsHtml += '<span class="month-val paid" style="text-align:right;">' + (paid > 0 ? fmt(paid) : '<span class="muted">—</span>') + '</span>';
+        yearRowsHtml += '<span class="month-val ' + outClass + '" style="text-align:right;grid-column:5;">' + outText + '</span>';
+        yearRowsHtml += '<span></span></div>';
+      });
+
+      grandTotalDue += propTotalDue;
+      grandTotalPaid += propTotalPaid;
+
+      var propOutstanding = propTotalDue - propTotalPaid;
+      var dotClass = propOutstanding > 0 ? 'dot-red' : propOutstanding < 0 ? 'dot-amber' : 'dot-green';
+      if (propTotalPaid === 0 && propTotalDue > 0) dotClass = 'dot-red';
+      var outClass = propOutstanding > 0 ? 'val-owed' : propOutstanding < 0 ? 'val-over' : 'val-clear';
+      var outText = propOutstanding > 0 ? fmt(propOutstanding) :
+                    propOutstanding < 0 ? '+' + fmt(Math.abs(propOutstanding)) + ' overpaid' : '✓ Paid in full';
+
+      var key = 'yv_' + addr.replace(/ /g,'_');
+
+      html += '<div class="prop-row" id="proprow-' + key + '">';
+      html += '<div class="prop-header" onclick="toggleYearProp(\'' + key + '\')">';
+      html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
+      html += '<span class="prop-name">' + addr + '</span>';
+      html += '<span class="prop-val ' + outClass + '" style="grid-column:3/7;text-align:right;">' + outText + '</span>';
+      html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '">▶</span></span>';
+      html += '</div>';
+
+      /* Year detail panel — has sub-col headers */
+      html += '<div class="month-panel" id="months-' + key + '">';
+      /* Sub-column headers inside the expanded panel */
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.05);border-bottom:1px solid var(--border);">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Due</span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Paid</span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Outstanding</span>';
+      html += '<span></span></div>';
+      html += yearRowsHtml;
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+
+    /* Summary bar */
+    var totalOut = grandTotalDue - grandTotalPaid;
+    html += '<div class="tracker-summary">';
+    html += '<div class="sum-card sum-card-due"><span class="sum-card-label">Total Due (all years)</span><span class="sum-card-val">' + fmt(grandTotalDue) + '</span></div>';
+    html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Total Paid</span><span class="sum-card-val">' + fmt(grandTotalPaid) + '</span></div>';
+    html += totalOut > 0
+      ? '<div class="sum-card sum-card-owed"><span class="sum-card-label">Total Outstanding</span><span class="sum-card-val">' + fmt(totalOut) + '</span></div>'
+      : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Total Outstanding</span><span class="sum-card-val">✓ All paid</span></div>';
+    html += '</div>';
+
+    document.getElementById('yearview-inner').innerHTML = html;
+  }
+
+  function toggleYearProp(key) {
+    var panel = document.getElementById('months-' + key);
+    var chev  = document.getElementById('chev-' + key);
+    var hdr   = chev.closest('.prop-header');
+    var isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      panel.classList.remove('open'); chev.classList.remove('open'); hdr.classList.remove('expanded');
+    } else {
+      panel.classList.add('open'); chev.classList.add('open'); hdr.classList.add('expanded');
+    }
   }
 
   loadData();
