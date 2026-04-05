@@ -65,7 +65,13 @@
   }
   .btn-toggle:hover { background: #2a2520; }
   .btn-toggle:disabled { opacity: 1; cursor: default; pointer-events: none; background: var(--dark); }
-  .btn-loading { pointer-events: none; opacity: 0.6; }
+  .btn-loading { pointer-events: none; opacity: 0.8; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
   .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
   .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
@@ -366,6 +372,7 @@
     <button class="btn-toggle btn-loading" id="toggle-tracker" onclick="togglePanel('tracker')" aria-expanded="false">
       <span class="toggle-left"><span>💷 Management Charge Tracker</span></span>
       <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">▶</span>
