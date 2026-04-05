@@ -287,8 +287,8 @@
   .val-owed { color: #c62828; font-weight: 600; }
   .val-clear { color: #2e7d32; font-weight: 600; }
   .val-over { color: #6a1b9a; font-weight: 600; }
-  .prop-chevron { font-size: 0.75rem; color: var(--stone); transition: transform 0.25s; display: inline-block; transform: rotate(-90deg); }
-  .prop-chevron.open { transform: rotate(0deg); }
+  .prop-chevron { font-size: 0.65rem; color: var(--stone); transition: transform 0.25s; display: inline-block; }
+  .prop-chevron.open { transform: rotate(90deg); }
   .month-panel { display: none; border-top: 1px solid var(--border); background: rgba(245,240,232,0.5); }
   .month-panel.open { display: block; }
   .month-row {
@@ -533,7 +533,7 @@
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(paidTotal) + '</span>';
       html += '<span class="prop-val ' + outClass + '">' + outText + '</span>';
-      html += '<span class="prop-chevron" id="chev-' + key + '">▼</span>';
+      html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '">▶</span></span>';
       html += '</div>';
       html += '<div class="month-panel" id="months-' + key + '" data-addr="' + addr + '" data-built="false"></div>';
       html += '</div>';
