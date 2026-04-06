@@ -1094,7 +1094,7 @@
         var name = t.category.replace(prefix, '').trim();
         if (prefix === 'I-') {
           if (!drillInc[name]) drillInc[name] = [];
-          drillInc[name].push({ address: t.address, amount: t.amtIn, notes: t.notes || '' });
+          drillInc[name].push({ address: t.address, amount: t.amtIn, notes: t.notes || '', date: t.date || '' });
         } else {
           if (!drillExp[name]) drillExp[name] = [];
           drillExp[name].push({ date: t.date, description: t.description, amount: t.amtOut, notes: t.notes || '' });
