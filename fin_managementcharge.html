@@ -1176,7 +1176,7 @@
                   /* Has notes — one row per payment, date+note only where note exists */
                   rows.forEach(function(r) {
                     var label = addr;
-                    if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' (' + r.notes + ')';
+                    if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' ' + r.notes;
                     sh += '<div class="iet-drill-row">';
                     sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
                     sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
