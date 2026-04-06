@@ -358,6 +358,59 @@
     .month-name, .month-val { font-size: 0.82rem; }
     .prop-name, .prop-val { font-size: 0.85rem; }
   }
+  /* ── IET ── */
+  .iet-section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1.5rem; background: rgba(122,92,62,0.08);
+    border-bottom: 1px solid var(--border);
+  }
+  .iet-section-label {
+    font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent);
+  }
+  .iet-section-total {
+    font-size: 0.9rem; font-weight: 700;
+  }
+  .iet-group-row {
+    display: grid; grid-template-columns: 28px 1fr auto 28px;
+    padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
+    align-items: center; cursor: pointer; transition: background 0.15s;
+    user-select: none;
+  }
+  .iet-group-row:hover { background: rgba(196,149,106,0.06); }
+  .iet-group-row.open { background: rgba(122,92,62,0.05); }
+  .iet-group-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); }
+  .iet-group-total { font-size: 0.875rem; font-weight: 700; text-align: right; }
+  .iet-group-chevron { font-size: 0.65rem; color: var(--stone); transition: transform 0.25s; display: inline-block; text-align: right; }
+  .iet-group-chevron.open { transform: rotate(90deg); }
+  .iet-items { display: none; background: rgba(245,240,232,0.5); border-bottom: 1px solid var(--border); }
+  .iet-items.open { display: block; }
+  .iet-item-row {
+    display: grid; grid-template-columns: 28px 1fr auto 28px;
+    padding: 0.45rem 1.5rem; border-bottom: 1px solid rgba(221,213,200,0.4);
+    align-items: center;
+  }
+  .iet-item-row:last-child { border-bottom: none; }
+  .iet-item-name { font-size: 0.85rem; color: var(--mid); padding-left: 8px; }
+  .iet-item-val { font-size: 0.85rem; text-align: right; font-weight: 600; }
+  .iet-total-row {
+    display: grid; grid-template-columns: 28px 1fr auto 28px;
+    padding: 0.7rem 1.5rem; background: rgba(122,92,62,0.06);
+    border-top: 2px solid var(--border);
+  }
+  .iet-total-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mid); grid-column: 2; }
+  .iet-total-val { font-size: 1rem; font-weight: 700; text-align: right; }
+  .iet-net-row {
+    display: grid; grid-template-columns: 1fr auto;
+    padding: 0.85rem 1.5rem; background: var(--dark);
+    border-top: 3px solid var(--border);
+  }
+  .iet-net-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stone); }
+  .iet-net-val { font-size: 1.1rem; font-weight: 700; text-align: right; }
+  .iet-income-val { color: #2e7d32; }
+  .iet-expense-val { color: #c62828; }
+  .iet-net-pos { color: #4caf50; }
+  .iet-net-neg { color: #e53935; }
 </style>
 </head>
 <body>
@@ -424,6 +477,28 @@
 
   </div>
 
+  <div class="finance-section">
+    <h3 class="section-heading">Income &amp; Expenditure Tracker</h3>
+
+    <div style="height:4px;background:var(--cream);"></div>
+
+    <button class="btn-toggle btn-loading" id="toggle-iet" onclick="togglePanel('iet')" aria-expanded="false">
+      <span class="toggle-left"><span>📊 Income &amp; Expenditure Summary</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+
+    <div class="collapsible-panel" id="panel-iet">
+      <div id="iet-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -458,6 +533,8 @@
   var allExpandedState = false;
   var chargeData = null;
 
+  var finSummaryData = null;
+
   /* ── Fetch data ── */
   async function loadData() {
     try {
@@ -477,6 +554,19 @@
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
       document.getElementById('toggle-annual').classList.remove('btn-loading');
+    }
+    try {
+      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now());
+      if (!res2.ok) throw new Error('HTTP ' + res2.status);
+      var json2 = await res2.json();
+      if (json2.status !== 'ok') throw new Error(json2.message || 'Error from script');
+      finSummaryData = json2;
+      document.getElementById('toggle-iet').classList.remove('btn-loading');
+      renderIET();
+    } catch(err) {
+      document.getElementById('iet-inner').innerHTML =
+        '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
+      document.getElementById('toggle-iet').classList.remove('btn-loading');
     }
   }
 
@@ -873,6 +963,198 @@
         if (hdr) hdr.classList.remove('expanded');
       }
     });
+  }
+
+  /* ── Income & Expenditure Tracker ── */
+
+  var ietYear = currentYear;
+  var ietPeriod = 'year'; // 'year','q1','q2','q3','q4', or month 1-12
+  var ietOpenGroups = {};
+
+  /* Group definitions — prefix-matched, future-proof */
+  var INCOME_GROUPS = [
+    { key: 'management', label: 'Management',  prefixes: ['Management Charge'] },
+    { key: 'farmhouse',  label: 'Farmhouse',   prefixes: ['Farmhouse'] },
+    { key: 'other-inc',  label: 'Other Income', prefixes: [] } // catch-all
+  ];
+  var EXPENSE_GROUPS = [
+    { key: 'biofilter',  label: 'Bio Filter',            prefixes: ['Bio Filter'] },
+    { key: 'utilities',  label: 'Utilities',             prefixes: ['Electricity','Water'] },
+    { key: 'maintenance',label: 'Maintenance',           prefixes: ['Common Parts','General Maintenance','Grass Cutting','Farmhouse Maintenance','Farmhouse Roof Repair'] },
+    { key: 'insurance',  label: 'Insurance & Professional', prefixes: ['Insurance','Professional Fees'] },
+    { key: 'roads',      label: 'Roads & Infrastructure',prefixes: ['Road'] },
+    { key: 'funds',      label: 'Funds',                 prefixes: ['Sinking Fund'] },
+    { key: 'other-exp',  label: 'Other Expenditure',     prefixes: [] } // catch-all
+  ];
+
+  function ietMonthsForPeriod() {
+    if (ietPeriod === 'year') return [1,2,3,4,5,6,7,8,9,10,11,12];
+    if (ietPeriod === 'q1')   return [1,2,3];
+    if (ietPeriod === 'q2')   return [4,5,6];
+    if (ietPeriod === 'q3')   return [7,8,9];
+    if (ietPeriod === 'q4')   return [10,11,12];
+    return [Number(ietPeriod)];
+  }
+
+  function ietFilteredTxns() {
+    if (!finSummaryData) return [];
+    var months = ietMonthsForPeriod();
+    return finSummaryData.transactions.filter(function(t) {
+      return t.year === ietYear && months.indexOf(t.month) !== -1;
+    });
+  }
+
+  function assignGroup(catName, groups) {
+    for (var i = 0; i < groups.length - 1; i++) {
+      var g = groups[i];
+      for (var j = 0; j < g.prefixes.length; j++) {
+        if (catName.indexOf(g.prefixes[j]) === 0) return g.key;
+      }
+    }
+    return groups[groups.length - 1].key; // catch-all
+  }
+
+  function getAvailableIETYears() {
+    if (!finSummaryData) return [currentYear];
+    var yrs = {};
+    finSummaryData.transactions.forEach(function(t){ yrs[t.year] = true; });
+    return Object.keys(yrs).map(Number).sort(function(a,b){return b-a;});
+  }
+
+  function renderIET() {
+    var txns    = ietFilteredTxns();
+    var allYrs  = getAvailableIETYears();
+    var html    = '';
+
+    /* ── Controls ── */
+    html += '<div class="tracker-controls" style="flex-wrap:wrap;gap:0.5rem;">';
+    /* Year buttons */
+    html += '<label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year:</label>';
+    var otherYrs = allYrs.filter(function(y){ return y !== currentYear; });
+    html += '<button class="yr-btn' + (ietYear === currentYear ? ' active' : '') + '" onclick="setIETYear(' + currentYear + ')">' + currentYear + '</button>';
+    if (otherYrs.length <= 3) {
+      otherYrs.forEach(function(y) {
+        html += '<button class="yr-btn' + (ietYear === y ? ' active' : '') + '" onclick="setIETYear(' + y + ')">' + y + '</button>';
+      });
+    } else {
+      otherYrs.slice(0,2).forEach(function(y) {
+        html += '<button class="yr-btn' + (ietYear === y ? ' active' : '') + '" onclick="setIETYear(' + y + ')">' + y + '</button>';
+      });
+      html += '<select class="yr-select" onchange="setIETYear(parseInt(this.value))">';
+      html += '<option value="">Earlier…</option>';
+      otherYrs.slice(2).forEach(function(y){ html += '<option value="' + y + '"' + (ietYear === y ? ' selected' : '') + '>' + y + '</option>'; });
+      html += '</select>';
+    }
+    /* Period buttons */
+    html += '<span style="margin-left:0.5rem;border-left:1px solid var(--border);padding-left:0.75rem;display:flex;gap:0.4rem;align-items:center;">';
+    var periods = [['year','Full Year'],['q1','Q1'],['q2','Q2'],['q3','Q3'],['q4','Q4']];
+    periods.forEach(function(p) {
+      html += '<button class="yr-btn' + (ietPeriod === p[0] ? ' active' : '') + '" onclick="setIETPeriod(\'' + p[0] + '\')" style="padding:0.3rem 0.6rem;">' + p[1] + '</button>';
+    });
+    /* Month dropdown */
+    html += '<select class="yr-select" onchange="setIETPeriod(this.value)">';
+    html += '<option value="">Month…</option>';
+    MONTHS.forEach(function(m, mi) {
+      html += '<option value="' + (mi+1) + '"' + (ietPeriod == (mi+1) ? ' selected' : '') + '>' + m + '</option>';
+    });
+    html += '</select></span>';
+    html += '</div>';
+
+    /* ── Build income ── */
+    var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
+    var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
+
+    /* Aggregate by display name */
+    function aggregate(list, prefix) {
+      var map = {};
+      list.forEach(function(t) {
+        var name = t.category.replace(prefix, '').trim();
+        map[name] = (map[name] || 0) + (prefix === 'I-' ? t.amtIn : t.amtOut);
+      });
+      return map;
+    }
+
+    function buildSection(label, txnList, prefix, groups, colorClass, totalClass) {
+      var agg   = aggregate(txnList, prefix);
+      var total = Object.values ? Object.values(agg).reduce(function(s,v){return s+v;},0) :
+                  Object.keys(agg).reduce(function(s,k){return s+agg[k];},0);
+
+      var sh = '';
+      sh += '<div class="iet-section-head">';
+      sh += '<span class="iet-section-label">' + label + '</span>';
+      sh += '<span class="iet-section-total ' + totalClass + '">' + fmt(total) + '</span>';
+      sh += '</div>';
+
+      /* Group the items */
+      var grouped = {};
+      Object.keys(agg).forEach(function(name) {
+        var gKey = assignGroup(name, groups);
+        if (!grouped[gKey]) grouped[gKey] = {};
+        grouped[gKey][name] = agg[name];
+      });
+
+      groups.forEach(function(g) {
+        var items = grouped[g.key];
+        if (!items || Object.keys(items).length === 0) return;
+        var gTotal = Object.keys(items).reduce(function(s,k){return s+items[k];},0);
+        var isOpen = ietOpenGroups[g.key];
+        sh += '<div class="iet-group-row' + (isOpen ? ' open' : '') + '" onclick="toggleIETGroup(\'' + g.key + '\')">';
+        sh += '<span></span>';
+        sh += '<span class="iet-group-name">' + g.label + '</span>';
+        sh += '<span class="iet-group-total ' + colorClass + '">' + fmt(gTotal) + '</span>';
+        sh += '<span class="iet-group-chevron' + (isOpen ? ' open' : '') + '" id="iet-chev-' + g.key + '">▶</span>';
+        sh += '</div>';
+        sh += '<div class="iet-items' + (isOpen ? ' open' : '') + '" id="iet-items-' + g.key + '">';
+        Object.keys(items).sort().forEach(function(name) {
+          sh += '<div class="iet-item-row">';
+          sh += '<span></span>';
+          sh += '<span class="iet-item-name">' + name + '</span>';
+          sh += '<span class="iet-item-val ' + colorClass + '">' + fmt(items[name]) + '</span>';
+          sh += '<span></span></div>';
+        });
+        sh += '</div>';
+      });
+
+      sh += '<div class="iet-total-row">';
+      sh += '<span></span><span class="iet-total-label">Total ' + label + '</span>';
+      sh += '<span class="iet-total-val ' + totalClass + '">' + fmt(total) + '</span>';
+      sh += '<span></span></div>';
+
+      return { html: sh, total: total };
+    }
+
+    var inc = buildSection('Income',      incTxns, 'I-', INCOME_GROUPS,  'iet-income-val',  'iet-income-val');
+    var exp = buildSection('Expenditure', expTxns, 'E-', EXPENSE_GROUPS, 'iet-expense-val', 'iet-expense-val');
+
+    html += inc.html;
+    html += exp.html;
+
+    /* Net */
+    var net = inc.total - exp.total;
+    html += '<div class="iet-net-row">';
+    html += '<span class="iet-net-label">Net</span>';
+    html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? '+' : '') + fmt(net) + '</span>';
+    html += '</div>';
+
+    document.getElementById('iet-inner').innerHTML = html;
+  }
+
+  function toggleIETGroup(key) {
+    ietOpenGroups[key] = !ietOpenGroups[key];
+    var items = document.getElementById('iet-items-' + key);
+    var chev  = document.getElementById('iet-chev-' + key);
+    var row   = chev ? chev.closest('.iet-group-row') : null;
+    if (items) items.classList.toggle('open', ietOpenGroups[key]);
+    if (chev)  chev.classList.toggle('open',  ietOpenGroups[key]);
+    if (row)   row.classList.toggle('open',   ietOpenGroups[key]);
+  }
+
+  function setIETYear(y) {
+    ietYear = y; renderIET();
+  }
+
+  function setIETPeriod(p) {
+    ietPeriod = p; renderIET();
   }
 
   loadData();
