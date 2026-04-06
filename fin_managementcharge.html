@@ -1434,8 +1434,8 @@
       var rentOut  = rentDue - rentPaid;
       var rentOutC = rentOut > 0 ? 'val-owed' : rentOut < 0 ? 'val-over' : 'val-clear';
       var rentOutT = rentOut > 0 ? fmt(rentOut) : rentOut < 0 ? '+' + fmt(Math.abs(rentOut)) + ' overpaid' : '✓ Paid in full';
-      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem 0.5rem 2rem;border-bottom:1px solid rgba(184,173,158,0.2);">';
-      html += '<span style="font-size:0.82rem;color:var(--mid);">Farmhouse Rent</span>';
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.5rem 1.25rem;border-bottom:1px solid rgba(184,173,158,0.2);">';
+      html += '<span style="font-size:0.82rem;color:var(--mid);padding-left:1rem;">Farmhouse Rent</span>';
       html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (rentDue > 0 ? fmt(rentDue) : '—') + '</span>';
       html += '<span style="text-align:right;font-size:0.82rem;color:var(--green,#3a7a3a);">' + (rentPaid > 0 ? fmt(rentPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
       html += '<span style="text-align:right;font-size:0.82rem;" class="' + rentOutC + '">' + (rentDue > 0 ? rentOutT : '—') + '</span>';
@@ -1445,8 +1445,8 @@
       var insOut  = insDue - insPaid;
       var insOutC = insOut > 0 ? 'val-owed' : insOut < 0 ? 'val-over' : 'val-clear';
       var insOutT = insOut > 0 ? fmt(insOut) : insOut < 0 ? '+' + fmt(Math.abs(insOut)) + ' overpaid' : '✓ Paid in full';
-      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem 0.5rem 2rem;">';
-      html += '<span style="font-size:0.82rem;color:var(--mid);">Farmhouse Insurance Rent</span>';
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.5rem 1.25rem;">';
+      html += '<span style="font-size:0.82rem;color:var(--mid);padding-left:1rem;">Farmhouse Insurance Rent</span>';
       html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (insDue > 0 ? fmt(insDue) : '—') + '</span>';
       html += '<span style="text-align:right;font-size:0.82rem;color:var(--green,#3a7a3a);">' + (insPaid > 0 ? fmt(insPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
       html += '<span style="text-align:right;font-size:0.82rem;" class="' + insOutC + '">' + (insDue > 0 ? insOutT : '—') + '</span>';
@@ -1470,7 +1470,7 @@
     var summOutC = summOut > 0 ? 'val-owed' : summOut < 0 ? 'val-over' : 'val-clear';
     var summOutT = summOut > 0 ? fmt(summOut) : summOut < 0 ? '+' + fmt(Math.abs(summOut)) + ' overpaid' : '✓ All paid';
 
-    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.65rem 1.25rem;background:var(--dark);border-top:2px solid rgba(196,149,106,0.3);">';
+    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.65rem 1.25rem;background:var(--dark);border-top:2px solid rgba(196,149,106,0.3);">';
     html += '<span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">Total</span>';
     html += '<span style="text-align:right;font-size:0.85rem;color:var(--stone);">' + (summDue > 0 ? fmt(summDue) : '—') + '</span>';
     html += '<span style="text-align:right;font-size:0.85rem;color:var(--accent2);font-weight:600;">' + (summPaid > 0 ? fmt(summPaid) : '—') + '</span>';
