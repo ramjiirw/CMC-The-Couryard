@@ -360,70 +360,64 @@
   }
   /* ── IET ── */
   .iet-section-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0.6rem 1.5rem; background: rgba(122,92,62,0.08);
-    border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 170px 30px;
+    align-items: center; padding: 0.6rem 1.5rem;
+    background: rgba(122,92,62,0.08); border-bottom: 1px solid var(--border);
   }
-  .iet-section-label {
-    font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--accent);
-  }
-  .iet-section-total {
-    font-size: 0.9rem; font-weight: 700;
-  }
+  .iet-section-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); }
+  .iet-section-total { font-size:0.9rem; font-weight:700; text-align:right; }
   .iet-group-row {
-    display: grid; grid-template-columns: 28px 1fr auto 40px;
+    display: grid; grid-template-columns: 28px 1fr 170px 30px;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
-    align-items: center; cursor: pointer; transition: background 0.15s;
-    user-select: none;
+    align-items: center; cursor: pointer; transition: background 0.15s; user-select: none;
   }
   .iet-group-row:hover { background: rgba(196,149,106,0.06); }
   .iet-group-row.open { background: rgba(122,92,62,0.05); }
-  .iet-group-name { font-size: 0.875rem; font-weight: 600; color: var(--accent); }
-  .iet-group-total { font-size: 0.875rem; font-weight: 700; text-align: right; }
-  .iet-group-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; text-align:right; }
+  .iet-group-name { font-size:0.875rem; font-weight:600; color:var(--accent); }
+  .iet-group-total { font-size:0.875rem; font-weight:700; text-align:right; }
+  .iet-group-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; }
   .iet-group-chevron.open { transform:rotate(90deg); }
-  .iet-item-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; text-align:right; cursor:pointer; }
-  .iet-item-chevron.open { transform:rotate(90deg); }
-  .iet-items { display: none; background: rgba(245,240,232,0.5); border-bottom: 1px solid var(--border); }
-  .iet-items.open { display: block; }
+  .iet-items { overflow:hidden; max-height:0; transition:max-height 0.35s ease; background:rgba(245,240,232,0.5); border-bottom:1px solid var(--border); }
+  .iet-items.open { max-height:8000px; }
   .iet-item-row {
-    display: grid; grid-template-columns: 28px 1fr auto 40px;
-    padding: 0.45rem 1.5rem; border-bottom: 1px solid rgba(221,213,200,0.4);
-    align-items: center;
+    display: grid; grid-template-columns: 28px 1fr 170px 30px;
+    padding: 0.45rem 1.5rem; border-bottom: 1px solid rgba(221,213,200,0.4); align-items:center;
   }
-  .iet-item-row:last-child { border-bottom: none; }
-  .iet-item-name { font-size: 0.85rem; color: var(--mid); padding-left: 8px; }
-  .iet-item-val { font-size: 0.85rem; text-align: right; font-weight: 600; }
-  .iet-total-row {
-    display: grid; grid-template-columns: 28px 1fr auto 28px;
-    padding: 0.7rem 1.5rem; background: rgba(122,92,62,0.06);
-    border-top: 2px solid var(--border);
-  }
-  .iet-total-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mid); grid-column: 2; }
-  .iet-total-val { font-size: 1rem; font-weight: 700; text-align: right; }
-  .iet-drill { display:none; background:rgba(122,92,62,0.03); border-bottom:1px solid rgba(221,213,200,0.4); }
-  .iet-drill.open { display:block; }
+  .iet-item-row:last-child { border-bottom:none; }
+  .iet-item-name { font-size:0.85rem; color:var(--mid); padding-left:8px; }
+  .iet-item-val { font-size:0.85rem; text-align:right; font-weight:600; }
+  .iet-item-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; cursor:pointer; }
+  .iet-item-chevron.open { transform:rotate(90deg); }
+  .iet-drill { overflow:hidden; max-height:0; transition:max-height 0.3s ease; background:rgba(122,92,62,0.03); }
+  .iet-drill.open { max-height:4000px; }
   .iet-drill-row {
-    display:grid; grid-template-columns:44px 1fr auto 28px;
-    padding:0.35rem 1.5rem; border-bottom:1px solid rgba(221,213,200,0.3);
-    align-items:center; font-size:0.82rem;
+    display:grid; grid-template-columns:44px 1fr 170px 30px;
+    padding:0.35rem 1.5rem; border-bottom:1px solid rgba(221,213,200,0.3); align-items:center; font-size:0.82rem;
   }
   .iet-drill-row:last-child { border-bottom:none; }
   .iet-drill-label { color:var(--mid); }
   .iet-drill-val { text-align:right; font-weight:600; }
-  .iet-net-row {
-    display:grid; grid-template-columns:1fr auto;
-    padding:0.85rem 1.5rem; background:var(--dark);
-    border-top:3px solid var(--border); align-items:center;
+  .iet-total-row {
+    display:grid; grid-template-columns:28px 1fr 170px 30px;
+    padding:0.7rem 1.5rem; background:rgba(122,92,62,0.06); border-top:2px solid var(--border); align-items:center;
   }
-  .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); }
+  .iet-total-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); grid-column:2; }
+  .iet-total-val { font-size:1rem; font-weight:700; text-align:right; }
+  .iet-net-row {
+    display:grid; grid-template-columns:28px 1fr 170px 30px;
+    padding:0.85rem 1.5rem; background:var(--dark); border-top:3px solid var(--border); align-items:center;
+  }
+  .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
   .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
-  .iet-income-val { color: #2e7d32; }
-  .iet-expense-val { color: #c62828; }
-  .iet-net-pos { color: #4caf50; }
-  .iet-net-neg { color: #e53935; }
-</style>
+  .iet-income-val { color:#2e7d32; }
+  .iet-expense-val { color:#c62828; }
+  .iet-net-pos { color:#4caf50; }
+  .iet-net-neg { color:#e53935; }
+  @media (max-width:700px) {
+    .iet-group-row, .iet-item-row, .iet-drill-row, .iet-total-row, .iet-net-row, .iet-section-head {
+      grid-template-columns: 20px 1fr 100px 24px;
+    }
+  }</style>
 </head>
 <body>
 
@@ -568,13 +562,19 @@
       document.getElementById('toggle-annual').classList.remove('btn-loading');
     }
     try {
-      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now());
+      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear + '&v=' + Date.now());
       if (!res2.ok) throw new Error('HTTP ' + res2.status);
       var json2 = await res2.json();
       if (json2.status !== 'ok') throw new Error(json2.message || 'Error from script');
       finSummaryData = json2;
       document.getElementById('toggle-iet').classList.remove('btn-loading');
       renderIET();
+      /* Silently load all years in background */
+      fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now())
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (j.status === 'ok') { finSummaryData = j; renderIET(); }
+        }).catch(function(){});
     } catch(err) {
       document.getElementById('iet-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
@@ -1070,6 +1070,7 @@
       html += '<option value="' + (mi+1) + '"' + (ietPeriod == (mi+1) ? ' selected' : '') + '>' + m + '</option>';
     });
     html += '</select></span>';
+    html += '<button class="btn-expand-all" id="iet-expand-btn" onclick="toggleIETExpandAll()" style="margin-left:auto;">Expand all</button>';
     html += '</div>';
 
     /* ── Build income ── */
@@ -1212,11 +1213,30 @@
     /* Net */
     var net = inc.total - exp.total;
     html += '<div class="iet-net-row">';
+    html += '<span></span>';
     html += '<span class="iet-net-label">Net</span>';
     html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? '+' : '') + fmt(net) + '</span>';
-    html += '</div>';
+    html += '<span></span></div>';
 
     document.getElementById('iet-inner').innerHTML = html;
+  }
+
+  var ietAllExpanded = false;
+
+  function toggleIETExpandAll() {
+    ietAllExpanded = !ietAllExpanded;
+    var btn = document.getElementById('iet-expand-btn');
+    if (btn) btn.textContent = ietAllExpanded ? 'Collapse all' : 'Expand all';
+    var allGroupKeys = INCOME_GROUPS.concat(EXPENSE_GROUPS).map(function(g){ return g.key; });
+    allGroupKeys.forEach(function(key) {
+      ietOpenGroups[key] = ietAllExpanded;
+      var items = document.getElementById('iet-items-' + key);
+      var chev  = document.getElementById('iet-chev-' + key);
+      var row   = chev ? chev.closest('.iet-group-row') : null;
+      if (items) items.classList.toggle('open', ietAllExpanded);
+      if (chev)  chev.classList.toggle('open',  ietAllExpanded);
+      if (row)   row.classList.toggle('open',   ietAllExpanded);
+    });
   }
 
   function toggleIETGroup(key) {
