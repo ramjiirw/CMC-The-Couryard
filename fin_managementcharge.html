@@ -771,6 +771,7 @@
         var rowBg = (paid > 0 && outstanding <= 0) ? ' m-green' : paid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
 
+        html += '<div style="height:3px;background:var(--border);"></div>';
         html += '<div class="month-row' + rowBg + '" style="cursor:pointer;" onclick="toggleAnnualMonths(\'' + yrKey + '\')">';
         html += '<span><span class="month-dot ' + dotC + '"></span></span>';
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
