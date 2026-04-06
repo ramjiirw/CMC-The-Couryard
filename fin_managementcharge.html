@@ -546,7 +546,7 @@
   /* ── Fetch data ── */
   async function loadData() {
     try {
-      var res = await fetch(SCRIPT_URL + '?action=readManagementCharges&v=' + Date.now());
+      var res = await fetch(SCRIPT_URL + '?action=readManagementCharges');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var json = await res.json();
       if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
@@ -564,7 +564,7 @@
       document.getElementById('toggle-annual').classList.remove('btn-loading');
     }
     try {
-      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now());
+      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary');
       if (!res2.ok) throw new Error('HTTP ' + res2.status);
       var json2 = await res2.json();
       if (json2.status !== 'ok') throw new Error(json2.message || 'Error from script');
