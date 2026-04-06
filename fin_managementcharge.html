@@ -1149,41 +1149,41 @@
             sh += '<div class="iet-drill" id="iet-drill-' + itemKey + '">';
             if (prefix === 'I-') {
               var incPayments = groupedDrillInc[g.key][name].slice();
-              var anyNotes = incPayments.some(function(r){ return r.notes && r.notes.trim() !== ''; });
 
-              if (!anyNotes) {
-                /* No notes — group by address, show totals, no dates */
-                var addrMap = {};
-                incPayments.forEach(function(r) {
-                  var a = r.address || 'Unknown';
-                  addrMap[a] = (addrMap[a] || 0) + r.amount;
-                });
-                Object.keys(addrMap).sort(function(a,b){
-                  var na = parseInt(a); var nb = parseInt(b);
-                  if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                  return a.localeCompare(b);
-                }).forEach(function(addr) {
+              /* Group by address. If an address has any notes, show each payment
+                 separately with date+note. Otherwise show one summed line. */
+              var addrPayments = {};
+              incPayments.forEach(function(r) {
+                var a = r.address || 'Unknown';
+                if (!addrPayments[a]) addrPayments[a] = [];
+                addrPayments[a].push(r);
+              });
+              Object.keys(addrPayments).sort(function(a,b){
+                var na = parseInt(a); var nb = parseInt(b);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+              }).forEach(function(addr) {
+                var rows = addrPayments[addr];
+                var addrHasNotes = rows.some(function(r){ return r.notes && r.notes.trim(); });
+                if (!addrHasNotes) {
+                  /* No notes for this address — one summed row */
+                  var total = rows.reduce(function(s,r){ return s + r.amount; }, 0);
                   sh += '<div class="iet-drill-row">';
                   sh += '<span></span><span class="iet-drill-label">' + addr + '</span>';
-                  sh += '<span class="iet-drill-val iet-income-val">' + fmt(addrMap[addr]) + '</span>';
+                  sh += '<span class="iet-drill-val iet-income-val">' + fmt(total) + '</span>';
                   sh += '<span></span></div>';
-                });
-              } else {
-                /* Has notes — show every payment separately, date+note only when note exists */
-                incPayments.sort(function(a,b){
-                  var na = parseInt(a.address); var nb = parseInt(b.address);
-                  if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                  return (a.address||'').localeCompare(b.address||'');
-                }).forEach(function(r) {
-                  var addr = r.address || 'Unknown';
-                  var label = addr;
-                  if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' (' + r.notes + ')';
-                  sh += '<div class="iet-drill-row">';
-                  sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
-                  sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
-                  sh += '<span></span></div>';
-                });
-              }
+                } else {
+                  /* Has notes — one row per payment, date+note only where note exists */
+                  rows.forEach(function(r) {
+                    var label = addr;
+                    if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' (' + r.notes + ')';
+                    sh += '<div class="iet-drill-row">';
+                    sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
+                    sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
+                    sh += '<span></span></div>';
+                  });
+                }
+              });
             } else {
               /* Expenditure: date + description + notes + amount */
               groupedDrillExp[g.key][name].sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
