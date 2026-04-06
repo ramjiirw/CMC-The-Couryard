@@ -564,19 +564,13 @@
       document.getElementById('toggle-annual').classList.remove('btn-loading');
     }
     try {
-      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear + '&v=' + Date.now());
+      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now());
       if (!res2.ok) throw new Error('HTTP ' + res2.status);
       var json2 = await res2.json();
       if (json2.status !== 'ok') throw new Error(json2.message || 'Error from script');
       finSummaryData = json2;
       document.getElementById('toggle-iet').classList.remove('btn-loading');
       renderIET();
-      /* Silently load all years in background */
-      fetch(SCRIPT_URL + '?action=readFinanceSummary&v=' + Date.now())
-        .then(function(r){ return r.json(); })
-        .then(function(j){
-          if (j.status === 'ok') { finSummaryData = j; renderIET(); }
-        }).catch(function(){});
     } catch(err) {
       document.getElementById('iet-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
@@ -1183,7 +1177,7 @@
                 }).forEach(function(r) {
                   var addr = r.address || 'Unknown';
                   var label = addr;
-                  if (r.notes && r.notes.trim()) label += (r.date ? ' ' + r.date : '') + ' (' + r.notes + ')';
+                  if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' (' + r.notes + ')';
                   sh += '<div class="iet-drill-row">';
                   sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
                   sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
