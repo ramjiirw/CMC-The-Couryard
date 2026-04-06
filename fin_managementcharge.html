@@ -509,6 +509,25 @@
     </div>
   </div>
 
+  <!-- Farmhouse Rent and Insurance Rent Tracker -->
+  <div class="finance-section">
+    <h3 class="section-heading">Farmhouse Rent and Insurance Rent</h3>
+    <button class="btn-toggle btn-loading" id="toggle-farmhouse" onclick="togglePanel('farmhouse')" aria-expanded="false">
+      <span class="toggle-left"><span>🏡 Farmhouse Rent and Insurance Rent Tracker</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-farmhouse">
+      <div id="farmhouse-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -547,11 +566,11 @@
 
   /* ── Fetch data ── */
   async function loadData() {
-    // Both fetches run in parallel — cuts cold start penalty in half.
-    // Finance summary requests current year only — hits fast per-year CacheService entry.
-    var [resCharges, resSummary] = await Promise.allSettled([
+    // All three fetches run in parallel
+    var [resCharges, resSummary, resFarmhouse] = await Promise.allSettled([
       fetch(SCRIPT_URL + '?action=readManagementCharges'),
-      fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear)
+      fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear),
+      fetch(SCRIPT_URL + '?action=readFarmhouseCharges')
     ]);
 
     // Process management charges
@@ -587,6 +606,27 @@
       document.getElementById('iet-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-iet').classList.remove('btn-loading');
+    }
+
+    // Process farmhouse charges
+    try {
+      if (resFarmhouse.status === 'rejected') throw new Error(resFarmhouse.reason);
+      if (!resFarmhouse.value.ok) throw new Error('HTTP ' + resFarmhouse.value.status);
+      var json3 = await resFarmhouse.value.json();
+      if (json3.status !== 'ok') throw new Error(json3.message || 'Error from script');
+      farmhouseData = json3;
+      document.getElementById('toggle-farmhouse').classList.remove('btn-loading');
+      renderFarmhouse();
+      // Default to expanded — only 8 rows per year
+      var fhPanel = document.getElementById('panel-farmhouse');
+      var fhBtn   = document.getElementById('toggle-farmhouse');
+      fhPanel.classList.add('open');
+      fhBtn.classList.add('open');
+      fhBtn.setAttribute('aria-expanded', 'true');
+    } catch(err) {
+      document.getElementById('farmhouse-inner').innerHTML =
+        '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
+      document.getElementById('toggle-farmhouse').classList.remove('btn-loading');
     }
   }
 
@@ -1287,6 +1327,172 @@
 
   function setIETPeriod(p) {
     ietPeriod = p; renderIET();
+  }
+
+
+  // ── Farmhouse Rent and Insurance Rent Tracker ─────────────────────────────
+
+  var farmhouseData = null;
+  var fhYear = currentYear;
+
+  var FARMHOUSE_PROPERTIES = ['10 The Courtyard','12 The Courtyard','13 The Courtyard','14 The Courtyard'];
+
+  function getFHAvailableYears() {
+    var yrs = [];
+    var startYear = Math.max(currentYear - 4, 2024);
+    for (var y = currentYear; y >= startYear; y--) { yrs.push(y); }
+    return yrs;
+  }
+
+  function getFHRentDue(year) {
+    if (!farmhouseData || !farmhouseData.rentDueByYear) return 0;
+    var total = farmhouseData.rentDueByYear[year];
+    return total ? total / 4 : 0; // per property share
+  }
+
+  function getFHInsuranceDue(year) {
+    if (!farmhouseData || !farmhouseData.insuranceDueByYear) return 0;
+    var total = farmhouseData.insuranceDueByYear[year];
+    return total ? total / 4 : 0; // per property share
+  }
+
+  function getFHRentPaid(addr, year) {
+    if (!farmhouseData || !farmhouseData.rentPayments) return [];
+    return farmhouseData.rentPayments.filter(function(p) {
+      return p.address === addr && p.year === year;
+    });
+  }
+
+  function getFHInsurancePaid(addr, year) {
+    if (!farmhouseData || !farmhouseData.insurancePayments) return [];
+    return farmhouseData.insurancePayments.filter(function(p) {
+      return p.address === addr && p.year === year;
+    });
+  }
+
+  function renderFarmhouse() {
+    var allYrs  = getFHAvailableYears();
+    var rentDue = getFHRentDue(fhYear);
+    var insDue  = getFHInsuranceDue(fhYear);
+    var html    = '';
+
+    // Controls
+    html += '<div class="tracker-controls" style="flex-wrap:wrap;gap:0.5rem;">';
+    html += '<label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year:</label>';
+    var isCurrent = (fhYear === currentYear);
+    html += '<button class="yr-btn' + (isCurrent ? ' active' : '') + '" onclick="setFHYear(' + currentYear + ')">' + currentYear + '</button>';
+    var olderYrs = allYrs.filter(function(y){ return y !== currentYear; });
+    if (olderYrs.length > 0) {
+      var olderActive = !isCurrent;
+      html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" onchange="setFHYear(parseInt(this.value))">';
+      html += '<option value="">' + (olderActive ? fhYear : 'Earlier Year') + '</option>';
+      olderYrs.forEach(function(y) {
+        html += '<option value="' + y + '"' + (fhYear === y ? ' selected' : '') + '>' + y + '</option>';
+      });
+      html += '</select>';
+    }
+    html += '</div>';
+
+    // Column headers
+    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem;background:var(--dark);color:var(--cream);">';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Property</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;text-align:right;">Due</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;text-align:right;">Paid</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;text-align:right;">Outstanding</span>';
+    html += '</div>';
+
+    // Property rows
+    FARMHOUSE_PROPERTIES.forEach(function(addr, idx) {
+      var rentPayments = getFHRentPaid(addr, fhYear);
+      var insPayments  = getFHInsurancePaid(addr, fhYear);
+      var rentPaid     = rentPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var insPaid      = insPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var totalDue     = rentDue + insDue;
+      var totalPaid    = rentPaid + insPaid;
+      var totalOut     = totalDue - totalPaid;
+
+      var rowBg = idx % 2 === 0 ? 'background:#fff;' : 'background:rgba(122,92,62,0.03);';
+
+      var dotClass = totalPaid === 0 && totalDue > 0 ? 'dot-red' : totalOut > 0 ? 'dot-amber' : 'dot-green';
+      var outClass = totalOut > 0 ? 'val-owed' : totalOut < 0 ? 'val-over' : 'val-clear';
+      var outText  = totalOut > 0 ? fmt(totalOut) : totalOut < 0 ? '+' + fmt(Math.abs(totalOut)) + ' overpaid' : '✓ Paid in full';
+
+      var key = 'fh_' + addr.replace(/ /g,'_');
+
+      html += '<div style="border-bottom:1px solid var(--border);">';
+
+      // Property header row — clickable to expand
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.65rem 1.25rem;' + rowBg + 'cursor:pointer;align-items:center;" onclick="toggleFHProp(\'' + key + '\')">';
+      html += '<span style="display:flex;align-items:center;gap:0.5rem;font-weight:600;font-size:0.85rem;">';
+      html += '<span class="prop-status-dot ' + dotClass + '"></span>' + addr;
+      html += '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;color:var(--mid);">' + (totalDue > 0 ? fmt(totalDue) : '—') + '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;color:var(--green,#3a7a3a);font-weight:600;">' + (totalPaid > 0 ? fmt(totalPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;" class="' + outClass + '">' + (totalDue > 0 ? outText : '—') + '</span>';
+      html += '</div>';
+
+      // Expandable breakdown
+      html += '<div id="fhprop-' + key + '" style="display:none;background:rgba(122,92,62,0.03);border-top:1px solid var(--border);">';
+
+      // Farmhouse Rent row
+      var rentOut  = rentDue - rentPaid;
+      var rentOutC = rentOut > 0 ? 'val-owed' : rentOut < 0 ? 'val-over' : 'val-clear';
+      var rentOutT = rentOut > 0 ? fmt(rentOut) : rentOut < 0 ? '+' + fmt(Math.abs(rentOut)) + ' overpaid' : '✓ Paid in full';
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem 0.5rem 2rem;border-bottom:1px solid rgba(184,173,158,0.2);">';
+      html += '<span style="font-size:0.82rem;color:var(--mid);">Farmhouse Rent</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (rentDue > 0 ? fmt(rentDue) : '—') + '</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;color:var(--green,#3a7a3a);">' + (rentPaid > 0 ? fmt(rentPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;" class="' + rentOutC + '">' + (rentDue > 0 ? rentOutT : '—') + '</span>';
+      html += '</div>';
+
+      // Farmhouse Insurance Rent row
+      var insOut  = insDue - insPaid;
+      var insOutC = insOut > 0 ? 'val-owed' : insOut < 0 ? 'val-over' : 'val-clear';
+      var insOutT = insOut > 0 ? fmt(insOut) : insOut < 0 ? '+' + fmt(Math.abs(insOut)) + ' overpaid' : '✓ Paid in full';
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem 0.5rem 2rem;">';
+      html += '<span style="font-size:0.82rem;color:var(--mid);">Farmhouse Insurance Rent</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (insDue > 0 ? fmt(insDue) : '—') + '</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;color:var(--green,#3a7a3a);">' + (insPaid > 0 ? fmt(insPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;" class="' + insOutC + '">' + (insDue > 0 ? insOutT : '—') + '</span>';
+      html += '</div>';
+
+      html += '</div>'; // end expandable
+      html += '</div>'; // end property block
+    });
+
+    // Summary totals row
+    var summRentDue = rentDue * 4;
+    var summInsDue  = insDue  * 4;
+    var summDue     = summRentDue + summInsDue;
+    var summRentPaid = 0, summInsPaid = 0;
+    FARMHOUSE_PROPERTIES.forEach(function(addr) {
+      summRentPaid += getFHRentPaid(addr, fhYear).reduce(function(s,p){ return s+p.amount;},0);
+      summInsPaid  += getFHInsurancePaid(addr, fhYear).reduce(function(s,p){ return s+p.amount;},0);
+    });
+    var summPaid = summRentPaid + summInsPaid;
+    var summOut  = summDue - summPaid;
+    var summOutC = summOut > 0 ? 'val-owed' : summOut < 0 ? 'val-over' : 'val-clear';
+    var summOutT = summOut > 0 ? fmt(summOut) : summOut < 0 ? '+' + fmt(Math.abs(summOut)) + ' overpaid' : '✓ All paid';
+
+    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.65rem 1.25rem;background:var(--dark);border-top:2px solid rgba(196,149,106,0.3);">';
+    html += '<span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">Total</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;color:var(--stone);">' + (summDue > 0 ? fmt(summDue) : '—') + '</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;color:var(--accent2);font-weight:600;">' + (summPaid > 0 ? fmt(summPaid) : '—') + '</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;" class="' + summOutC + '">' + (summDue > 0 ? summOutT : '—') + '</span>';
+    html += '</div>';
+
+    document.getElementById('farmhouse-inner').innerHTML = html;
+  }
+
+  function toggleFHProp(key) {
+    var el = document.getElementById('fhprop-' + key);
+    if (!el) return;
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function setFHYear(y) {
+    fhYear = y;
+    renderFarmhouse();
   }
 
   loadData();
