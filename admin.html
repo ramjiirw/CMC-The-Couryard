@@ -554,6 +554,7 @@
     </div>
     <div class="admin-header-right">
       <span class="lock-info">Auto-lock in <span id="lockCountdown">10:00</span></span>
+      <button id="refreshCacheBtn" onclick="rcRefresh()" style="background:rgba(122,92,62,0.1);color:rgba(184,173,158,0.75);border:1px solid rgba(196,149,106,0.25);border-radius:999px;padding:0.45rem 1.2rem;transition:all 0.2s;cursor:pointer;font-family:Arial,sans-serif;font-size:0.78rem;" title="Force rebuild of all cached data from Google Sheets">&#9851; Refresh Cache</button>
       <button id="lockBtn" style="display:none;">&#128274; Lock &mdash; Back to Resident Portal</button>
     </div>
   </header>
@@ -3227,7 +3228,29 @@ function nbDiscard() {
   nbLoad();
 }
 
+// ── Cache Refresh ─────────────────────────────────────────────────────────────
+
+async function rcRefresh() {
+  var btn = document.getElementById('refreshCacheBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Refreshing…';
+  try {
+    var res  = await fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action: 'refreshCache' }) });
+    var data = await res.json();
+    if (data.status === 'ok') {
+      showToast('✓ Cache refreshed successfully');
+    } else {
+      throw new Error(data.message || 'Unknown error');
+    }
+  } catch(e) {
+    showToast('✗ Refresh failed: ' + e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = '⟳ Refresh Cache';
+}
+
 async function nbLoad() {
+  document.getElementById('nbRows').innerHTML = '<div class="state-msg"><div class="spinner"></div>Loading notices…</div>';
   try {
     const res = await fetch(SCRIPT_URL + '?action=readNoticeboardAdmin');
     const data = await res.json();
@@ -4096,6 +4119,7 @@ function uiClearFilter() {
 }
 
 async function uiLoad() {
+  document.getElementById('uiRows').innerHTML = '<div class="state-msg"><div class="spinner"></div>Loading information…</div>';
   try {
     const res  = await fetch(SCRIPT_URL + '?action=readUsefulInfo');
     const data = await res.json();
