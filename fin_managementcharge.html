@@ -360,51 +360,51 @@
   }
   /* ── IET ── */
   .iet-section-head {
-    display: grid; grid-template-columns: 1fr 170px 30px;
+    display: grid; grid-template-columns: minmax(0,1fr) 170px 30px;
     align-items: center; padding: 0.6rem 1.5rem;
     background: rgba(122,92,62,0.08); border-bottom: 1px solid var(--border);
   }
   .iet-section-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); }
   .iet-section-total { font-size:0.9rem; font-weight:700; text-align:right; }
   .iet-group-row {
-    display: grid; grid-template-columns: 28px 1fr 170px 30px;
+    display: grid; grid-template-columns: 28px minmax(0,1fr) 170px 30px;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
     align-items: center; cursor: pointer; transition: background 0.15s; user-select: none;
   }
   .iet-group-row:hover { background: rgba(196,149,106,0.06); }
   .iet-group-row.open { background: rgba(122,92,62,0.05); }
-  .iet-group-name { font-size:0.875rem; font-weight:600; color:var(--accent); }
+  .iet-group-name { font-size:0.875rem; font-weight:600; color:var(--accent); min-width:0; }
   .iet-group-total { font-size:0.875rem; font-weight:700; text-align:right; }
   .iet-group-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; }
   .iet-group-chevron.open { transform:rotate(90deg); }
   .iet-items { overflow:hidden; max-height:0; transition:max-height 0.35s ease; background:rgba(245,240,232,0.5); border-bottom:1px solid var(--border); }
   .iet-items.open { max-height:8000px; }
   .iet-item-row {
-    display: grid; grid-template-columns: 28px 1fr 170px 30px;
+    display: grid; grid-template-columns: 28px minmax(0,1fr) 170px 30px;
     padding: 0.45rem 1.5rem; border-bottom: 1px solid rgba(221,213,200,0.4); align-items:center;
   }
   .iet-item-row:last-child { border-bottom:none; }
-  .iet-item-name { font-size:0.85rem; color:var(--mid); padding-left:8px; }
+  .iet-item-name { font-size:0.85rem; color:var(--mid); padding-left:8px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .iet-item-val { font-size:0.85rem; text-align:right; font-weight:600; }
   .iet-item-chevron { font-size:0.65rem; color:var(--stone); transition:transform 0.25s; display:inline-block; cursor:pointer; }
   .iet-item-chevron.open { transform:rotate(90deg); }
   .iet-drill { overflow:hidden; max-height:0; transition:max-height 0.3s ease; background:rgba(122,92,62,0.03); }
   .iet-drill.open { max-height:4000px; }
   .iet-drill-row {
-    display:grid; grid-template-columns:44px 1fr 170px 30px;
+    display:grid; grid-template-columns:44px minmax(0,1fr) 170px 30px;
     padding:0.35rem 1.5rem; border-bottom:1px solid rgba(221,213,200,0.3); align-items:center; font-size:0.82rem;
   }
   .iet-drill-row:last-child { border-bottom:none; }
-  .iet-drill-label { color:var(--mid); }
+  .iet-drill-label { color:var(--mid); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .iet-drill-val { text-align:right; font-weight:600; }
   .iet-total-row {
-    display:grid; grid-template-columns:28px 1fr 170px 30px;
+    display:grid; grid-template-columns:28px minmax(0,1fr) 170px 30px;
     padding:0.7rem 1.5rem; background:rgba(122,92,62,0.06); border-top:2px solid var(--border); align-items:center;
   }
   .iet-total-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); grid-column:2; }
   .iet-total-val { font-size:1rem; font-weight:700; text-align:right; }
   .iet-net-row {
-    display:grid; grid-template-columns:28px 1fr 170px 30px;
+    display:grid; grid-template-columns:28px minmax(0,1fr) 170px 30px;
     padding:0.85rem 1.5rem; background:var(--dark); border-top:3px solid var(--border); align-items:center;
   }
   .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
@@ -1152,32 +1152,41 @@
           if (hasDrill) {
             sh += '<div class="iet-drill" id="iet-drill-' + itemKey + '">';
             if (prefix === 'I-') {
-              /* Income: sort by address numerically, show each payment with notes if present */
-              var incPayments = groupedDrillInc[g.key][name].slice().sort(function(a,b){
-                var na = parseInt(a.address); var nb = parseInt(b.address);
-                if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                return (a.address||'').localeCompare(b.address||'');
-              });
-              /* Group by address+notes combo */
-              var addrMap = {};
-              incPayments.forEach(function(r) {
-                var a = r.address || 'Unknown';
-                if (!addrMap[a]) addrMap[a] = { amount: 0, notes: r.notes };
-                addrMap[a].amount += r.amount;
-                if (r.notes && !addrMap[a].notes) addrMap[a].notes = r.notes;
-              });
-              Object.keys(addrMap).sort(function(a,b){
-                var na = parseInt(a); var nb = parseInt(b);
-                if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                return a.localeCompare(b);
-              }).forEach(function(addr) {
-                var entry = addrMap[addr];
-                var label = addr + (entry.notes ? ' (' + entry.notes + ')' : '');
-                sh += '<div class="iet-drill-row">';
-                sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
-                sh += '<span class="iet-drill-val iet-income-val">' + fmt(entry.amount) + '</span>';
-                sh += '<span></span></div>';
-              });
+              var incPayments = groupedDrillInc[g.key][name].slice();
+              var anyNotes = incPayments.some(function(r){ return r.notes && r.notes.trim() !== ''; });
+
+              if (!anyNotes) {
+                /* No notes — group by address, show totals */
+                var addrMap = {};
+                incPayments.forEach(function(r) {
+                  var a = r.address || 'Unknown';
+                  addrMap[a] = (addrMap[a] || 0) + r.amount;
+                });
+                Object.keys(addrMap).sort(function(a,b){
+                  var na = parseInt(a); var nb = parseInt(b);
+                  if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                  return a.localeCompare(b);
+                }).forEach(function(addr) {
+                  sh += '<div class="iet-drill-row">';
+                  sh += '<span></span><span class="iet-drill-label">' + addr + '</span>';
+                  sh += '<span class="iet-drill-val iet-income-val">' + fmt(addrMap[addr]) + '</span>';
+                  sh += '<span></span></div>';
+                });
+              } else {
+                /* Has notes — show every payment with address, date, note */
+                incPayments.sort(function(a,b){
+                  var na = parseInt(a.address); var nb = parseInt(b.address);
+                  if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                  return (a.address||'').localeCompare(b.address||'');
+                }).forEach(function(r) {
+                  var addr = r.address || 'Unknown';
+                  var label = addr + (r.date ? ' ' + r.date : '') + (r.notes ? ' (' + r.notes + ')' : '');
+                  sh += '<div class="iet-drill-row">';
+                  sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
+                  sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
+                  sh += '<span></span></div>';
+                });
+              }
             } else {
               /* Expenditure: date + description + notes + amount */
               groupedDrillExp[g.key][name].sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
