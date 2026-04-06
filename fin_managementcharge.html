@@ -545,10 +545,18 @@
 
   /* ── Fetch data ── */
   async function loadData() {
+    // Both fetches run in parallel — cuts cold start penalty in half.
+    // Finance summary requests current year only — hits fast per-year CacheService entry.
+    var [resCharges, resSummary] = await Promise.allSettled([
+      fetch(SCRIPT_URL + '?action=readManagementCharges'),
+      fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear)
+    ]);
+
+    // Process management charges
     try {
-      var res = await fetch(SCRIPT_URL + '?action=readManagementCharges');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var json = await res.json();
+      if (resCharges.status === 'rejected') throw new Error(resCharges.reason);
+      if (!resCharges.value.ok) throw new Error('HTTP ' + resCharges.value.status);
+      var json = await resCharges.value.json();
       if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
       chargeData = json;
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
@@ -563,10 +571,12 @@
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
       document.getElementById('toggle-annual').classList.remove('btn-loading');
     }
+
+    // Process finance summary
     try {
-      var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary');
-      if (!res2.ok) throw new Error('HTTP ' + res2.status);
-      var json2 = await res2.json();
+      if (resSummary.status === 'rejected') throw new Error(resSummary.reason);
+      if (!resSummary.value.ok) throw new Error('HTTP ' + resSummary.value.status);
+      var json2 = await resSummary.value.json();
       if (json2.status !== 'ok') throw new Error(json2.message || 'Error from script');
       finSummaryData = json2;
       document.getElementById('toggle-iet').classList.remove('btn-loading');
@@ -1264,8 +1274,19 @@
     if (chev) chev.classList.toggle('open', !isOpen);
   }
 
-  function setIETYear(y) {
-    ietYear = y; renderIET();
+  async function setIETYear(y) {
+    ietYear = y;
+    // If we don't have this year's data yet, fetch it on demand then merge in
+    if (finSummaryData && !finSummaryData.transactions.some(function(t){ return t.year === y; })) {
+      try {
+        var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
+        var json = await res.json();
+        if (json.status === 'ok' && json.transactions && json.transactions.length) {
+          finSummaryData.transactions = finSummaryData.transactions.concat(json.transactions);
+        }
+      } catch(e) {}
+    }
+    renderIET();
   }
 
   function setIETPeriod(p) {
