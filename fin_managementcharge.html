@@ -257,6 +257,7 @@
     background: var(--cream); color: var(--accent); font-family: Arial, sans-serif;
     font-size: 0.85rem; font-weight: 600; cursor: pointer;
   }
+  .yr-select.active { background: var(--dark); color: var(--accent2); border-color: var(--dark); }
   .btn-expand-all {
     padding: 0.3rem 0.9rem; border-radius: 5px; border: 1px solid var(--border);
     background: var(--cream); color: var(--mid); font-family: Arial, sans-serif;
@@ -615,8 +616,12 @@
   }
 
   function getAvailableYears() {
-    if (!chargeData || !chargeData.dueByYear) return [currentYear];
-    return Object.keys(chargeData.dueByYear).map(Number).sort(function(a,b){return b-a;});
+    var yrs = [];
+    var startYear = Math.max(currentYear - 4, 2024);
+    for (var y = currentYear; y >= startYear; y--) {
+      yrs.push(y);
+    }
+    return yrs;
   }
 
   var PROPERTIES = [];
@@ -640,19 +645,16 @@
     /* Controls bar */
     html += '<div class="tracker-controls">';
     html += '<label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year:</label>';
-    html += '<button class="yr-btn active" id="yrbtn-' + currentYear + '" onclick="setYear(' + currentYear + ')">' + currentYear + '</button>';
+    var isCurrentYearActive = (activeYear === currentYear);
+    html += '<button class="yr-btn' + (isCurrentYearActive ? ' active' : '') + '" id="yrbtn-' + currentYear + '" onclick="setYear(' + currentYear + ')">' + currentYear + '</button>';
     var prevYears = years.filter(function(y){ return y !== currentYear; });
-    if (prevYears.length <= 3) {
+    if (prevYears.length > 0) {
+      var olderActive = !isCurrentYearActive;
+      html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" id="tracker-yr-select" onchange="setYear(parseInt(this.value))">';
+      html += '<option value="">' + (olderActive ? activeYear : 'Earlier…') + '</option>';
       prevYears.forEach(function(y) {
-        html += '<button class="yr-btn" id="yrbtn-' + y + '" onclick="setYear(' + y + ')">' + y + '</button>';
+        html += '<option value="' + y + '"' + (activeYear === y ? ' selected' : '') + '>' + y + '</option>';
       });
-    } else {
-      prevYears.slice(0,2).forEach(function(y) {
-        html += '<button class="yr-btn" id="yrbtn-' + y + '" onclick="setYear(' + y + ')">' + y + '</button>';
-      });
-      html += '<select class="yr-select" onchange="setYear(parseInt(this.value))">';
-      html += '<option value="">Earlier…</option>';
-      prevYears.slice(2).forEach(function(y) { html += '<option value="' + y + '">' + y + '</option>'; });
       html += '</select>';
     }
     html += '<button class="btn-expand-all" onclick="toggleExpandAll()">Expand all</button>';
@@ -1049,11 +1051,20 @@
 
     /* ── Controls ── */
     html += '<div class="tracker-controls" style="flex-wrap:wrap;gap:0.5rem;">';
-    /* Year buttons */
+    /* Year buttons — current year as button, older years in dropdown */
     html += '<label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year:</label>';
-    allYrs.forEach(function(y) {
-      html += '<button class="yr-btn' + (ietYear === y ? ' active' : '') + '" onclick="setIETYear(' + y + ')">' + y + '</button>';
-    });
+    var isCurrentIETYearActive = (ietYear === currentYear);
+    html += '<button class="yr-btn' + (isCurrentIETYearActive ? ' active' : '') + '" onclick="setIETYear(' + currentYear + ')">' + currentYear + '</button>';
+    var olderIETYrs = allYrs.filter(function(y){ return y !== currentYear; });
+    if (olderIETYrs.length > 0) {
+      var olderIETActive = !isCurrentIETYearActive;
+      html += '<select class="yr-select' + (olderIETActive ? ' active' : '') + '" id="iet-yr-select" onchange="setIETYear(parseInt(this.value))">';
+      html += '<option value="">' + (olderIETActive ? ietYear : 'Earlier…') + '</option>';
+      olderIETYrs.forEach(function(y) {
+        html += '<option value="' + y + '"' + (ietYear === y ? ' selected' : '') + '>' + y + '</option>';
+      });
+      html += '</select>';
+    }
     /* Period buttons */
     html += '<span style="margin-left:0.5rem;border-left:1px solid var(--border);padding-left:0.75rem;display:flex;gap:0.4rem;align-items:center;">';
     var periods = [['year','Full Year'],['q1','Q1'],['q2','Q2'],['q3','Q3'],['q4','Q4']];
@@ -1267,8 +1278,10 @@
 
   async function setIETYear(y) {
     ietYear = y;
-    // If we don't have this year's data yet, fetch it on demand then merge in
+    // If we don't have this year's data yet, show loading and fetch on demand
     if (finSummaryData && !finSummaryData.transactions.some(function(t){ return t.year === y; })) {
+      document.getElementById('iet-inner').innerHTML =
+        '<div style="padding:2rem;text-align:center;color:var(--mid);"><div class="spinner" style="margin:0 auto 0.75rem;"></div>Loading ' + y + ' data…</div>';
       try {
         var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
         var json = await res.json();
