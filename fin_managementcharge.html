@@ -512,6 +512,7 @@
   <!-- Farmhouse Rent and Insurance Rent Tracker -->
   <div class="finance-section">
     <h3 class="section-heading">Farmhouse Rent and Insurance Rent</h3>
+    <div style="height:4px;background:var(--cream);"></div>
     <button class="btn-toggle btn-loading" id="toggle-farmhouse" onclick="togglePanel('farmhouse')" aria-expanded="false">
       <span class="toggle-left"><span>🏡 Farmhouse Rent and Insurance Rent Tracker</span></span>
       <span class="toggle-hint">
@@ -617,12 +618,6 @@
       farmhouseData = json3;
       document.getElementById('toggle-farmhouse').classList.remove('btn-loading');
       renderFarmhouse();
-      // Default to expanded — only 8 rows per year
-      var fhPanel = document.getElementById('panel-farmhouse');
-      var fhBtn   = document.getElementById('toggle-farmhouse');
-      fhPanel.classList.add('open');
-      fhBtn.classList.add('open');
-      fhBtn.setAttribute('aria-expanded', 'true');
     } catch(err) {
       document.getElementById('farmhouse-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
@@ -1394,7 +1389,7 @@
     html += '</div>';
 
     // Column headers
-    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.5rem 1.25rem;background:var(--dark);color:var(--cream);">';
+    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.5rem 1.25rem;background:var(--dark);color:var(--cream);">';
     html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Property</span>';
     html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;text-align:right;">Due</span>';
     html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;text-align:right;">Paid</span>';
@@ -1422,13 +1417,14 @@
       html += '<div style="border-bottom:1px solid var(--border);">';
 
       // Property header row — clickable to expand
-      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px;padding:0.65rem 1.25rem;' + rowBg + 'cursor:pointer;align-items:center;" onclick="toggleFHProp(\'' + key + '\')">';
-      html += '<span style="display:flex;align-items:center;gap:0.5rem;font-weight:600;font-size:0.85rem;">';
+      html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.65rem 1.25rem;' + rowBg + 'cursor:pointer;align-items:center;" onclick="toggleFHProp(\'' + key + '\')">';
+      html += '<span style="display:flex;align-items:center;gap:0.5rem;font-weight:600;font-size:0.85rem;" class="prop-name">';
       html += '<span class="prop-status-dot ' + dotClass + '"></span>' + addr;
       html += '</span>';
       html += '<span style="text-align:right;font-size:0.85rem;color:var(--mid);">' + (totalDue > 0 ? fmt(totalDue) : '—') + '</span>';
       html += '<span style="text-align:right;font-size:0.85rem;color:var(--green,#3a7a3a);font-weight:600;">' + (totalPaid > 0 ? fmt(totalPaid) : '<span style="color:var(--stone);">—</span>') + '</span>';
       html += '<span style="text-align:right;font-size:0.85rem;" class="' + outClass + '">' + (totalDue > 0 ? outText : '—') + '</span>';
+      html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="fhchev-' + key + '"></span></span>';
       html += '</div>';
 
       // Expandable breakdown
@@ -1485,9 +1481,12 @@
   }
 
   function toggleFHProp(key) {
-    var el = document.getElementById('fhprop-' + key);
+    var el   = document.getElementById('fhprop-' + key);
+    var chev = document.getElementById('fhchev-' + key);
     if (!el) return;
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    var isOpen = el.style.display !== 'none';
+    el.style.display = isOpen ? 'none' : 'block';
+    if (chev) chev.classList.toggle('open', !isOpen);
   }
 
   function setFHYear(y) {
