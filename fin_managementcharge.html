@@ -294,7 +294,8 @@
   .val-owed { color: #c62828; font-weight: 600; }
   .val-clear { color: #2e7d32; font-weight: 600; }
   .val-over { color: #6a1b9a; font-weight: 600; }
-  .prop-chevron { font-size: 0.65rem; color: var(--stone); transition: transform 0.25s; display: inline-block; }
+  .prop-chevron { font-size: 0.65rem; color: var(--stone); transition: transform 0.25s; display: inline-block; width:16px; height:16px; display:flex; align-items:center; justify-content:center; }
+  .prop-chevron::after { content:""; display:block; width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:6px solid var(--stone); }
   .prop-chevron.open { transform: rotate(90deg); }
   .month-panel { display: none; border-top: 1px solid var(--border); background: rgba(245,240,232,0.5); }
   .month-panel.open { display: block; }
@@ -645,18 +646,9 @@
     /* Controls bar */
     html += '<div class="tracker-controls">';
     html += '<label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year:</label>';
-    var isCurrentYearActive = (activeYear === currentYear);
-    html += '<button class="yr-btn' + (isCurrentYearActive ? ' active' : '') + '" id="yrbtn-' + currentYear + '" onclick="setYear(' + currentYear + ')">' + currentYear + '</button>';
-    var prevYears = years.filter(function(y){ return y !== currentYear; });
-    if (prevYears.length > 0) {
-      var olderActive = !isCurrentYearActive;
-      html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" id="tracker-yr-select" onchange="setYear(parseInt(this.value))">';
-      html += '<option value="">' + (olderActive ? activeYear : 'Earlier…') + '</option>';
-      prevYears.forEach(function(y) {
-        html += '<option value="' + y + '"' + (activeYear === y ? ' selected' : '') + '>' + y + '</option>';
-      });
-      html += '</select>';
-    }
+    years.forEach(function(y) {
+      html += '<button class="yr-btn' + (activeYear === y ? ' active' : '') + '" id="yrbtn-' + y + '" onclick="setYear(' + y + ')">' + y + '</button>';
+    });
     html += '<button class="btn-expand-all" onclick="toggleExpandAll()">Expand all</button>';
     html += '</div>';
 
@@ -1059,7 +1051,7 @@
     if (olderIETYrs.length > 0) {
       var olderIETActive = !isCurrentIETYearActive;
       html += '<select class="yr-select' + (olderIETActive ? ' active' : '') + '" id="iet-yr-select" onchange="setIETYear(parseInt(this.value))">';
-      html += '<option value="">' + (olderIETActive ? ietYear : 'Earlier…') + '</option>';
+      html += '<option value="">' + (olderIETActive ? ietYear : 'Earlier Year') + '</option>';
       olderIETYrs.forEach(function(y) {
         html += '<option value="' + y + '"' + (ietYear === y ? ' selected' : '') + '>' + y + '</option>';
       });
