@@ -372,7 +372,7 @@
     font-size: 0.9rem; font-weight: 700;
   }
   .iet-group-row {
-    display: grid; grid-template-columns: 28px 1fr auto 28px;
+    display: grid; grid-template-columns: 28px 1fr auto 40px;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
     align-items: center; cursor: pointer; transition: background 0.15s;
     user-select: none;
@@ -388,7 +388,7 @@
   .iet-items { display: none; background: rgba(245,240,232,0.5); border-bottom: 1px solid var(--border); }
   .iet-items.open { display: block; }
   .iet-item-row {
-    display: grid; grid-template-columns: 28px 1fr auto 28px;
+    display: grid; grid-template-columns: 28px 1fr auto 40px;
     padding: 0.45rem 1.5rem; border-bottom: 1px solid rgba(221,213,200,0.4);
     align-items: center;
   }
@@ -412,12 +412,13 @@
   .iet-drill-row:last-child { border-bottom:none; }
   .iet-drill-label { color:var(--mid); }
   .iet-drill-val { text-align:right; font-weight:600; }
-    display: grid; grid-template-columns: 1fr auto;
-    padding: 0.85rem 1.5rem; background: var(--dark);
-    border-top: 3px solid var(--border);
+  .iet-net-row {
+    display:grid; grid-template-columns:1fr auto;
+    padding:0.85rem 1.5rem; background:var(--dark);
+    border-top:3px solid var(--border); align-items:center;
   }
-  .iet-net-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--stone); }
-  .iet-net-val { font-size: 1.1rem; font-weight: 700; text-align: right; }
+  .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); }
+  .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
   .iet-income-val { color: #2e7d32; }
   .iet-expense-val { color: #c62828; }
   .iet-net-pos { color: #4caf50; }
@@ -1096,10 +1097,10 @@
         var name = t.category.replace(prefix, '').trim();
         if (prefix === 'I-') {
           if (!drillInc[name]) drillInc[name] = [];
-          drillInc[name].push({ address: t.address, amount: t.amtIn });
+          drillInc[name].push({ address: t.address, amount: t.amtIn, notes: t.notes || '' });
         } else {
           if (!drillExp[name]) drillExp[name] = [];
-          drillExp[name].push({ date: t.date, description: t.description, amount: t.amtOut });
+          drillExp[name].push({ date: t.date, description: t.description, amount: t.amtOut, notes: t.notes || '' });
         }
       });
 
@@ -1150,24 +1151,40 @@
           if (hasDrill) {
             sh += '<div class="iet-drill" id="iet-drill-' + itemKey + '">';
             if (prefix === 'I-') {
-              /* Income: group by address, sum amounts */
-              var addrMap = {};
-              groupedDrillInc[g.key][name].forEach(function(r) {
-                var a = r.address || 'Unknown';
-                addrMap[a] = (addrMap[a] || 0) + r.amount;
+              /* Income: sort by address numerically, show each payment with notes if present */
+              var incPayments = groupedDrillInc[g.key][name].slice().sort(function(a,b){
+                var na = parseInt(a.address); var nb = parseInt(b.address);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return (a.address||'').localeCompare(b.address||'');
               });
-              Object.keys(addrMap).sort().forEach(function(addr) {
+              /* Group by address+notes combo */
+              var addrMap = {};
+              incPayments.forEach(function(r) {
+                var a = r.address || 'Unknown';
+                if (!addrMap[a]) addrMap[a] = { amount: 0, notes: r.notes };
+                addrMap[a].amount += r.amount;
+                if (r.notes && !addrMap[a].notes) addrMap[a].notes = r.notes;
+              });
+              Object.keys(addrMap).sort(function(a,b){
+                var na = parseInt(a); var nb = parseInt(b);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+              }).forEach(function(addr) {
+                var entry = addrMap[addr];
+                var label = addr + (entry.notes ? ' (' + entry.notes + ')' : '');
                 sh += '<div class="iet-drill-row">';
-                sh += '<span></span><span class="iet-drill-label">' + addr + '</span>';
-                sh += '<span class="iet-drill-val iet-income-val">' + fmt(addrMap[addr]) + '</span>';
+                sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
+                sh += '<span class="iet-drill-val iet-income-val">' + fmt(entry.amount) + '</span>';
                 sh += '<span></span></div>';
               });
             } else {
-              /* Expenditure: date + description + amount */
+              /* Expenditure: date + description + notes + amount */
               groupedDrillExp[g.key][name].sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+                var desc = r.description || '';
+                if (r.notes) desc += ' (' + r.notes + ')';
                 sh += '<div class="iet-drill-row">';
                 sh += '<span></span>';
-                sh += '<span class="iet-drill-label">' + r.date + (r.description ? ' — ' + r.description : '') + '</span>';
+                sh += '<span class="iet-drill-label">' + r.date + (desc ? ' — ' + desc : '') + '</span>';
                 sh += '<span class="iet-drill-val iet-expense-val">' + fmt(r.amount) + '</span>';
                 sh += '<span></span></div>';
               });
