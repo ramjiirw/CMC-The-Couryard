@@ -384,7 +384,9 @@
   </div>
 
   <div class="finance-section">
-    <h3 class="section-heading">Monthly Breakdown</h3>
+    <h3 class="section-heading">Management Charge Tracker</h3>
+
+    <div style="height:4px;background:var(--cream);"></div>
 
     <button class="btn-toggle btn-loading" id="toggle-tracker" onclick="togglePanel('tracker')" aria-expanded="false">
       <span class="toggle-left"><span>💷 Monthly Breakdown</span></span>
@@ -401,10 +403,9 @@
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
     </div>
-  </div>
 
-  <div class="finance-section">
-    <h3 class="section-heading">Annual Overview</h3>
+    <div style="height:4px;background:var(--cream);"></div>
+
     <button class="btn-toggle btn-loading" id="toggle-annual" onclick="togglePanel('annual')" aria-expanded="false">
       <span class="toggle-left"><span>📅 Annual Overview</span></span>
       <span class="toggle-hint">
@@ -414,11 +415,13 @@
         <span class="chevron">▶</span>
       </span>
     </button>
+
     <div class="collapsible-panel" id="panel-annual">
       <div id="annual-inner">
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
     </div>
+
   </div>
 
 </main>
@@ -715,21 +718,16 @@
   var annualAllExpanded = false;
 
   function renderAnnual() {
-    var years = getAvailableYears(); // desc, latest first
+    var years = getAvailableYears();
     var html = '';
 
-    /* Controls */
     html += '<div class="tracker-controls">';
     html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all</button>';
     html += '</div>';
 
-    /* Column headers */
     html += '<div class="tracker-col-heads">';
     html += '<span></span><span>Property</span>';
-    html += '<span style="text-align:right;">Due</span>';
-    html += '<span style="text-align:right;">Paid</span>';
-    html += '<span></span>';
-    html += '<span></span></div>';
+    html += '<span></span><span></span><span></span><span></span></div>';
 
     html += '<div id="annual-rows">';
 
@@ -737,28 +735,23 @@
       var propTotalDue = 0, propTotalPaid = 0;
       years.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
-        var payments = getPayments(addr, yr);
         propTotalDue  += due;
-        propTotalPaid += payments.reduce(function(s,p){ return s+p.amount; }, 0);
+        propTotalPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
       });
 
-      var propOut   = propTotalDue - propTotalPaid;
-      var dotClass  = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
-      var key       = 'an_' + addr.replace(/ /g,'_');
+      var propOut  = propTotalDue - propTotalPaid;
+      var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
+      var key      = 'an_' + addr.replace(/ /g,'_');
 
       html += '<div class="prop-row" id="proprow-' + key + '">';
       html += '<div class="prop-header" onclick="toggleAnnualProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
-      html += '<span class="prop-val val-due" style="text-align:right;">' + fmt(propTotalDue) + '</span>';
-      html += '<span class="prop-val val-paid" style="text-align:right;">' + fmt(propTotalPaid) + '</span>';
-      html += '<span></span>';
+      html += '<span></span><span></span><span></span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '">▶</span></span>';
       html += '</div>';
 
-      /* Year rows panel */
       html += '<div class="month-panel" id="months-' + key + '">';
-      /* Sub-headers */
       html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
@@ -767,7 +760,6 @@
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Outstanding</span>';
       html += '<span></span></div>';
 
-      /* One row per year */
       years.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
         var payments = getPayments(addr, yr);
@@ -788,17 +780,16 @@
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '">▶</span></span>';
         html += '</div>';
 
-        /* Month sub-panel */
         html += '<div class="month-panel" id="yrmonths-' + yrKey + '" style="background:rgba(122,92,62,0.03);">';
         html += buildAnnualMonthRows(addr, yr);
         html += '</div>';
       });
 
-      html += '</div>'; /* months- panel */
-      html += '</div>'; /* prop-row */
+      html += '</div>';
+      html += '</div>';
     });
 
-    html += '</div>'; /* annual-rows */
+    html += '</div>';
     document.getElementById('annual-inner').innerHTML = html;
   }
 
@@ -815,9 +806,7 @@
       var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
       var mPaid = mPayments.reduce(function(s,p){ return s+p.amount; }, 0);
       var isGreen = yearPaidTotal >= due && due > 0;
-      var rowClass = 'month-row';
-      if (isGreen || mPaid > 0) rowClass += ' m-green';
-      else rowClass += ' m-red';
+      var rowClass = 'month-row' + ((isGreen || mPaid > 0) ? ' m-green' : ' m-red');
       var dotCol = (isGreen || mPaid > 0) ? 'green' : 'red';
 
       html += '<div class="' + rowClass + '">';
@@ -829,8 +818,7 @@
 
       if (mPayments.length > 1) {
         mPayments.forEach(function(p) {
-          html += '<div class="txn-row">';
-          html += '<span></span>';
+          html += '<div class="txn-row"><span></span>';
           html += '<span class="txn-date">' + fmtDate(p.date) + (p.description ? ' — ' + p.description : '') + '</span>';
           html += '<span></span><span class="txn-amount">' + fmt(p.amount) + '</span>';
           html += '<span></span><span></span></div>';
