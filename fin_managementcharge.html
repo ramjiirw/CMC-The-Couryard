@@ -1467,15 +1467,36 @@
     });
     var summPaid = summRentPaid + summInsPaid;
     var summOut  = summDue - summPaid;
-    var summOutC = summOut > 0 ? 'val-owed' : summOut < 0 ? 'val-over' : 'val-clear';
-    var summOutT = summOut > 0 ? fmt(summOut) : summOut < 0 ? '+' + fmt(Math.abs(summOut)) + ' overpaid' : '✓ All paid';
 
-    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.65rem 1.25rem;background:var(--dark);border-top:2px solid rgba(196,149,106,0.3);">';
-    html += '<span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">Total</span>';
-    html += '<span style="text-align:right;font-size:0.85rem;color:var(--stone);">' + (summDue > 0 ? fmt(summDue) : '—') + '</span>';
-    html += '<span style="text-align:right;font-size:0.85rem;color:var(--accent2);font-weight:600;">' + (summPaid > 0 ? fmt(summPaid) : '—') + '</span>';
-    html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;" class="' + summOutC + '">' + (summDue > 0 ? summOutT : '—') + '</span>';
-    html += '</div>';
+    // Helper for footer row
+    function fhFooterRow(label, due, paid, borderTop) {
+      var out  = due - paid;
+      var outC = out > 0 ? 'val-owed' : out < 0 ? 'val-over' : 'val-clear';
+      var outT = out > 0 ? fmt(out) : out < 0 ? '+' + fmt(Math.abs(out)) + ' overpaid' : '✓ All paid';
+      var border = borderTop ? 'border-top:2px solid rgba(196,149,106,0.3);' : 'border-top:1px solid rgba(196,149,106,0.15);';
+      var row = '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.55rem 1.25rem;background:var(--dark);' + border + '">';
+      row += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">' + label + '</span>';
+      row += '<span style="text-align:right;font-size:0.82rem;color:var(--stone);">' + (due > 0 ? fmt(due) : '—') + '</span>';
+      row += '<span style="text-align:right;font-size:0.82rem;color:var(--accent2);font-weight:600;">' + (paid > 0 ? fmt(paid) : '—') + '</span>';
+      row += '<span style="text-align:right;font-size:0.82rem;font-weight:600;" class="' + outC + '">' + (due > 0 ? outT : '—') + '</span>';
+      row += '<span></span></div>';
+      return row;
+    }
+
+    // Cumulative total row (slightly larger, accent border)
+    var cumOut  = summOut;
+    var cumOutC = cumOut > 0 ? 'val-owed' : cumOut < 0 ? 'val-over' : 'val-clear';
+    var cumOutT = cumOut > 0 ? fmt(cumOut) : cumOut < 0 ? '+' + fmt(Math.abs(cumOut)) + ' overpaid' : '✓ All paid';
+
+    html += fhFooterRow('Farmhouse Rent Total', summRentDue, summRentPaid, true);
+    html += fhFooterRow('Farmhouse Insurance Rent Total', summInsDue, summInsPaid, false);
+
+    html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.65rem 1.25rem;background:var(--dark);border-top:1px solid rgba(196,149,106,0.4);">';
+    html += '<span style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent2);">Total</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;color:var(--stone);font-weight:600;">' + (summDue > 0 ? fmt(summDue) : '—') + '</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;color:var(--accent2);font-weight:700;">' + (summPaid > 0 ? fmt(summPaid) : '—') + '</span>';
+    html += '<span style="text-align:right;font-size:0.85rem;font-weight:700;" class="' + cumOutC + '">' + (summDue > 0 ? cumOutT : '—') + '</span>';
+    html += '<span></span></div>';
 
     document.getElementById('farmhouse-inner').innerHTML = html;
   }
