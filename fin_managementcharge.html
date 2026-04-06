@@ -384,10 +384,10 @@
   </div>
 
   <div class="finance-section">
-    <h3 class="section-heading">Management Charge Tracker</h3>
+    <h3 class="section-heading">Monthly Breakdown</h3>
 
     <button class="btn-toggle btn-loading" id="toggle-tracker" onclick="togglePanel('tracker')" aria-expanded="false">
-      <span class="toggle-left"><span>💷 Management Charge Tracker</span></span>
+      <span class="toggle-left"><span>💷 Monthly Breakdown</span></span>
       <span class="toggle-hint">
         <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to expand &amp; view</span>
@@ -404,10 +404,9 @@
   </div>
 
   <div class="finance-section">
-    <h3 class="section-heading">Year-by-Year Breakdown</h3>
-
-    <button class="btn-toggle btn-loading" id="toggle-yearview" onclick="togglePanel('yearview')" aria-expanded="false">
-      <span class="toggle-left"><span>📅 Year-by-Year Breakdown</span></span>
+    <h3 class="section-heading">Annual Overview</h3>
+    <button class="btn-toggle btn-loading" id="toggle-annual" onclick="togglePanel('annual')" aria-expanded="false">
+      <span class="toggle-left"><span>📅 Annual Overview</span></span>
       <span class="toggle-hint">
         <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to expand &amp; view</span>
@@ -415,9 +414,8 @@
         <span class="chevron">▶</span>
       </span>
     </button>
-
-    <div class="collapsible-panel" id="panel-yearview">
-      <div id="yearview-inner">
+    <div class="collapsible-panel" id="panel-annual">
+      <div id="annual-inner">
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
     </div>
@@ -466,16 +464,16 @@
       if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
       chargeData = json;
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
-      document.getElementById('toggle-yearview').classList.remove('btn-loading');
+      document.getElementById('toggle-annual').classList.remove('btn-loading');
       renderTracker();
-      renderYearView();
+      renderAnnual();
     } catch(err) {
       document.getElementById('tracker-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data. Check the Apps Script is deployed.<br><small>' + err.message + '</small></div>';
-      document.getElementById('yearview-inner').innerHTML =
+      document.getElementById('annual-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
-      document.getElementById('toggle-yearview').classList.remove('btn-loading');
+      document.getElementById('toggle-annual').classList.remove('btn-loading');
     }
   }
 
@@ -713,100 +711,139 @@
     if (active) active.classList.add('active');
   }
 
-  function renderYearView() {
-    var years = getAvailableYears(); // already sorted desc (latest first)
+  /* ── Annual Overview ── */
+  var annualAllExpanded = false;
+
+  function renderAnnual() {
+    var years = getAvailableYears(); // desc, latest first
     var html = '';
+
+    /* Controls */
+    html += '<div class="tracker-controls">';
+    html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all</button>';
+    html += '</div>';
 
     /* Column headers */
     html += '<div class="tracker-col-heads">';
     html += '<span></span><span>Property</span>';
-    html += '<span style="text-align:right;">Cumulative Outstanding</span>';
-    html += '<span></span><span></span><span></span></div>';
+    html += '<span style="text-align:right;">Due</span>';
+    html += '<span style="text-align:right;">Paid</span>';
+    html += '<span></span>';
+    html += '<span></span></div>';
 
-    /* Property rows */
-    html += '<div id="yearview-rows">';
-    var grandTotalDue = 0, grandTotalPaid = 0;
+    html += '<div id="annual-rows">';
 
     PROPERTIES.forEach(function(addr) {
       var propTotalDue = 0, propTotalPaid = 0;
-
-      /* Build year rows html */
-      var yearRowsHtml = '';
       years.forEach(function(yr) {
-        var due = getDue(yr);
-        if (!due) return; // skip years with no charge defined
+        var due = getDue(yr); if (!due) return;
         var payments = getPayments(addr, yr);
-        var paid = payments.reduce(function(s,p){ return s + p.amount; }, 0);
-        var outstanding = due - paid;
-        propTotalDue += due;
-        propTotalPaid += paid;
-
-        var dotClass = outstanding > 0 ? 'dot-red' : outstanding < 0 ? 'dot-amber' : 'dot-green';
-        if (paid === 0 && due > 0) dotClass = 'dot-red';
-        var outClass = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
-        var outText = outstanding > 0 ? fmt(outstanding) :
-                      outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '✓ Paid in full';
-
-        yearRowsHtml += '<div class="month-row' + (paid > 0 && outstanding <= 0 ? ' m-green' : outstanding < due && paid > 0 ? ' m-amber' : ' m-red') + '">';
-        yearRowsHtml += '<span><span class="month-dot ' + dotClass + '"></span></span>';
-        yearRowsHtml += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
-        yearRowsHtml += '<span class="month-val ' + (outstanding > 0 ? 'owed' : outstanding < 0 ? '' : 'clear') + '" style="text-align:right;">' + fmt(due) + '</span>';
-        yearRowsHtml += '<span class="month-val paid" style="text-align:right;">' + (paid > 0 ? fmt(paid) : '<span class="muted">—</span>') + '</span>';
-        yearRowsHtml += '<span class="month-val ' + outClass + '" style="text-align:right;grid-column:5;">' + outText + '</span>';
-        yearRowsHtml += '<span></span></div>';
+        propTotalDue  += due;
+        propTotalPaid += payments.reduce(function(s,p){ return s+p.amount; }, 0);
       });
 
-      grandTotalDue += propTotalDue;
-      grandTotalPaid += propTotalPaid;
-
-      var propOutstanding = propTotalDue - propTotalPaid;
-      var dotClass = propOutstanding > 0 ? 'dot-red' : propOutstanding < 0 ? 'dot-amber' : 'dot-green';
-      if (propTotalPaid === 0 && propTotalDue > 0) dotClass = 'dot-red';
-      var outClass = propOutstanding > 0 ? 'val-owed' : propOutstanding < 0 ? 'val-over' : 'val-clear';
-      var outText = propOutstanding > 0 ? fmt(propOutstanding) :
-                    propOutstanding < 0 ? '+' + fmt(Math.abs(propOutstanding)) + ' overpaid' : '✓ Paid in full';
-
-      var key = 'yv_' + addr.replace(/ /g,'_');
+      var propOut   = propTotalDue - propTotalPaid;
+      var dotClass  = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
+      var key       = 'an_' + addr.replace(/ /g,'_');
 
       html += '<div class="prop-row" id="proprow-' + key + '">';
-      html += '<div class="prop-header" onclick="toggleYearProp(\'' + key + '\')">';
+      html += '<div class="prop-header" onclick="toggleAnnualProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
-      html += '<span class="prop-val ' + outClass + '" style="grid-column:3/7;text-align:right;">' + outText + '</span>';
+      html += '<span class="prop-val val-due" style="text-align:right;">' + fmt(propTotalDue) + '</span>';
+      html += '<span class="prop-val val-paid" style="text-align:right;">' + fmt(propTotalPaid) + '</span>';
+      html += '<span></span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '">▶</span></span>';
       html += '</div>';
 
-      /* Year detail panel — has sub-col headers */
+      /* Year rows panel */
       html += '<div class="month-panel" id="months-' + key + '">';
-      /* Sub-column headers inside the expanded panel */
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.05);border-bottom:1px solid var(--border);">';
+      /* Sub-headers */
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Due</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Paid</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Outstanding</span>';
       html += '<span></span></div>';
-      html += yearRowsHtml;
-      html += '</div>';
-      html += '</div>';
+
+      /* One row per year */
+      years.forEach(function(yr) {
+        var due = getDue(yr); if (!due) return;
+        var payments = getPayments(addr, yr);
+        var paid = payments.reduce(function(s,p){ return s+p.amount; }, 0);
+        var outstanding = due - paid;
+        var dotC  = (paid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
+        var outC  = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
+        var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '✓ Paid in full';
+        var rowBg = (paid > 0 && outstanding <= 0) ? ' m-green' : paid > 0 ? ' m-amber' : ' m-red';
+        var yrKey = key + '_' + yr;
+
+        html += '<div class="month-row' + rowBg + '" style="cursor:pointer;" onclick="toggleAnnualMonths(\'' + yrKey + '\')">';
+        html += '<span><span class="month-dot ' + dotC + '"></span></span>';
+        html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
+        html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
+        html += '<span class="month-val paid" style="text-align:right;">' + (paid > 0 ? fmt(paid) : '<span class="muted">—</span>') + '</span>';
+        html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + '</span>';
+        html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '">▶</span></span>';
+        html += '</div>';
+
+        /* Month sub-panel */
+        html += '<div class="month-panel" id="yrmonths-' + yrKey + '" style="background:rgba(122,92,62,0.03);">';
+        html += buildAnnualMonthRows(addr, yr);
+        html += '</div>';
+      });
+
+      html += '</div>'; /* months- panel */
+      html += '</div>'; /* prop-row */
     });
 
-    html += '</div>';
-
-    /* Summary bar */
-    var totalOut = grandTotalDue - grandTotalPaid;
-    html += '<div class="tracker-summary">';
-    html += '<div class="sum-card sum-card-due"><span class="sum-card-label">Total Due (all years)</span><span class="sum-card-val">' + fmt(grandTotalDue) + '</span></div>';
-    html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Total Paid</span><span class="sum-card-val">' + fmt(grandTotalPaid) + '</span></div>';
-    html += totalOut > 0
-      ? '<div class="sum-card sum-card-owed"><span class="sum-card-label">Total Outstanding</span><span class="sum-card-val">' + fmt(totalOut) + '</span></div>'
-      : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Total Outstanding</span><span class="sum-card-val">✓ All paid</span></div>';
-    html += '</div>';
-
-    document.getElementById('yearview-inner').innerHTML = html;
+    html += '</div>'; /* annual-rows */
+    document.getElementById('annual-inner').innerHTML = html;
   }
 
-  function toggleYearProp(key) {
+  function buildAnnualMonthRows(addr, yr) {
+    var due = getDue(yr);
+    var dueMonthly = due > 0 ? (due / 12) : 0;
+    var payments = getPayments(addr, yr);
+    var yearPaidTotal = payments.reduce(function(s,p){ return s+p.amount; }, 0);
+    var isCurrentYear = (yr === currentYear);
+    var html = '';
+
+    MONTHS.forEach(function(mName, mi) {
+      if (isCurrentYear && mi > currentMonth) return;
+      var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
+      var mPaid = mPayments.reduce(function(s,p){ return s+p.amount; }, 0);
+      var isGreen = yearPaidTotal >= due && due > 0;
+      var rowClass = 'month-row';
+      if (isGreen || mPaid > 0) rowClass += ' m-green';
+      else rowClass += ' m-red';
+      var dotCol = (isGreen || mPaid > 0) ? 'green' : 'red';
+
+      html += '<div class="' + rowClass + '">';
+      html += '<span><span class="month-dot dot-' + dotCol + '"></span></span>';
+      html += '<span class="month-name">' + mName + '</span>';
+      html += '<span></span>';
+      html += '<span class="month-val ' + (mPaid > 0 ? 'paid' : 'muted') + '">' + (mPaid > 0 ? fmt(mPaid) : '—') + '</span>';
+      html += '<span></span><span></span></div>';
+
+      if (mPayments.length > 1) {
+        mPayments.forEach(function(p) {
+          html += '<div class="txn-row">';
+          html += '<span></span>';
+          html += '<span class="txn-date">' + fmtDate(p.date) + (p.description ? ' — ' + p.description : '') + '</span>';
+          html += '<span></span><span class="txn-amount">' + fmt(p.amount) + '</span>';
+          html += '<span></span><span></span></div>';
+          if (p.notes) html += '<div class="note-row">📝 ' + p.notes + '</div>';
+        });
+      } else if (mPayments.length === 1 && mPayments[0].notes) {
+        html += '<div class="note-row">📝 ' + mPayments[0].notes + '</div>';
+      }
+    });
+    return html;
+  }
+
+  function toggleAnnualProp(key) {
     var panel = document.getElementById('months-' + key);
     var chev  = document.getElementById('chev-' + key);
     var hdr   = chev.closest('.prop-header');
@@ -816,6 +853,37 @@
     } else {
       panel.classList.add('open'); chev.classList.add('open'); hdr.classList.add('expanded');
     }
+  }
+
+  function toggleAnnualMonths(yrKey) {
+    var panel = document.getElementById('yrmonths-' + yrKey);
+    var chev  = document.getElementById('chev-' + yrKey);
+    var isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      panel.classList.remove('open'); chev.classList.remove('open');
+    } else {
+      panel.classList.add('open'); chev.classList.add('open');
+    }
+  }
+
+  function toggleAnnualExpandAll() {
+    annualAllExpanded = !annualAllExpanded;
+    var btn = document.getElementById('annual-expand-btn');
+    if (btn) btn.textContent = annualAllExpanded ? 'Collapse all' : 'Expand all';
+    PROPERTIES.forEach(function(addr) {
+      var key   = 'an_' + addr.replace(/ /g,'_');
+      var panel = document.getElementById('months-' + key);
+      var chev  = document.getElementById('chev-' + key);
+      if (!panel || !chev) return;
+      var hdr = chev.closest('.prop-header');
+      if (annualAllExpanded) {
+        panel.classList.add('open'); chev.classList.add('open');
+        if (hdr) hdr.classList.add('expanded');
+      } else {
+        panel.classList.remove('open'); chev.classList.remove('open');
+        if (hdr) hdr.classList.remove('expanded');
+      }
+    });
   }
 
   loadData();
