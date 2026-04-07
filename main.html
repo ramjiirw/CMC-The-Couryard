@@ -390,8 +390,100 @@
   #sessionWarningToast .sw-sub { font-size:0.72rem; color:#b8ada0; margin-bottom:0.75rem; }
   #sessionWarningToast .sw-btn { background:var(--accent); color:var(--dark); border:none; border-radius:6px; padding:0.45rem 1.1rem; font-size:0.78rem; font-weight:700; cursor:pointer; letter-spacing:0.04em; }
   #sessionWarningToast .sw-btn:hover { opacity:0.85; }
+  /* ── Document Search Card ── */
+  .search-hub-card { background: white; border: 1px solid var(--accent2); }
+  .search-hub-input {
+    width: 100%; box-sizing: border-box;
+    padding: 0.4rem 0.7rem; border: 1px solid var(--border);
+    border-radius: 6px; font-family: Arial, sans-serif;
+    font-size: 0.82rem; color: var(--dark); background: var(--warm);
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-hub-input:focus { border-color: var(--accent2); }
+  .search-hub-preview { margin-top: 0.45rem; }
+  .search-hub-row { padding: 0.25rem 0; border-bottom: 1px solid rgba(184,173,158,0.2); display: flex; flex-direction: column; gap: 0.05rem; }
+  .search-hub-row:last-of-type { border-bottom: none; }
+  .search-hub-name { font-size: 0.75rem; font-weight: 600; color: var(--accent); text-decoration: none; display: block; }
+  .search-hub-name:hover { text-decoration: underline; }
+  .search-hub-folder { font-size: 0.65rem; color: var(--stone); }
+  .search-hub-none { font-size: 0.72rem; color: var(--stone); font-style: italic; padding: 0.3rem 0; }
+  .search-hub-btn {
+    display: block; width: 100%; margin-top: 0.45rem;
+    padding: 0.3rem 0; background: var(--warm);
+    border: 1px solid var(--border); border-radius: 5px;
+    font-family: Arial, sans-serif; font-size: 0.75rem;
+    font-weight: 600; color: var(--accent); text-align: center;
+    cursor: pointer; letter-spacing: 0.03em; transition: all 0.2s;
+  }
+  .search-hub-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* ── Document Search Modal ── */
+  .search-hub-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(30,26,22,0.6); z-index: 500;
+    align-items: flex-start; justify-content: center; padding-top: 4rem;
+  }
+  .search-hub-overlay.open { display: flex; }
+  .search-hub-modal {
+    background: white; border-radius: 10px; width: 92%;
+    max-width: 560px; max-height: 72vh; display: flex;
+    flex-direction: column; border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .search-hub-modal-header {
+    background: var(--dark); padding: 0.75rem 1.1rem;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .search-hub-modal-title { color: var(--cream); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .search-hub-modal-close { background: none; border: none; color: var(--stone); font-size: 1.1rem; cursor: pointer; opacity: 0.7; padding: 0; line-height: 1; }
+  .search-hub-modal-close:hover { opacity: 1; color: white; }
+  .search-hub-modal-search { padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .search-hub-modal-search input {
+    width: 100%; box-sizing: border-box; padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: Arial, sans-serif; font-size: 0.82rem;
+    color: var(--dark); background: var(--warm); outline: none;
+  }
+  .search-hub-modal-search input:focus { border-color: var(--accent2); }
+  .search-hub-modal-filters {
+    display: none; padding: 0.45rem 1.1rem;
+    border-bottom: 1px solid rgba(184,173,158,0.2);
+    align-items: center; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap;
+  }
+  .search-hub-modal-filters.visible { display: flex; }
+  .search-hub-yr-btn {
+    padding: 0.18rem 0.55rem; border: 1px solid var(--border);
+    border-radius: 4px; font-family: Arial, sans-serif;
+    font-size: 0.72rem; font-weight: 600; color: var(--accent);
+    background: var(--warm); cursor: pointer; transition: all 0.15s;
+  }
+  .search-hub-yr-btn:hover, .search-hub-yr-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .search-hub-yr-select {
+    padding: 0.18rem 0.5rem; border: 1px solid var(--border);
+    border-radius: 4px; font-family: Arial, sans-serif;
+    font-size: 0.72rem; color: var(--accent); background: var(--warm); outline: none;
+  }
+  .search-hub-yr-clear {
+    padding: 0.18rem 0.5rem; border: 1px solid rgba(176,80,80,0.3);
+    border-radius: 4px; font-family: Arial, sans-serif;
+    font-size: 0.72rem; font-weight: 600; color: #b05050;
+    background: rgba(176,80,80,0.06); cursor: pointer; transition: all 0.15s;
+    display: none;
+  }
+  .search-hub-yr-clear.visible { display: inline-block; }
+  .search-hub-yr-clear:hover { background: rgba(176,80,80,0.12); }
+  .search-hub-modal-meta { padding: 0.3rem 1.1rem; font-size: 0.68rem; color: var(--stone); border-bottom: 1px solid rgba(184,173,158,0.15); flex-shrink: 0; }
+  .search-hub-modal-results { overflow-y: auto; flex: 1; padding: 0.5rem 1.1rem 1rem; }
+  .search-hub-group { margin-bottom: 0.85rem; }
+  .search-hub-group-label { font-size: 0.62rem; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid rgba(184,173,158,0.2); }
+  .search-hub-result { padding: 0.3rem 0; border-bottom: 1px solid rgba(184,173,158,0.1); }
+  .search-hub-result:last-child { border-bottom: none; }
+  .search-hub-result a { font-size: 0.78rem; font-weight: 600; color: var(--accent); text-decoration: none; display: block; }
+  .search-hub-result a:hover { text-decoration: underline; }
+  .search-hub-result-folder { font-size: 0.65rem; color: var(--stone); margin-top: 0.05rem; }
+  .search-hub-empty { padding: 1rem 0; font-size: 0.8rem; color: var(--stone); font-style: italic; text-align: center; }
+
 </style>
-</head>
 <body>
 
 <header>
@@ -596,8 +688,42 @@
       <p class="agm-cta">View Farmhouse insurance and other documents &#x2192;</p>
     </a>
 
+    <!-- Document Search Card -->
+    <div class="link-card agm-card search-hub-card">
+      <div class="agm-card-top">
+        <span class="icon" style="margin:0">🔍</span>
+        <h3 style="margin:0">Search the Hub</h3>
+      </div>
+      <p style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
+      <input class="search-hub-input" id="hubCardInput" placeholder="e.g. insurance, minutes, bio filter…" oninput="hubCardSearch(this.value)" autocomplete="off">
+      <div class="search-hub-preview" id="hubPreview" style="display:none;"></div>
+      <button class="search-hub-btn" id="hubViewAll" style="display:none;" onclick="hubOpenModal()"></button>
+    </div>
+
   </div>
 </main>
+
+<!-- Document Search Modal -->
+<div class="search-hub-overlay" id="hubOverlay" onclick="hubOverlayClick(event)">
+  <div class="search-hub-modal">
+    <div class="search-hub-modal-header">
+      <span class="search-hub-modal-title">🔍 Search the Hub</span>
+      <button class="search-hub-modal-close" onclick="hubCloseModal()">✕</button>
+    </div>
+    <div class="search-hub-modal-search">
+      <input id="hubModalInput" placeholder="Search all CMC documents…" oninput="hubModalSearch(this.value)" autocomplete="off">
+    </div>
+    <div class="search-hub-modal-filters" id="hubFilters">
+      <button class="search-hub-yr-btn" id="hubBtnCY" onclick="hubToggleCY()"></button>
+      <select class="search-hub-yr-select" id="hubYearSel" onchange="hubSelectYear(this.value)">
+        <option value="">Earlier years…</option>
+      </select>
+      <button class="search-hub-yr-clear" id="hubYearClear" onclick="hubClearYear()">✕ Clear</button>
+    </div>
+    <div class="search-hub-modal-meta" id="hubMeta"></div>
+    <div class="search-hub-modal-results" id="hubResults"></div>
+  </div>
+</div>
 
 <script>
   (function() {
@@ -1098,8 +1224,207 @@
       document.getElementById('noticeboardCard').style.display = 'block';
     } catch(e) {}
   })();
+  // ── Document Search (Hub) ─────────────────────────────────────────────────
+  var _hubDocs        = [];
+  var _hubQuery       = '';
+  var _hubActiveYear  = null;
+  var _hubCurrentYear = new Date().getFullYear();
+  var _hubLoaded      = false;
+
+  // Load index.json once
+  async function hubLoadIndex() {
+    if (_hubLoaded) return;
+    try {
+      var res = await fetch('cmcdocuments/index.json?v=' + Date.now());
+      if (!res.ok) throw new Error();
+      var idx = await res.json();
+      var docs = [];
+      (idx.folders || []).forEach(function(folder) {
+        // Build human-readable folder label from path
+        (folder.files || []).forEach(function(file) {
+          // Parse parent · subfolder from path, e.g. "cmcdocuments/cmcbiofilter/cmcbiofilerservicing/..."
+          var parts = file.path.split('/');
+          // parts[0]=cmcdocuments, parts[1]=parent, parts[2]=subfolder or filename
+          var parent = parts[1] || '';
+          var sub    = parts.length > 3 ? parts[2] : '';
+          // Humanise: strip 'cmc' prefix, capitalise words
+          function humanise(s) {
+            return s.replace(/^cmc/, '').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}).trim() || s;
+          }
+          var folderLabel = humanise(parent) + (sub ? ' · ' + humanise(sub) : '');
+          docs.push({
+            name:   file.name,
+            path:   file.path,
+            folder: folderLabel
+          });
+        });
+      });
+      _hubDocs   = docs;
+      _hubLoaded = true;
+    } catch(e) {}
+  }
+
+  function hubExtractYear(name) {
+    var m = name.match(/\b(20\d{2})\b/);
+    return m ? parseInt(m[1]) : null;
+  }
+
+  function hubFilter(q) {
+    if (!q || q.length < 2) return [];
+    var lq = q.toLowerCase();
+    return _hubDocs.filter(function(d) {
+      return d.name.toLowerCase().indexOf(lq) > -1 || d.folder.toLowerCase().indexOf(lq) > -1;
+    });
+  }
+
+  function hubApplyYear(matches) {
+    if (!_hubActiveYear) return matches;
+    return matches.filter(function(d) { return hubExtractYear(d.name) === _hubActiveYear; });
+  }
+
+  function hubGroupByFolder(matches) {
+    var groups = {};
+    matches.forEach(function(d) {
+      if (!groups[d.folder]) groups[d.folder] = [];
+      groups[d.folder].push(d);
+    });
+    return groups;
+  }
+
+  async function hubCardSearch(q) {
+    _hubQuery = q;
+    var pre = document.getElementById('hubPreview');
+    var btn = document.getElementById('hubViewAll');
+    if (!q || q.length < 2) { pre.style.display='none'; btn.style.display='none'; return; }
+    await hubLoadIndex();
+    var matches = hubFilter(q);
+    if (!matches.length) {
+      pre.innerHTML = '<div class="search-hub-none">No results found</div>';
+      pre.style.display = 'block'; btn.style.display = 'none'; return;
+    }
+    if (matches.length <= 3) {
+      pre.innerHTML = matches.map(function(d) {
+        return '<div class="search-hub-row">'
+          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
+          + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
+          + '</div>';
+      }).join('');
+      pre.style.display = 'block'; btn.style.display = 'none';
+    } else {
+      pre.innerHTML = matches.slice(0,3).map(function(d) {
+        return '<div class="search-hub-row">'
+          + '<span class="search-hub-name" style="cursor:default;">' + escHtml(d.name) + '</span>'
+          + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
+          + '</div>';
+      }).join('');
+      pre.style.display = 'block';
+      btn.textContent = 'View all ' + matches.length + ' results \u2192';
+      btn.style.display = 'block';
+    }
+  }
+
+  function hubBuildYearFilters(allMatches) {
+    var years = {};
+    allMatches.forEach(function(d) { var y = hubExtractYear(d.name); if (y) years[y] = true; });
+    var sorted = Object.keys(years).map(Number).sort(function(a,b){return b-a;});
+    var filters = document.getElementById('hubFilters');
+    if (!sorted.length) { filters.classList.remove('visible'); return; }
+    filters.classList.add('visible');
+    var btnCY = document.getElementById('hubBtnCY');
+    btnCY.textContent = _hubCurrentYear;
+    btnCY.classList.toggle('active', _hubActiveYear === _hubCurrentYear);
+    var earlier = sorted.filter(function(y){return y !== _hubCurrentYear;});
+    var sel = document.getElementById('hubYearSel');
+    sel.innerHTML = '<option value="">Earlier years\u2026</option>';
+    earlier.forEach(function(y) {
+      var opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (_hubActiveYear === y) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.style.display = earlier.length ? '' : 'none';
+  }
+
+  function hubRenderModal(q) {
+    var allMatches = hubFilter(q);
+    hubBuildYearFilters(allMatches);
+    var matches    = hubApplyYear(allMatches);
+    var meta       = document.getElementById('hubMeta');
+    var results    = document.getElementById('hubResults');
+    var clearBtn   = document.getElementById('hubYearClear');
+    clearBtn.classList.toggle('visible', !!_hubActiveYear);
+    if (!allMatches.length && q.length >= 2) {
+      meta.textContent = 'No results found';
+      results.innerHTML = '<div class="search-hub-empty">No documents match your search</div>';
+      return;
+    }
+    if (!allMatches.length) { meta.textContent = ''; results.innerHTML = ''; return; }
+    var groups     = hubGroupByFolder(matches);
+    var folderCount = Object.keys(groups).length;
+    meta.textContent = matches.length + ' result' + (matches.length !== 1 ? 's' : '')
+      + (_hubActiveYear ? ' in ' + _hubActiveYear : ' across ' + folderCount + ' folder' + (folderCount !== 1 ? 's' : ''));
+    if (!matches.length) {
+      results.innerHTML = '<div class="search-hub-empty">No results for ' + _hubActiveYear + '</div>'; return;
+    }
+    results.innerHTML = Object.keys(groups).map(function(folder) {
+      var items = groups[folder].map(function(d) {
+        return '<div class="search-hub-result">'
+          + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
+          + '<div class="search-hub-result-folder">' + escHtml(d.folder) + '</div>'
+          + '</div>';
+      }).join('');
+      return '<div class="search-hub-group"><div class="search-hub-group-label">' + escHtml(folder) + '</div>' + items + '</div>';
+    }).join('');
+  }
+
+  async function hubOpenModal() {
+    _hubActiveYear = null;
+    await hubLoadIndex();
+    document.getElementById('hubModalInput').value = _hubQuery;
+    hubRenderModal(_hubQuery);
+    document.getElementById('hubOverlay').classList.add('open');
+    document.getElementById('hubModalInput').focus();
+  }
+
+  function hubCloseModal() { document.getElementById('hubOverlay').classList.remove('open'); }
+
+  function hubOverlayClick(e) { if (e.target === document.getElementById('hubOverlay')) hubCloseModal(); }
+
+  async function hubModalSearch(q) {
+    _hubQuery      = q;
+    _hubActiveYear = null;
+    document.getElementById('hubBtnCY').classList.remove('active');
+    document.getElementById('hubYearSel').value = '';
+    await hubLoadIndex();
+    hubRenderModal(q);
+    // sync card
+    document.getElementById('hubCardInput').value = q;
+    hubCardSearch(q);
+  }
+
+  function hubToggleCY() {
+    _hubActiveYear = (_hubActiveYear === _hubCurrentYear) ? null : _hubCurrentYear;
+    document.getElementById('hubYearSel').value = '';
+    hubRenderModal(_hubQuery);
+  }
+
+  function hubSelectYear(val) {
+    _hubActiveYear = val ? parseInt(val) : null;
+    document.getElementById('hubBtnCY').classList.remove('active');
+    hubRenderModal(_hubQuery);
+  }
+
+  function hubClearYear() {
+    _hubActiveYear = null;
+    document.getElementById('hubBtnCY').classList.remove('active');
+    document.getElementById('hubYearSel').value = '';
+    hubRenderModal(_hubQuery);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hubCloseModal();
+  });
 </script>
-<footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
   <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
