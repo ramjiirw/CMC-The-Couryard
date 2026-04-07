@@ -1339,7 +1339,8 @@
     btnCY.classList.toggle('active', _hubActiveYear === _hubCurrentYear);
     var earlier = sorted.filter(function(y){return y !== _hubCurrentYear;});
     var sel = document.getElementById('hubYearSel');
-    sel.innerHTML = '<option value="">Earlier years\u2026</option>';
+    var defaultLabel = showCY ? 'Earlier years\u2026' : 'Filter by year\u2026';
+    sel.innerHTML = '<option value="">' + defaultLabel + '</option>';
     earlier.forEach(function(y) {
       var opt = document.createElement('option');
       opt.value = y; opt.textContent = y;
