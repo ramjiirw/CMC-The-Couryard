@@ -466,12 +466,12 @@
   .search-hub-yr-clear {
     padding: 0.18rem 0.5rem; border: 1px solid rgba(176,80,80,0.3);
     border-radius: 4px; font-family: Arial, sans-serif;
-    font-size: 0.72rem; font-weight: 600; color: #b05050;
-    background: rgba(176,80,80,0.06); cursor: pointer; transition: all 0.15s;
+    font-size: 0.72rem; font-weight: 600; color: white;
+    background: #b05050; cursor: pointer; transition: all 0.15s;
     display: none;
   }
   .search-hub-yr-clear.visible { display: inline-block; }
-  .search-hub-yr-clear:hover { background: rgba(176,80,80,0.12); }
+  .search-hub-yr-clear:hover { background: #8a3838; }
   .search-hub-modal-meta { padding: 0.3rem 1.1rem; font-size: 0.68rem; color: var(--stone); border-bottom: 1px solid rgba(184,173,158,0.15); flex-shrink: 0; }
   .search-hub-modal-results { overflow-y: auto; flex: 1; padding: 0.5rem 1.1rem 1rem; }
   .search-hub-group { margin-bottom: 0.85rem; }
@@ -1269,6 +1269,10 @@
     return m ? parseInt(m[1]) : null;
   }
 
+  function hubDisplayName(name) {
+    return name.replace(/^[A-Z]+_/, '');
+  }
+
   function hubFilter(q) {
     if (!q || q.length < 2) return [];
     var lq = q.toLowerCase();
@@ -1305,7 +1309,7 @@
     if (matches.length <= 3) {
       pre.innerHTML = matches.map(function(d) {
         return '<div class="search-hub-row">'
-          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
+          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
           + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
           + '</div>';
       }).join('');
@@ -1313,7 +1317,7 @@
     } else {
       pre.innerHTML = matches.slice(0,3).map(function(d) {
         return '<div class="search-hub-row">'
-          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
+          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
           + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
           + '</div>';
       }).join('');
@@ -1375,7 +1379,7 @@
     results.innerHTML = Object.keys(groups).map(function(folder) {
       var items = groups[folder].map(function(d) {
         return '<div class="search-hub-result">'
-          + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
+          + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
           + '<div class="search-hub-result-folder">' + escHtml(d.folder) + '</div>'
           + '</div>';
       }).join('');
