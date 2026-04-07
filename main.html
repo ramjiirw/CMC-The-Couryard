@@ -405,7 +405,7 @@
   .search-hub-row:last-of-type { border-bottom: none; }
   .search-hub-name { font-size: 0.75rem; font-weight: 600; color: var(--accent); text-decoration: none; display: block; }
   .search-hub-name:hover { text-decoration: underline; }
-  .search-hub-folder { font-size: 0.65rem; color: var(--stone); }
+  .search-hub-folder { font-size: 0.72rem; color: var(--stone); }
   .search-hub-none { font-size: 0.72rem; color: var(--stone); font-style: italic; padding: 0.3rem 0; }
   .search-hub-btn {
     display: block; width: 100%; margin-top: 0.45rem;
@@ -480,7 +480,7 @@
   .search-hub-result:last-child { border-bottom: none; }
   .search-hub-result a { font-size: 0.78rem; font-weight: 600; color: var(--accent); text-decoration: none; display: block; }
   .search-hub-result a:hover { text-decoration: underline; }
-  .search-hub-result-folder { font-size: 0.65rem; color: var(--stone); margin-top: 0.05rem; }
+  .search-hub-result-folder { font-size: 0.72rem; color: var(--stone); margin-top: 0.05rem; }
   .search-hub-empty { padding: 1rem 0; font-size: 0.8rem; color: var(--stone); font-style: italic; text-align: center; }
 
 </style>
@@ -1251,7 +1251,7 @@
           function humanise(s) {
             return s.replace(/^cmc/, '').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}).trim() || s;
           }
-          var folderLabel = humanise(parent) + (sub ? ' · ' + humanise(sub) : '');
+          var folderLabel = humanise(parent) + (sub ? ' \u00b7 ' + humanise(sub) : '');
           docs.push({
             name:   file.name,
             path:   file.path,
@@ -1376,8 +1376,11 @@
     if (!matches.length) {
       results.innerHTML = '<div class="search-hub-empty">No results for ' + _hubActiveYear + '</div>'; return;
     }
-    results.innerHTML = Object.keys(groups).map(function(folder) {
-      var items = groups[folder].map(function(d) {
+    var sortedGroups = Object.keys(groups).sort();
+    results.innerHTML = sortedGroups.map(function(folder) {
+      var items = groups[folder].slice().sort(function(a,b){
+        return hubDisplayName(a.name).localeCompare(hubDisplayName(b.name));
+      }).map(function(d) {
         return '<div class="search-hub-result">'
           + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
           + '<div class="search-hub-result-folder">' + escHtml(d.folder) + '</div>'
