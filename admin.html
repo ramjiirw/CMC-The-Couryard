@@ -1038,9 +1038,6 @@
 
         <!-- Filters -->
         <div id="bhFilterBar" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
-          <input id="bhFilterText" type="text" placeholder="Search subject / message…"
-            oninput="bhApplyFilters()"
-            style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;width:200px;">
           <select id="bhFilterType" onchange="bhApplyFilters()"
             style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
             <option value="">All types</option>
@@ -1052,6 +1049,9 @@
             <option>Noticeboard Notify</option>
             <option>Scheduled</option>
           </select>
+          <input id="bhFilterText" type="text" placeholder="Search subject / message…"
+            oninput="bhApplyFilters()"
+            style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;width:200px;">
           <input id="bhFilterFrom" type="date" onchange="bhApplyFilters()"
             style="padding:0.3rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
           <span style="font-size:0.78rem;color:var(--mid);">to</span>
@@ -4109,7 +4109,7 @@ function bhTypeChip(type) {
 }
 
 function bhSortIndicator(col) {
-  if (_bhSortCol !== col) return '<span style="opacity:0.3;font-size:0.6rem;margin-left:0.3rem;">&#8597;</span>';
+  if (_bhSortCol !== col) return '';
   return '<span style="font-size:0.6rem;margin-left:0.3rem;">' + (_bhSortDir === 1 ? '&#9650;' : '&#9660;') + '</span>';
 }
 
@@ -4189,6 +4189,9 @@ function bhRender() {
     return;
   }
 
+  function th(label) {
+    return '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">' + label + '</th>';
+  }
   function thSort(col, label) {
     return '<th onclick="bhSetSort(\'' + col + '\')" style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;">' + label + bhSortIndicator(col) + '</th>';
   }
@@ -4196,12 +4199,12 @@ function bhRender() {
   var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
     + '<thead><tr style="background:var(--dark);color:var(--cream);">'
     + thSort('timestamp',  'Timestamp')
-    + thSort('subject',    'Subject')
-    + thSort('message',    'Message')
-    + thSort('recipients', 'Recip.')
-    + thSort('mode',       'Mode')
-    + thSort('type',       'Type')
-    + thSort('externalTo', 'External')
+    + th('Subject')
+    + th('Message')
+    + th('Recip.')
+    + th('Mode')
+    + thSort('type', 'Type')
+    + th('External')
     + '<th style="padding:0.5rem 0.6rem;"></th>'
     + '</tr></thead><tbody>';
 
