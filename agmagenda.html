@@ -638,7 +638,7 @@ function formatDate(val) {
   // Handle Google Sheets date serial or ISO string
   const d = new Date(val);
   if (!isNaN(d.getTime()) && val.toString().includes('-')) {
-    return d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
   }
   return val;
 }
