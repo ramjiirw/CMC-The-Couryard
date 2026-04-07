@@ -4011,9 +4011,17 @@ async function bhLoad() {
       + '</tr></thead><tbody>';
     data.rows.forEach(function(r, i) {
       var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
-      var typeChip = r.type === 'Scheduled'
-        ? '<span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span>'
-        : '<span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span>';
+      var typeChipMap = {
+        'Immediate':            { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
+        'Scheduled':            { bg:'rgba(196,149,106,0.18)', color:'var(--accent)', border:'rgba(122,92,62,0.25)' },
+        'Noticeboard Notify':   { bg:'rgba(70,100,160,0.12)',  color:'#3a5a9a', border:'rgba(70,100,160,0.25)' },
+        'Maintenance Submitted':{ bg:'rgba(160,100,50,0.12)',  color:'#8a5520', border:'rgba(160,100,50,0.25)' },
+        'Maintenance In Progress':{ bg:'rgba(160,130,0,0.12)',  color:'#7a6200', border:'rgba(160,130,0,0.25)' },
+        'Maintenance Resolved': { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
+        'AGM Agenda':           { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a', border:'rgba(120,60,140,0.25)' }
+      };
+      var typeStyle = typeChipMap[r.type] || { bg:'rgba(122,92,62,0.1)', color:'var(--mid)', border:'rgba(122,92,62,0.2)' };
+      var typeChip = '<span style="background:' + typeStyle.bg + ';color:' + typeStyle.color + ';border:1px solid ' + typeStyle.border + ';border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">' + escHtml(r.type || '–') + '</span>';
       var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
       var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
       var ts = bhFormatTimestamp(r.timestamp);
