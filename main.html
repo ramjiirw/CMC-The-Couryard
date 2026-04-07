@@ -1273,7 +1273,7 @@
     if (!q || q.length < 2) return [];
     var lq = q.toLowerCase();
     return _hubDocs.filter(function(d) {
-      return d.name.toLowerCase().indexOf(lq) > -1 || d.folder.toLowerCase().indexOf(lq) > -1;
+      return d.name.toLowerCase().indexOf(lq) > -1;
     });
   }
 
@@ -1313,7 +1313,7 @@
     } else {
       pre.innerHTML = matches.slice(0,3).map(function(d) {
         return '<div class="search-hub-row">'
-          + '<span class="search-hub-name" style="cursor:default;">' + escHtml(d.name) + '</span>'
+          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(d.name) + '</a>'
           + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
           + '</div>';
       }).join('');
@@ -1328,10 +1328,14 @@
     allMatches.forEach(function(d) { var y = hubExtractYear(d.name); if (y) years[y] = true; });
     var sorted = Object.keys(years).map(Number).sort(function(a,b){return b-a;});
     var filters = document.getElementById('hubFilters');
-    if (!sorted.length) { filters.classList.remove('visible'); return; }
+    if (sorted.length < 2) { filters.classList.remove('visible'); return; }
     filters.classList.add('visible');
-    var btnCY = document.getElementById('hubBtnCY');
-    btnCY.textContent = _hubCurrentYear;
+    var btnCY  = document.getElementById('hubBtnCY');
+    var hasCY  = years[_hubCurrentYear];
+    // Hide 2026 button if a different year is active, or if no 2026 docs in results
+    var showCY = hasCY && (_hubActiveYear === null || _hubActiveYear === _hubCurrentYear);
+    btnCY.style.display = showCY ? '' : 'none';
+    btnCY.textContent   = _hubCurrentYear;
     btnCY.classList.toggle('active', _hubActiveYear === _hubCurrentYear);
     var earlier = sorted.filter(function(y){return y !== _hubCurrentYear;});
     var sel = document.getElementById('hubYearSel');
@@ -1342,6 +1346,7 @@
       if (_hubActiveYear === y) opt.selected = true;
       sel.appendChild(opt);
     });
+    if (_hubActiveYear === _hubCurrentYear) sel.value = '';
     sel.style.display = earlier.length ? '' : 'none';
   }
 
