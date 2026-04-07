@@ -1035,6 +1035,33 @@
           <button class="abtn abtn-danger" onclick="bhClearHistory()" style="background:rgba(176,80,80,0.08);color:#b05050;border:1px solid rgba(176,80,80,0.25);">&#128465; Clear History</button>
           <span id="bhStatus" style="font-size:0.78rem;color:var(--mid);"></span>
         </div>
+
+        <!-- Filters -->
+        <div id="bhFilterBar" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <input id="bhFilterText" type="text" placeholder="Search subject / message…"
+            oninput="bhApplyFilters()"
+            style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;width:200px;">
+          <select id="bhFilterType" onchange="bhApplyFilters()"
+            style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
+            <option value="">All types</option>
+            <option>AGM Agenda</option>
+            <option>Immediate</option>
+            <option>Maintenance In Progress</option>
+            <option>Maintenance Resolved</option>
+            <option>Maintenance Submitted</option>
+            <option>Noticeboard Notify</option>
+            <option>Scheduled</option>
+          </select>
+          <input id="bhFilterFrom" type="date" onchange="bhApplyFilters()"
+            style="padding:0.3rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
+          <span style="font-size:0.78rem;color:var(--mid);">to</span>
+          <input id="bhFilterTo" type="date" onchange="bhApplyFilters()"
+            style="padding:0.3rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
+          <button id="bhFilterClear" onclick="bhClearFilters()"
+            style="display:none;padding:0.3rem 0.7rem;border:1px solid rgba(122,92,62,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;background:rgba(122,92,62,0.08);color:var(--mid);cursor:pointer;">&#10005; Clear</button>
+          <span id="bhFilterStatus" style="font-size:0.75rem;color:var(--mid);"></span>
+        </div>
+
         <div id="bhTableWrap" style="overflow-x:auto;">
           <p style="color:var(--mid);font-size:0.82rem;">Loading history…</p>
         </div>
@@ -1075,6 +1102,12 @@
                 <tr>
                   <td colspan="4" style="padding:1rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);border-top:2px solid rgba(184,173,158,0.4);">Automatic — triggered by Apps Script</td>
                 </tr>
+                <tr style="background:rgba(122,92,62,0.04);">
+                  <th style="padding:0.3rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;font-size:0.72rem;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
+                  <th style="padding:0.3rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;font-size:0.72rem;border-bottom:1px solid rgba(184,173,158,0.3);">Trigger</th>
+                  <th style="padding:0.3rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;font-size:0.72rem;border-bottom:1px solid rgba(184,173,158,0.3);">Recipients</th>
+                  <th style="padding:0.3rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;font-size:0.72rem;border-bottom:1px solid rgba(184,173,158,0.3);">Mode</th>
+                </tr>
                 <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
                   <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(120,60,140,0.12);color:#6a2a7a;border:1px solid rgba(120,60,140,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Agenda</span></td>
                   <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident submits an AGM agenda item<br><span style="font-size:0.72rem;color:var(--mid);">Sends 3 separate emails: confirmation to submitting address, notification to directors, and a BCC notification to all other residents.</span></td>
@@ -1082,7 +1115,7 @@
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">Mixed</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(160,130,0,0.12);color:#7a6200;border:1px solid rgba(160,130,0,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance In Progress</span></td>
+                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(160,130,0,0.12);color:#7a6200;border:1px solid rgba(160,130,0,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Maintenance In Progress</span></td>
                   <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin changes a maintenance issue status to In Progress</td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
@@ -4056,6 +4089,154 @@ async function bhCancelPending(rowIndex, btn) {
 
 // ── Sent history ──────────────────────────────────────────────────────────────
 
+var _bhAllRows   = [];
+var _bhSortCol   = 'timestamp';
+var _bhSortDir   = -1; // -1 = newest first (desc), 1 = oldest first (asc)
+
+var BH_TYPE_CHIP_MAP = {
+  'Immediate':              { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a',      border:'rgba(61,107,74,0.25)' },
+  'Scheduled':              { bg:'rgba(196,149,106,0.18)', color:'var(--accent)', border:'rgba(122,92,62,0.25)' },
+  'Noticeboard Notify':     { bg:'rgba(70,100,160,0.12)',  color:'#3a5a9a',      border:'rgba(70,100,160,0.25)' },
+  'Maintenance Submitted':  { bg:'rgba(160,100,50,0.12)',  color:'#8a5520',      border:'rgba(160,100,50,0.25)' },
+  'Maintenance In Progress':{ bg:'rgba(160,130,0,0.12)',   color:'#7a6200',      border:'rgba(160,130,0,0.25)' },
+  'Maintenance Resolved':   { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a',      border:'rgba(61,107,74,0.25)' },
+  'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' }
+};
+
+function bhTypeChip(type) {
+  var s = BH_TYPE_CHIP_MAP[type] || { bg:'rgba(122,92,62,0.1)', color:'var(--mid)', border:'rgba(122,92,62,0.2)' };
+  return '<span style="background:' + s.bg + ';color:' + s.color + ';border:1px solid ' + s.border + ';border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">' + escHtml(type || '–') + '</span>';
+}
+
+function bhSortIndicator(col) {
+  if (_bhSortCol !== col) return '<span style="opacity:0.3;font-size:0.6rem;margin-left:0.3rem;">&#8597;</span>';
+  return '<span style="font-size:0.6rem;margin-left:0.3rem;">' + (_bhSortDir === 1 ? '&#9650;' : '&#9660;') + '</span>';
+}
+
+function bhSetSort(col) {
+  if (_bhSortCol === col) { _bhSortDir *= -1; } else { _bhSortCol = col; _bhSortDir = col === 'timestamp' ? -1 : 1; }
+  bhRender();
+}
+
+function bhClearFilters() {
+  document.getElementById('bhFilterText').value = '';
+  document.getElementById('bhFilterType').value = '';
+  document.getElementById('bhFilterFrom').value = '';
+  document.getElementById('bhFilterTo').value   = '';
+  document.getElementById('bhFilterClear').style.display = 'none';
+  document.getElementById('bhFilterStatus').textContent  = '';
+  bhRender();
+}
+
+function bhApplyFilters() {
+  var txt  = (document.getElementById('bhFilterText').value || '').toLowerCase().trim();
+  var type = document.getElementById('bhFilterType').value || '';
+  var from = document.getElementById('bhFilterFrom').value || '';
+  var to   = document.getElementById('bhFilterTo').value   || '';
+  var active = txt || type || from || to;
+  document.getElementById('bhFilterClear').style.display = active ? 'inline-block' : 'none';
+  bhRender();
+}
+
+function bhGetFiltered() {
+  var txt  = (document.getElementById('bhFilterText').value || '').toLowerCase().trim();
+  var type = document.getElementById('bhFilterType').value || '';
+  var from = document.getElementById('bhFilterFrom').value || '';
+  var to   = document.getElementById('bhFilterTo').value   || '';
+  return _bhAllRows.filter(function(r) {
+    if (txt && (r.subject || '').toLowerCase().indexOf(txt) === -1 && (r.message || '').toLowerCase().indexOf(txt) === -1) return false;
+    if (type && r.type !== type) return false;
+    if (from || to) {
+      var ts = r.timestamp ? new Date(r.timestamp) : null;
+      if (!ts || isNaN(ts)) return true;
+      var d = ts.toISOString().slice(0, 10);
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+    }
+    return true;
+  });
+}
+
+function bhRender() {
+  var wrap   = document.getElementById('bhTableWrap');
+  var status = document.getElementById('bhStatus');
+  var filtered = bhGetFiltered();
+
+  filtered.sort(function(a, b) {
+    var av, bv;
+    if (_bhSortCol === 'timestamp') {
+      av = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      bv = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    } else if (_bhSortCol === 'recipients') {
+      av = Number(a.recipients) || 0;
+      bv = Number(b.recipients) || 0;
+    } else {
+      av = (a[_bhSortCol] || '').toString().toLowerCase();
+      bv = (b[_bhSortCol] || '').toString().toLowerCase();
+    }
+    if (av < bv) return -1 * _bhSortDir;
+    if (av > bv) return  1 * _bhSortDir;
+    return 0;
+  });
+
+  var total    = _bhAllRows.length;
+  var showing  = filtered.length;
+  status.textContent = total + ' record' + (total !== 1 ? 's' : '') + (showing < total ? ' — showing ' + showing : '');
+  document.getElementById('bhFilterStatus').textContent = showing < total ? showing + ' match' + (showing !== 1 ? 'es' : '') : '';
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">' + (total ? 'No records match the current filters.' : 'No broadcast history yet.') + '</p>';
+    return;
+  }
+
+  function thSort(col, label) {
+    return '<th onclick="bhSetSort(\'' + col + '\')" style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;">' + label + bhSortIndicator(col) + '</th>';
+  }
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+    + '<thead><tr style="background:var(--dark);color:var(--cream);">'
+    + thSort('timestamp',  'Timestamp')
+    + thSort('subject',    'Subject')
+    + thSort('message',    'Message')
+    + thSort('recipients', 'Recip.')
+    + thSort('mode',       'Mode')
+    + thSort('type',       'Type')
+    + thSort('externalTo', 'External')
+    + '<th style="padding:0.5rem 0.6rem;"></th>'
+    + '</tr></thead><tbody>';
+
+  filtered.forEach(function(r, i) {
+    var origIdx  = _bhAllRows.indexOf(r);
+    var bg       = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
+    var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + escHtml(r.mode || '–') + '</span>';
+    var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
+    var ts = bhFormatTimestamp(r.timestamp);
+    var msgRowId = 'bh-msg-' + i;
+    html += '<tr class="bh-main-row" onclick="bhToggleMsg(\'' + msgRowId + '\',this)" style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);cursor:pointer;" onmouseover="this.style.background=\'rgba(122,92,62,0.07)\'" onmouseout="this.style.background=\'' + bg + '\'">'
+      + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">'
+      +   '<span class="bh-arrow" style="display:inline-block;opacity:0;margin-right:0.3rem;font-size:0.65rem;color:var(--accent);transition:opacity 0.15s,transform 0.2s;transform:rotate(0deg);">&#9660;</span>'
+      +   escHtml(ts)
+      + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;color:var(--mid);text-align:center;">' + escHtml(String(r.recipients || 0)) + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;">' + bhTypeChip(r.type) + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
+      + '<td style="padding:0.45rem 0.6rem;text-align:right;">'
+      +   '<button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.2rem 0.6rem;" onclick="event.stopPropagation();bhResend(' + origIdx + ')">&#8635; Resend</button>'
+      + '</td>'
+      + '</tr>'
+      + '<tr id="' + msgRowId + '" style="display:none;background:#fff;">'
+      +   '<td colspan="8" style="padding:0.3rem 0.6rem 0.6rem 0.6rem;">'
+      +     '<div style="font-size:0.82rem;color:var(--dark);white-space:pre-wrap;line-height:1.6;padding:0.5rem 0.75rem;background:#fff;border-left:3px solid rgba(122,92,62,0.3);">' + escHtml(r.message || '') + '</div>'
+      +   '</td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
 async function bhLoad() {
   var wrap   = document.getElementById('bhTableWrap');
   var status = document.getElementById('bhStatus');
@@ -4066,61 +4247,10 @@ async function bhLoad() {
     var res  = await fetch(SCRIPT_URL + '?action=readBroadcastHistory');
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
-    if (!data.rows || !data.rows.length) {
-      wrap.innerHTML = '<p style="color:var(--mid);font-size:0.82rem;">No broadcast history yet — entries will appear here after emails are sent.</p>';
-      return;
-    }
-    status.textContent = data.rows.length + ' record' + (data.rows.length !== 1 ? 's' : '');
-    var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
-      + '<thead><tr style="background:var(--dark);color:var(--cream);">'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;white-space:nowrap;">Timestamp</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Subject</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;min-width:200px;">Message</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Mode</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;">Type</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;">External</th>'
-      + '<th style="padding:0.5rem 0.6rem;text-align:left;"></th>'
-      + '</tr></thead><tbody>';
-    data.rows.forEach(function(r, i) {
-      var bg = i % 2 === 0 ? '#fff' : 'rgba(122,92,62,0.04)';
-      var typeChipMap = {
-        'Immediate':            { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
-        'Scheduled':            { bg:'rgba(196,149,106,0.18)', color:'var(--accent)', border:'rgba(122,92,62,0.25)' },
-        'Noticeboard Notify':   { bg:'rgba(70,100,160,0.12)',  color:'#3a5a9a', border:'rgba(70,100,160,0.25)' },
-        'Maintenance Submitted':{ bg:'rgba(160,100,50,0.12)',  color:'#8a5520', border:'rgba(160,100,50,0.25)' },
-        'Maintenance In Progress':{ bg:'rgba(160,130,0,0.12)',  color:'#7a6200', border:'rgba(160,130,0,0.25)' },
-        'Maintenance Resolved': { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
-        'AGM Agenda':           { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a', border:'rgba(120,60,140,0.25)' }
-      };
-      var typeStyle = typeChipMap[r.type] || { bg:'rgba(122,92,62,0.1)', color:'var(--mid)', border:'rgba(122,92,62,0.2)' };
-      var typeChip = '<span style="background:' + typeStyle.bg + ';color:' + typeStyle.color + ';border:1px solid ' + typeStyle.border + ';border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">' + escHtml(r.type || '–') + '</span>';
-      var modeChip = '<span style="background:rgba(122,92,62,0.1);color:var(--mid);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.72rem;">' + (r.mode || '–') + '</span>';
-      var msgPreview = (r.message || '').length > 80 ? r.message.substring(0, 80) + '…' : (r.message || '–');
-      var ts = bhFormatTimestamp(r.timestamp);
-      var msgRowId = 'bh-msg-' + i;
-      html += '<tr class="bh-main-row" onclick="bhToggleMsg(\'' + msgRowId + '\',this)" style="background:' + bg + ';border-bottom:1px solid rgba(184,173,158,0.2);cursor:pointer;" onmouseover="this.style.background=\'rgba(122,92,62,0.07)\'" onmouseout="this.style.background=\'' + bg + '\'">'
-        + '<td style="padding:0.45rem 0.6rem;white-space:nowrap;color:var(--mid);">'
-        +   '<span class="bh-arrow" style="display:inline-block;opacity:0;margin-right:0.3rem;font-size:0.65rem;color:var(--accent);transition:opacity 0.15s,transform 0.2s;transform:rotate(0deg);">&#9660;</span>'
-        +   escHtml(ts)
-        + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;font-weight:600;color:var(--dark);">' + escHtml(r.subject) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(msgPreview) + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;">' + modeChip + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;">' + typeChip + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;color:var(--mid);font-size:0.78rem;">' + escHtml(r.externalTo || '–') + '</td>'
-        + '<td style="padding:0.45rem 0.6rem;text-align:right;">'
-        +   '<button class="abtn abtn-muted" style="font-size:0.72rem;padding:0.2rem 0.6rem;" onclick="event.stopPropagation();bhResend(' + i + ')">&#8635; Resend</button>'
-        + '</td>'
-        + '</tr>'
-        + '<tr id="' + msgRowId + '" style="display:none;background:#fff;">'
-        +   '<td colspan="7" style="padding:0.3rem 0.6rem 0.6rem 0.6rem;">'
-        +     '<div style="font-size:0.82rem;color:var(--dark);white-space:pre-wrap;line-height:1.6;padding:0.5rem 0.75rem;background:#fff;border-left:3px solid rgba(122,92,62,0.3);">' + escHtml(r.message || '') + '</div>'
-        +   '</td>'
-        + '</tr>';
-    });
-    html += '</tbody></table>';
-    wrap.innerHTML = html;
-    window._bhRows = data.rows;
+    // Sheet returns newest-first already; store as-is (default sort is timestamp desc)
+    _bhAllRows = data.rows || [];
+    window._bhRows = _bhAllRows;
+    bhRender();
   } catch(e) {
     wrap.innerHTML = '<p style="color:#b05050;font-size:0.82rem;">Could not load history — ' + e.message + '</p>';
   }
