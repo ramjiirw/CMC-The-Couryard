@@ -1303,9 +1303,10 @@
 
   function hubFilter(q) {
     if (!q || q.length < 3) return [];
-    var lq = q.toLowerCase();
+    var words = q.toLowerCase().trim().split(/\s+/).filter(function(w){ return w.length > 0; });
     return _hubDocs.filter(function(d) {
-      return d.name.toLowerCase().indexOf(lq) > -1;
+      var name = d.name.toLowerCase();
+      return words.every(function(w){ return name.indexOf(w) > -1; });
     });
   }
 
