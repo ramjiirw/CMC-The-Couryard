@@ -697,7 +697,7 @@
       <p style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
       <div style="display:flex;align-items:center;gap:0.5rem;">
         <input class="search-hub-input" id="hubCardInput" placeholder="Min. 3 characters…" oninput="hubCardSearch(this.value)" autocomplete="off" style="flex:1;">
-        <span id="hubCardCount" style="font-size:0.68rem;color:var(--stone);white-space:nowrap;"></span>
+        <span id="hubCardCount" style="font-size:0.72rem;color:var(--stone);white-space:nowrap;"></span>
       </div>
       <div class="search-hub-preview" id="hubPreview" style="display:none;"></div>
       <button class="search-hub-btn" id="hubViewAll" style="display:none;" onclick="hubOpenModal()"></button>
@@ -1249,7 +1249,51 @@
           var parent = parts[1] || '';
           var sub    = parts.length > 3 ? parts[2] : '';
           function humanise(s) {
-            return s.replace(/^cmc/, '').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}).trim() || s;
+            // Known acronyms to uppercase after splitting
+            var acronyms = ['CMC','AGM','SIP','BIO','HSBC','QA','EA','PDF','TPO','BOF','BUA','ERGO','TOBA','MPW'];
+            // Strip leading 'cmc' prefix, replace separators with spaces
+            var str = s.replace(/^cmc/i, '').replace(/[_-]/g, ' ').trim();
+            // Insert space before sequences of capitals followed by lowercase (camelCase)
+            str = str.replace(/([a-z])([A-Z])/g, '$1 $2');
+            // Insert space before a capital that follows a lowercase (e.g. "agmminutes" won't help but handles mixed)
+            // Split into words and capitalise each
+            str = str.split(/\s+/).filter(Boolean).map(function(word) {
+              var up = word.toUpperCase();
+              if (acronyms.indexOf(up) > -1) return up;
+              // Try to split run-together words by looking for known terms
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }).join(' ');
+            // Handle common run-together folder names
+            str = str
+              .replace(/Agm/g, 'AGM')
+              .replace(/Cmc/g, 'CMC')
+              .replace(/Sip/g, 'SIP')
+              .replace(/Hsbc/g, 'HSBC')
+              .replace(/Agmminutes/gi, 'AGM Minutes')
+              .replace(/Agmdocuments/gi, 'AGM Documents')
+              .replace(/Biofilter/gi, 'Bio Filter')
+              .replace(/Biofiler/gi, 'Bio Filter')
+              .replace(/Financedocuments/gi, 'Finance Documents')
+              .replace(/Currentaccount/gi, 'Current Account')
+              .replace(/Otheraccounts/gi, 'Other Accounts')
+              .replace(/Sitearchive/gi, 'Site Archive')
+              .replace(/Budgetdocuments/gi, 'Budget Documents')
+              .replace(/Farmhousefinances/gi, 'Farmhouse Finances')
+              .replace(/Farmhouseinsurance/gi, 'Farmhouse Insurance')
+              .replace(/Farmhouselegal/gi, 'Farmhouse Legal')
+              .replace(/Farmhousemisc/gi, 'Farmhouse Misc')
+              .replace(/Servicing/gi, 'Servicing')
+              .replace(/Documentation/gi, 'Documentation')
+              .replace(/Minutes/gi, 'Minutes')
+              .replace(/Documents/gi, 'Documents')
+              .replace(/Finances/gi, 'Finances')
+              .replace(/Insurance/gi, 'Insurance')
+              .replace(/Maintenance/gi, 'Maintenance')
+              .replace(/Invoices/gi, 'Invoices')
+              .replace(/Accounts/gi, 'Accounts')
+              .replace(/Legal/gi, 'Legal')
+              .replace(/Misc/gi, 'Misc');
+            return str.trim() || s;
           }
           var folderLabel = humanise(parent) + (sub ? ' \u00b7 ' + humanise(sub) : '');
           docs.push({ name: file.name, path: file.path, folder: folderLabel });
@@ -1282,7 +1326,7 @@
   }
 
   function hubDisplayName(name) {
-    return name.replace(/^[A-Z]+_/, '');
+    return name.replace(/^[A-Z]+_/, '').replace(/\.pdf$/i, '');
   }
 
   // Sort: dated docs newest first, undated A-Z after
