@@ -695,7 +695,10 @@
         <h3 style="margin:0">Search the Hub</h3>
       </div>
       <p style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
-      <input class="search-hub-input" id="hubCardInput" placeholder="e.g. insurance, minutes, bio filter…" oninput="hubCardSearch(this.value)" autocomplete="off">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <input class="search-hub-input" id="hubCardInput" placeholder="Min. 3 characters…" oninput="hubCardSearch(this.value)" autocomplete="off" style="flex:1;">
+        <span id="hubCardCount" style="font-size:0.68rem;color:var(--stone);white-space:nowrap;"></span>
+      </div>
       <div class="search-hub-preview" id="hubPreview" style="display:none;"></div>
       <button class="search-hub-btn" id="hubViewAll" style="display:none;" onclick="hubOpenModal()"></button>
     </div>
@@ -1231,7 +1234,6 @@
   var _hubCurrentYear = new Date().getFullYear();
   var _hubLoaded      = false;
 
-  // Load index.json once
   async function hubLoadIndex() {
     if (_hubLoaded) return;
     try {
@@ -1240,28 +1242,38 @@
       var idx = await res.json();
       var docs = [];
       (idx.folders || []).forEach(function(folder) {
-        // Build human-readable folder label from path
         (folder.files || []).forEach(function(file) {
-          // Parse parent · subfolder from path, e.g. "cmcdocuments/cmcbiofilter/cmcbiofilerservicing/..."
-          var parts = file.path.split('/');
-          // parts[0]=cmcdocuments, parts[1]=parent, parts[2]=subfolder or filename
+          // Exclude HIDE_ prefixed files
+          if (/^HIDE_/i.test(file.name)) return;
+          var parts  = file.path.split('/');
           var parent = parts[1] || '';
           var sub    = parts.length > 3 ? parts[2] : '';
-          // Humanise: strip 'cmc' prefix, capitalise words
           function humanise(s) {
             return s.replace(/^cmc/, '').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}).trim() || s;
           }
           var folderLabel = humanise(parent) + (sub ? ' \u00b7 ' + humanise(sub) : '');
-          docs.push({
-            name:   file.name,
-            path:   file.path,
-            folder: folderLabel
-          });
+          docs.push({ name: file.name, path: file.path, folder: folderLabel });
         });
       });
       _hubDocs   = docs;
       _hubLoaded = true;
     } catch(e) {}
+  }
+
+  // Extract the latest full date (YYYY-MM-DD) or year from a filename
+  function hubLatestDate(name) {
+    // Try full dates first YYYY-MM-DD
+    var fullDates = [];
+    var re = /\b((20)\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/g;
+    var m;
+    while ((m = re.exec(name)) !== null) {
+      fullDates.push(new Date(parseInt(m[1]), parseInt(m[3])-1, parseInt(m[4])));
+    }
+    if (fullDates.length) return Math.max.apply(null, fullDates.map(function(d){return d.getTime();}));
+    // Fall back to year only — treat as Jan 1 of that year
+    var yr = name.match(/\b(20\d{2})\b/);
+    if (yr) return new Date(parseInt(yr[1]), 0, 1).getTime();
+    return null;
   }
 
   function hubExtractYear(name) {
@@ -1273,8 +1285,24 @@
     return name.replace(/^[A-Z]+_/, '');
   }
 
+  // Sort: dated docs newest first, undated A-Z after
+  function hubSort(matches) {
+    return matches.slice().sort(function(a, b) {
+      var da = hubLatestDate(a.name);
+      var db = hubLatestDate(b.name);
+      if (da && db) {
+        if (db !== da) return db - da;
+        // Same date/year — A-Z
+        return hubDisplayName(a.name).localeCompare(hubDisplayName(b.name));
+      }
+      if (da) return -1;
+      if (db) return  1;
+      return hubDisplayName(a.name).localeCompare(hubDisplayName(b.name));
+    });
+  }
+
   function hubFilter(q) {
-    if (!q || q.length < 2) return [];
+    if (!q || q.length < 3) return [];
     var lq = q.toLowerCase();
     return _hubDocs.filter(function(d) {
       return d.name.toLowerCase().indexOf(lq) > -1;
@@ -1286,44 +1314,41 @@
     return matches.filter(function(d) { return hubExtractYear(d.name) === _hubActiveYear; });
   }
 
-  function hubGroupByFolder(matches) {
-    var groups = {};
-    matches.forEach(function(d) {
-      if (!groups[d.folder]) groups[d.folder] = [];
-      groups[d.folder].push(d);
-    });
-    return groups;
+  // Update inline count label next to card input
+  function hubUpdateCardCount(count, total) {
+    var el = document.getElementById('hubCardCount');
+    if (!el) return;
+    if (!total) { el.textContent = ''; return; }
+    el.textContent = total === count ? total + ' result' + (total !== 1 ? 's' : '') : count + ' of ' + total;
   }
 
   async function hubCardSearch(q) {
     _hubQuery = q;
     var pre = document.getElementById('hubPreview');
     var btn = document.getElementById('hubViewAll');
-    if (!q || q.length < 2) { pre.style.display='none'; btn.style.display='none'; return; }
+    if (!q || q.length < 3) {
+      pre.style.display = 'none'; btn.style.display = 'none';
+      hubUpdateCardCount(0, 0); return;
+    }
     await hubLoadIndex();
-    var matches = hubFilter(q);
+    var matches = hubSort(hubFilter(q));
+    hubUpdateCardCount(Math.min(matches.length, 3), matches.length);
     if (!matches.length) {
-      pre.innerHTML = '<div class="search-hub-none">No results found</div>';
+      pre.innerHTML = '<div class="search-hub-none">No documents found — try a different search term</div>';
       pre.style.display = 'block'; btn.style.display = 'none'; return;
     }
-    if (matches.length <= 3) {
-      pre.innerHTML = matches.map(function(d) {
-        return '<div class="search-hub-row">'
-          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
-          + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
-          + '</div>';
-      }).join('');
-      pre.style.display = 'block'; btn.style.display = 'none';
-    } else {
-      pre.innerHTML = matches.slice(0,3).map(function(d) {
-        return '<div class="search-hub-row">'
-          + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
-          + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
-          + '</div>';
-      }).join('');
-      pre.style.display = 'block';
+    pre.innerHTML = matches.slice(0,3).map(function(d) {
+      return '<div class="search-hub-row">'
+        + '<a class="search-hub-name" href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
+        + '<span class="search-hub-folder">' + escHtml(d.folder) + '</span>'
+        + '</div>';
+    }).join('');
+    pre.style.display = 'block';
+    if (matches.length > 3) {
       btn.textContent = 'View all ' + matches.length + ' results \u2192';
       btn.style.display = 'block';
+    } else {
+      btn.style.display = 'none';
     }
   }
 
@@ -1336,7 +1361,6 @@
     filters.classList.add('visible');
     var btnCY  = document.getElementById('hubBtnCY');
     var hasCY  = years[_hubCurrentYear];
-    // Hide 2026 button if a different year is active, or if no 2026 docs in results
     var showCY = hasCY && (_hubActiveYear === null || _hubActiveYear === _hubCurrentYear);
     btnCY.style.display = showCY ? '' : 'none';
     btnCY.textContent   = _hubCurrentYear;
@@ -1356,37 +1380,34 @@
   }
 
   function hubRenderModal(q) {
-    var allMatches = hubFilter(q);
+    var allMatches = hubSort(hubFilter(q));
     hubBuildYearFilters(allMatches);
-    var matches    = hubApplyYear(allMatches);
-    var meta       = document.getElementById('hubMeta');
-    var results    = document.getElementById('hubResults');
-    var clearBtn   = document.getElementById('hubYearClear');
+    var matches  = hubApplyYear(allMatches);
+    var meta     = document.getElementById('hubMeta');
+    var results  = document.getElementById('hubResults');
+    var clearBtn = document.getElementById('hubYearClear');
     clearBtn.classList.toggle('visible', !!_hubActiveYear);
-    if (!allMatches.length && q.length >= 2) {
-      meta.textContent = 'No results found';
-      results.innerHTML = '<div class="search-hub-empty">No documents match your search</div>';
+
+    if (!allMatches.length && q.length >= 3) {
+      meta.textContent  = '';
+      results.innerHTML = '<div class="search-hub-empty">No documents found — try a different search term</div>';
       return;
     }
     if (!allMatches.length) { meta.textContent = ''; results.innerHTML = ''; return; }
-    var groups     = hubGroupByFolder(matches);
-    var folderCount = Object.keys(groups).length;
+
     meta.textContent = matches.length + ' result' + (matches.length !== 1 ? 's' : '')
-      + (_hubActiveYear ? ' in ' + _hubActiveYear : ' across ' + folderCount + ' folder' + (folderCount !== 1 ? 's' : ''));
+      + (_hubActiveYear ? ' in ' + _hubActiveYear : '');
+
     if (!matches.length) {
       results.innerHTML = '<div class="search-hub-empty">No results for ' + _hubActiveYear + '</div>'; return;
     }
-    var sortedGroups = Object.keys(groups).sort();
-    results.innerHTML = sortedGroups.map(function(folder) {
-      var items = groups[folder].slice().sort(function(a,b){
-        return hubDisplayName(a.name).localeCompare(hubDisplayName(b.name));
-      }).map(function(d) {
-        return '<div class="search-hub-result">'
-          + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
-          + '<div class="search-hub-result-folder">' + escHtml(d.folder) + '</div>'
-          + '</div>';
-      }).join('');
-      return '<div class="search-hub-group"><div class="search-hub-group-label">' + escHtml(folder) + '</div>' + items + '</div>';
+
+    // Flat sorted list — no folder grouping
+    results.innerHTML = matches.map(function(d) {
+      return '<div class="search-hub-result">'
+        + '<a href="' + escHtml(d.path) + '" target="_blank">' + escHtml(hubDisplayName(d.name)) + '</a>'
+        + '<div class="search-hub-result-folder">' + escHtml(d.folder) + '</div>'
+        + '</div>';
     }).join('');
   }
 
@@ -1400,7 +1421,6 @@
   }
 
   function hubCloseModal() { document.getElementById('hubOverlay').classList.remove('open'); }
-
   function hubOverlayClick(e) { if (e.target === document.getElementById('hubOverlay')) hubCloseModal(); }
 
   async function hubModalSearch(q) {
@@ -1410,7 +1430,6 @@
     document.getElementById('hubYearSel').value = '';
     await hubLoadIndex();
     hubRenderModal(q);
-    // sync card
     document.getElementById('hubCardInput').value = q;
     hubCardSearch(q);
   }
