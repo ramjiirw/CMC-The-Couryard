@@ -1280,23 +1280,25 @@
               return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
             }).join(' ');
             str = str
-              .replace(/Agmminutes/gi,       'AGM Minutes')
-              .replace(/Agmdocuments/gi,      'AGM Documents')
-              .replace(/Biofilter/gi,         'Bio Filter')
-              .replace(/Biofiler/gi,          'Bio Filter Servicing')
-              .replace(/Financedocuments/gi,  'Finance Documents')
-              .replace(/Currentaccount/gi,    'Current Account')
-              .replace(/Otheraccounts/gi,     'Other Accounts')
-              .replace(/Sitearchive/gi,       'Site Archive')
-              .replace(/Budgetdocuments/gi,   'Budget Documents')
-              .replace(/Farmhousefinances/gi, 'Farmhouse Finances')
-              .replace(/Farmhouseinsurance/gi,'Farmhouse Insurance')
-              .replace(/Farmhouselegal/gi,    'Farmhouse Legal')
-              .replace(/Farmhousemisc/gi,     'Farmhouse Misc')
+              .replace(/Agmminutes/gi,          'AGM Minutes')
+              .replace(/Agmdocuments/gi,         'AGM Documents')
+              .replace(/Biofilerservicing/gi,    'Bio Filter Servicing')
+              .replace(/Biofilterdocumentation/gi,'Bio Filter Documentation')
+              .replace(/Biofilter/gi,            'Bio Filter')
+              .replace(/Biofiler/gi,             'Bio Filter Servicing')
+              .replace(/Financedocuments/gi,     'Finance Documents')
+              .replace(/Currentaccount/gi,       'Current Account')
+              .replace(/Otheraccounts/gi,        'Other Accounts')
+              .replace(/Sitearchive/gi,          'Site Archive')
+              .replace(/Budgetdocuments/gi,      'Budget Documents')
+              .replace(/Farmhousefinances/gi,    'Farmhouse Finances')
+              .replace(/Farmhouseinsurance/gi,   'Farmhouse Insurance')
+              .replace(/Farmhouselegal/gi,       'Farmhouse Legal')
+              .replace(/Farmhousemisc/gi,        'Farmhouse Misc')
               .replace(/Agm/g,  'AGM')
               .replace(/Cmc/g,  'CMC')
-              .replace(/Sip/g,  'Sales Information Pack')
-              .replace(/Hsbc/g, 'HSBC');
+              .replace(/Hsbc/g, 'HSBC')
+              .replace(/\bSip\b/g, 'Sales Information Pack');
             return str.trim() || s;
           }
 
@@ -1309,12 +1311,22 @@
           if (!cardMap[folderKey] && cardMap[subKey]) cardName = cardMap[subKey];
 
           var labelParts = [cardName];
-          // Always show the humanised folder name as second part
-          var humanFolder = humanise(parts[1] || '');
-          if (humanFolder && humanFolder !== cardName) labelParts.push(humanFolder);
-          // Add subfolder if present
-          if (subKey && humanise(parts[2]) !== humanFolder) labelParts.push(humanise(parts[2]));
-          if (subSubKey) labelParts.push(humanise(parts[3]));
+
+          if (subKey) {
+            // Has subfolder — add it if meaningfully different from card name
+            var subLabel = humanise(parts[2]);
+            if (subLabel && subLabel !== cardName) labelParts.push(subLabel);
+          } else {
+            // No subfolder — add humanised folder name if different from card name
+            var folderLabel2 = humanise(parts[1] || '');
+            if (folderLabel2 && folderLabel2 !== cardName) labelParts.push(folderLabel2);
+          }
+          if (subSubKey) {
+            var subSubLabel = humanise(parts[3]);
+            if (subSubLabel && subSubLabel !== labelParts[labelParts.length - 1]) {
+              labelParts.push(subSubLabel);
+            }
+          }
 
           var folderLabel = labelParts.join(' \u00b7 ');
           docs.push({ name: file.name, path: file.path, folder: folderLabel });
