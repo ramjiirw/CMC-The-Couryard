@@ -1301,16 +1301,19 @@
           }
 
           // Build label: Card Name · Subfolder (· Sub-subfolder if exists)
-          var folderKey = parts[1] ? parts[1].toLowerCase() : '';
-          var subKey    = parts.length > 3 ? parts[2].toLowerCase() : '';
-          var subSubKey = parts.length > 4 ? parts[3].toLowerCase() : '';
+          var folderKey  = parts[1] ? parts[1].toLowerCase() : '';
+          var subKey     = parts.length > 3 ? parts[2].toLowerCase() : '';
+          var subSubKey  = parts.length > 4 ? parts[3].toLowerCase() : '';
 
-          var cardName  = cardMap[folderKey] || humanise(parts[1] || '');
-          // If the file is directly in a mapped subfolder, use that subfolder's card name
+          var cardName   = cardMap[folderKey] || humanise(parts[1] || '');
           if (!cardMap[folderKey] && cardMap[subKey]) cardName = cardMap[subKey];
 
           var labelParts = [cardName];
-          if (subKey && subKey !== folderKey) labelParts.push(humanise(parts[2]));
+          // Always show the humanised folder name as second part
+          var humanFolder = humanise(parts[1] || '');
+          if (humanFolder && humanFolder !== cardName) labelParts.push(humanFolder);
+          // Add subfolder if present
+          if (subKey && humanise(parts[2]) !== humanFolder) labelParts.push(humanise(parts[2]));
           if (subSubKey) labelParts.push(humanise(parts[3]));
 
           var folderLabel = labelParts.join(' \u00b7 ');
