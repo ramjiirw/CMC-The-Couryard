@@ -1022,7 +1022,7 @@
   var INCOME_GROUPS = [
     { key: 'management',    label: 'Management',    prefixes: ['Management Charge'] },
     { key: 'farmhouse',     label: 'Farmhouse',     prefixes: ['Farmhouse'] },
-    { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'] },
+    { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'], directDrill: true },
     { key: 'other-inc',     label: 'Other Income',  prefixes: [] } // catch-all
   ];
   var EXPENSE_GROUPS = [
@@ -1177,6 +1177,28 @@
           var itemKey = g.key + '_' + name.replace(/\W/g,'_');
           var hasDrill = prefix === 'I-' ? (groupedDrillInc[g.key][name] && groupedDrillInc[g.key][name].length > 0)
                                          : (groupedDrillExp[g.key][name] && groupedDrillExp[g.key][name].length > 0);
+
+          /* directDrill: skip item row, render addresses directly */
+          if (g.directDrill && prefix === 'I-' && hasDrill) {
+            var incPayments = groupedDrillInc[g.key][name].slice();
+            var addrTotals = {};
+            incPayments.forEach(function(r) {
+              var a = r.address || 'Unknown';
+              addrTotals[a] = (addrTotals[a] || 0) + r.amount;
+            });
+            var addrOrder = ['Sinking Fund', 'Contingency Account'];
+            Object.keys(addrTotals).sort(function(a, b) {
+              var ai = addrOrder.indexOf(a); var bi = addrOrder.indexOf(b);
+              if (ai === -1) ai = 999; if (bi === -1) bi = 999;
+              return ai - bi;
+            }).forEach(function(addr) {
+              sh += '<div class="iet-drill-row" style="padding-left:1.5rem;">';
+              sh += '<span></span><span class="iet-drill-label">' + addr + '</span>';
+              sh += '<span class="iet-drill-val iet-income-val">' + fmt(addrTotals[addr]) + '</span>';
+              sh += '<span></span></div>';
+            });
+            return;
+          }
 
           sh += '<div class="iet-item-row" style="' + (hasDrill ? 'cursor:pointer;' : '') + '" ' + (hasDrill ? 'onclick="toggleIETDrill(\'' + itemKey + '\')"' : '') + '>';
           sh += '<span></span>';
