@@ -1281,6 +1281,7 @@
     var inc = buildSection('Income',      incTxns, 'I-', INCOME_GROUPS,  'iet-income-val',  'iet-income-val');
     var exp = buildSection('Expenditure', expTxns, 'E-', EXPENSE_GROUPS, 'iet-expense-val', 'iet-expense-val');
 
+    html += '<div class="iet-section-divider"></div>';
     html += inc.html;
     html += '<div class="iet-section-divider"></div>';
     html += exp.html;
@@ -1290,7 +1291,7 @@
     html += '<div class="iet-section-divider"></div>';
     html += '<div class="iet-net-row">';
     html += '<span></span>';
-    html += '<span class="iet-net-label">Net</span>';
+    html += '<span class="iet-net-label">' + (net >= 0 ? 'Net Surplus' : 'Net Deficit') + '</span>';
     html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? '+' : '') + fmt(net) + '</span>';
     html += '<span></span></div>';
 
