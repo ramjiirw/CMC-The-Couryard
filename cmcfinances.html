@@ -274,6 +274,9 @@
     font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--stone); grid-column: 1 / 3;
   }
+  .bal-head-date-short { display: none; }
+  .bal-total-label-full { display: inline; }
+  .bal-total-label-short { display: none; }
   .bal-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); text-align: right; }
 
   /* Shimmer */
@@ -287,10 +290,16 @@
   .bal-shimmer-total { width: 110px; background: rgba(196,149,106,0.35); }
   @media (max-width: 600px) {
     .bal-col-heads, .bal-row, .bal-total-row {
-      grid-template-columns: 1fr 90px 100px; padding-left: 0.75rem; padding-right: 0.75rem;
+      grid-template-columns: 1fr 110px 80px; padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .bal-col-heads span:nth-child(2), .bal-row > *:nth-child(2),
     .bal-total-row > *:nth-child(2) { display: none; }
+    .bal-head-date-full { display: none; }
+    .bal-head-date-short { display: inline; }
+    .bal-total-label-full { display: none; }
+    .bal-total-label-short { display: inline; }
+    .bal-total-label { grid-column: 1 / 3; }
+    .bal-total-amt { text-align: right; }
   }
 </style>
 </head>
@@ -357,7 +366,7 @@
     <h3 class="section-heading">CMC Account Balances at Statement Date</h3>
     <div id="balances-inner">
       <div class="bal-col-heads">
-        <span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>
+        <span>Account</span><span>Account number</span><span>Balance</span><span><span class="bal-head-date-full">Statement date</span><span class="bal-head-date-short">Date</span></span>
       </div>
       <div class="bal-row bal-row-current">
         <span class="bal-name-current">Current Account</span>
@@ -378,7 +387,7 @@
         <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
       </div>
       <div class="bal-total-row">
-        <span class="bal-total-label">Total cash held at statement dates</span>
+        <span class="bal-total-label"><span class="bal-total-label-full">Total cash held at statement dates</span><span class="bal-total-label-short">Total cash held</span></span>
         <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
         <span></span>
       </div>
