@@ -306,8 +306,8 @@
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .bal-row > *:nth-child(2),
+    .bal-row > *:nth-child(3),
     .bal-row > *:nth-child(4) { display: none; }
-    .bal-row > *:nth-child(3) { display: none; }
     .bal-mobile-cell { display: block; text-align: right; }
     .bal-mobile-amt { font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
     .bal-mobile-date { font-size: 0.72rem; margin-top: 2px; }
@@ -315,8 +315,9 @@
       grid-template-columns: 1fr 1fr;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
-    .bal-total-row > *:nth-child(2),
+    .bal-total-row > *:nth-child(2) { display: none; }
     .bal-total-row > *:nth-child(3) { display: none; }
+    .bal-total-amt { grid-column: 2; text-align: right; white-space: nowrap; display: block; }
     .bal-total-label { grid-column: 1; }
     .bal-total-label-full { display: none; }
     .bal-total-label-short { display: inline; }
