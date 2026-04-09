@@ -369,7 +369,8 @@
   .iet-section-head-inc { border-left: 4px solid #2e7d32; }
   .iet-section-head-exp { border-left: 4px solid #c62828; }
   .iet-section-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#c4b8a8; }
-  .iet-section-total { font-size:0.85rem; font-weight:700; text-align:right; color:#e8e0d4; }
+  .iet-section-total-inc { font-size:0.85rem; font-weight:700; text-align:right; color:#4caf50; }
+  .iet-section-total-exp { font-size:0.85rem; font-weight:700; text-align:right; color:#e53935; }
   .iet-group-row {
     display: grid; grid-template-columns: 28px minmax(0,1fr) 170px 50px; width:100%;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
@@ -1148,7 +1149,8 @@
       var secMod = prefix === 'I-' ? 'iet-section-head-inc' : 'iet-section-head-exp';
       sh += '<div class="iet-section-head ' + secMod + '">';
       sh += '<span class="iet-section-label">' + label + '</span>';
-      sh += '<span class="iet-section-total">' + fmt(total) + '</span>';
+      var totClass = prefix === 'I-' ? 'iet-section-total-inc' : 'iet-section-total-exp';
+      sh += '<span class="' + totClass + '">' + fmt(total) + '</span>';
       sh += '</div>';
 
       /* Group */
