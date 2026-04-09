@@ -658,8 +658,8 @@
       <div class="agm-details">
         <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest current account statement</span></div>
         <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="finLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 90px;">Account no.</span><span class="agm-detail-val">41559044</span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 90px;">Sort code</span><span class="agm-detail-val">40-28-12</span></div>
+        <div class="agm-detail-row" style="margin-top:0.4rem;"><span class="agm-detail-label" style="flex:0 0 auto;">Total cash held (all accounts)</span></div>
+        <div class="agm-detail-row" style="margin-top:0.1rem;"><span class="agm-detail-val" id="finTotal"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
       <p class="agm-cta">View accounts &amp; documents →</p>
     </a>
@@ -884,6 +884,23 @@
     } catch(e) {
       document.getElementById('finLatest').textContent = '—';
       showOfflineNotice();
+    }
+  })();
+
+  // Load total cash held (all accounts) for Finances card
+  (async function() {
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
+      if (!res.ok) throw new Error();
+      var json = await res.json();
+      if (json.status !== 'ok') throw new Error();
+      var total = ['current','sinking','contingency'].reduce(function(s, k) {
+        return s + (json[k] ? Number(json[k].balance) : 0);
+      }, 0);
+      document.getElementById('finTotal').textContent = '£ ' + total.toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+    } catch(e) {
+      document.getElementById('finTotal').textContent = '—';
     }
   })();
 
