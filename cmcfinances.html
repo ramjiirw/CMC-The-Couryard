@@ -290,44 +290,42 @@
   }
   .bal-shimmer-sm { width: 70px; }
   .bal-shimmer-total { width: 110px; background: rgba(196,149,106,0.35); }
+  /* desktop/mobile visibility */
+  .bal-mobile-only { display: none; }
+  .bal-desktop-only { display: block; }
+
   @media (max-width: 600px) {
-    .bal-col-heads {
-      grid-template-columns: 1fr 1fr;
-      padding-left: 0.75rem; padding-right: 0.75rem;
+    .bal-mobile-only { display: block; }
+    .bal-desktop-only { display: none; }
+
+    /* Mobile table styles */
+    .balm-head {
+      display: flex; justify-content: space-between;
+      padding: 0.55rem 1rem;
+      background: rgba(122,92,62,0.07); border-bottom: 1px solid var(--border);
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--mid);
     }
-    .bal-col-heads span:nth-child(2),
-    .bal-col-heads span:nth-child(3),
-    .bal-col-heads span:nth-child(4) { display: none; }
-    .bal-col-heads span:nth-child(1)::after { content: 'Account'; }
-    .bal-col-heads span:nth-child(1) { font-size: 0; }
-    .bal-mobile-header { display: block; text-align: right; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #6b5f52; grid-column: 2; }
-    .bal-row {
-      grid-template-columns: 1fr 1fr;
-      padding-left: 0.75rem; padding-right: 0.75rem;
+    .balm-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.85rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.15);
     }
-    .bal-row > *:nth-child(2),
-    .bal-row > *:nth-child(3),
-    .bal-row > *:nth-child(4) { display: none; }
-    .bal-mobile-cell { display: block; text-align: right; grid-column: 2; }
-    .bal-mobile-amt { font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
-    .bal-mobile-date { font-size: 0.72rem; margin-top: 2px; }
-    .bal-total-row {
-      grid-template-columns: 1fr 1fr;
-      padding-left: 0.75rem; padding-right: 0.75rem;
+    .balm-row-current    { background: #2d4a2d; }
+    .balm-row-sinking    { background: #2a2f55; }
+    .balm-row-contingency{ background: #4a1e1e; }
+    .balm-name { font-size: 0.85rem; font-weight: 600; }
+    .balm-right { text-align: right; }
+    .balm-amt { display: block; font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+    .balm-date { display: block; font-size: 0.72rem; margin-top: 2px; }
+    .balm-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 1rem; background: var(--dark);
     }
-    .bal-total-row > *:nth-child(2) { display: none; }
-    .bal-total-row > *:nth-child(3) { display: none; }
-    .bal-total-amt { grid-column: 2; text-align: right; white-space: nowrap; }
-    .bal-total-label { grid-column: 1; }
-    .bal-total-label-full { display: none; }
-    .bal-total-label-short { display: inline; }
-    .bal-total-amt { grid-column: 2; text-align: right; white-space: nowrap; }
-    .bal-name-current     { font-size: 0; }
-    .bal-name-current::after     { content: 'Current Account'; font-size: 0.85rem; font-weight: 600; color: #c8e6c8; }
-    .bal-name-sinking     { font-size: 0; }
-    .bal-name-sinking::after     { content: 'Sinking Fund'; font-size: 0.85rem; font-weight: 600; color: #b8c4e8; }
-    .bal-name-contingency { font-size: 0; }
-    .bal-name-contingency::after { content: 'Contingency'; font-size: 0.85rem; font-weight: 600; color: #e8b8b8; }
+    .balm-total-label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--stone);
+    }
+    .balm-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); white-space: nowrap; }
   }
 </style>
 </head>
@@ -393,35 +391,67 @@
   <div class="finance-section" id="section-balances">
     <h3 class="section-heading">CMC Account Balances at Statement Date</h3>
     <div id="balances-inner">
-      <div class="bal-col-heads">
-        <span>Account</span><span>Account number</span><span>Balance</span><span><span class="bal-head-date-full">Statement date</span><span class="bal-head-date-short">Date</span></span>
-        <span class="bal-mobile-header">Balance</span>
+      <!-- Desktop / iPad layout -->
+      <div class="bal-desktop-only">
+        <div class="bal-col-heads">
+          <span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>
+        </div>
+        <div class="bal-row bal-row-current">
+          <span class="bal-name-current">Current Account</span>
+          <span class="bal-num-current">41559044</span>
+          <span class="bal-amt-current" id="bal-amt-current"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-current" id="bal-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-row bal-row-sinking">
+          <span class="bal-name-sinking">Sinking Fund Account</span>
+          <span class="bal-num-sinking">01567284</span>
+          <span class="bal-amt-sinking" id="bal-amt-sinking"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-sinking" id="bal-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-row bal-row-contingency">
+          <span class="bal-name-contingency">Contingency Account</span>
+          <span class="bal-num-contingency">31567403</span>
+          <span class="bal-amt-contingency" id="bal-amt-contingency"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-total-row">
+          <span class="bal-total-label">Total cash held at statement dates</span>
+          <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
+          <span></span>
+        </div>
       </div>
-      <div class="bal-row bal-row-current">
-        <span class="bal-name-current">Current Account</span>
-        <span class="bal-num-current">41559044</span>
-        <span class="bal-amt-current" id="bal-amt-current"><span class="bal-shimmer"></span></span>
-        <span class="bal-date-current" id="bal-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
-        <span class="bal-mobile-cell" id="bal-mob-current"><span class="bal-mobile-amt bal-amt-current"><span class="bal-shimmer"></span></span><span class="bal-mobile-date" style="color:#a5c8a5;"><span class="bal-shimmer bal-shimmer-sm"></span></span></span>
-      </div>
-      <div class="bal-row bal-row-sinking">
-        <span class="bal-name-sinking">Sinking Fund Account</span>
-        <span class="bal-num-sinking">01567284</span>
-        <span class="bal-amt-sinking" id="bal-amt-sinking"><span class="bal-shimmer"></span></span>
-        <span class="bal-date-sinking" id="bal-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
-        <span class="bal-mobile-cell" id="bal-mob-sinking"><span class="bal-mobile-amt bal-amt-sinking"><span class="bal-shimmer"></span></span><span class="bal-mobile-date" style="color:#8fa0d4;"><span class="bal-shimmer bal-shimmer-sm"></span></span></span>
-      </div>
-      <div class="bal-row bal-row-contingency">
-        <span class="bal-name-contingency">Contingency Account</span>
-        <span class="bal-num-contingency">31567403</span>
-        <span class="bal-amt-contingency" id="bal-amt-contingency"><span class="bal-shimmer"></span></span>
-        <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
-        <span class="bal-mobile-cell" id="bal-mob-contingency"><span class="bal-mobile-amt bal-amt-contingency"><span class="bal-shimmer"></span></span><span class="bal-mobile-date" style="color:#c89090;"><span class="bal-shimmer bal-shimmer-sm"></span></span></span>
-      </div>
-      <div class="bal-total-row">
-        <span class="bal-total-label"><span class="bal-total-label-full">Total cash held at statement dates</span><span class="bal-total-label-short">Total cash held</span></span>
-        <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
-        <span></span>
+
+      <!-- Mobile only layout -->
+      <div class="bal-mobile-only">
+        <div class="balm-head">
+          <span class="balm-col-account">Account</span>
+          <span class="balm-col-right">Balance</span>
+        </div>
+        <div class="balm-row balm-row-current">
+          <span class="balm-name" style="color:#c8e6c8;">Current Account</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#c8e6c8;" id="balm-amt-current"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#a5c8a5;" id="balm-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-row balm-row-sinking">
+          <span class="balm-name" style="color:#b8c4e8;">Sinking Fund</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#b8c4e8;" id="balm-amt-sinking"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#8fa0d4;" id="balm-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-row balm-row-contingency">
+          <span class="balm-name" style="color:#e8b8b8;">Contingency</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#e8b8b8;" id="balm-amt-contingency"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#c89090;" id="balm-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-total">
+          <span class="balm-total-label">Total cash held</span>
+          <span class="balm-total-amt" id="balm-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -540,14 +570,6 @@
       return d;
     }
     function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
-    function setMob(k, amt, date) {
-      var el = document.getElementById('bal-mob-' + k);
-      if (!el) return;
-      var amtEl  = el.querySelector('.bal-mobile-amt');
-      var dateEl = el.querySelector('.bal-mobile-date');
-      if (amtEl)  amtEl.textContent  = amt;
-      if (dateEl) dateEl.textContent = date;
-    }
     try {
       var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -559,24 +581,29 @@
         if (d) {
           var amt  = fmtBal(d.balance);
           var date = fmtDate(d.date);
-          set('bal-amt-' + k,  amt);
+          set('bal-amt-'  + k, amt);
           set('bal-date-' + k, date);
-          setMob(k, amt, date);
+          set('balm-amt-'  + k, amt);
+          set('balm-date-' + k, date);
           total += Number(d.balance);
         } else {
-          set('bal-amt-' + k,  '—');
+          set('bal-amt-'  + k, '—');
           set('bal-date-' + k, '—');
-          setMob(k, '—', '');
+          set('balm-amt-'  + k, '—');
+          set('balm-date-' + k, '');
         }
       });
-      set('bal-total', fmtBal(total));
+      set('bal-total',  fmtBal(total));
+      set('balm-total', fmtBal(total));
     } catch(err) {
       ['current','sinking','contingency'].forEach(function(k) {
-        set('bal-amt-' + k,  '⚠️');
+        set('bal-amt-'  + k, '⚠️');
         set('bal-date-' + k, '');
-        setMob(k, '⚠️', '');
+        set('balm-amt-'  + k, '⚠️');
+        set('balm-date-' + k, '');
       });
-      set('bal-total', '⚠️');
+      set('bal-total',  '⚠️');
+      set('balm-total', '⚠️');
     }
   })();
 </script>
