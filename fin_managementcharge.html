@@ -1020,14 +1020,15 @@
 
   /* Group definitions — prefix-matched, future-proof */
   var INCOME_GROUPS = [
-    { key: 'management', label: 'Management',  prefixes: ['Management Charge'] },
-    { key: 'farmhouse',  label: 'Farmhouse',   prefixes: ['Farmhouse'] },
-    { key: 'other-inc',  label: 'Other Income', prefixes: [] } // catch-all
+    { key: 'management',    label: 'Management',    prefixes: ['Management Charge'] },
+    { key: 'farmhouse',     label: 'Farmhouse',     prefixes: ['Farmhouse'] },
+    { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'] },
+    { key: 'other-inc',     label: 'Other Income',  prefixes: [] } // catch-all
   ];
   var EXPENSE_GROUPS = [
     { key: 'biofilter',  label: 'Bio Filter',            prefixes: ['Bio Filter'] },
     { key: 'utilities',  label: 'Utilities',             prefixes: ['Electricity','Water'] },
-    { key: 'maintenance',label: 'Maintenance',           prefixes: ['Common Parts','General Maintenance','Grass Cutting','Farmhouse Maintenance','Farmhouse Roof Repair'] },
+    { key: 'maintenance',label: 'Maintenance',           prefixes: ['Common Parts','General Maintenance','Grass Cutting','Farmhouse Maintenance','Farmhouse Roof'] },
     { key: 'insurance',  label: 'Insurance & Professional', prefixes: ['Insurance','Professional Fees'] },
     { key: 'roads',      label: 'Roads & Infrastructure',prefixes: ['Road'] },
     { key: 'funds',      label: 'Funds',                 prefixes: ['Sinking Fund'] },
