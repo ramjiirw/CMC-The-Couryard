@@ -1305,6 +1305,7 @@
   }
 
   async function setIETYear(y) {
+    if (!y || isNaN(y)) return;
     ietYear = y;
     // If we don't have this year's data yet, show loading and fetch on demand
     if (finSummaryData && !finSummaryData.transactions.some(function(t){ return t.year === y; })) {
