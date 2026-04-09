@@ -275,6 +275,16 @@
     letter-spacing: 0.06em; color: var(--stone); grid-column: 1 / 3;
   }
   .bal-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); text-align: right; }
+
+  /* Shimmer */
+  @keyframes balshimmer { 0%{opacity:0.3} 50%{opacity:0.7} 100%{opacity:0.3} }
+  .bal-shimmer {
+    display: inline-block; width: 90px; height: 0.85em; border-radius: 4px;
+    background: rgba(255,255,255,0.2); animation: balshimmer 1.4s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  .bal-shimmer-sm { width: 70px; }
+  .bal-shimmer-total { width: 110px; background: rgba(196,149,106,0.35); }
   @media (max-width: 600px) {
     .bal-col-heads, .bal-row, .bal-total-row {
       grid-template-columns: 1fr 90px 100px; padding-left: 0.75rem; padding-right: 0.75rem;
@@ -346,7 +356,32 @@
   <div class="finance-section" id="section-balances">
     <h3 class="section-heading">CMC Account Balances at Statement Date</h3>
     <div id="balances-inner">
-      <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      <div class="bal-col-heads">
+        <span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>
+      </div>
+      <div class="bal-row bal-row-current">
+        <span class="bal-name-current">Current Account</span>
+        <span class="bal-num-current">41559044</span>
+        <span class="bal-amt-current" id="bal-amt-current"><span class="bal-shimmer"></span></span>
+        <span class="bal-date-current" id="bal-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+      </div>
+      <div class="bal-row bal-row-sinking">
+        <span class="bal-name-sinking">Sinking Fund Account</span>
+        <span class="bal-num-sinking">01567284</span>
+        <span class="bal-amt-sinking" id="bal-amt-sinking"><span class="bal-shimmer"></span></span>
+        <span class="bal-date-sinking" id="bal-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+      </div>
+      <div class="bal-row bal-row-contingency">
+        <span class="bal-name-contingency">Contingency Account</span>
+        <span class="bal-num-contingency">31567403</span>
+        <span class="bal-amt-contingency" id="bal-amt-contingency"><span class="bal-shimmer"></span></span>
+        <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+      </div>
+      <div class="bal-total-row">
+        <span class="bal-total-label">Total cash held at statement dates</span>
+        <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
+        <span></span>
+      </div>
     </div>
   </div>
 
@@ -451,7 +486,6 @@
   /* ── Account Balances ── */
   (async function() {
     var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
-    var inner = document.getElementById('balances-inner');
     function fmtBal(n) {
       return '£ ' + Number(n).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
     }
@@ -464,38 +498,31 @@
       }
       return d;
     }
+    function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
     try {
       var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var json = await res.json();
       if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
-      var accounts = [
-        { key: 'current',     name: 'Current Account',     number: '41559044', data: json.current },
-        { key: 'sinking',     name: 'Sinking Fund Account', number: '01567284', data: json.sinking },
-        { key: 'contingency', name: 'Contingency Account',  number: '31567403', data: json.contingency }
-      ];
-      var total = accounts.reduce(function(s, a) { return s + (a.data ? Number(a.data.balance) : 0); }, 0);
-      var html = '<div class="bal-col-heads">';
-      html += '<span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>';
-      html += '</div>';
-      accounts.forEach(function(a) {
-        var bal = a.data ? fmtBal(a.data.balance) : '—';
-        var dt  = a.data ? fmtDate(a.data.date)   : '—';
-        html += '<div class="bal-row bal-row-' + a.key + '">';
-        html += '<span class="bal-name-' + a.key + '">' + a.name + '</span>';
-        html += '<span class="bal-num-' + a.key + '">' + a.number + '</span>';
-        html += '<span class="bal-amt-' + a.key + '">' + bal + '</span>';
-        html += '<span class="bal-date-' + a.key + '">' + dt + '</span>';
-        html += '</div>';
+      var total = 0;
+      ['current','sinking','contingency'].forEach(function(k) {
+        var d = json[k];
+        if (d) {
+          set('bal-amt-' + k,  fmtBal(d.balance));
+          set('bal-date-' + k, fmtDate(d.date));
+          total += Number(d.balance);
+        } else {
+          set('bal-amt-' + k,  '—');
+          set('bal-date-' + k, '—');
+        }
       });
-      html += '<div class="bal-total-row">';
-      html += '<span class="bal-total-label">Total cash held at statement dates</span>';
-      html += '<span class="bal-total-amt">' + fmtBal(total) + '</span>';
-      html += '<span></span>';
-      html += '</div>';
-      inner.innerHTML = html;
+      set('bal-total', fmtBal(total));
     } catch(err) {
-      inner.innerHTML = '<div class="state-error">⚠️ Could not load account balances.<br><small>' + err.message + '</small></div>';
+      ['current','sinking','contingency'].forEach(function(k) {
+        set('bal-amt-' + k,  '⚠️');
+        set('bal-date-' + k, '');
+      });
+      set('bal-total', '⚠️');
     }
   })();
 </script>
