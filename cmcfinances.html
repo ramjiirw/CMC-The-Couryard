@@ -291,20 +291,20 @@
   @media (max-width: 600px) {
     #balances-inner { overflow-x: unset; }
     .bal-col-heads, .bal-row, .bal-total-row {
-      grid-template-columns: 90px 120px 80px;
+      grid-template-columns: 1fr 0 120px 90px;
       padding-left: 0.75rem; padding-right: 0.75rem; min-width: unset;
     }
-    .bal-col-heads span:nth-child(2), .bal-row > *:nth-child(2) { display: none; }
+    .bal-col-heads span:nth-child(2), .bal-row > *:nth-child(2) { display: none; overflow: hidden; }
     .bal-col-heads span:nth-child(3) { text-align: right; }
-    .bal-col-heads span:nth-child(4) { text-align: right; }
+    .bal-col-heads span:nth-child(4) { display: block; text-align: right; }
     .bal-head-date-full { display: none; }
     .bal-head-date-short { display: inline; }
     .bal-row > *:nth-child(3) { text-align: right; }
     .bal-row > *:nth-child(4) { text-align: right; }
     .bal-total-label-full { display: none; }
     .bal-total-label-short { display: inline; }
-    .bal-total-label { grid-column: 1 / 3; }
-    .bal-total-amt { grid-column: 3 / 4; text-align: right; }
+    .bal-total-label { grid-column: 1 / 2; }
+    .bal-total-amt { grid-column: 2 / 5; text-align: right; }
     .bal-name-current     { font-size: 0; }
     .bal-name-current::after     { content: 'Current Account'; font-size: 0.85rem; font-weight: 600; color: #c8e6c8; }
     .bal-name-sinking     { font-size: 0; }
