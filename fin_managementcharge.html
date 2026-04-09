@@ -364,10 +364,12 @@
   .iet-section-head {
     display: grid; grid-template-columns: minmax(0,1fr) 170px 50px; width:100%;
     align-items: center; padding: 0.6rem 1.5rem;
-    background: rgba(122,92,62,0.08); border-bottom: 1px solid var(--border);
+    background: #4a3f35;
   }
-  .iet-section-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); }
-  .iet-section-total { font-size:0.9rem; font-weight:700; text-align:right; }
+  .iet-section-head-inc { border-left: 4px solid #2e7d32; }
+  .iet-section-head-exp { border-left: 4px solid #c62828; }
+  .iet-section-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#c4b8a8; }
+  .iet-section-total { font-size:0.85rem; font-weight:700; text-align:right; color:#e8e0d4; }
   .iet-group-row {
     display: grid; grid-template-columns: 28px minmax(0,1fr) 170px 50px; width:100%;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
@@ -403,13 +405,14 @@
   .iet-drill-val { text-align:right; font-weight:600; }
   .iet-total-row {
     display:grid; grid-template-columns:28px minmax(0,1fr) 170px 50px; width:100%;
-    padding:0.7rem 1.5rem; background:rgba(122,92,62,0.06); border-top:2px solid var(--border); align-items:center;
+    padding:0.7rem 1.5rem; background:#6b5f52; align-items:center;
   }
-  .iet-total-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); grid-column:2; }
-  .iet-total-val { font-size:1rem; font-weight:700; text-align:right; }
+  .iet-total-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#e8e0d4; grid-column:2; }
+  .iet-total-val { font-size:1rem; font-weight:700; text-align:right; color:#e8e0d4; }
+  .iet-section-divider { height:8px; background:var(--cream); }
   .iet-net-row {
     display:grid; grid-template-columns:28px minmax(0,1fr) 170px 50px; width:100%;
-    padding:0.85rem 1.5rem; background:var(--dark); border-top:3px solid var(--border); align-items:center;
+    padding:0.85rem 1.5rem; background:#2e2318; align-items:center;
   }
   .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
   .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
@@ -1142,9 +1145,10 @@
       });
 
       var sh = '';
-      sh += '<div class="iet-section-head">';
+      var secMod = prefix === 'I-' ? 'iet-section-head-inc' : 'iet-section-head-exp';
+      sh += '<div class="iet-section-head ' + secMod + '">';
       sh += '<span class="iet-section-label">' + label + '</span>';
-      sh += '<span class="iet-section-total ' + totalClass + '">' + fmt(total) + '</span>';
+      sh += '<span class="iet-section-total">' + fmt(total) + '</span>';
       sh += '</div>';
 
       /* Group */
@@ -1276,10 +1280,12 @@
     var exp = buildSection('Expenditure', expTxns, 'E-', EXPENSE_GROUPS, 'iet-expense-val', 'iet-expense-val');
 
     html += inc.html;
+    html += '<div class="iet-section-divider"></div>';
     html += exp.html;
 
     /* Net */
     var net = inc.total - exp.total;
+    html += '<div class="iet-section-divider"></div>';
     html += '<div class="iet-net-row">';
     html += '<span></span>';
     html += '<span class="iet-net-label">Net</span>';
