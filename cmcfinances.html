@@ -232,6 +232,56 @@
   }
   #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
   #adminLink:hover { color:var(--accent2); }
+
+  /* ── Account Balances ── */
+  .bal-col-heads {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.55rem 1.5rem; background: rgba(122,92,62,0.07);
+    border-bottom: 1px solid var(--border);
+  }
+  .bal-col-heads span {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--mid);
+  }
+  .bal-col-heads span:nth-child(2) { text-align: center; }
+  .bal-col-heads span:nth-child(3) { text-align: right; }
+  .bal-col-heads span:nth-child(4) { text-align: right; }
+  .bal-row {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.85rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.15);
+    align-items: center;
+  }
+  .bal-row-current    { background: #2d4a2d; }
+  .bal-row-sinking    { background: #2a2f55; }
+  .bal-row-contingency{ background: #4a1e1e; }
+  .bal-name-current     { color: #c8e6c8; font-size: 0.9rem; font-weight: 600; }
+  .bal-name-sinking     { color: #b8c4e8; font-size: 0.9rem; font-weight: 600; }
+  .bal-name-contingency { color: #e8b8b8; font-size: 0.9rem; font-weight: 600; }
+  .bal-num-current      { color: #a5c8a5; font-family: monospace; font-size: 0.85rem; text-align: center; }
+  .bal-num-sinking      { color: #8fa0d4; font-family: monospace; font-size: 0.85rem; text-align: center; }
+  .bal-num-contingency  { color: #c89090; font-family: monospace; font-size: 0.85rem; text-align: center; }
+  .bal-amt-current      { color: #c8e6c8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-amt-sinking      { color: #b8c4e8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-amt-contingency  { color: #e8b8b8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-date-current     { color: #a5c8a5; font-size: 0.85rem; text-align: right; }
+  .bal-date-sinking     { color: #8fa0d4; font-size: 0.85rem; text-align: right; }
+  .bal-date-contingency { color: #c89090; font-size: 0.85rem; text-align: right; }
+  .bal-total-row {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.9rem 1.5rem; align-items: center; background: var(--dark);
+  }
+  .bal-total-label {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--stone); grid-column: 1 / 3;
+  }
+  .bal-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); text-align: right; }
+  @media (max-width: 600px) {
+    .bal-col-heads, .bal-row, .bal-total-row {
+      grid-template-columns: 1fr 90px 100px; padding-left: 0.75rem; padding-right: 0.75rem;
+    }
+    .bal-col-heads span:nth-child(2), .bal-row > *:nth-child(2),
+    .bal-total-row > *:nth-child(2) { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -290,6 +340,14 @@
     " onmouseover="this.style.background='rgba(196,149,106,0.12)'" onmouseout="this.style.background='transparent'">
       View Tracker →
     </a>
+  </div>
+
+  <!-- Account Balances -->
+  <div class="finance-section" id="section-balances">
+    <h3 class="section-heading">CMC Account Balances at Statement Date</h3>
+    <div id="balances-inner">
+      <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+    </div>
   </div>
 
   <!-- Bank Statements -->
@@ -388,6 +446,59 @@
   </div>
 
 </main>
+
+<script>
+  /* ── Account Balances ── */
+  (async function() {
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    var inner = document.getElementById('balances-inner');
+    function fmtBal(n) {
+      return '£ ' + Number(n).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+    function fmtDate(d) {
+      if (!d) return '';
+      var parts = d.split('-');
+      if (parts.length === 3) {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+      }
+      return d;
+    }
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var json = await res.json();
+      if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
+      var accounts = [
+        { key: 'current',     name: 'Current Account',     number: '41559044', data: json.current },
+        { key: 'sinking',     name: 'Sinking Fund Account', number: '01567284', data: json.sinking },
+        { key: 'contingency', name: 'Contingency Account',  number: '31567403', data: json.contingency }
+      ];
+      var total = accounts.reduce(function(s, a) { return s + (a.data ? Number(a.data.balance) : 0); }, 0);
+      var html = '<div class="bal-col-heads">';
+      html += '<span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>';
+      html += '</div>';
+      accounts.forEach(function(a) {
+        var bal = a.data ? fmtBal(a.data.balance) : '—';
+        var dt  = a.data ? fmtDate(a.data.date)   : '—';
+        html += '<div class="bal-row bal-row-' + a.key + '">';
+        html += '<span class="bal-name-' + a.key + '">' + a.name + '</span>';
+        html += '<span class="bal-num-' + a.key + '">' + a.number + '</span>';
+        html += '<span class="bal-amt-' + a.key + '">' + bal + '</span>';
+        html += '<span class="bal-date-' + a.key + '">' + dt + '</span>';
+        html += '</div>';
+      });
+      html += '<div class="bal-total-row">';
+      html += '<span class="bal-total-label">Total cash held at statement dates</span>';
+      html += '<span class="bal-total-amt">' + fmtBal(total) + '</span>';
+      html += '<span></span>';
+      html += '</div>';
+      inner.innerHTML = html;
+    } catch(err) {
+      inner.innerHTML = '<div class="state-error">⚠️ Could not load account balances.<br><small>' + err.message + '</small></div>';
+    }
+  })();
+</script>
 
 <script>
   /* Greeting */
