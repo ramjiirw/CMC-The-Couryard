@@ -289,15 +289,24 @@
   .bal-shimmer-sm { width: 70px; }
   .bal-shimmer-total { width: 110px; background: rgba(196,149,106,0.35); }
   @media (max-width: 600px) {
-    #balances-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    #balances-inner { overflow-x: unset; }
     .bal-col-heads, .bal-row, .bal-total-row {
-      grid-template-columns: 1fr 140px 160px 180px; min-width: 540px;
-      padding-left: 0.75rem; padding-right: 0.75rem;
+      grid-template-columns: 1fr 110px 80px;
+      padding-left: 0.75rem; padding-right: 0.75rem; min-width: unset;
     }
-    .bal-head-date-full { display: inline; }
-    .bal-head-date-short { display: none; }
+    .bal-col-heads span:nth-child(2), .bal-row > *:nth-child(2) { display: none; }
+    .bal-head-date-full { display: none; }
+    .bal-head-date-short { display: inline; }
     .bal-total-label-full { display: none; }
     .bal-total-label-short { display: inline; }
+    .bal-total-label { grid-column: 1 / 3; }
+    .bal-total-amt { grid-column: 3 / 4; text-align: right; }
+    .bal-name-current     { font-size: 0; }
+    .bal-name-current::after     { content: 'Current Account'; font-size: 0.85rem; font-weight: 600; }
+    .bal-name-sinking     { font-size: 0; }
+    .bal-name-sinking::after     { content: 'Sinking Fund'; font-size: 0.85rem; font-weight: 600; }
+    .bal-name-contingency { font-size: 0; }
+    .bal-name-contingency::after { content: 'Contingency'; font-size: 0.85rem; font-weight: 600; }
   }
 </style>
 </head>
