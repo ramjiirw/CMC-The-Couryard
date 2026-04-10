@@ -783,9 +783,10 @@
         <div id="agmAgendaBody">
           <p style="color:var(--mid);font-size:0.82rem;">Loading…</p>
         </div>
-        <div style="margin-top:0.75rem;display:flex;gap:0.6rem;">
+        <div style="margin-top:0.75rem;display:flex;gap:0.6rem;align-items:center;">
           <button class="abtn abtn-muted" onclick="agmAgendaLoad()">&#8635; Refresh</button>
           <button class="abtn" onclick="agmAgendaSave()" style="background:#c4956a;color:#fff;border:none;">&#128190; Save Changes</button>
+          <span id="agmAgendaStatusBottom" style="font-size:0.78rem;color:var(--mid);align-self:center;"></span>
         </div>
       </div>
 
@@ -2967,9 +2968,18 @@ document.getElementById('agmItemModalOverlay').addEventListener('click', functio
   if (e.target === this) agmItemModalTryClose();
 });
 
+function agmAgendaSetStatus(msg, isError) {
+  var top    = document.getElementById('agmAgendaStatus');
+  var bottom = document.getElementById('agmAgendaStatusBottom');
+  [top, bottom].forEach(function(el) {
+    if (!el) return;
+    el.style.color = isError ? '#b05050' : 'var(--mid)';
+    el.textContent = msg;
+  });
+}
+
 async function agmAgendaSave() {
-  var status = document.getElementById('agmAgendaStatus');
-  status.textContent = 'Saving…';
+  agmAgendaSetStatus('Saving…', false);
   try {
     var details = [];
     for (var i = 0; i < 5; i++) {
@@ -2979,16 +2989,22 @@ async function agmAgendaSave() {
       details.push(val);
     }
     var items = [];
+    var mobile = agmIsMobile();
     for (var i = 0; i < 12; i++) {
-      // Desktop: use live inputs; mobile: use hidden inputs
-      var tLive = document.getElementById('agmItem_'     + i);
-      var rLive = document.getElementById('agmRaisedBy_' + i);
-      var tHid  = document.getElementById('agmItemHidden_'     + i);
-      var rHid  = document.getElementById('agmRaisedByHidden_' + i);
-      items.push({
-        text:      tLive ? tLive.value : (tHid ? tHid.value : ''),
-        raisedBy:  rLive ? rLive.value : (rHid ? rHid.value : '')
-      });
+      var text, raisedBy;
+      if (mobile) {
+        // On mobile the desktop inputs exist but are hidden and empty -- always use hidden inputs
+        var tHid = document.getElementById('agmItemHidden_'     + i);
+        var rHid = document.getElementById('agmRaisedByHidden_' + i);
+        text     = tHid ? tHid.value : '';
+        raisedBy = rHid ? rHid.value : '';
+      } else {
+        var tLive = document.getElementById('agmItem_'     + i);
+        var rLive = document.getElementById('agmRaisedBy_' + i);
+        text     = tLive ? tLive.value : '';
+        raisedBy = rLive ? rLive.value : '';
+      }
+      items.push({ text: text, raisedBy: raisedBy });
     }
     var votes = [];
     for (var i = 0; i < 4; i++) {
@@ -2999,11 +3015,10 @@ async function agmAgendaSave() {
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
     agmAgendaClearDirty();
-    status.textContent = '✓ Saved';
-    setTimeout(function(){ status.textContent = ''; }, 3000);
+    agmAgendaSetStatus('✓ Saved', false);
+    setTimeout(function(){ agmAgendaSetStatus('', false); }, 3000);
   } catch(e) {
-    status.style.color = '#b05050';
-    status.textContent = '✗ ' + e.message;
+    agmAgendaSetStatus('✗ ' + e.message, true);
   }
 }
 
