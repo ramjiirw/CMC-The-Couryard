@@ -5828,7 +5828,7 @@ function reportBuildSection(txnList, prefix, groups, color) {
     var gTotal = Object.keys(items).reduce(function(s,k){ return s + items[k]; }, 0);
     var isOpen = reportOpenGroups[g.key];
 
-    html += '<div onclick="reportToggleGroup(' + JSON.stringify(g.key) + ')" style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.5rem;cursor:pointer;border-bottom:1px solid rgba(184,173,158,0.15);background:' + (isOpen ? 'rgba(122,92,62,0.05)' : 'transparent') + ';">';
+    html += '<div onclick="reportToggleGroup(' + JSON.stringify(g.key) + ')" style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.5rem;cursor:pointer;border-bottom:1px solid rgba(184,173,158,0.15);background:' + (isOpen ? 'rgba(122,92,62,0.05)' : 'transparent') + ';">'
           + '<span style="display:flex;align-items:center;font-size:0.875rem;font-weight:600;color:var(--accent);">'
           + '<span id="rpt-chev-' + g.key + '" style="' + chevStyle + (isOpen ? 'transform:rotate(90deg);' : '') + '"></span>'
           + g.label + '</span>'
@@ -6129,7 +6129,7 @@ function reportOpenPDF() {
     + '<button class="save-btn" onclick="window.print()">&#128196; Save as PDF \/ Print<\/button>'
     + '<span style="font-size:0.82rem;color:#9e8e7e;">In the print dialog, choose &lsquo;Save as PDF&rsquo;<\/span>'
     + '<\/div><\/div>'
-    + '<scr' + 'ipt>' + pageScript + '<\/scr' + 'ipt>'
+    + '<scr' + 'ipt>' + pageScript.join('\n') + '<\/scr' + 'ipt>'
     + '<\/body><\/html>';
 
   var win = window.open('', '_blank');
