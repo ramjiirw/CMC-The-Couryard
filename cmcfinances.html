@@ -293,10 +293,14 @@
   /* desktop/mobile visibility */
   .bal-mobile-only { display: none; }
   .bal-desktop-only { display: block; }
+  .bal-date-sep { display: inline; }
+  .bal-date-br  { display: none; }
 
   @media (max-width: 600px) {
     .bal-mobile-only { display: block; }
     .bal-desktop-only { display: none; }
+    .bal-date-sep { display: none; }
+    .bal-date-br  { display: inline; }
 
     /* Mobile table styles */
     .balm-head {
@@ -389,12 +393,12 @@
 
   <!-- Account Balances -->
   <div class="finance-section" id="section-balances">
-    <h3 class="section-heading">CMC Account Balances at Statement Date</h3>
+    <h3 class="section-heading" id="bal-section-heading">CMC Account Balances<span id="bal-last-updated" style="display:none;"></span></h3>
     <div id="balances-inner">
       <!-- Desktop / iPad layout -->
       <div class="bal-desktop-only">
         <div class="bal-col-heads">
-          <span>Account</span><span>Account number</span><span>Balance</span><span>Statement date</span>
+          <span>Account</span><span>Account number</span><span>Balance</span><span>Last updated</span>
         </div>
         <div class="bal-row bal-row-current">
           <span class="bal-name-current">Current Account</span>
@@ -415,7 +419,7 @@
           <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
         </div>
         <div class="bal-total-row">
-          <span class="bal-total-label">Total cash held at statement dates</span>
+          <span class="bal-total-label">Total cash held</span>
           <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
           <span></span>
         </div>
@@ -569,6 +573,18 @@
       }
       return d;
     }
+    function fmtDateFull(d) {
+      if (!d) return '';
+      var parts = d.split('-');
+      if (parts.length === 3) {
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+      }
+      return d;
+    }
+    function latestDate(dates) {
+      return dates.filter(Boolean).sort().reverse()[0];
+    }
     function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
     try {
       var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
@@ -595,6 +611,12 @@
       });
       set('bal-total',  fmtBal(total));
       set('balm-total', fmtBal(total));
+      var rawDates = ['current','sinking','contingency'].map(function(k){ return json[k] && json[k].date; });
+      var latest = latestDate(rawDates);
+      if (latest) {
+        var span = document.getElementById('bal-last-updated');
+        if (span) { span.innerHTML = '<span class="bal-date-sep"> — </span><span class="bal-date-br"><br></span>Last Updated ' + fmtDateFull(latest); span.style.display = ''; }
+      }
     } catch(err) {
       ['current','sinking','contingency'].forEach(function(k) {
         set('bal-amt-'  + k, '⚠️');
