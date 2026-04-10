@@ -2836,6 +2836,26 @@ async function agmAgendaLoad() {
     }
     html += '</tbody></table>';
 
+    // ── AOB & End of Meeting ──
+    var aobVal = '';
+    var endVal = '';
+    for (var i = 0; i < a.length; i++) {
+      var r = a[i];
+      var c0 = r && r[0] ? r[0].toString().trim() : '';
+      var c1 = r && r[1] ? r[1].toString().trim() : '';
+      if (c0 === 'END of Meeting') { endVal = c1; }
+      if (!c0 && c1.startsWith('Any other Business')) { aobVal = c1; }
+    }
+    html += '<div style="' + sectionTitle + '">AOB &amp; End of Meeting</div>';
+    html += '<div style="margin-bottom:0.5rem;">'
+      + '<label style="' + labelStyle + '">Any Other Business</label>'
+      + '<input type="text" id="agmAOB" value="' + escAdm(aobVal) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+      + '</div>';
+    html += '<div style="margin-bottom:0.5rem;">'
+      + '<label style="' + labelStyle + '">End of Meeting</label>'
+      + '<input type="text" id="agmEndOfMeeting" value="' + escAdm(endVal) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+      + '</div>';
+
     // ── Vote Items ──
     html += '<div style="' + sectionTitle + '">Voting Items</div>';
     for (var i = 0; i < 4; i++) {
@@ -3034,7 +3054,11 @@ async function agmAgendaSave() {
       var el = document.getElementById('agmVote_' + i);
       votes.push(el ? el.value : '');
     }
-    var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'writeAgenda', details: details, items: items, votes: votes }) });
+    var aobEl = document.getElementById('agmAOB');
+    var endEl = document.getElementById('agmEndOfMeeting');
+    var aob = aobEl ? aobEl.value : '';
+    var endOfMeeting = endEl ? endEl.value : '';
+    var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'writeAgenda', details: details, items: items, votes: votes, aob: aob, endOfMeeting: endOfMeeting }) });
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
     agmAgendaClearDirty();
