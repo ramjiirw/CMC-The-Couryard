@@ -804,9 +804,10 @@
             <label style="font-size:0.75rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Raised By</label>
             <input type="text" id="agmItemModalRaisedBy" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:var(--dark);background:#fff;outline:none;">
           </div>
+          <div id="agmItemModalError" style="display:none;color:#b05050;font-size:0.78rem;margin-bottom:0.6rem;text-align:right;"></div>
           <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
-            <button class="abtn abtn-muted" onclick="agmItemModalTryClose()">Discard</button>
-            <button class="abtn" onclick="agmItemModalSave()" style="background:#c4956a;color:#fff;border:none;">&#128190; Save Item</button>
+            <button class="abtn abtn-muted" id="agmItemModalDiscardBtn" onclick="agmItemModalTryClose()">Discard</button>
+            <button class="abtn" id="agmItemModalSaveBtn" onclick="agmItemModalSave()" style="background:#c4956a;color:#fff;border:none;">&#128190; Save Item</button>
           </div>
         </div>
       </div>
@@ -2934,17 +2935,39 @@ function agmItemModalHasChanges() {
       || document.getElementById('agmItemModalRaisedBy').value !== agmItemModalOrigRaisedBy;
 }
 
-function agmItemModalSave() {
+async function agmItemModalSave() {
   if (agmItemModalIdx === null) return;
-  var newText = document.getElementById('agmItemModalText').value;
-  var newRB   = document.getElementById('agmItemModalRaisedBy').value;
+  var newText  = document.getElementById('agmItemModalText').value;
+  var newRB    = document.getElementById('agmItemModalRaisedBy').value;
+  var saveBtn  = document.getElementById('agmItemModalSaveBtn');
+  var discardBtn = document.getElementById('agmItemModalDiscardBtn');
+  var errEl    = document.getElementById('agmItemModalError');
+
+  // Update local state immediately
   document.getElementById('agmItemHidden_'     + agmItemModalIdx).value = newText;
   document.getElementById('agmRaisedByHidden_' + agmItemModalIdx).value = newRB;
   document.getElementById('agmItemText_' + agmItemModalIdx).innerHTML   = newText || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>';
   document.getElementById('agmItemRB_'   + agmItemModalIdx).innerHTML   = newRB   || '<span style="color:#bbb;font-style:italic;">—</span>';
-  agmAgendaSetDirty();
-  document.getElementById('agmItemModalOverlay').style.display = 'none';
-  agmItemModalIdx = null;
+
+  // Lock the modal while saving
+  saveBtn.disabled = true;
+  discardBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  errEl.style.display = 'none';
+
+  try {
+    await agmAgendaSave();
+    // Success — agmAgendaSave clears dirty and updates status; now close modal
+    document.getElementById('agmItemModalOverlay').style.display = 'none';
+    agmItemModalIdx = null;
+  } catch(e) {
+    // Show error inside modal and re-enable buttons
+    errEl.textContent = '✗ Could not save — ' + e.message;
+    errEl.style.display = 'block';
+    saveBtn.disabled = false;
+    discardBtn.disabled = false;
+    saveBtn.innerHTML = '&#128190; Save Item';
+  }
 }
 
 function agmItemModalClose() {
@@ -3019,6 +3042,7 @@ async function agmAgendaSave() {
     setTimeout(function(){ agmAgendaSetStatus('', false); }, 3000);
   } catch(e) {
     agmAgendaSetStatus('✗ ' + e.message, true);
+    throw e; // re-throw so callers (e.g. modal save) can also handle the error
   }
 }
 
