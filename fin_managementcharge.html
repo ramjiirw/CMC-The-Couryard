@@ -1254,7 +1254,8 @@
               });
             } else {
               /* Expenditure: date + description + notes + amount */
-              groupedDrillExp[g.key][name].sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+              function pDMY(s){var p=(s||'').split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(0);}
+              groupedDrillExp[g.key][name].slice().sort(function(a,b){ return pDMY(a.date)-pDMY(b.date); }).forEach(function(r) {
                 var desc = r.description || '';
                 if (r.notes) desc += ' (' + r.notes + ')';
                 sh += '<div class="iet-drill-row">';
