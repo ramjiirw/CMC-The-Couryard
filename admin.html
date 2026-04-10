@@ -3093,8 +3093,7 @@ function agmAobModalClose() {
 
 function agmAobModalTryClose() {
   if (agmAobModalHasChanges()) {
-    if (confirm('You have unsaved changes.
-Save before closing?')) {
+    if (confirm('You have unsaved changes.\nSave before closing?')) {
       agmAobModalSave();
     } else {
       agmAobModalClose();
