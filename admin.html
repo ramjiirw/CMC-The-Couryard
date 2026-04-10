@@ -5838,6 +5838,30 @@ function reportBuildSection(txnList, prefix, groups, color) {
     html += '<div id="rpt-items-' + g.key + '" style="display:' + (isOpen ? 'block' : 'none') + ';background:rgba(245,240,232,0.5);">';
 
     Object.keys(items).sort().forEach(function(name) {
+      // directDrill: show addresses directly, skip the sub-item name row
+      if (g.directDrill && prefix === 'I-') {
+        var drills = groupedDrill[g.key] && groupedDrill[g.key][name] ? groupedDrill[g.key][name] : [];
+        var addrPayments = {};
+        drills.forEach(function(r) {
+          var a = r.address || 'Unknown';
+          if (!addrPayments[a]) addrPayments[a] = [];
+          addrPayments[a].push(r);
+        });
+        Object.keys(addrPayments).sort(function(a,b){
+          var na = parseInt(a), nb = parseInt(b);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return a.localeCompare(b);
+        }).forEach(function(addr) {
+          var rows = addrPayments[addr];
+          var tot = rows.reduce(function(s,r){ return s + r.amount; }, 0);
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:0.38rem 0.5rem 0.38rem 1.5rem;border-bottom:1px solid rgba(184,173,158,0.1);">'
+                + '<span style="font-size:0.82rem;color:var(--dark);">' + addr + '</span>'
+                + '<span style="font-size:0.82rem;color:' + color + ';font-weight:600;">' + reportFmt(tot) + '</span>'
+                + '</div>';
+        });
+        return;
+      }
+
       var itemKey = g.key + '_' + name.replace(/\W/g,'_');
       var hasDrill = groupedDrill[g.key] && groupedDrill[g.key][name] && groupedDrill[g.key][name].length > 0;
       var isDrillOpen = reportOpenDrills[itemKey];
@@ -6012,7 +6036,7 @@ function reportOpenPDF() {
     '        var ap={};drills.forEach(function(r){var a=r.address||"Unknown";if(!ap[a])ap[a]=[];ap[a].push(r);});',
     '        Object.keys(ap).sort(function(a,b){var na=parseInt(a),nb=parseInt(b);return(!isNaN(na)&&!isNaN(nb))?na-nb:a.localeCompare(b);}).forEach(function(addr){',
     '          var rows=ap[addr],tot=rows.reduce(function(s,r){return s+r.amount;},0);',
-    '          html+="<div class=\"dr\"><span>"+addr+"</span><span style=\"color:#2e7d32;font-weight:600\">"+fmt(tot)+"</span></div>";',
+    '          html+="<div class=\"ir\"><span class=\"in\">"+addr+"</span><span class=\"iv\" style=\"color:#2e7d32;\">"+fmt(tot)+"</span></div>";',
     '        });',
     '        return;',
     '      }',
@@ -6132,16 +6156,9 @@ function reportOpenPDF() {
     + '<scr' + 'ipt>' + pageScript.join('\n') + '<\/scr' + 'ipt>'
     + '<\/body><\/html>';
 
-  var win = window.open('', '_blank');
-  if (!win || win.closed || typeof win.closed === 'undefined') {
-    // Popup blocked — open in same tab
-    var blob = new Blob([html], {type: 'text/html'});
-    var url = URL.createObjectURL(blob);
-    window.location.href = url;
-  } else {
-    win.document.write(html);
-    win.document.close();
-  }
+  var blob = new Blob([html], {type: 'text/html'});
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
 }
 
 // Initialise reports year selector when admin screen is shown
