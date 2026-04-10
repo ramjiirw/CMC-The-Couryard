@@ -1279,6 +1279,7 @@
         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.2rem;flex-wrap:wrap;">
           <label style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);">Year</label>
           <select id="reportYear" onchange="reportLoad()" style="padding:0.4rem 0.75rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:var(--cream);color:var(--accent);font-weight:600;cursor:pointer;"></select>
+          <button class="abtn abtn-muted" onclick="reportCollapseAll()">&#8645; Collapse All</button>
           <button class="abtn abtn-primary" onclick="reportOpenPDF()" style="margin-left:auto;">&#128196; Open PDF View</button>
         </div>
 
@@ -3676,9 +3677,6 @@ async function nbSave() {
   setTimeout(function(){ msg.textContent = ''; }, 4000);
 }
 
-function escHtml(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 
 // ─── NOTICEBOARD NOTIFY ──────────────────────────────────────────────────────
 
@@ -5728,6 +5726,49 @@ function reportBuildGroupTotals(txns, prefix, groups) {
   return totals;
 }
 
+// Track open groups and drill items
+var reportOpenGroups = {};
+var reportOpenDrills = {};
+
+function reportToggleGroup(key) {
+  reportOpenGroups[key] = !reportOpenGroups[key];
+  var el = document.getElementById('rpt-items-' + key);
+  var chev = document.getElementById('rpt-chev-' + key);
+  if (el) el.style.display = reportOpenGroups[key] ? 'block' : 'none';
+  if (chev) chev.style.transform = reportOpenGroups[key] ? 'rotate(90deg)' : '';
+}
+
+function reportToggleDrill(key) {
+  reportOpenDrills[key] = !reportOpenDrills[key];
+  var el = document.getElementById('rpt-drill-' + key);
+  var chev = document.getElementById('rpt-dchev-' + key);
+  if (el) el.style.display = reportOpenDrills[key] ? 'block' : 'none';
+  if (chev) chev.style.transform = reportOpenDrills[key] ? 'rotate(90deg)' : '';
+}
+
+function reportBuildDrillData(txnList, prefix) {
+  var drillInc = {};
+  var drillExp = {};
+  txnList.forEach(function(t) {
+    var name = t.category.replace(prefix, '').trim();
+    if (prefix === 'I-') {
+      if (!drillInc[name]) drillInc[name] = [];
+      drillInc[name].push({ address: t.address, amount: t.amtIn, notes: t.notes || '', date: t.date || '' });
+    } else {
+      if (!drillExp[name]) drillExp[name] = [];
+      drillExp[name].push({ date: t.date, description: t.description, amount: t.amtOut, notes: t.notes || '' });
+    }
+  });
+  return prefix === 'I-' ? drillInc : drillExp;
+}
+
+function reportCollapseAll() {
+  reportOpenGroups = {};
+  reportOpenDrills = {};
+  var container = document.getElementById('reportContainer');
+  if (container && reportData) reportRender(container);
+}
+
 function reportPopulateYears() {
   var sel = document.getElementById('reportYear');
   if (!sel) return;
@@ -5760,41 +5801,120 @@ async function reportLoad() {
   }
 }
 
+function reportBuildSection(txnList, prefix, groups, color) {
+  // Aggregate by display name
+  var agg = {};
+  txnList.forEach(function(t) {
+    var name = t.category.replace(prefix, '').trim();
+    agg[name] = (agg[name] || 0) + (prefix === 'I-' ? t.amtIn : t.amtOut);
+  });
+  var drill = reportBuildDrillData(txnList, prefix);
+
+  // Group items
+  var grouped = {}, groupedDrill = {};
+  Object.keys(agg).forEach(function(name) {
+    var gKey = reportAssignGroup(name, groups);
+    if (!grouped[gKey]) { grouped[gKey] = {}; groupedDrill[gKey] = {}; }
+    grouped[gKey][name] = agg[name];
+    if (drill[name]) groupedDrill[gKey][name] = drill[name];
+  });
+
+  var chevStyle = 'display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #b8ad9e;transition:transform 0.2s;margin-right:6px;flex-shrink:0;';
+  var html = '';
+
+  groups.forEach(function(g) {
+    var items = grouped[g.key];
+    if (!items || Object.keys(items).length === 0) return;
+    var gTotal = Object.keys(items).reduce(function(s,k){ return s + items[k]; }, 0);
+    var isOpen = reportOpenGroups[g.key];
+
+    html += '<div onclick="reportToggleGroup(\"" + g.key + "\")" style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.5rem;cursor:pointer;border-bottom:1px solid rgba(184,173,158,0.15);background:' + (isOpen ? 'rgba(122,92,62,0.05)' : 'transparent') + ';">'
+          + '<span style="display:flex;align-items:center;font-size:0.875rem;font-weight:600;color:var(--accent);">'
+          + '<span id="rpt-chev-' + g.key + '" style="' + chevStyle + (isOpen ? 'transform:rotate(90deg);' : '') + '"></span>'
+          + g.label + '</span>'
+          + '<span style="font-size:0.875rem;font-weight:600;color:' + color + ';">' + reportFmt(gTotal) + '</span>'
+          + '</div>';
+
+    html += '<div id="rpt-items-' + g.key + '" style="display:' + (isOpen ? 'block' : 'none') + ';background:rgba(245,240,232,0.5);">';
+
+    Object.keys(items).sort().forEach(function(name) {
+      var itemKey = g.key + '_' + name.replace(/\W/g,'_');
+      var hasDrill = groupedDrill[g.key] && groupedDrill[g.key][name] && groupedDrill[g.key][name].length > 0;
+      var isDrillOpen = reportOpenDrills[itemKey];
+
+      html += '<div ' + (hasDrill ? 'onclick="reportToggleDrill(\"" + itemKey + "\")"' : '') + ' style="display:flex;align-items:center;justify-content:space-between;padding:0.38rem 0.5rem 0.38rem 1.5rem;border-bottom:1px solid rgba(184,173,158,0.1);' + (hasDrill ? 'cursor:pointer;' : '') + '">'
+            + '<span style="display:flex;align-items:center;font-size:0.82rem;color:var(--dark);">'
+            + (hasDrill ? '<span id="rpt-dchev-' + itemKey + '" style="' + chevStyle + (isDrillOpen ? 'transform:rotate(90deg);' : '') + '"></span>' : '<span style="width:13px;display:inline-block;"></span>')
+            + name + '</span>'
+            + '<span style="font-size:0.82rem;color:' + color + ';font-weight:600;">' + reportFmt(items[name]) + '</span>'
+            + '</div>';
+
+      if (hasDrill) {
+        html += '<div id="rpt-drill-' + itemKey + '" style="display:' + (isDrillOpen ? 'block' : 'none') + ';background:rgba(122,92,62,0.03);">';
+        if (prefix === 'I-') {
+          var incPayments = groupedDrill[g.key][name];
+          var addrPayments = {};
+          incPayments.forEach(function(r) {
+            var a = r.address || 'Unknown';
+            if (!addrPayments[a]) addrPayments[a] = [];
+            addrPayments[a].push(r);
+          });
+          Object.keys(addrPayments).sort(function(a,b){
+            var na = parseInt(a), nb = parseInt(b);
+            if (!isNaN(na) && !isNaN(nb)) return na - nb;
+            return a.localeCompare(b);
+          }).forEach(function(addr) {
+            var rows = addrPayments[addr];
+            var hasNotes = rows.some(function(r){ return r.notes && r.notes.trim(); });
+            if (!hasNotes) {
+              var tot = rows.reduce(function(s,r){ return s + r.amount; }, 0);
+              html += '<div style="display:flex;justify-content:space-between;padding:0.32rem 0.5rem 0.32rem 2.5rem;border-bottom:1px solid rgba(184,173,158,0.08);font-size:0.78rem;">'
+                    + '<span style="color:var(--mid);">' + addr + '</span>'
+                    + '<span style="color:#2e7d32;font-weight:600;">' + reportFmt(tot) + '</span></div>';
+            } else {
+              rows.forEach(function(r) {
+                var lbl = addr + (r.date ? ' — ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
+                html += '<div style="display:flex;justify-content:space-between;padding:0.32rem 0.5rem 0.32rem 2.5rem;border-bottom:1px solid rgba(184,173,158,0.08);font-size:0.78rem;">'
+                      + '<span style="color:var(--mid);">' + lbl + '</span>'
+                      + '<span style="color:#2e7d32;font-weight:600;">' + reportFmt(r.amount) + '</span></div>';
+              });
+            }
+          });
+        } else {
+          groupedDrill[g.key][name].slice().sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+            var desc = (r.date || '') + (r.description ? ' — ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
+            html += '<div style="display:flex;justify-content:space-between;padding:0.32rem 0.5rem 0.32rem 2.5rem;border-bottom:1px solid rgba(184,173,158,0.08);font-size:0.78rem;">'
+                  + '<span style="color:var(--mid);">' + desc + '</span>'
+                  + '<span style="color:#c62828;font-weight:600;">' + reportFmt(r.amount) + '</span></div>';
+          });
+        }
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  });
+  return html;
+}
+
 function reportRender(container) {
   if (!reportData) return;
   var txns    = (reportData.transactions || []).filter(function(t){ return t.year === reportCurrentYear; });
   var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
   var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
-  var incGroups = reportBuildGroupTotals(incTxns, 'I-', REPORT_INCOME_GROUPS);
-  var expGroups = reportBuildGroupTotals(expTxns, 'E-', REPORT_EXPENSE_GROUPS);
-  var totalInc  = Object.values(incGroups).reduce(function(a,b){ return a+b; }, 0);
-  var totalExp  = Object.values(expGroups).reduce(function(a,b){ return a+b; }, 0);
-  var net       = totalInc - totalExp;
-  var now       = new Date();
+  var totalInc = incTxns.reduce(function(s,t){ return s + t.amtIn; }, 0);
+  var totalExp = expTxns.reduce(function(s,t){ return s + t.amtOut; }, 0);
+  var net      = totalInc - totalExp;
+  var now      = new Date();
   var generated = now.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) + ' · ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
-
-  var rowStyle  = 'display:flex;justify-content:space-between;padding:0.35rem 0;font-size:0.875rem;border-bottom:1px solid rgba(184,173,158,0.15);';
-  var totalStyle= 'display:flex;justify-content:space-between;padding:0.5rem 0;font-size:0.875rem;font-weight:700;border-top:1px solid rgba(184,173,158,0.4);margin-top:0.25rem;';
-
-  function buildSection(groups, groupTotals, colorClass) {
-    var rows = '';
-    groups.forEach(function(g) {
-      var val = groupTotals[g.key] || 0;
-      if (val === 0) return;
-      rows += '<div style="' + rowStyle + '"><span style="color:var(--dark);">' + g.label + '</span><span style="color:' + colorClass + ';font-weight:600;">' + reportFmt(val) + '</span></div>';
-    });
-    return rows;
-  }
-
-  var incRows = buildSection(REPORT_INCOME_GROUPS, incGroups, '#2e7d32');
-  var expRows = buildSection(REPORT_EXPENSE_GROUPS, expGroups, '#c62828');
   var netColor = net >= 0 ? '#2e7d32' : '#c62828';
   var netLabel = net >= 0 ? 'Net Surplus' : 'Net Deficit';
   var netSign  = net >= 0 ? '+' : '';
 
+  var incSection = reportBuildSection(incTxns, 'I-', REPORT_INCOME_GROUPS, '#2e7d32');
+  var expSection = reportBuildSection(expTxns, 'E-', REPORT_EXPENSE_GROUPS, '#c62828');
+
   var html = '<div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
 
-  // Header
   html += '<div style="background:#1e1a16;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">'
         + '<div style="display:flex;align-items:center;gap:0.9rem;">'
         + '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" style="width:44px;height:33px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.15);" alt="CMC Logo">'
@@ -5807,28 +5927,35 @@ function reportRender(container) {
         + '<div style="font-size:0.68rem;color:#6b5f52;margin-top:3px;">Generated ' + generated + '</div>'
         + '</div></div>';
 
-  // Two column body
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);">';
-
-  // Income column
-  html += '<div style="padding:1.25rem 1.5rem;border-right:1px solid var(--border);">'
-        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding-bottom:0.4rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;">Income</div>'
-        + incRows
-        + '<div style="' + totalStyle + '"><span>Total Income</span><span style="color:#2e7d32;">' + reportFmt(totalInc) + '</span></div>'
+  html += '<div style="display:grid;grid-template-columns:1fr 1px 1fr;">'
+        + '<div style="padding:0.75rem 0;">'
+        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding:0.4rem 0.5rem;border-bottom:1px solid var(--border);">Income</div>'
+        + incSection
+        + '</div>'
+        + '<div style="background:#ddd5c8;width:1px;"></div>'
+        + '<div style="padding:0.75rem 0;">'
+        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding:0.4rem 0.5rem;border-bottom:1px solid var(--border);">Expenditure</div>'
+        + expSection
+        + '</div>'
         + '</div>';
 
-  // Expenditure column
-  html += '<div style="padding:1.25rem 1.5rem;">'
-        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding-bottom:0.4rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;">Expenditure</div>'
-        + expRows
-        + '<div style="' + totalStyle + '"><span>Total Expenditure</span><span style="color:#c62828;">' + reportFmt(totalExp) + '</span></div>'
+  // Totals row
+  html += '<div style="display:grid;grid-template-columns:1fr 1px 1fr;">'
+        + '<div style="border-top:2px solid #b8ad9e;padding-right:2.5rem;">'
+        + '<div style="padding:0.6rem 0.5rem;display:flex;justify-content:space-between;align-items:center;">'
+        + '<span style="font-size:0.9rem;font-weight:700;color:var(--dark);">Total Income</span>'
+        + '<span style="font-size:0.9rem;font-weight:700;color:#2e7d32;">' + reportFmt(totalInc) + '</span>'
+        + '</div></div>'
+        + '<div style="background:#ddd5c8;width:1px;"></div>'
+        + '<div style="border-top:2px solid #b8ad9e;padding-left:2.5rem;">'
+        + '<div style="padding:0.6rem 0.5rem;display:flex;justify-content:space-between;align-items:center;">'
+        + '<span style="font-size:0.9rem;font-weight:700;color:var(--dark);">Total Expenditure</span>'
+        + '<span style="font-size:0.9rem;font-weight:700;color:#c62828;">' + reportFmt(totalExp) + '</span>'
+        + '</div></div>'
         + '</div>';
 
-  html += '</div>';
-
-  // Net surplus/deficit bar
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#1e1a16;padding:0.9rem 1.5rem;">'
-        + '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#b8ad9e;">' + netLabel + '</span>'
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#ddd5c8;border-top:2px solid #b8ad9e;padding:0.9rem 1.5rem;">'
+        + '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;">' + netLabel + '</span>'
         + '<span style="font-size:1.2rem;font-weight:700;color:' + netColor + ';">' + netSign + reportFmt(Math.abs(net)) + '</span>'
         + '</div>';
 
@@ -5856,19 +5983,91 @@ function reportOpenPDF() {
     return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
-  function buildPDFRows(groups, groupTotals, color) {
+  function buildPDFSection(txnList, prefix, groups, color) {
+    // Aggregate
+    var agg = {};
+    txnList.forEach(function(t) {
+      var name = t.category.replace(prefix, '').trim();
+      agg[name] = (agg[name] || 0) + (prefix === 'I-' ? t.amtIn : t.amtOut);
+    });
+    var drill = reportBuildDrillData(txnList, prefix);
+
+    // Group
+    var grouped = {}, groupedDrill = {};
+    Object.keys(agg).forEach(function(name) {
+      var gKey = reportAssignGroup(name, groups);
+      if (!grouped[gKey]) { grouped[gKey] = {}; groupedDrill[gKey] = {}; }
+      grouped[gKey][name] = agg[name];
+      if (drill[name]) groupedDrill[gKey][name] = drill[name];
+    });
+
     var rows = '';
     groups.forEach(function(g) {
-      var val = groupTotals[g.key] || 0;
-      if (val === 0) return;
-      rows += '<tr><td style="padding:11px 16px;font-size:17px;color:#222;">' + g.label + '</td>'
-            + '<td style="padding:11px 16px;font-size:17px;color:' + color + ';font-weight:600;text-align:right;">' + fmtP(val) + '</td></tr>';
+      var items = grouped[g.key];
+      if (!items || Object.keys(items).length === 0) return;
+      var gTotal = Object.keys(items).reduce(function(s,k){ return s + items[k]; }, 0);
+      var isOpen = reportOpenGroups[g.key];
+
+      rows += '<tr style="background:#f5f0e8;">'
+            + '<td style="padding:9px 16px;font-size:17px;font-weight:700;color:#7a5c3e;">' + g.label + '</td>'
+            + '<td style="padding:9px 16px;font-size:17px;font-weight:700;color:' + color + ';text-align:right;">' + fmtP(gTotal) + '</td>'
+            + '</tr>';
+
+      if (isOpen) {
+        Object.keys(items).sort().forEach(function(name) {
+          var itemKey = g.key + '_' + name.replace(/\W/g,'_');
+          var isDrillOpen = reportOpenDrills[itemKey];
+          var hasDrill = groupedDrill[g.key] && groupedDrill[g.key][name] && groupedDrill[g.key][name].length > 0;
+
+          rows += '<tr>'
+                + '<td style="padding:8px 16px 8px 28px;font-size:15px;color:#333;">' + name + '</td>'
+                + '<td style="padding:8px 16px;font-size:15px;color:' + color + ';font-weight:600;text-align:right;">' + fmtP(items[name]) + '</td>'
+                + '</tr>';
+
+          if (hasDrill && isDrillOpen) {
+            if (prefix === 'I-') {
+              var incPayments = groupedDrill[g.key][name];
+              var addrPayments = {};
+              incPayments.forEach(function(r) {
+                var a = r.address || 'Unknown';
+                if (!addrPayments[a]) addrPayments[a] = [];
+                addrPayments[a].push(r);
+              });
+              Object.keys(addrPayments).sort(function(a,b){
+                var na = parseInt(a), nb = parseInt(b);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+              }).forEach(function(addr) {
+                var prows = addrPayments[addr];
+                var hasNotes = prows.some(function(r){ return r.notes && r.notes.trim(); });
+                if (!hasNotes) {
+                  var tot = prows.reduce(function(s,r){ return s + r.amount; }, 0);
+                  rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + addr + '</td>'
+                        + '<td style="padding:6px 16px;font-size:13px;color:#2e7d32;text-align:right;">' + fmtP(tot) + '</td></tr>';
+                } else {
+                  prows.forEach(function(r) {
+                    var lbl = addr + (r.date ? ' — ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
+                    rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + lbl + '</td>'
+                          + '<td style="padding:6px 16px;font-size:13px;color:#2e7d32;text-align:right;">' + fmtP(r.amount) + '</td></tr>';
+                  });
+                }
+              });
+            } else {
+              groupedDrill[g.key][name].slice().sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+                var desc = (r.date || '') + (r.description ? ' — ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
+                rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + desc + '</td>'
+                      + '<td style="padding:6px 16px;font-size:13px;color:#c62828;text-align:right;">' + fmtP(r.amount) + '</td></tr>';
+              });
+            }
+          }
+        });
+      }
     });
     return rows;
   }
 
-  var incRows = buildPDFRows(REPORT_INCOME_GROUPS, incGroups, '#2e7d32');
-  var expRows = buildPDFRows(REPORT_EXPENSE_GROUPS, expGroups, '#c62828');
+  var incRows = buildPDFSection(incTxns, 'I-', REPORT_INCOME_GROUPS, '#2e7d32');
+  var expRows = buildPDFSection(expTxns, 'E-', REPORT_EXPENSE_GROUPS, '#c62828');
 
   var pdfHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
     + '<title>CMC The Courtyard — I&E Summary ' + reportCurrentYear + '</title>'
@@ -5889,8 +6088,8 @@ function reportOpenPDF() {
     + 'table{width:100%;border-collapse:collapse;}'
     + 'tr:nth-child(even) td{background:#faf7f2;}'
     + '.total-row td{border-top:2px solid #b8ad9e;font-weight:700;font-size:18px;padding:12px 16px;background:white!important;}'
-    + '.net-bar{display:flex;justify-content:space-between;align-items:center;background:#f0ebe1;border:2px solid #c4956a;padding:1.2rem 1.75rem;border-radius:8px;}'
-    + '.net-label{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#7a5c3e;}'
+    + '.net-bar{display:flex;justify-content:space-between;align-items:center;background:#ddd5c8;border:2px solid #b8ad9e;padding:1.2rem 1.75rem;border-radius:8px;}'
+    + '.net-label{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}'
     + '.net-val{font-size:2rem;font-weight:700;}'
     + '.save-bar{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid #ddd5c8;text-align:center;}'
     + '.save-btn{padding:0.7rem 1.75rem;background:#7a5c3e;color:white;border:none;border-radius:6px;font-family:Arial,sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;}'
@@ -5925,16 +6124,18 @@ function reportOpenPDF() {
     + '<table>' + expRows
     + '</table></div>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1px 1fr;border-top:2px solid #b8ad9e;margin-bottom:1.5rem;">'
-    + '<div style="padding:12px 2.5rem 12px 0;display:flex;justify-content:space-between;align-items:center;">'
+    + '<div style="display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:1.5rem;">'
+    + '<div style="padding-right:2.5rem;border-top:2px solid #b8ad9e;">'
+    + '<div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center;">'
     + '<span style="font-size:18px;font-weight:700;color:#1e1a16;">Total Income</span>'
     + '<span style="font-size:18px;font-weight:700;color:#2e7d32;">' + fmtP(totalInc) + '</span>'
-    + '</div>'
+    + '</div></div>'
     + '<div style="background:#ddd5c8;width:1px;"></div>'
-    + '<div style="padding:12px 0 12px 2.5rem;display:flex;justify-content:space-between;align-items:center;">'
+    + '<div style="padding-left:2.5rem;border-top:2px solid #b8ad9e;">'
+    + '<div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center;">'
     + '<span style="font-size:18px;font-weight:700;color:#1e1a16;">Total Expenditure</span>'
     + '<span style="font-size:18px;font-weight:700;color:#c62828;">' + fmtP(totalExp) + '</span>'
-    + '</div>'
+    + '</div></div>'
     + '</div>'
     + '<div class="net-bar">'
     + '<span class="net-label">' + netLabel + '</span>'
