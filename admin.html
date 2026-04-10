@@ -5968,187 +5968,163 @@ function reportOpenPDF() {
   var txns    = (reportData.transactions || []).filter(function(t){ return t.year === reportCurrentYear; });
   var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
   var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
-  var incGroups = reportBuildGroupTotals(incTxns, 'I-', REPORT_INCOME_GROUPS);
-  var expGroups = reportBuildGroupTotals(expTxns, 'E-', REPORT_EXPENSE_GROUPS);
-  var totalInc  = Object.values(incGroups).reduce(function(a,b){ return a+b; }, 0);
-  var totalExp  = Object.values(expGroups).reduce(function(a,b){ return a+b; }, 0);
-  var net       = totalInc - totalExp;
-  var now       = new Date();
+  var totalInc = incTxns.reduce(function(s,t){ return s + t.amtIn; }, 0);
+  var totalExp = expTxns.reduce(function(s,t){ return s + t.amtOut; }, 0);
+  var net      = totalInc - totalExp;
+  var now      = new Date();
   var generated = now.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) + ' at ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
   var netColor  = net >= 0 ? '#2e7d32' : '#c62828';
   var netLabel  = net >= 0 ? 'Net Surplus' : 'Net Deficit';
   var netSign   = net >= 0 ? '+' : '';
 
-  function fmtP(n) {
-    return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+  var payload = JSON.stringify({
+    year: reportCurrentYear, generated: generated,
+    netColor: netColor, netLabel: netLabel, netSign: netSign,
+    totalInc: totalInc, totalExp: totalExp, net: net,
+    incTxns: incTxns, expTxns: expTxns,
+    incGroups: REPORT_INCOME_GROUPS, expGroups: REPORT_EXPENSE_GROUPS
+  });
 
-  function buildPDFSection(txnList, prefix, groups, color) {
-    // Aggregate
-    var agg = {};
-    txnList.forEach(function(t) {
-      var name = t.category.replace(prefix, '').trim();
-      agg[name] = (agg[name] || 0) + (prefix === 'I-' ? t.amtIn : t.amtOut);
-    });
-    var drill = reportBuildDrillData(txnList, prefix);
+  var pageScript = [
+    'var oG={},oD={};',
+    'function fmt(n){return"\u00a3"+n.toFixed(2).replace(/\\B(?=(\\d{3})+(?!\\d))/g,",");}',
+    'function ag(nm,gs){for(var i=0;i<gs.length-1;i++){var g=gs[i];for(var j=0;j<g.prefixes.length;j++){if(nm.indexOf(g.prefixes[j])===0)return g.key;}}return gs[gs.length-1].key;}',
+    'function bD(list,pfx){var d={};list.forEach(function(t){var n=t.category.replace(pfx,"").trim();if(!d[n])d[n]=[];if(pfx==="I-")d[n].push({address:t.address,amount:t.amtIn,notes:t.notes||"",date:t.date||""});else d[n].push({date:t.date,description:t.description,amount:t.amtOut,notes:t.notes||""});});return d;}',
+    'function tG(k){oG[k]=!oG[k];var el=document.getElementById("ib-"+k),ch=document.getElementById("gc-"+k);if(el)el.className="ib"+(oG[k]?" open":"");if(ch)ch.className="chev"+(oG[k]?" open":"");}',
+    'function tD(k){oD[k]=!oD[k];var el=document.getElementById("db-"+k),ch=document.getElementById("dc-"+k);if(el)el.className="db"+(oD[k]?" open":"");if(ch)ch.className="sc"+(oD[k]?" open":"");}',
+    'function collapseAll(){oG={};oD={};document.querySelectorAll(".ib").forEach(function(e){e.className="ib";});document.querySelectorAll(".db").forEach(function(e){e.className="db";});document.querySelectorAll(".chev").forEach(function(e){e.className="chev";});document.querySelectorAll(".sc").forEach(function(e){e.className="sc";});}',
+    'function rSec(cid,txns,pfx,groups,color){',
+    '  var agg={},dr=bD(txns,pfx);',
+    '  txns.forEach(function(t){var n=t.category.replace(pfx,"").trim();agg[n]=(agg[n]||0)+(pfx==="I-"?t.amtIn:t.amtOut);});',
+    '  var grp={},gdr={};',
+    '  Object.keys(agg).forEach(function(n){var gk=ag(n,groups);if(!grp[gk]){grp[gk]={};gdr[gk]={};}grp[gk][n]=agg[n];if(dr[n])gdr[gk][n]=dr[n];});',
+    '  var html="";',
+    '  groups.forEach(function(g){',
+    '    var items=grp[g.key];if(!items||!Object.keys(items).length)return;',
+    '    var gt=Object.keys(items).reduce(function(s,k){return s+items[k];},0);',
+    '    html+="<div class=\\"gr\\" onclick=\\"tG(\'"+g.key+"\')\\">";',
+    '    html+="<span class=\\"gn\\"><span class=\\"chev\\" id=\\"gc-"+g.key+"\\"></span>"+g.label+"</span>";',
+    '    html+="<span class=\\"gv\\" style=\\"color:"+color+"\\">"+fmt(gt)+"</span></div>";',
+    '    html+="<div class=\\"ib\\" id=\\"ib-"+g.key+"\\">";',
+    '    Object.keys(items).sort().forEach(function(name){',
+    '      var ik=g.key+"_"+name.replace(/\\W/g,"_");',
+    '      var hd=gdr[g.key]&&gdr[g.key][name]&&gdr[g.key][name].length>0;',
+    '      html+="<div class=\\"ir"+(hd?" cl":"")+"\\"" +(hd?" onclick=\\"tD(\'"+ik+"\')\\"":"")+  ">";',
+    '      html+="<span class=\\"in\\">"+(hd?"<span class=\\"sc\\" id=\\"dc-"+ik+"\\"></span>":"")+name+"</span>";',
+    '      html+="<span class=\\"iv\\" style=\\"color:"+color+"\\">"+fmt(items[name])+"</span></div>";',
+    '      if(hd){',
+    '        html+="<div class=\\"db\\" id=\\"db-"+ik+"\\">";',
+    '        var drills=gdr[g.key][name];',
+    '        if(pfx==="I-"){',
+    '          var ap={};drills.forEach(function(r){var a=r.address||"Unknown";if(!ap[a])ap[a]=[];ap[a].push(r);});',
+    '          Object.keys(ap).sort(function(a,b){var na=parseInt(a),nb=parseInt(b);return(!isNaN(na)&&!isNaN(nb))?na-nb:a.localeCompare(b);}).forEach(function(addr){',
+    '            var rows=ap[addr],hasN=rows.some(function(r){return r.notes&&r.notes.trim();});',
+    '            if(!hasN){var tot=rows.reduce(function(s,r){return s+r.amount;},0);html+="<div class=\\"dr\\"><span>"+addr+"</span><span style=\\"color:#2e7d32;font-weight:600\\">"+fmt(tot)+"</span></div>";}',
+    '            else{rows.forEach(function(r){var lbl=addr+(r.date?" \u2014 "+r.date:"")+(r.notes?" "+r.notes:"");html+="<div class=\\"dr\\"><span>"+lbl+"</span><span style=\\"color:#2e7d32;font-weight:600\\">"+fmt(r.amount)+"</span></div>";});}',
+    '          });',
+    '        } else {',
+    '          drills.slice().sort(function(a,b){return a.date>b.date?1:-1;}).forEach(function(r){',
+    '            var desc=(r.date||"")+(r.description?" \u2014 "+r.description:"")+(r.notes?" ("+r.notes+")":"");',
+    '            html+="<div class=\\"dr\\"><span>"+desc+"</span><span style=\\"color:#c62828;font-weight:600\\">"+fmt(r.amount)+"</span></div>";',
+    '          });',
+    '        }',
+    '        html+="</div>";',
+    '      }',
+    '    });',
+    '    html+="</div>";',
+    '  });',
+    '  document.getElementById(cid).innerHTML=html;',
+    '}',
+    'window.addEventListener("load",function(){',
+    '  rSec("inc-body",DATA.incTxns,"I-",DATA.incGroups,"#2e7d32");',
+    '  rSec("exp-body",DATA.expTxns,"E-",DATA.expGroups,"#c62828");',
+    '  document.getElementById("tot-inc").textContent=fmt(DATA.totalInc);',
+    '  document.getElementById("tot-exp").textContent=fmt(DATA.totalExp);',
+    '  document.getElementById("net-label").textContent=DATA.netLabel;',
+    '  var nv=document.getElementById("net-val");nv.textContent=DATA.netSign+fmt(Math.abs(DATA.net));nv.style.color=DATA.netColor;',
+    '});'
+  ].join('\n');
 
-    // Group
-    var grouped = {}, groupedDrill = {};
-    Object.keys(agg).forEach(function(name) {
-      var gKey = reportAssignGroup(name, groups);
-      if (!grouped[gKey]) { grouped[gKey] = {}; groupedDrill[gKey] = {}; }
-      grouped[gKey][name] = agg[name];
-      if (drill[name]) groupedDrill[gKey][name] = drill[name];
-    });
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;background:white;color:#222;}',
+    '.wrap{width:100%;padding:2.5rem 3.5rem;}',
+    '.doc-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.5rem;border-bottom:2.5px solid #1e1a16;margin-bottom:2rem;}',
+    '.doc-logo{width:90px;height:68px;object-fit:cover;border-radius:7px;}',
+    '.doc-title-block{margin-left:1.25rem;}',
+    '.doc-org{font-size:13px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;}',
+    '.doc-title{font-size:28px;font-weight:700;color:#1e1a16;margin-top:4px;}',
+    '.doc-meta{text-align:right;}',
+    '.doc-year{font-size:22px;font-weight:700;color:#7a5c3e;}',
+    '.doc-generated{font-size:13px;color:#9e8e7e;margin-top:6px;}',
+    '.columns{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;}',
+    '.col-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;padding-bottom:8px;border-bottom:2px solid #ddd5c8;}',
+    '.divider{background:#ddd5c8;width:1px;}',
+    '.gr{display:flex;justify-content:space-between;align-items:center;padding:10px 8px;cursor:pointer;border-bottom:1px solid #ede8e0;}',
+    '.gr:hover{background:#faf7f2;}',
+    '.gn{font-size:17px;font-weight:700;color:#7a5c3e;display:flex;align-items:center;gap:8px;}',
+    '.chev{display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid #b8ad9e;transition:transform 0.2s;flex-shrink:0;}',
+    '.chev.open{transform:rotate(90deg);}',
+    '.sc{display:inline-block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #c4b8a8;transition:transform 0.2s;flex-shrink:0;}',
+    '.sc.open{transform:rotate(90deg);}',
+    '.gv{font-size:17px;font-weight:700;}',
+    '.ib{display:none;} .ib.open{display:block;}',
+    '.ir{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 8px 26px;border-bottom:1px solid #f0ebe0;}',
+    '.ir.cl{cursor:pointer;} .ir.cl:hover{background:#faf7f2;}',
+    '.in{font-size:15px;color:#333;display:flex;align-items:center;gap:6px;}',
+    '.iv{font-size:15px;font-weight:600;}',
+    '.db{display:none;} .db.open{display:block;}',
+    '.dr{display:flex;justify-content:space-between;padding:6px 8px 6px 42px;border-bottom:1px solid #f5f1ea;font-size:13px;color:#6b5f52;}',
+    '.totals-row{display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:1.5rem;}',
+    '.tc{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:2px solid #b8ad9e;}',
+    '.tl{font-size:18px;font-weight:700;color:#1e1a16;}',
+    '.tv{font-size:18px;font-weight:700;}',
+    '.net-bar{display:flex;justify-content:space-between;align-items:center;background:#ddd5c8;border:2px solid #b8ad9e;padding:1.2rem 1.75rem;border-radius:8px;}',
+    '.net-label{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}',
+    '.net-val{font-size:2rem;font-weight:700;}',
+    '.save-bar{margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd5c8;display:flex;align-items:center;justify-content:center;gap:0.75rem;}',
+    '.save-btn{padding:0.55rem 1.25rem;background:#7a5c3e;color:white;border:none;border-radius:6px;font-family:Arial,sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;}',
+    '.coll-btn{padding:0.55rem 1.25rem;background:white;color:#7a5c3e;border:1px solid #b8ad9e;border-radius:6px;font-family:Arial,sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;}',
+    '@media print{.save-bar{display:none!important;}.wrap{padding:1cm 1.5cm;}.net-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}'
+  ].join('');
 
-    var rows = '';
-    groups.forEach(function(g) {
-      var items = grouped[g.key];
-      if (!items || Object.keys(items).length === 0) return;
-      var gTotal = Object.keys(items).reduce(function(s,k){ return s + items[k]; }, 0);
-      var isOpen = reportOpenGroups[g.key];
-
-      rows += '<tr style="background:#f5f0e8;">'
-            + '<td style="padding:9px 16px;font-size:17px;font-weight:700;color:#7a5c3e;">' + g.label + '</td>'
-            + '<td style="padding:9px 16px;font-size:17px;font-weight:700;color:' + color + ';text-align:right;">' + fmtP(gTotal) + '</td>'
-            + '</tr>';
-
-      if (isOpen) {
-        Object.keys(items).sort().forEach(function(name) {
-          var itemKey = g.key + '_' + name.replace(/\W/g,'_');
-          var isDrillOpen = reportOpenDrills[itemKey];
-          var hasDrill = groupedDrill[g.key] && groupedDrill[g.key][name] && groupedDrill[g.key][name].length > 0;
-
-          rows += '<tr>'
-                + '<td style="padding:8px 16px 8px 28px;font-size:15px;color:#333;">' + name + '</td>'
-                + '<td style="padding:8px 16px;font-size:15px;color:' + color + ';font-weight:600;text-align:right;">' + fmtP(items[name]) + '</td>'
-                + '</tr>';
-
-          if (hasDrill && isDrillOpen) {
-            if (prefix === 'I-') {
-              var incPayments = groupedDrill[g.key][name];
-              var addrPayments = {};
-              incPayments.forEach(function(r) {
-                var a = r.address || 'Unknown';
-                if (!addrPayments[a]) addrPayments[a] = [];
-                addrPayments[a].push(r);
-              });
-              Object.keys(addrPayments).sort(function(a,b){
-                var na = parseInt(a), nb = parseInt(b);
-                if (!isNaN(na) && !isNaN(nb)) return na - nb;
-                return a.localeCompare(b);
-              }).forEach(function(addr) {
-                var prows = addrPayments[addr];
-                var hasNotes = prows.some(function(r){ return r.notes && r.notes.trim(); });
-                if (!hasNotes) {
-                  var tot = prows.reduce(function(s,r){ return s + r.amount; }, 0);
-                  rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + addr + '</td>'
-                        + '<td style="padding:6px 16px;font-size:13px;color:#2e7d32;text-align:right;">' + fmtP(tot) + '</td></tr>';
-                } else {
-                  prows.forEach(function(r) {
-                    var lbl = addr + (r.date ? ' — ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
-                    rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + lbl + '</td>'
-                          + '<td style="padding:6px 16px;font-size:13px;color:#2e7d32;text-align:right;">' + fmtP(r.amount) + '</td></tr>';
-                  });
-                }
-              });
-            } else {
-              groupedDrill[g.key][name].slice().sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
-                var desc = (r.date || '') + (r.description ? ' — ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
-                rows += '<tr style="background:#faf7f2;"><td style="padding:6px 16px 6px 44px;font-size:13px;color:#6b5f52;">' + desc + '</td>'
-                      + '<td style="padding:6px 16px;font-size:13px;color:#c62828;text-align:right;">' + fmtP(r.amount) + '</td></tr>';
-              });
-            }
-          }
-        });
-      }
-    });
-    return rows;
-  }
-
-  var incRows = buildPDFSection(incTxns, 'I-', REPORT_INCOME_GROUPS, '#2e7d32');
-  var expRows = buildPDFSection(expTxns, 'E-', REPORT_EXPENSE_GROUPS, '#c62828');
-
-  var pdfHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
-    + '<title>CMC The Courtyard — I&E Summary ' + reportCurrentYear + '</title>'
-    + '<style>'
-    + '*{box-sizing:border-box;margin:0;padding:0;}'
-    + 'body{font-family:Arial,sans-serif;background:white;color:#222;}'
-    + '.wrap{width:100%;padding:2.5rem 3.5rem;}'
-    + '.doc-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.5rem;border-bottom:2.5px solid #1e1a16;margin-bottom:2rem;}'
-    + '.doc-logo{width:90px;height:68px;object-fit:cover;border-radius:7px;}'
-    + '.doc-title-block{margin-left:1.25rem;}'
-    + '.doc-org{font-size:13px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;}'
-    + '.doc-title{font-size:28px;font-weight:700;color:#1e1a16;margin-top:4px;}'
-    + '.doc-meta{text-align:right;}'
-    + '.doc-year{font-size:22px;font-weight:700;color:#7a5c3e;}'
-    + '.doc-generated{font-size:13px;color:#9e8e7e;margin-top:6px;}'
-    + '.columns{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;margin-bottom:0;}'
-    + '.col-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;padding-bottom:8px;border-bottom:2px solid #ddd5c8;margin-bottom:6px;}'
-    + 'table{width:100%;border-collapse:collapse;}'
-    + 'tr:nth-child(even) td{background:#faf7f2;}'
-    + '.total-row td{border-top:2px solid #b8ad9e;font-weight:700;font-size:18px;padding:12px 16px;background:white!important;}'
-    + '.net-bar{display:flex;justify-content:space-between;align-items:center;background:#ddd5c8;border:2px solid #b8ad9e;padding:1.2rem 1.75rem;border-radius:8px;}'
-    + '.net-label{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}'
-    + '.net-val{font-size:2rem;font-weight:700;}'
-    + '.save-bar{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid #ddd5c8;text-align:center;}'
-    + '.save-btn{padding:0.7rem 1.75rem;background:#7a5c3e;color:white;border:none;border-radius:6px;font-family:Arial,sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;}'
-    + '.save-hint{margin-left:0.75rem;font-size:0.85rem;color:#9e8e7e;}'
-    + '@media print{'
-    + '.save-bar{display:none!important;}'
-    + '.wrap{padding:1cm 1.5cm;}'
-    + '.net-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
-    + 'tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
-    + '}'
-    + '</style></head><body>'
-    + '<div class="wrap">'
+  var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+    + '<title>CMC The Courtyard \u2014 I&E Summary ' + reportCurrentYear + '<\/title>'
+    + '<style>' + css + '<\/style>'
+    + '<script>var DATA=' + payload + ';<\/script>'
+    + '<\/head><body><div class="wrap">'
     + '<div class="doc-header">'
     + '<div style="display:flex;align-items:center;">'
     + '<img class="doc-logo" src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo">'
     + '<div class="doc-title-block">'
-    + '<div class="doc-org">CMC The Courtyard</div>'
-    + '<div class="doc-title">Income &amp; Expenditure Summary</div>'
-    + '</div></div>'
+    + '<div class="doc-org">CMC The Courtyard<\/div>'
+    + '<div class="doc-title">Income &amp; Expenditure Summary<\/div>'
+    + '<\/div><\/div>'
     + '<div class="doc-meta">'
-    + '<div class="doc-year">' + reportCurrentYear + ' &nbsp;&middot;&nbsp; Full Year</div>'
-    + '<div class="doc-generated">Generated ' + generated + '</div>'
-    + '</div></div>'
+    + '<div class="doc-year">' + reportCurrentYear + ' &middot; Full Year<\/div>'
+    + '<div class="doc-generated">Generated ' + generated + '<\/div>'
+    + '<\/div><\/div>'
     + '<div class="columns">'
-    + '<div style="padding-right:2.5rem;">'
-    + '<div class="col-head">Income</div>'
-    + '<table>' + incRows
-    + '</table></div>'
-    + '<div style="background:#ddd5c8;width:1px;"></div>'
-    + '<div style="padding-left:2.5rem;">'
-    + '<div class="col-head">Expenditure</div>'
-    + '<table>' + expRows
-    + '</table></div>'
-    + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:1.5rem;">'
-    + '<div style="padding-right:2.5rem;border-top:2px solid #b8ad9e;">'
-    + '<div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center;">'
-    + '<span style="font-size:18px;font-weight:700;color:#1e1a16;">Total Income</span>'
-    + '<span style="font-size:18px;font-weight:700;color:#2e7d32;">' + fmtP(totalInc) + '</span>'
-    + '</div></div>'
-    + '<div style="background:#ddd5c8;width:1px;"></div>'
-    + '<div style="padding-left:2.5rem;border-top:2px solid #b8ad9e;">'
-    + '<div style="padding:12px 0;display:flex;justify-content:space-between;align-items:center;">'
-    + '<span style="font-size:18px;font-weight:700;color:#1e1a16;">Total Expenditure</span>'
-    + '<span style="font-size:18px;font-weight:700;color:#c62828;">' + fmtP(totalExp) + '</span>'
-    + '</div></div>'
-    + '</div>'
-    + '<div class="net-bar">'
-    + '<span class="net-label">' + netLabel + '</span>'
-    + '<span class="net-val" style="color:' + netColor + ';">' + netSign + fmtP(Math.abs(net)) + '</span>'
-    + '</div>'
+    + '<div style="padding-right:2.5rem;"><div class="col-head">Income<\/div><div id="inc-body"><\/div><\/div>'
+    + '<div class="divider"><\/div>'
+    + '<div style="padding-left:2.5rem;"><div class="col-head">Expenditure<\/div><div id="exp-body"><\/div><\/div>'
+    + '<\/div>'
+    + '<div class="totals-row">'
+    + '<div style="padding-right:2.5rem;"><div class="tc"><span class="tl">Total Income<\/span><span class="tv" style="color:#2e7d32;" id="tot-inc"><\/span><\/div><\/div>'
+    + '<div class="divider"><\/div>'
+    + '<div style="padding-left:2.5rem;"><div class="tc"><span class="tl">Total Expenditure<\/span><span class="tv" style="color:#c62828;" id="tot-exp"><\/span><\/div><\/div>'
+    + '<\/div>'
+    + '<div class="net-bar"><span class="net-label" id="net-label"><\/span><span class="net-val" id="net-val"><\/span><\/div>'
     + '<div class="save-bar">'
-    + '<button class="save-btn" onclick="window.print()">&#128196; Save as PDF / Print</button>'
-    + '<span class="save-hint">In the print dialog, choose \'Save as PDF\'</span>'
-    + '</div>'
-    + '</div></body></html>';
+    + '<button class="coll-btn" onclick="collapseAll()">&#8645; Collapse All<\/button>'
+    + '<button class="save-btn" onclick="window.print()">&#128196; Save as PDF \/ Print<\/button>'
+    + '<span style="font-size:0.82rem;color:#9e8e7e;">In the print dialog, choose &lsquo;Save as PDF&rsquo;<\/span>'
+    + '<\/div><\/div>'
+    + '<script>' + pageScript + '<\/script>'
+    + '<\/body><\/html>';
 
   var win = window.open('', '_blank');
-  win.document.write(pdfHtml);
+  win.document.write(html);
   win.document.close();
 }
 
