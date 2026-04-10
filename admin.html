@@ -790,6 +790,22 @@
         </div>
       </div>
 
+      <!-- AGM AOB / End of Meeting Modal (mobile only) -->
+      <div id="agmAobModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.55);z-index:500;align-items:center;justify-content:center;">
+        <div style="background:var(--cream);border-radius:12px;padding:1.6rem 1.8rem;width:100%;max-width:480px;margin:1rem;box-shadow:0 12px 40px rgba(0,0,0,0.35);">
+          <div style="font-size:0.95rem;font-weight:700;color:var(--accent);margin-bottom:1.2rem;" id="agmAobModalTitle">Edit</div>
+          <div style="margin-bottom:1.2rem;">
+            <label style="font-size:0.75rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;" id="agmAobModalLabel"></label>
+            <textarea id="agmAobModalText" rows="4" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:var(--dark);background:#fff;resize:vertical;outline:none;"></textarea>
+          </div>
+          <div id="agmAobModalError" style="display:none;color:#b05050;font-size:0.78rem;margin-bottom:0.6rem;text-align:right;"></div>
+          <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+            <button class="abtn abtn-muted" id="agmAobModalDiscardBtn" onclick="agmAobModalTryClose()">Discard</button>
+            <button class="abtn" id="agmAobModalSaveBtn" onclick="agmAobModalSave()" style="background:#c4956a;color:#fff;border:none;">&#128190; Save</button>
+          </div>
+        </div>
+      </div>
+
       <!-- AGM Agenda Item Modal (mobile only) -->
       <div id="agmItemModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.55);z-index:500;align-items:center;justify-content:center;">
         <div style="background:var(--cream);border-radius:12px;padding:1.6rem 1.8rem;width:100%;max-width:480px;margin:1rem;box-shadow:0 12px 40px rgba(0,0,0,0.35);">
@@ -2847,13 +2863,18 @@ async function agmAgendaLoad() {
       if (!c0 && c1.startsWith('Any other Business')) { aobVal = c1; }
     }
     html += '<div style="' + sectionTitle + '">AOB &amp; End of Meeting</div>';
+    // Desktop: inline inputs; Mobile: tappable display + hidden inputs
     html += '<div style="margin-bottom:0.5rem;">'
       + '<label style="' + labelStyle + '">Any Other Business</label>'
-      + '<input type="text" id="agmAOB" value="' + escAdm(aobVal) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+      + '<input type="text" id="agmAOB" value="' + escAdm(aobVal) + '" oninput="agmAgendaSetDirty()" class="agm-desktop-cell" style="' + fieldStyle + 'display:block;">'
+      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen('aob')" id="agmAOBDisplay">' + (escAdm(aobVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
+      + '<input type="hidden" id="agmAOBHidden" value="' + escAdm(aobVal) + '">'
       + '</div>';
     html += '<div style="margin-bottom:0.5rem;">'
       + '<label style="' + labelStyle + '">End of Meeting</label>'
-      + '<input type="text" id="agmEndOfMeeting" value="' + escAdm(endVal) + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '">'
+      + '<input type="text" id="agmEndOfMeeting" value="' + escAdm(endVal) + '" oninput="agmAgendaSetDirty()" class="agm-desktop-cell" style="' + fieldStyle + 'display:block;">'
+      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen('end')" id="agmEndOfMeetingDisplay">' + (escAdm(endVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
+      + '<input type="hidden" id="agmEndOfMeetingHidden" value="' + escAdm(endVal) + '">'
       + '</div>';
 
     // ── Vote Items ──
@@ -3011,6 +3032,82 @@ document.getElementById('agmItemModalOverlay').addEventListener('click', functio
   if (e.target === this) agmItemModalTryClose();
 });
 
+// ── AOB / End of Meeting Modal (mobile) ──────────────────────────────────────
+
+var agmAobModalField = null; // 'aob' or 'end'
+var agmAobModalOrig  = '';
+
+function agmAobModalOpen(field) {
+  agmAobModalField = field;
+  var isAob = field === 'aob';
+  var hidEl = document.getElementById(isAob ? 'agmAOBHidden' : 'agmEndOfMeetingHidden');
+  agmAobModalOrig = hidEl ? hidEl.value : '';
+  document.getElementById('agmAobModalTitle').textContent = isAob ? 'Any Other Business' : 'End of Meeting';
+  document.getElementById('agmAobModalLabel').textContent = isAob ? 'AOB Text' : 'End of Meeting Text';
+  document.getElementById('agmAobModalText').value = agmAobModalOrig;
+  document.getElementById('agmAobModalError').style.display = 'none';
+  document.getElementById('agmAobModalOverlay').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('agmAobModalText').focus(); }, 60);
+}
+
+function agmAobModalHasChanges() {
+  return document.getElementById('agmAobModalText').value !== agmAobModalOrig;
+}
+
+async function agmAobModalSave() {
+  if (!agmAobModalField) return;
+  var newVal   = document.getElementById('agmAobModalText').value;
+  var saveBtn  = document.getElementById('agmAobModalSaveBtn');
+  var discardBtn = document.getElementById('agmAobModalDiscardBtn');
+  var errEl    = document.getElementById('agmAobModalError');
+  var isAob    = agmAobModalField === 'aob';
+
+  // Update hidden input and display
+  document.getElementById(isAob ? 'agmAOBHidden' : 'agmEndOfMeetingHidden').value = newVal;
+  document.getElementById(isAob ? 'agmAOBDisplay' : 'agmEndOfMeetingDisplay').innerHTML =
+    newVal ? newVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+           : '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>';
+
+  saveBtn.disabled = true;
+  discardBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  errEl.style.display = 'none';
+
+  try {
+    await agmAgendaSave();
+    document.getElementById('agmAobModalOverlay').style.display = 'none';
+    agmAobModalField = null;
+  } catch(e) {
+    errEl.textContent = '✗ Could not save — ' + e.message;
+    errEl.style.display = 'block';
+    saveBtn.disabled = false;
+    discardBtn.disabled = false;
+    saveBtn.innerHTML = '&#128190; Save';
+  }
+}
+
+function agmAobModalClose() {
+  document.getElementById('agmAobModalOverlay').style.display = 'none';
+  agmAobModalField = null;
+}
+
+function agmAobModalTryClose() {
+  if (agmAobModalHasChanges()) {
+    if (confirm('You have unsaved changes.
+Save before closing?')) {
+      agmAobModalSave();
+    } else {
+      agmAobModalClose();
+    }
+  } else {
+    agmAobModalClose();
+  }
+}
+
+document.getElementById('agmAobModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) agmAobModalTryClose();
+});
+
 function agmAgendaSetStatus(msg, isError) {
   var top    = document.getElementById('agmAgendaStatus');
   var bottom = document.getElementById('agmAgendaStatusBottom');
@@ -3054,10 +3151,18 @@ async function agmAgendaSave() {
       var el = document.getElementById('agmVote_' + i);
       votes.push(el ? el.value : '');
     }
-    var aobEl = document.getElementById('agmAOB');
-    var endEl = document.getElementById('agmEndOfMeeting');
-    var aob = aobEl ? aobEl.value : '';
-    var endOfMeeting = endEl ? endEl.value : '';
+    var aob, endOfMeeting;
+    if (mobile) {
+      var aobHid = document.getElementById('agmAOBHidden');
+      var endHid = document.getElementById('agmEndOfMeetingHidden');
+      aob = aobHid ? aobHid.value : '';
+      endOfMeeting = endHid ? endHid.value : '';
+    } else {
+      var aobEl = document.getElementById('agmAOB');
+      var endEl = document.getElementById('agmEndOfMeeting');
+      aob = aobEl ? aobEl.value : '';
+      endOfMeeting = endEl ? endEl.value : '';
+    }
     var res  = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'writeAgenda', details: details, items: items, votes: votes, aob: aob, endOfMeeting: endOfMeeting }) });
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
