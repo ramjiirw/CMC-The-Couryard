@@ -2867,13 +2867,13 @@ async function agmAgendaLoad() {
     html += '<div style="margin-bottom:0.5rem;">'
       + '<label style="' + labelStyle + '">Any Other Business</label>'
       + '<input type="text" id="agmAOB" value="' + escAdm(aobVal) + '" oninput="agmAgendaSetDirty()" class="agm-desktop-cell" style="' + fieldStyle + 'display:block;">'
-      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen('aob')" id="agmAOBDisplay">' + (escAdm(aobVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
+      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen(&quot;aob&quot;)" id="agmAOBDisplay">' + (escAdm(aobVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
       + '<input type="hidden" id="agmAOBHidden" value="' + escAdm(aobVal) + '">'
       + '</div>';
     html += '<div style="margin-bottom:0.5rem;">'
       + '<label style="' + labelStyle + '">End of Meeting</label>'
       + '<input type="text" id="agmEndOfMeeting" value="' + escAdm(endVal) + '" oninput="agmAgendaSetDirty()" class="agm-desktop-cell" style="' + fieldStyle + 'display:block;">'
-      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen('end')" id="agmEndOfMeetingDisplay">' + (escAdm(endVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
+      + '<div class="agm-mobile-cell" style="display:none;padding:0.45rem 0.6rem;font-size:0.85rem;color:var(--dark);background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;cursor:pointer;" onclick="agmAobModalOpen(&quot;end&quot;)" id="agmEndOfMeetingDisplay">' + (escAdm(endVal) || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</div>'
       + '<input type="hidden" id="agmEndOfMeetingHidden" value="' + escAdm(endVal) + '">'
       + '</div>';
 
