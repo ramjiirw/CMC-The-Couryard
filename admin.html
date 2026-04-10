@@ -576,6 +576,8 @@
       <div class="sidebar-link" data-panel="agmsubmissions" id="nav-agmsubmissions">&#128203; Submissions</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
+      <div class="sidebar-label">Finance</div>
+      <div class="sidebar-link" data-panel="reports" id="nav-reports">&#128202; Finance Reports</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
@@ -1266,6 +1268,22 @@
         </div>
         <div id="qaTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading Q&amp;A…</div>
+        </div>
+      </div>
+
+      <!-- Finance Reports Panel -->
+      <div class="admin-panel" id="panel-reports">
+        <div class="panel-title">Finance Reports</div>
+        <div class="panel-desc">Generate a clean summary report for any year. Use the PDF view button to open a print-ready version you can save as a PDF.</div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+          <label style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mid);">Year</label>
+          <select id="reportYear" onchange="reportLoad()" style="padding:0.4rem 0.75rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:var(--cream);color:var(--accent);font-weight:600;cursor:pointer;"></select>
+          <button class="abtn abtn-primary" onclick="reportOpenPDF()" style="margin-left:auto;">&#128196; Open PDF View</button>
+        </div>
+
+        <div id="reportContainer">
+          <div class="state-msg"><div class="spinner"></div>Loading…</div>
         </div>
       </div>
 
@@ -5230,6 +5248,7 @@ showPanel = function(id) {
   _origShowPanel2(id);
   if (id === 'directory' && !dirResidents.length) dir_loadFromSheets();
   if (id === 'sipqa') qaLoad();
+  if (id === 'reports') reportLoad();
   if (id !== 'sipqa' && qaHasUnsaved()) {
     if (!qaConfirmAbandon()) { _origShowPanel2(id === 'sipqa' ? id : 'sipqa'); return; }
     if (_qaEditingRow !== null && _qaEditingRow.uiIndex !== 'mobile') {
@@ -5662,6 +5681,254 @@ function qaMobileDelete() {
 }
 
 document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qaLoad(); resetAutoLock(); });
+
+// ── Finance Reports ───────────────────────────────────────────────────────────
+
+var reportData = null;
+var reportCurrentYear = new Date().getFullYear();
+
+var REPORT_INCOME_GROUPS = [
+  { key: 'management',    label: 'Management',    prefixes: ['Management Charge'] },
+  { key: 'farmhouse',     label: 'Farmhouse',     prefixes: ['Farmhouse'] },
+  { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'] },
+  { key: 'other-inc',     label: 'Other Income',  prefixes: [] }
+];
+var REPORT_EXPENSE_GROUPS = [
+  { key: 'biofilter',   label: 'Bio Filter',               prefixes: ['Bio Filter'] },
+  { key: 'utilities',   label: 'Utilities',                prefixes: ['Electricity','Water'] },
+  { key: 'maintenance', label: 'Maintenance',              prefixes: ['Common Parts','General Maintenance','Grass Cutting','Farmhouse Maintenance','Farmhouse Roof'] },
+  { key: 'insurance',   label: 'Insurance & Professional', prefixes: ['Insurance','Professional Fees'] },
+  { key: 'roads',       label: 'Roads & Infrastructure',   prefixes: ['Road'] },
+  { key: 'funds',       label: 'Funds',                    prefixes: ['Sinking Fund'] },
+  { key: 'other-exp',   label: 'Other Expenditure',        prefixes: [] }
+];
+
+function reportFmt(n) {
+  return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function reportAssignGroup(catName, groups) {
+  for (var i = 0; i < groups.length - 1; i++) {
+    var g = groups[i];
+    for (var j = 0; j < g.prefixes.length; j++) {
+      if (catName.indexOf(g.prefixes[j]) === 0) return g.key;
+    }
+  }
+  return groups[groups.length - 1].key;
+}
+
+function reportBuildGroupTotals(txns, prefix, groups) {
+  var totals = {};
+  txns.forEach(function(t) {
+    if (!t.category.startsWith(prefix)) return;
+    var name = t.category.replace(prefix, '').trim();
+    var gKey = reportAssignGroup(name, groups);
+    totals[gKey] = (totals[gKey] || 0) + (prefix === 'I-' ? t.amtIn : t.amtOut);
+  });
+  return totals;
+}
+
+function reportPopulateYears() {
+  var sel = document.getElementById('reportYear');
+  if (!sel) return;
+  sel.innerHTML = '';
+  var curYear = new Date().getFullYear();
+  var start = Math.max(curYear - 4, 2024);
+  for (var y = curYear; y >= start; y--) {
+    var opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === reportCurrentYear) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+async function reportLoad() {
+  var sel = document.getElementById('reportYear');
+  if (sel) reportCurrentYear = parseInt(sel.value, 10);
+  var container = document.getElementById('reportContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="state-msg"><div class="spinner"></div>Loading…</div>';
+  try {
+    var res  = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + reportCurrentYear);
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Error loading data');
+    reportData = data;
+    reportRender(container);
+  } catch(e) {
+    container.innerHTML = '<div class="state-msg" style="color:#b05050;">⚠️ Could not load report: ' + e.message + '</div>';
+  }
+}
+
+function reportRender(container) {
+  if (!reportData) return;
+  var txns    = (reportData.transactions || []).filter(function(t){ return t.year === reportCurrentYear; });
+  var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
+  var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
+  var incGroups = reportBuildGroupTotals(incTxns, 'I-', REPORT_INCOME_GROUPS);
+  var expGroups = reportBuildGroupTotals(expTxns, 'E-', REPORT_EXPENSE_GROUPS);
+  var totalInc  = Object.values(incGroups).reduce(function(a,b){ return a+b; }, 0);
+  var totalExp  = Object.values(expGroups).reduce(function(a,b){ return a+b; }, 0);
+  var net       = totalInc - totalExp;
+  var now       = new Date();
+  var generated = now.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) + ' · ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+
+  var rowStyle  = 'display:flex;justify-content:space-between;padding:0.35rem 0;font-size:0.875rem;border-bottom:1px solid rgba(184,173,158,0.15);';
+  var totalStyle= 'display:flex;justify-content:space-between;padding:0.5rem 0;font-size:0.875rem;font-weight:700;border-top:1px solid rgba(184,173,158,0.4);margin-top:0.25rem;';
+
+  function buildSection(groups, groupTotals, colorClass) {
+    var rows = '';
+    groups.forEach(function(g) {
+      var val = groupTotals[g.key] || 0;
+      if (val === 0) return;
+      rows += '<div style="' + rowStyle + '"><span style="color:var(--dark);">' + g.label + '</span><span style="color:' + colorClass + ';font-weight:600;">' + reportFmt(val) + '</span></div>';
+    });
+    return rows;
+  }
+
+  var incRows = buildSection(REPORT_INCOME_GROUPS, incGroups, '#2e7d32');
+  var expRows = buildSection(REPORT_EXPENSE_GROUPS, expGroups, '#c62828');
+  var netColor = net >= 0 ? '#2e7d32' : '#c62828';
+  var netLabel = net >= 0 ? 'Net Surplus' : 'Net Deficit';
+  var netSign  = net >= 0 ? '+' : '';
+
+  var html = '<div style="background:white;border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
+
+  // Header
+  html += '<div style="background:#1e1a16;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">'
+        + '<div style="display:flex;align-items:center;gap:0.9rem;">'
+        + '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" style="width:44px;height:33px;object-fit:cover;border-radius:5px;border:1px solid rgba(255,255,255,0.15);" alt="CMC Logo">'
+        + '<div>'
+        + '<div style="font-size:0.68rem;color:#b8ad9e;letter-spacing:0.1em;text-transform:uppercase;">CMC The Courtyard</div>'
+        + '<div style="font-size:1rem;font-weight:600;color:#f5f0e8;margin-top:1px;">Income &amp; Expenditure Summary</div>'
+        + '</div></div>'
+        + '<div style="text-align:right;">'
+        + '<div style="font-size:0.9rem;font-weight:600;color:#c4956a;">' + reportCurrentYear + ' · Full Year</div>'
+        + '<div style="font-size:0.68rem;color:#6b5f52;margin-top:3px;">Generated ' + generated + '</div>'
+        + '</div></div>';
+
+  // Two column body
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);">';
+
+  // Income column
+  html += '<div style="padding:1.25rem 1.5rem;border-right:1px solid var(--border);">'
+        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding-bottom:0.4rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;">Income</div>'
+        + incRows
+        + '<div style="' + totalStyle + '"><span>Total Income</span><span style="color:#2e7d32;">' + reportFmt(totalInc) + '</span></div>'
+        + '</div>';
+
+  // Expenditure column
+  html += '<div style="padding:1.25rem 1.5rem;">'
+        + '<div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mid);padding-bottom:0.4rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;">Expenditure</div>'
+        + expRows
+        + '<div style="' + totalStyle + '"><span>Total Expenditure</span><span style="color:#c62828;">' + reportFmt(totalExp) + '</span></div>'
+        + '</div>';
+
+  html += '</div>';
+
+  // Net surplus/deficit bar
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;background:#1e1a16;padding:0.9rem 1.5rem;">'
+        + '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#b8ad9e;">' + netLabel + '</span>'
+        + '<span style="font-size:1.2rem;font-weight:700;color:' + netColor + ';">' + netSign + reportFmt(Math.abs(net)) + '</span>'
+        + '</div>';
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function reportOpenPDF() {
+  if (!reportData) { alert('Please wait for the report to load first.'); return; }
+  var txns    = (reportData.transactions || []).filter(function(t){ return t.year === reportCurrentYear; });
+  var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
+  var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
+  var incGroups = reportBuildGroupTotals(incTxns, 'I-', REPORT_INCOME_GROUPS);
+  var expGroups = reportBuildGroupTotals(expTxns, 'E-', REPORT_EXPENSE_GROUPS);
+  var totalInc  = Object.values(incGroups).reduce(function(a,b){ return a+b; }, 0);
+  var totalExp  = Object.values(expGroups).reduce(function(a,b){ return a+b; }, 0);
+  var net       = totalInc - totalExp;
+  var now       = new Date();
+  var generated = now.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) + ' at ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+  var netColor  = net >= 0 ? '#2e7d32' : '#c62828';
+  var netLabel  = net >= 0 ? 'Net Surplus' : 'Net Deficit';
+  var netSign   = net >= 0 ? '+' : '';
+
+  function fmtP(n) {
+    return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function buildPDFRows(groups, groupTotals, color) {
+    var rows = '';
+    groups.forEach(function(g) {
+      var val = groupTotals[g.key] || 0;
+      if (val === 0) return;
+      rows += '<tr><td style="padding:7px 12px;font-size:13px;color:#333;">' + g.label + '</td>'
+            + '<td style="padding:7px 12px;font-size:13px;color:' + color + ';font-weight:600;text-align:right;">' + fmtP(val) + '</td></tr>';
+    });
+    return rows;
+  }
+
+  var incRows = buildPDFRows(REPORT_INCOME_GROUPS, incGroups, '#2e7d32');
+  var expRows = buildPDFRows(REPORT_EXPENSE_GROUPS, expGroups, '#c62828');
+
+  var pdfHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+    + '<title>CMC The Courtyard — I&E Summary ' + reportCurrentYear + '</title>'
+    + '<style>'
+    + 'body{margin:0;padding:0;font-family:Arial,sans-serif;background:#f5f0e8;}'
+    + '.page{max-width:900px;margin:2rem auto;background:white;border-radius:10px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.12);}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'tr:nth-child(even) td{background:rgba(122,92,62,0.04);}'
+    + '.total-row td{border-top:2px solid #ddd5c8;font-weight:700;font-size:14px;padding:9px 12px;}'
+    + '.section-head{background:#2e2318;color:#f5f0e8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:8px 12px;}'
+    + '@media print{'
+    + 'body{background:white;}'
+    + '.page{box-shadow:none;margin:0;border-radius:0;max-width:100%;}'
+    + '.no-print{display:none!important;}'
+    + '}'
+    + '</style></head><body>'
+    + '<div class="page">'
+    + '<div style="background:#1e1a16;padding:1.25rem 1.75rem;display:flex;align-items:center;justify-content:space-between;">'
+    + '<div style="display:flex;align-items:center;gap:1rem;">'
+    + '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" style="width:60px;height:45px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.15);" alt="CMC Logo">'
+    + '<div>'
+    + '<div style="font-size:10px;color:#b8ad9e;letter-spacing:0.12em;text-transform:uppercase;">CMC The Courtyard</div>'
+    + '<div style="font-size:1.2rem;font-weight:600;color:#f5f0e8;margin-top:2px;">Income &amp; Expenditure Summary</div>'
+    + '</div></div>'
+    + '<div style="text-align:right;">'
+    + '<div style="font-size:1rem;font-weight:600;color:#c4956a;">' + reportCurrentYear + ' &nbsp;&middot;&nbsp; Full Year</div>'
+    + '<div style="font-size:10px;color:#6b5f52;margin-top:4px;">Generated ' + generated + '</div>'
+    + '</div></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #ddd5c8;">'
+    + '<div style="border-right:1px solid #ddd5c8;">'
+    + '<div class="section-head">Income</div>'
+    + '<table>' + incRows
+    + '<tr class="total-row"><td style="color:#1e1a16;">Total Income</td><td style="color:#2e7d32;text-align:right;">' + fmtP(totalInc) + '</td></tr>'
+    + '</table></div>'
+    + '<div>'
+    + '<div class="section-head">Expenditure</div>'
+    + '<table>' + expRows
+    + '<tr class="total-row"><td style="color:#1e1a16;">Total Expenditure</td><td style="color:#c62828;text-align:right;">' + fmtP(totalExp) + '</td></tr>'
+    + '</table></div>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;background:#1e1a16;padding:1rem 1.75rem;">'
+    + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#b8ad9e;">' + netLabel + '</span>'
+    + '<span style="font-size:1.4rem;font-weight:700;color:' + netColor + ';">' + netSign + fmtP(Math.abs(net)) + '</span>'
+    + '</div>'
+    + '<div style="padding:0.75rem 1.75rem;background:#faf7f2;text-align:center;" class="no-print">'
+    + '<button onclick="window.print()" style="padding:0.6rem 1.5rem;background:#1e1a16;color:#c4956a;border:none;border-radius:6px;font-family:Arial,sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;letter-spacing:0.04em;">&#128196; Save as PDF / Print</button>'
+    + '<span style="margin-left:1rem;font-size:0.78rem;color:#6b5f52;">Use your browser\'s Print dialog and choose \'Save as PDF\'</span>'
+    + '</div>'
+    + '</div></body></html>';
+
+  var win = window.open('', '_blank');
+  win.document.write(pdfHtml);
+  win.document.close();
+}
+
+// Initialise reports year selector when admin screen is shown
+(function() {
+  var origInit = window.onAdminReady;
+  reportPopulateYears();
+})();
 
 </script>
 
