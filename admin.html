@@ -5828,7 +5828,7 @@ function reportBuildSection(txnList, prefix, groups, color) {
     var gTotal = Object.keys(items).reduce(function(s,k){ return s + items[k]; }, 0);
     var isOpen = reportOpenGroups[g.key];
 
-    html += '<div onclick="reportToggleGroup(' + JSON.stringify(g.key) + ')" style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.5rem;cursor:pointer;border-bottom:1px solid rgba(184,173,158,0.15);background:' + (isOpen ? 'rgba(122,92,62,0.05)' : 'transparent') + ';">'
+    html += '<div onclick="reportToggleGroup(\'' + g.key + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.5rem;cursor:pointer;border-bottom:1px solid rgba(184,173,158,0.15);background:' + (isOpen ? 'rgba(122,92,62,0.05)' : 'transparent') + ';">'
           + '<span style="display:flex;align-items:center;font-size:0.875rem;font-weight:600;color:var(--accent);">'
           + '<span id="rpt-chev-' + g.key + '" style="' + chevStyle + (isOpen ? 'transform:rotate(90deg);' : '') + '"></span>'
           + g.label + '</span>'
@@ -5842,7 +5842,7 @@ function reportBuildSection(txnList, prefix, groups, color) {
       var hasDrill = groupedDrill[g.key] && groupedDrill[g.key][name] && groupedDrill[g.key][name].length > 0;
       var isDrillOpen = reportOpenDrills[itemKey];
 
-      html += '<div ' + (hasDrill ? 'onclick="reportToggleDrill(' + JSON.stringify(itemKey) + ')"' : '') + ' style="display:flex;align-items:center;justify-content:space-between;padding:0.38rem 0.5rem 0.38rem 1.5rem;border-bottom:1px solid rgba(184,173,158,0.1);' + (hasDrill ? 'cursor:pointer;' : '') + '">'
+      html += '<div ' + (hasDrill ? 'onclick="reportToggleDrill(\'' + itemKey + '\')"' : '') + ' style="display:flex;align-items:center;justify-content:space-between;padding:0.38rem 0.5rem 0.38rem 1.5rem;border-bottom:1px solid rgba(184,173,158,0.1);' + (hasDrill ? 'cursor:pointer;' : '') + '">'
             + '<span style="display:flex;align-items:center;font-size:0.82rem;color:var(--dark);">'
             + (hasDrill ? '<span id="rpt-dchev-' + itemKey + '" style="' + chevStyle + (isDrillOpen ? 'transform:rotate(90deg);' : '') + '"></span>' : '<span style="width:13px;display:inline-block;"></span>')
             + name + '</span>'
@@ -6133,8 +6133,15 @@ function reportOpenPDF() {
     + '<\/body><\/html>';
 
   var win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    // Popup blocked — open in same tab
+    var blob = new Blob([html], {type: 'text/html'});
+    var url = URL.createObjectURL(blob);
+    window.location.href = url;
+  } else {
+    win.document.write(html);
+    win.document.close();
+  }
 }
 
 // Initialise reports year selector when admin screen is shown
