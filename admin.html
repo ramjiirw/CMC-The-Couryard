@@ -6156,9 +6156,11 @@ function reportOpenPDF() {
     + '<scr' + 'ipt>' + pageScript.join('\n') + '<\/scr' + 'ipt>'
     + '<\/body><\/html>';
 
-  var blob = new Blob([html], {type: 'text/html'});
-  var url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  var win = window.open('', '_blank');
+  if (!win) { alert('Please allow popups for this site to open the PDF view.'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }
 
 // Initialise reports year selector when admin screen is shown
