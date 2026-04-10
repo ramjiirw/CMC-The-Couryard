@@ -5688,7 +5688,7 @@ var reportCurrentYear = new Date().getFullYear();
 var REPORT_INCOME_GROUPS = [
   { key: 'management',    label: 'Management',    prefixes: ['Management Charge'] },
   { key: 'farmhouse',     label: 'Farmhouse',     prefixes: ['Farmhouse'] },
-  { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'] },
+  { key: 'bank-interest', label: 'Bank Interest', prefixes: ['Bank Interest'], directDrill: true },
   { key: 'other-inc',     label: 'Other Income',  prefixes: [] }
 ];
 var REPORT_EXPENSE_GROUPS = [
@@ -6007,6 +6007,15 @@ function reportOpenPDF() {
     '    html+="<span class=\\"gv\\" style=\\"color:"+color+"\\">"+fmt(gt)+"</span></div>";',
     '    html+="<div class=\\"ib\\" id=\\"ib-"+g.key+"\\">";',
     '    Object.keys(items).sort().forEach(function(name){',
+    '      if(g.directDrill&&pfx==="I-"){',
+    '        var drills=gdr[g.key]&&gdr[g.key][name]?gdr[g.key][name]:[];',
+    '        var ap={};drills.forEach(function(r){var a=r.address||"Unknown";if(!ap[a])ap[a]=[];ap[a].push(r);});',
+    '        Object.keys(ap).sort(function(a,b){var na=parseInt(a),nb=parseInt(b);return(!isNaN(na)&&!isNaN(nb))?na-nb:a.localeCompare(b);}).forEach(function(addr){',
+    '          var rows=ap[addr],tot=rows.reduce(function(s,r){return s+r.amount;},0);',
+    '          html+="<div class=\"dr\"><span>"+addr+"</span><span style=\"color:#2e7d32;font-weight:600\">"+fmt(tot)+"</span></div>";',
+    '        });',
+    '        return;',
+    '      }',
     '      var ik=g.key+"_"+name.replace(/\\W/g,"_");',
     '      var hd=gdr[g.key]&&gdr[g.key][name]&&gdr[g.key][name].length>0;',
     '      html+="<div class=\\"ir"+(hd?" cl":"")+"\\"" +(hd?" onclick=\\"tD(\'"+ik+"\')\\"":"")+  ">";',
