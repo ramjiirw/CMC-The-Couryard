@@ -5905,7 +5905,8 @@ function reportBuildSection(txnList, prefix, groups, color) {
             }
           });
         } else {
-          groupedDrill[g.key][name].slice().sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+          function parseDMY(s){ if(!s) return 0; var p=s.split('/'); return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0; }
+          groupedDrill[g.key][name].slice().sort(function(a,b){ return parseDMY(a.date)-parseDMY(b.date); }).forEach(function(r) {
             var desc = (r.date || '') + (r.description ? ' — ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
             html += '<div style="display:flex;justify-content:space-between;padding:0.32rem 0.5rem 0.32rem 2.5rem;border-bottom:1px solid rgba(184,173,158,0.08);font-size:0.78rem;">'
                   + '<span style="color:var(--mid);">' + desc + '</span>'
@@ -6107,7 +6108,7 @@ function buildPDFPage(DATA) {
               }
             });
           } else {
-            drills.slice().sort(function(a, b) { return a.date > b.date ? 1 : -1; }).forEach(function(r) {
+            function pDMY(s){if(!s)return 0;var p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;} drills.slice().sort(function(a,b){return pDMY(a.date)-pDMY(b.date);}).forEach(function(r) {
               var desc = (r.date || '') + (r.description ? ' \u2014 ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
               html += '<div class="dr"><span>' + desc + '</span><span style="color:#c62828;font-weight:600">' + fmt(r.amount) + '</span></div>';
             });
