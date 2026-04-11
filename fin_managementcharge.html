@@ -527,7 +527,7 @@
     <div class="collapsible-panel" id="panel-ietreport">
       <div id="ietreport-inner">
         <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">
-          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;">&#128196; Open Report View</button>
+          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Report View</button>
         </div>
       </div>
     </div>
@@ -1424,25 +1424,19 @@
       var content = document.getElementById('iet-report-overlay-content');
       rptOG = {}; rptOD = {};
       if (content) content.innerHTML = buildIETReportContent(DATA);
-      // Only populate year dropdown if overlay is not already showing
-      var overlay = document.getElementById('iet-report-overlay');
-      if (!overlay || overlay.style.display !== 'block') {
-        var sel = document.getElementById('rpt-year-select');
-        if (sel) {
-          sel.innerHTML = '';
-          var startYear = Math.max(currentYear - 4, 2024);
-          for (var y = currentYear; y >= startYear; y--) {
-            var o = document.createElement('option');
-            o.value = y; o.textContent = y;
-            if (y === ietReportYear) o.selected = true;
-            sel.appendChild(o);
-          }
+      // Always rebuild year dropdown to keep all years visible
+      var sel = document.getElementById('rpt-year-select');
+      if (sel) {
+        sel.innerHTML = '';
+        var startYear = Math.max(currentYear - 4, 2024);
+        for (var y = currentYear; y >= startYear; y--) {
+          var o = document.createElement('option');
+          o.value = y; o.textContent = y;
+          if (y === ietReportYear) o.selected = true;
+          sel.appendChild(o);
         }
-      } else {
-        // Just update selected value
-        var sel = document.getElementById('rpt-year-select');
-        if (sel) sel.value = ietReportYear;
       }
+      var overlay = document.getElementById('iet-report-overlay');
       if (overlay) { overlay.style.display = 'block'; overlay.scrollTop = 0; }
     };
 
