@@ -526,8 +526,8 @@
 
     <div class="collapsible-panel" id="panel-ietreport">
       <div id="ietreport-inner">
-        <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:center;">
-          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 2rem;font-size:0.95rem;">&#128196; Open Report View</button>
+        <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">
+          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;">&#128196; Open Report View</button>
         </div>
       </div>
     </div>
@@ -1593,14 +1593,14 @@
     h += '.rpt-logo{width:72px;height:54px;object-fit:cover;border-radius:6px;}';
     h += '.rpt-org{font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;}';
     h += '.rpt-title{font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;}';
-    h += '.rpt-year{font-size:20px;font-weight:700;color:#4a5e3a;text-align:right;}';
+    h += '.rpt-year{font-size:20px;font-weight:700;color:#7a5c3e;text-align:right;}';
     h += '.rpt-gen{font-size:12px;color:#9e8e7e;margin-top:4px;text-align:right;}';
     h += '.rpt-cols{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;}';
     h += '.rpt-col-head{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;padding-bottom:6px;border-bottom:2px solid #ddd5c8;}';
     h += '.rpt-div{background:#ddd5c8;width:1px;}';
     h += '.rpt-gr{display:flex;justify-content:space-between;align-items:center;padding:9px 8px;cursor:pointer;border-bottom:1px solid #ede8e0;}';
     h += '.rpt-gr:hover{background:#faf7f2;}';
-    h += '.rpt-gn{font-size:17px;font-weight:700;color:#4a5e3a;display:flex;align-items:center;gap:7px;}';
+    h += '.rpt-gn{font-size:17px;font-weight:700;color:#7a5c3e;display:flex;align-items:center;gap:7px;}';
     h += '.rpt-chev{display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #b8ad9e;transition:transform 0.2s;flex-shrink:0;}';
     h += '.rpt-chev.open{transform:rotate(90deg);}';
     h += '.rpt-sc{display:inline-block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #c4b8a8;transition:transform 0.2s;flex-shrink:0;}';
@@ -1640,7 +1640,7 @@
     h += '</div>';
 
     h += '<div class="rpt-totals">';
-    h += '<div style="padding-right:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Income</span><span class="rpt-tv" style="color:#4a5e3a;">' + fmt(DATA.totalInc) + '</span></div></div>';
+    h += '<div style="padding-right:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Income</span><span class="rpt-tv" style="color:#2e7d32;">' + fmt(DATA.totalInc) + '</span></div></div>';
     h += '<div class="rpt-div"></div>';
     h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#c62828;">' + fmt(DATA.totalExp) + '</span></div></div>';
     h += '</div>';
