@@ -1392,17 +1392,21 @@
     var years = [];
     for (var y = currentYear; y >= startYear; y--) years.push(y);
 
+    var buttonYears = years.slice(0, 3);
+    var olderYears  = years.slice(3);
+
     var html = '';
-    // Most recent year as a button
-    html += '<button class="yr-btn' + (ietReportYear === years[0] ? ' active' : '') + '" onclick="setIETReportYear(' + years[0] + ')">' + years[0] + '</button>';
+    // 3 most recent years as buttons
+    buttonYears.forEach(function(y) {
+      html += '<button class="yr-btn' + (ietReportYear === y ? ' active' : '') + '" onclick="setIETReportYear(' + y + ')">' + y + '</button>';
+    });
 
     // Older years in dropdown
-    var older = years.slice(1);
-    if (older.length > 0) {
-      var olderActive = ietReportYear !== years[0];
+    if (olderYears.length > 0) {
+      var olderActive = olderYears.indexOf(ietReportYear) !== -1;
       html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" onchange="setIETReportYear(parseInt(this.value))">';
       html += '<option value="">' + (olderActive ? ietReportYear : 'Earlier Year') + '</option>';
-      older.forEach(function(y) {
+      olderYears.forEach(function(y) {
         html += '<option value="' + y + '"' + (ietReportYear === y ? ' selected' : '') + '>' + y + '</option>';
       });
       html += '</select>';
