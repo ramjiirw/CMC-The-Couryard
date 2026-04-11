@@ -1333,8 +1333,8 @@
     html += '<div class="iet-section-divider"></div>';
     html += '<div class="iet-net-row">';
     html += '<span></span>';
-    html += '<span class="iet-net-label">' + (net >= 0 ? 'Net Surplus' : 'Net Deficit') + '</span>';
-    html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? '+' : '') + fmt(net) + '</span>';
+    html += '<span class="iet-net-label">Operating Surplus / (Deficit)</span>';
+    html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? fmt(net) : '(' + fmt(Math.abs(net)) + ')') + '</span>';
     html += '<span></span></div>';
 
     document.getElementById('iet-inner').innerHTML = html;
@@ -1415,13 +1415,13 @@
     var now      = new Date();
     var generated = now.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) + ' at ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
     var netColor  = net >= 0 ? '#2e7d32' : '#c62828';
-    var netLabel  = net >= 0 ? 'Net Surplus' : 'Net Deficit';
-    var netSign   = net >= 0 ? '+' : '';
+    var netLabel  = 'Operating Surplus / (Deficit)';
+    var netSign   = '';
 
     var doOpen = function(incT, expT, ti, te, n) {
       var nc = n>=0?'#2e7d32':'#c62828';
-      var nl = n>=0?'Net Surplus':'Net Deficit';
-      var ns = n>=0?'+':'';
+      var nl = 'Operating Surplus / (Deficit)';
+      var ns = '';
       var DATA = { year: ietReportYear, generated: generated, netColor: nc, netLabel: nl, netSign: ns, totalInc: ti, totalExp: te, net: n, incTxns: incT, expTxns: expT, incGroups: INCOME_GROUPS, expGroups: EXPENSE_GROUPS };
       var content = document.getElementById('iet-report-overlay-content');
       rptOG = {}; rptOD = {};
@@ -1664,7 +1664,7 @@
     h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#c62828;">' + fmt(DATA.totalExp) + '</span></div></div>';
     h += '</div>';
 
-    h += '<div class="rpt-net"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + DATA.netSign + fmt(Math.abs(DATA.net)) + '</span></div>';
+    h += '<div class="rpt-net"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>';
 
     return h;
   }
