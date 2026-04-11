@@ -1474,7 +1474,25 @@
   function rptChangeYear(y) {
     if (!y || isNaN(y)) return;
     ietReportYear = y;
-    openIETReport();
+    var needsFetch = !finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; });
+    if (needsFetch) {
+      // Show loading message in meta area
+      var meta = document.getElementById('rpt-meta');
+      if (meta) meta.innerHTML = '<div style="text-align:right;"><div style="font-size:18px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div></div>';
+      openIETReport();
+    } else {
+      // Data already cached — open then pulse the meta area
+      openIETReport();
+      setTimeout(function(){
+        var meta = document.getElementById('rpt-meta');
+        if (meta) {
+          meta.classList.remove('rpt-meta-pulse');
+          void meta.offsetWidth; // force reflow to restart animation
+          meta.classList.add('rpt-meta-pulse');
+          setTimeout(function(){ meta.classList.remove('rpt-meta-pulse'); }, 650);
+        }
+      }, 30);
+    }
   }
 
   function buildIETReportContent(DATA) {
@@ -1593,6 +1611,9 @@
     h += '.rpt-title{font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;}';
     h += '.rpt-year{font-size:20px;font-weight:700;color:#7a5c3e;text-align:right;}';
     h += '.rpt-gen{font-size:12px;color:#9e8e7e;margin-top:4px;text-align:right;}';
+    h += '@keyframes rptPulse{0%{opacity:1}30%{opacity:0.3;color:#4a5e3a}70%{opacity:0.3;color:#4a5e3a}100%{opacity:1}}';
+    h += '.rpt-meta-pulse{animation:rptPulse 0.6s ease;}';
+    h += '.rpt-meta-pulse .rpt-year{color:#4a5e3a;}';
     h += '.rpt-cols{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;}';
     h += '.rpt-col-head{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;padding-bottom:6px;border-bottom:2px solid #ddd5c8;}';
     h += '.rpt-div{background:#ddd5c8;width:1px;}';
@@ -1628,7 +1649,7 @@
     h += '<img class="rpt-logo" src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo">';
     h += '<div style="margin-left:1rem;"><div class="rpt-org">CMC The Courtyard</div><div class="rpt-title">Income &amp; Expenditure Summary</div></div>';
     h += '</div>';
-    h += '<div><div class="rpt-year">' + DATA.year + ' &middot; Full Year</div><div class="rpt-gen">Generated ' + DATA.generated + '</div></div>';
+    h += '<div id="rpt-meta"><div class="rpt-year">' + DATA.year + ' &middot; Full Year</div><div class="rpt-gen">Generated ' + DATA.generated + '</div></div>';
     h += '</div>';
 
     h += '<div class="rpt-cols">';
