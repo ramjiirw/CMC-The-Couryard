@@ -1336,6 +1336,9 @@
     html += '<span class="iet-net-label">Operating Surplus / (Deficit)</span>';
     html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? fmt(net) : '(' + fmt(Math.abs(net)) + ')') + '</span>';
     html += '<span></span></div>';
+    html += '<div style="padding:0.6rem 1rem 0.75rem 1rem;background:#2e2318;">';
+    html += '<p style="font-size:0.75rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to fund future maintenance, with the majority of it to be set aside in the sinking fund.</p>';
+    html += '</div>';
 
     document.getElementById('iet-inner').innerHTML = html;
   }
@@ -1636,7 +1639,8 @@
     h += '.rpt-tc{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid #b8ad9e;}';
     h += '.rpt-tl{font-size:16px;font-weight:700;color:#1e1a16;}';
     h += '.rpt-tv{font-size:16px;font-weight:700;}';
-    h += '.rpt-net{display:flex;justify-content:space-between;align-items:center;background:#ddd5c8;border:2px solid #b8ad9e;padding:1rem 1.5rem;border-radius:7px;margin-bottom:1.5rem;}';
+    h += '.rpt-net{background:#ddd5c8;border:2px solid #b8ad9e;border-radius:7px;margin-bottom:1.5rem;overflow:hidden;}';
+    h += '.rpt-net-top{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;}';
     h += '.rpt-net-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}';
     h += '.rpt-net-val{font-size:1.75rem;font-weight:700;}';
     h += '.rpt-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}';
@@ -1664,7 +1668,10 @@
     h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#c62828;">' + fmt(DATA.totalExp) + '</span></div></div>';
     h += '</div>';
 
-    h += '<div class="rpt-net"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>';
+    h += '<div class="rpt-net"><div class="rpt-net-top"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>'
+       + '<div style="border-top:1px solid rgba(0,0,0,0.1);padding:0.75rem 1.5rem;">'
+       + '<p style="font-size:15px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to fund future maintenance, with the majority of it to be set aside in the sinking fund.</p>'
+       + '</div></div>';
 
     return h;
   }
