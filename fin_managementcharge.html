@@ -711,10 +711,12 @@
 
 <script>
   function getYearPeriodLabel(year, transactions) {
-    // After 31 Dec of that year = Full Year, otherwise = To [latest date]
-    var now = new Date();
-    if (now.getFullYear() > year) return 'Full Year';
-    // Find latest transaction date for this year
+    var currentYr = new Date().getFullYear();
+    // Past year — always Full Year
+    if (year < currentYr) return 'Full Year';
+    // Future year — no actuals yet
+    if (year > currentYr) return 'Budget Only';
+    // Current year — find latest transaction date
     var latest = null;
     (transactions || []).forEach(function(t) {
       if (t.year !== year) return;
@@ -724,7 +726,8 @@
       var d = new Date(parts[2], parts[1] - 1, parts[0]);
       if (!latest || d > latest) latest = d;
     });
-    if (!latest) return 'Full Year';
+    // No transactions yet this year
+    if (!latest) return 'Budget Only';
     return 'To ' + latest.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
@@ -1714,6 +1717,22 @@
   function buildIETReportContent(DATA) {
     var fmt = function(n){ return '\u00a3' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
 
+    // No transactions for this year — show friendly message
+    if (!DATA.incTxns.length && !DATA.expTxns.length) {
+      var h = '';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:2rem;">';
+      h += '<div style="display:flex;align-items:center;">';
+      h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+      h += '<div style="margin-left:1rem;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+      h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Income &amp; Expenditure Summary</div></div></div>';
+      h += '<div style="text-align:right;"><div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + DATA.year + ' &middot; ' + getYearPeriodLabel(DATA.year, finSummaryData ? finSummaryData.transactions : []) + '</div>';
+      h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + DATA.generated + '</div></div></div>';
+      h += '<div style="text-align:center;padding:3rem 1rem;color:#9e8e7e;font-size:16px;font-style:italic;">';
+      h += 'No transactions have been recorded for ' + DATA.year + ' yet.<br>Please select a previous year from the dropdown above to view data.';
+      h += '</div>';
+      return h;
+    }
+
     function ag(nm, gs) {
       for (var i = 0; i < gs.length - 1; i++) {
         var g = gs[i];
@@ -2277,6 +2296,7 @@
     var now = new Date();
     var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
       + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    var periodLabel = getYearPeriodLabel(bvaReportYear, finSummaryData ? finSummaryData.transactions : []);
 
     // Gather categories by prefix
     var incCats = [], expCats = [], tCats = [];
@@ -2398,7 +2418,7 @@
     h += '<div id="bva-rpt-title" style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Budget vs Actual Summary</div>';
     h += '</div></div>';
     h += '<div id="bva-rpt-meta" style="text-align:right;">';
-    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bvaReportYear + ' &middot; ' + getYearPeriodLabel(bvaReportYear, finSummaryData ? finSummaryData.transactions : []) + '</div>';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bvaReportYear + ' &middot; ' + periodLabel + '</div>';
     h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
     h += '</div></div>';
 
