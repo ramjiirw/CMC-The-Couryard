@@ -2460,12 +2460,12 @@
     // Group 2: Operating Surplus — warm brown background
     var opVar = opSurplusActual - opSurplusBudget;
     h += '<div style="border-bottom:2px solid #b8ad9e;">';
-    h += '<div class="bva-sum-row" style="background:#6b5f52;">';
-    h += '<div class="bva-sum-label" style="color:#e8ddd0;">Operating Surplus / (Deficit)</div>';
+    h += '<div class="bva-sum-row" style="background:#c8bfb0;">';
+    h += '<div class="bva-sum-label" style="color:#4a3f35;">Operating Surplus / (Deficit)</div>';
     h += '<div class="bva-sum-cols">';
-    h += '<div class="bva-scol" style="color:' + (opSurplusBudget >= 0 ? '#4caf50' : '#ef9a9a') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusBudget) + '</div>';
-    h += '<div class="bva-scol" style="color:' + (opSurplusActual >= 0 ? '#4caf50' : '#ef9a9a') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusActual) + '</div>';
-    h += '<div class="bva-scol">' + bvaFmtVar(opVar, false) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (opSurplusBudget >= 0 ? '#2e7d32' : '#c62828') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusBudget) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (opSurplusActual >= 0 ? '#2e7d32' : '#c62828') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusActual) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (opVar >= 0 ? '#2e7d32' : '#c62828') + ';font-weight:700;">' + bvaFmtVar(opVar, false) + '</div>';
     h += '</div></div>';
     h += '</div>';
 
