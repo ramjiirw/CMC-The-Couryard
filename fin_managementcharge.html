@@ -1721,6 +1721,8 @@
       var lt = document.getElementById('iet-loading-text');
       if (lo) { lo.style.display = 'flex'; }
       if (lt) lt.textContent = 'Loading ' + y + ' data…';
+      var meta = document.getElementById('rpt-meta');
+      if (meta) meta.innerHTML = '<div style="text-align:right;"><div style="font-size:18px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div></div>';
       openIETReport();
       if (lo) lo.style.display = 'none';
     } else {
@@ -2604,6 +2606,8 @@
     if (needsFetch) {
       if (lo) lo.style.display = 'flex';
       if (lt) lt.textContent = 'Loading ' + y + ' data…';
+      var meta = document.getElementById('bva-rpt-meta');
+      if (meta) meta.innerHTML = '<div style="font-size:20px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div>';
       try {
         var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
         var json = await res.json();
