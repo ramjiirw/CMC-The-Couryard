@@ -1337,7 +1337,7 @@
     html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? fmt(net) : '(' + fmt(Math.abs(net)) + ')') + '</span>';
     html += '<span></span></div>';
     html += '<div style="padding:0.6rem 1rem 0.75rem 1rem;background:#2e2318;">';
-    html += '<p style="font-size:0.8rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to fund future maintenance, with the majority of it to be set aside in the sinking fund.</p>';
+    html += '<p style="font-size:0.85rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
     html += '</div>';
 
     document.getElementById('iet-inner').innerHTML = html;
@@ -1670,7 +1670,7 @@
 
     h += '<div class="rpt-net"><div class="rpt-net-top"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>'
        + '<div style="border-top:1px solid rgba(0,0,0,0.1);padding:0.75rem 1.5rem;">'
-       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to fund future maintenance, with the majority of it to be set aside in the sinking fund.</p>'
+       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>'
        + '</div></div>';
 
     return h;
