@@ -1348,7 +1348,21 @@
     html += '<button class="btn-expand-all" id="iet-expand-btn" onclick="toggleIETExpandAll()" style="margin-left:auto;">Expand all</button>';
     html += '</div>';
 
-    /* ── Build income ── */
+    /* ── Data-to line for current year ── */
+    if (ietYear === currentYear) {
+      var latestDate = null;
+      txns.forEach(function(t) {
+        if (!t.date) return;
+        var parts = t.date.split('/');
+        if (parts.length !== 3) return;
+        var d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        if (!isNaN(d.getTime()) && (!latestDate || d > latestDate)) latestDate = d;
+      });
+      if (latestDate) {
+        var dateStr = latestDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        html += '<div style="padding:0.3rem 1.5rem;font-size:0.72rem;color:var(--stone);letter-spacing:0.04em;border-bottom:1px solid var(--border);">Data to ' + dateStr + '</div>';
+      }
+    }
     var incTxns = txns.filter(function(t){ return t.category.startsWith('I-'); });
     var expTxns = txns.filter(function(t){ return t.category.startsWith('E-'); });
 
