@@ -642,6 +642,9 @@
         </div>
       </div>
     </div>
+    <div id="bva-coming-soon" style="display:none;padding:0.9rem 1.5rem;color:var(--stone);font-size:0.88rem;font-style:italic;border-top:1px solid var(--border);">
+      Budget vs Actual reporting is coming soon — directors will notify residents when it's available.
+    </div>
   </div>
 
   <!-- Farmhouse Rent and Insurance Rent Tracker -->
@@ -810,20 +813,17 @@
     // Show/hide section and set button state based on enabled years
     var hasEnabledYears = bvaData && bvaData.years && bvaData.years.length > 0;
     var bvaSection = document.getElementById('bva-section');
-    var bvaInner = document.getElementById('bvareport-inner');
+    var bvaComingSoon = document.getElementById('bva-coming-soon');
     if (!hasEnabledYears) {
-      // Show section but with greyed out message
       if (bvaSection) bvaSection.style.display = '';
+      if (bvaComingSoon) bvaComingSoon.style.display = '';
       document.getElementById('toggle-bvareport').disabled = true;
       document.getElementById('toggle-bvareport').style.opacity = '0.6';
       document.getElementById('toggle-bvareport').style.cursor = 'default';
       document.getElementById('toggle-bvareport').onclick = null;
-      if (bvaInner) bvaInner.innerHTML =
-        '<div style="padding:1.2rem 1.5rem;color:var(--stone);font-size:0.88rem;font-style:italic;">' +
-        'Budget vs Actual reporting is coming soon — directors will notify residents when it\'s available.' +
-        '</div>';
     } else {
       if (bvaSection) bvaSection.style.display = '';
+      if (bvaComingSoon) bvaComingSoon.style.display = 'none';
     }
   }
 
