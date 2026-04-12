@@ -1822,7 +1822,7 @@
     h += '.rpt-net-val{font-size:1.2rem;font-weight:700;}';
     h += '.rpt-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}';
     h += '.rpt-btn{padding:0.5rem 1.1rem;background:white;color:#4a5e3a;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;}';
-    h += '@media print{.rpt-actions{display:none!important;}.rpt-net{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
+    h += '@media print{.rpt-actions{display:none!important;}.rpt-net{-webkit-print-color-adjust:exact;print-color-adjust:exact;}#iet-report-overlay{position:absolute!important;overflow:visible!important;height:auto!important;}body{overflow:visible!important;}html{overflow:visible!important;}}';
     h += '</style>';
 
     h += '<div class="rpt-hdr">';
@@ -2351,7 +2351,7 @@
     var retainedActual  = opSurplusActual - transferActual;
 
     var h = '';
-    h += '<style>@media print{#bva-report-overlay > div:first-child{display:none!important;}}</style>';
+    h += '<style>@media print{#bva-report-overlay > div:first-child{display:none!important;}#bva-report-overlay{position:absolute!important;overflow:visible!important;height:auto!important;}body{overflow:visible!important;}html{overflow:visible!important;}}</style>';
 
     // Header — identical to I&E report
     h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
