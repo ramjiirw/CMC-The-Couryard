@@ -623,7 +623,7 @@
   </div>
 
   <!-- Budget vs Actual Tracker -->
-  <div class="finance-section">
+  <div class="finance-section" id="bva-section" style="display:none;">
     <h3 class="section-heading">Budget vs Actual (Income &amp; Expenditure) Tracker</h3>
     <div style="height:4px;background:var(--cream);"></div>
     <button class="btn-toggle btn-loading" id="toggle-bvareport" onclick="togglePanel('bvareport')" aria-expanded="false" style="background:#4a5e3a;">
@@ -804,7 +804,26 @@
       var json4 = await resBudget.value.json();
       if (json4.status === 'ok') { bvaData = json4; }
     } catch(err) {
-      // Budget load failure is silent — report will show error when opened
+      bvaData = { status: 'ok', budget: [], years: [] };
+    }
+    document.getElementById('toggle-bvareport').classList.remove('btn-loading');
+    // Show/hide section and set button state based on enabled years
+    var hasEnabledYears = bvaData && bvaData.years && bvaData.years.length > 0;
+    var bvaSection = document.getElementById('bva-section');
+    var bvaInner = document.getElementById('bvareport-inner');
+    if (!hasEnabledYears) {
+      // Show section but with greyed out message
+      if (bvaSection) bvaSection.style.display = '';
+      document.getElementById('toggle-bvareport').disabled = true;
+      document.getElementById('toggle-bvareport').style.opacity = '0.6';
+      document.getElementById('toggle-bvareport').style.cursor = 'default';
+      document.getElementById('toggle-bvareport').onclick = null;
+      if (bvaInner) bvaInner.innerHTML =
+        '<div style="padding:1.2rem 1.5rem;color:var(--stone);font-size:0.88rem;font-style:italic;">' +
+        'Budget vs Actual reporting is coming soon — directors will notify residents when it\'s available.' +
+        '</div>';
+    } else {
+      if (bvaSection) bvaSection.style.display = '';
     }
   }
 
@@ -2127,6 +2146,9 @@
   }
 
   function bvaGetActualForYear(year) {
+    // Only return actuals if this year is in the enabled years list
+    var enabledYears = (bvaData && bvaData.years) ? bvaData.years : [];
+    if (enabledYears.indexOf(year) === -1) return {};
     var map = {};
     if (!finSummaryData || !finSummaryData.transactions) return map;
     finSummaryData.transactions.forEach(function(t) {
@@ -2158,6 +2180,15 @@
         alert('Could not load budget data: ' + e.message);
         return;
       }
+    }
+
+    // Don't open if no years enabled
+    var enabledYears = (bvaData && bvaData.years) ? bvaData.years : [];
+    if (enabledYears.length === 0) return;
+
+    // Default to most recent enabled year
+    if (enabledYears.indexOf(bvaReportYear) === -1) {
+      bvaReportYear = enabledYears[0];
     }
 
     // Ensure actual data for this year
