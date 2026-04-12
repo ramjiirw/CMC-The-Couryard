@@ -2429,12 +2429,15 @@
     var incResult = buildSection(incCats, 'I-', INCOME_GROUPS, false);
     var expResult = buildSection(expCats, 'E-', EXPENSE_GROUPS, true);
 
-    // Transfer budget comes from P- rows in cmcbudget, actual from T- rows in cmcfinances
+    // Transfer budget from B- rows in cmcbudget, actual from T- rows in finSummaryData directly
     var transferBudget = 0, transferActual = 0;
     tCats.forEach(function(cat) { transferBudget += budgetMap[cat] || 0; });
-    Object.keys(actualMap).forEach(function(cat) {
-      if (cat.startsWith('T-')) transferActual += actualMap[cat] || 0;
-    });
+    if (finSummaryData && finSummaryData.transactions) {
+      finSummaryData.transactions.forEach(function(t) {
+        if (t.year !== bvaReportYear) return;
+        if (t.category.startsWith('T-')) transferActual += t.amtOut || 0;
+      });
+    }
 
     var opSurplusBudget = incResult.budget - expResult.budget;
     var opSurplusActual = incResult.actual - expResult.actual;
