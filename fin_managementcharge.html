@@ -710,6 +710,24 @@
 </div>
 
 <script>
+  function getYearPeriodLabel(year, transactions) {
+    // After 31 Dec of that year = Full Year, otherwise = To [latest date]
+    var now = new Date();
+    if (now.getFullYear() > year) return 'Full Year';
+    // Find latest transaction date for this year
+    var latest = null;
+    (transactions || []).forEach(function(t) {
+      if (t.year !== year) return;
+      if (!t.date) return;
+      var parts = t.date.split('/');
+      if (parts.length !== 3) return;
+      var d = new Date(parts[2], parts[1] - 1, parts[0]);
+      if (!latest || d > latest) latest = d;
+    });
+    if (!latest) return 'Full Year';
+    return 'To ' + latest.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
   function printReport(type) {
     var origTitle = document.title;
     if (type === 'iet') {
@@ -1848,7 +1866,7 @@
     h += '<img class="rpt-logo" src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo">';
     h += '<div style="margin-left:1rem;"><div class="rpt-org">CMC The Courtyard</div><div class="rpt-title">Income &amp; Expenditure Summary</div></div>';
     h += '</div>';
-    h += '<div id="rpt-meta"><div class="rpt-year">' + DATA.year + ' &middot; Full Year</div><div class="rpt-gen">Generated ' + DATA.generated + '</div></div>';
+    h += '<div id="rpt-meta"><div class="rpt-year">' + DATA.year + ' &middot; ' + getYearPeriodLabel(DATA.year, finSummaryData ? finSummaryData.transactions : []) + '</div><div class="rpt-gen">Generated ' + DATA.generated + '</div></div>';
     h += '</div>';
 
     h += '<div class="rpt-cols">';
@@ -2380,7 +2398,7 @@
     h += '<div id="bva-rpt-title" style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Budget vs Actual Summary</div>';
     h += '</div></div>';
     h += '<div id="bva-rpt-meta" style="text-align:right;">';
-    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bvaReportYear + ' &middot; Full Year</div>';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bvaReportYear + ' &middot; ' + getYearPeriodLabel(bvaReportYear, finSummaryData ? finSummaryData.transactions : []) + '</div>';
     h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
     h += '</div></div>';
 
