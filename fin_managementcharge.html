@@ -427,7 +427,71 @@
     .iet-group-row, .iet-item-row, .iet-drill-row, .iet-total-row, .iet-net-row, .iet-section-head {
       grid-template-columns: 20px 1fr 100px 24px;
     }
-  }</style>
+  }
+
+  /* ── Budget vs Actual Report ── */
+  .bva-section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.09em; color: #9e8e7e; padding: 18px 0 6px;
+    border-bottom: 1px solid #ddd5c8; margin-bottom: 0;
+  }
+  .bva-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+  .bva-table th {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #9e8e7e; padding: 6px 8px 8px;
+    border-bottom: 1px solid #ddd5c8; text-align: right;
+  }
+  .bva-table th:first-child { text-align: left; }
+  .bva-table td { padding: 7px 8px; font-size: 14px; color: #1e1a16; border-bottom: 1px solid #ede8e0; }
+  .bva-table td:not(:first-child) { text-align: right; }
+  .bva-group-head td {
+    font-size: 14px; font-weight: 700; color: #7a5c3e;
+    background: #faf7f2; border-bottom: 1px solid #ddd5c8;
+    cursor: pointer; padding: 8px 8px;
+  }
+  .bva-group-head td:hover { background: #f5f0e8; }
+  .bva-group-total-row td {
+    font-weight: 700; font-size: 14px;
+    border-top: 1px solid #ddd5c8; border-bottom: 2px solid #ddd5c8;
+    background: #f5f0e8;
+  }
+  .bva-indent { padding-left: 22px !important; color: #6b5f52; }
+  .bva-section-total-row td {
+    font-weight: 700; font-size: 15px;
+    border-top: 2px solid #b8ad9e; border-bottom: none;
+    padding: 10px 8px;
+  }
+  .bva-spacer td { height: 18px; border: none; background: white; }
+  .bva-var-pos { color: #2e7d32; }
+  .bva-var-neg { color: #c62828; }
+  .bva-budget-val { color: #9e8e7e; }
+  .bva-actual-val { color: #1e1a16; font-weight: 600; }
+  .bva-summary-block {
+    margin-top: 20px; border: 1px solid #ddd5c8; border-radius: 6px; overflow: hidden;
+  }
+  .bva-sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 16px; border-bottom: 1px solid #ddd5c8; font-size: 14px;
+  }
+  .bva-sum-row:last-child { border-bottom: none; }
+  .bva-sum-head {
+    background: #f5f0e8; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase; color: #9e8e7e;
+  }
+  .bva-sum-cols { display: flex; }
+  .bva-scol { width: 130px; text-align: right; font-size: 14px; }
+  .bva-sum-label { font-weight: 700; color: #1e1a16; }
+  .bva-surplus { color: #2e7d32; font-weight: 700; }
+  .bva-deficit { color: #c62828; font-weight: 700; }
+  .bva-chev {
+    display: inline-block; width: 0; height: 0;
+    border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+    border-left: 6px solid #b8ad9e; transition: transform 0.2s;
+    margin-right: 7px; vertical-align: middle;
+  }
+  .bva-chev.open { transform: rotate(90deg); }
+  .bva-items { display: none; }
+  .bva-items.open { display: table-row-group; }</style>
 </head>
 <body>
 
@@ -556,7 +620,45 @@
     </div>
   </div>
 
+  <!-- Budget vs Actual Tracker -->
+  <div class="finance-section">
+    <h3 class="section-heading">Budget vs Actual (Income &amp; Expenditure) Tracker</h3>
+    <div style="height:4px;background:var(--cream);"></div>
+    <button class="btn-toggle btn-loading" id="toggle-bvareport" onclick="togglePanel('bvareport')" aria-expanded="false" style="background:#4a5e3a;">
+      <span class="toggle-left"><span>📊 Budget vs Actual Report View</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-bvareport">
+      <div id="bvareport-inner">
+        <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">
+          <button class="btn-expand-all" onclick="openBVAReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Report View</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
+
+<!-- Budget vs Actual Report Overlay -->
+<div id="bva-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+  <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <span style="color:#fff;font-weight:700;font-size:0.95rem;margin-right:0.5rem;">📊 Budget vs Actual Report</span>
+    <select id="bva-rpt-year-select" onchange="bvaRptChangeYear(parseInt(this.value))" style="padding:0.35rem 0.6rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
+    <button onclick="bvaRptExpandGroups()" style="padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand Groups</button>
+    <button onclick="bvaRptExpandAll()" style="padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All</button>
+    <button id="bva-rpt-collapse-btn" onclick="bvaRptCollapseAll()" style="display:none;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse All</button>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+      <button onclick="window.print()" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+      <button onclick="closeBVAReportOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
+    </div>
+  </div>
+  <div id="bva-report-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+</div>
 
 <!-- I&E Report Overlay -->
 <div id="iet-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
@@ -648,12 +750,14 @@
       finSummaryData = json2;
       document.getElementById('toggle-iet').classList.remove('btn-loading');
       document.getElementById('toggle-ietreport').classList.remove('btn-loading');
+      document.getElementById('toggle-bvareport').classList.remove('btn-loading');
       renderIET();
     } catch(err) {
       document.getElementById('iet-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-iet').classList.remove('btn-loading');
       document.getElementById('toggle-ietreport').classList.remove('btn-loading');
+      document.getElementById('toggle-bvareport').classList.remove('btn-loading');
     }
 
     // Process farmhouse charges
@@ -1943,6 +2047,421 @@
   function setFHYear(y) {
     fhYear = y;
     renderFarmhouse();
+  }
+
+  // ── Budget vs Actual Report ─────────────────────────────────────────────────
+
+  var bvaData = null;          // { budget: [...], years: [...] }
+  var bvaActualData = null;    // finSummaryData-style, all years merged
+  var bvaReportYear = currentYear;
+  var bvaOpenGroups = {};      // groupKey -> bool
+  var bvaOpenDrills = {};      // itemKey -> bool
+
+  function bvaFmt(n) {
+    if (n === null || n === undefined) return '—';
+    var abs = Math.abs(n);
+    return '£' + abs.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function bvaFmtVar(n) {
+    if (n === null || n === undefined || n === 0) return '—';
+    var abs = Math.abs(n);
+    var str = '£' + abs.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return n > 0 ? '+' + str : '(' + str + ')';
+  }
+
+  function bvaAssignGroup(catName, groups) {
+    for (var i = 0; i < groups.length - 1; i++) {
+      var g = groups[i];
+      for (var j = 0; j < g.prefixes.length; j++) {
+        if (catName.indexOf(g.prefixes[j]) === 0) return g.key;
+      }
+    }
+    return groups[groups.length - 1].key;
+  }
+
+  function bvaGetActualForYear(year) {
+    // Returns map: category -> amount (amtIn for I-, amtOut for E-/T-)
+    var map = {};
+    if (!finSummaryData || !finSummaryData.transactions) return map;
+    finSummaryData.transactions.forEach(function(t) {
+      if (t.year !== year) return;
+      var cat = t.category;
+      var amt = cat.startsWith('I-') ? t.amtIn : t.amtOut;
+      map[cat] = (map[cat] || 0) + amt;
+    });
+    return map;
+  }
+
+  function bvaGetBudgetForYear(year) {
+    // Returns map: category -> budget amount
+    var map = {};
+    if (!bvaData || !bvaData.budget) return map;
+    bvaData.budget.forEach(function(entry) {
+      map[entry.category] = entry.amounts[year] || 0;
+    });
+    return map;
+  }
+
+  async function openBVAReport() {
+    // Ensure budget data loaded
+    if (!bvaData) {
+      document.getElementById('bvareport-inner').innerHTML =
+        '<div style="padding:1.5rem;text-align:center;color:var(--mid);"><div class="spinner" style="margin:0 auto 0.75rem;"></div>Loading budget data…</div>';
+      try {
+        var res = await fetch(SCRIPT_URL + '?action=readBudget');
+        var json = await res.json();
+        if (json.status === 'ok') {
+          bvaData = json;
+        } else {
+          throw new Error(json.message || 'Error');
+        }
+      } catch(e) {
+        document.getElementById('bvareport-inner').innerHTML =
+          '<div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">' +
+          '<button class="btn-expand-all" onclick="openBVAReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Report View</button>' +
+          '<span style="margin-left:1rem;color:#a05050;font-size:0.85rem;">⚠️ Could not load budget data</span></div>';
+        return;
+      }
+      // Reset inner to button
+      document.getElementById('bvareport-inner').innerHTML =
+        '<div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">' +
+        '<button class="btn-expand-all" onclick="openBVAReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Report View</button></div>';
+    }
+
+    // Ensure actual data for this year is loaded
+    if (!finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === bvaReportYear; })) {
+      try {
+        var res2 = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + bvaReportYear);
+        var json2 = await res2.json();
+        if (json2.status === 'ok') {
+          if (!finSummaryData) finSummaryData = { status: 'ok', transactions: [] };
+          finSummaryData.transactions = (finSummaryData.transactions || []).concat(json2.transactions || []);
+        }
+      } catch(e) {}
+    }
+
+    bvaOpenGroups = {};
+    bvaOpenDrills = {};
+    renderBVAReport();
+
+    // Build year dropdown
+    var sel = document.getElementById('bva-rpt-year-select');
+    if (sel) {
+      sel.innerHTML = '';
+      var startYear = Math.max(currentYear - 4, 2024);
+      for (var y = currentYear; y >= startYear; y--) {
+        var o = document.createElement('option');
+        o.value = y; o.textContent = y;
+        o.style.background = '#4a5e3a'; o.style.color = '#fff';
+        if (y === bvaReportYear) o.selected = true;
+        sel.appendChild(o);
+      }
+    }
+
+    var overlay = document.getElementById('bva-report-overlay');
+    if (overlay) { overlay.style.display = 'block'; overlay.scrollTop = 0; }
+  }
+
+  function renderBVAReport() {
+    var budgetMap = bvaGetBudgetForYear(bvaReportYear);
+    var actualMap = bvaGetActualForYear(bvaReportYear);
+    var now = new Date();
+    var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    // Gather all categories from budget, split by prefix
+    var incCats = [], expCats = [], tCats = [];
+    if (bvaData && bvaData.budget) {
+      bvaData.budget.forEach(function(entry) {
+        var cat = entry.category;
+        if (cat.startsWith('I-')) incCats.push(cat);
+        else if (cat.startsWith('E-')) expCats.push(cat);
+        else if (cat.startsWith('T-')) tCats.push(cat);
+      });
+    }
+
+    function buildBVASection(cats, prefix, groups) {
+      // Group cats by group key
+      var grouped = {};
+      groups.forEach(function(g) { grouped[g.key] = []; });
+
+      cats.forEach(function(cat) {
+        var catName = cat.replace(prefix, '').trim();
+        var gKey = bvaAssignGroup(catName, groups);
+        grouped[gKey].push(cat);
+      });
+
+      // Also merge any actuals that have no budget line
+      Object.keys(actualMap).forEach(function(cat) {
+        if (!cat.startsWith(prefix)) return;
+        if (cats.indexOf(cat) === -1) {
+          var catName = cat.replace(prefix, '').trim();
+          var gKey = bvaAssignGroup(catName, groups);
+          if (!grouped[gKey]) grouped[gKey] = [];
+          grouped[gKey].push(cat);
+          cats.push(cat);
+        }
+      });
+
+      var html = '';
+      var sectionBudget = 0, sectionActual = 0;
+
+      groups.forEach(function(g) {
+        var gCats = grouped[g.key];
+        if (!gCats || gCats.length === 0) return;
+
+        var gBudget = 0, gActual = 0;
+        gCats.forEach(function(cat) {
+          gBudget += budgetMap[cat] || 0;
+          gActual += actualMap[cat] || 0;
+        });
+        if (gBudget === 0 && gActual === 0) return;
+
+        sectionBudget += gBudget;
+        sectionActual += gActual;
+
+        var gVar = gActual - gBudget;
+        // For expenditure: under budget = positive variance = good (green)
+        // For income: over budget = positive = good (green)
+        var gVarClass = prefix === 'I-'
+          ? (gVar >= 0 ? 'bva-var-pos' : 'bva-var-neg')
+          : (gVar <= 0 ? 'bva-var-pos' : 'bva-var-neg');
+
+        var isOpen = bvaOpenGroups[g.key];
+        var gk = g.key;
+
+        html += '<tr class="bva-group-head" onclick="bvaTG(\'' + gk + '\')">';
+        html += '<td colspan="4"><span class="bva-chev' + (isOpen ? ' open' : '') + '" id="bva-gc-' + gk + '"></span>' + g.label + '</td>';
+        html += '</tr>';
+
+        html += '<tbody class="bva-items' + (isOpen ? ' open' : '') + '" id="bva-ib-' + gk + '">';
+        gCats.forEach(function(cat) {
+          var catName = cat.replace(prefix, '').trim();
+          var bAmt = budgetMap[cat] || 0;
+          var aAmt = actualMap[cat] || 0;
+          if (bAmt === 0 && aAmt === 0) return;
+          var vAmt = aAmt - bAmt;
+          var vClass = prefix === 'I-'
+            ? (vAmt >= 0 ? 'bva-var-pos' : 'bva-var-neg')
+            : (vAmt <= 0 ? 'bva-var-pos' : 'bva-var-neg');
+          html += '<tr>';
+          html += '<td class="bva-indent">' + catName + '</td>';
+          html += '<td class="bva-budget-val">' + (bAmt ? bvaFmt(bAmt) : '—') + '</td>';
+          html += '<td class="bva-actual-val">' + (aAmt ? bvaFmt(aAmt) : '—') + '</td>';
+          html += '<td class="' + vClass + '">' + (bAmt || aAmt ? bvaFmtVar(vAmt) : '—') + '</td>';
+          html += '</tr>';
+        });
+        html += '</tbody>';
+
+        // Group total row
+        var gVarFmt = bvaFmtVar(gVar);
+        html += '<tr class="bva-group-total-row">';
+        html += '<td style="padding-left:8px;">' + g.label + ' total</td>';
+        html += '<td class="bva-budget-val">' + bvaFmt(gBudget) + '</td>';
+        html += '<td class="bva-actual-val">' + bvaFmt(gActual) + '</td>';
+        html += '<td class="' + gVarClass + '">' + gVarFmt + '</td>';
+        html += '</tr>';
+      });
+
+      return { html: html, budget: sectionBudget, actual: sectionActual };
+    }
+
+    var incResult = buildBVASection(incCats, 'I-', INCOME_GROUPS);
+    var expResult = buildBVASection(expCats, 'E-', EXPENSE_GROUPS);
+
+    // T- transfer: get from budget and actual
+    var transferBudget = 0, transferActual = 0;
+    tCats.forEach(function(cat) { transferBudget += budgetMap[cat] || 0; });
+    Object.keys(actualMap).forEach(function(cat) {
+      if (cat.startsWith('T-')) transferActual += actualMap[cat] || 0;
+    });
+
+    var opSurplusBudget = incResult.budget - expResult.budget;
+    var opSurplusActual = incResult.actual - expResult.actual;
+    var retainedBudget  = opSurplusBudget - transferBudget;
+    var retainedActual  = opSurplusActual - transferActual;
+
+    function surplusClass(n) { return n >= 0 ? 'bva-surplus' : 'bva-deficit'; }
+    function surplusFmt(n) {
+      var abs = Math.abs(n);
+      var str = '£' + abs.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return n >= 0 ? str : '(' + str + ')';
+    }
+
+    var h = '';
+    h += '<style>@media print{#bva-report-overlay [style*="sticky"]{display:none!important;}}</style>';
+
+    // Report header — identical to I&E report
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+    h += '<div style="display:flex;align-items:center;">';
+    h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+    h += '<div style="margin-left:1rem;">';
+    h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+    h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Budget vs Actual Summary</div>';
+    h += '</div></div>';
+    h += '<div style="text-align:right;">';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bvaReportYear + ' &middot; Full Year</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+    h += '</div></div>';
+
+    // INCOME TABLE
+    h += '<div class="bva-section-label">Income</div>';
+    h += '<table class="bva-table"><thead><tr>';
+    h += '<th style="width:42%;text-align:left;"></th><th>Budget</th><th>Actual</th><th>Variance</th>';
+    h += '</tr></thead>';
+    h += '<tbody>' + incResult.html + '</tbody>';
+    // Section total
+    var incVar = incResult.actual - incResult.budget;
+    var incVarClass = incVar >= 0 ? 'bva-var-pos' : 'bva-var-neg';
+    h += '<tbody><tr class="bva-section-total-row">';
+    h += '<td>Total Income</td>';
+    h += '<td class="bva-budget-val">' + bvaFmt(incResult.budget) + '</td>';
+    h += '<td class="bva-actual-val">' + bvaFmt(incResult.actual) + '</td>';
+    h += '<td class="' + incVarClass + '">' + bvaFmtVar(incVar) + '</td>';
+    h += '</tr></tbody></table>';
+
+    // EXPENDITURE TABLE
+    h += '<div class="bva-section-label" style="margin-top:18px;">Expenditure</div>';
+    h += '<table class="bva-table"><thead><tr>';
+    h += '<th style="width:42%;text-align:left;"></th><th>Budget</th><th>Actual</th><th>Variance</th>';
+    h += '</tr></thead>';
+    h += '<tbody>' + expResult.html + '</tbody>';
+    var expVar = expResult.actual - expResult.budget;
+    // For expenditure: being under budget is good = positive/green
+    var expVarClass = expVar <= 0 ? 'bva-var-pos' : 'bva-var-neg';
+    h += '<tbody><tr class="bva-section-total-row">';
+    h += '<td>Total Expenditure</td>';
+    h += '<td class="bva-budget-val">' + bvaFmt(expResult.budget) + '</td>';
+    h += '<td class="bva-actual-val">' + bvaFmt(expResult.actual) + '</td>';
+    h += '<td class="' + expVarClass + '">' + bvaFmtVar(expVar) + '</td>';
+    h += '</tr></tbody></table>';
+
+    // SUMMARY BLOCK
+    h += '<div class="bva-summary-block">';
+    // Header row
+    h += '<div class="bva-sum-row bva-sum-head">';
+    h += '<div>Summary</div>';
+    h += '<div class="bva-sum-cols"><div class="bva-scol">Budget</div><div class="bva-scol">Actual</div><div class="bva-scol">Variance</div></div>';
+    h += '</div>';
+
+    function sumRow(label, budget, actual, varFn, labelClass) {
+      var v = actual - budget;
+      var vFmt = bvaFmtVar(v);
+      var vClass = varFn ? varFn(v) : (v >= 0 ? 'bva-var-pos' : 'bva-var-neg');
+      return '<div class="bva-sum-row' + (labelClass ? ' ' + labelClass : '') + '">'
+        + '<div class="bva-sum-label">' + label + '</div>'
+        + '<div class="bva-sum-cols">'
+        + '<div class="bva-scol bva-budget-val">' + bvaFmt(budget) + '</div>'
+        + '<div class="bva-scol bva-actual-val">' + bvaFmt(actual) + '</div>'
+        + '<div class="bva-scol ' + vClass + '">' + vFmt + '</div>'
+        + '</div></div>';
+    }
+
+    h += sumRow('Total Income',     incResult.budget, incResult.actual, function(v){ return v >= 0 ? 'bva-var-pos' : 'bva-var-neg'; });
+    h += sumRow('Total Expenditure',expResult.budget, expResult.actual, function(v){ return v <= 0 ? 'bva-var-pos' : 'bva-var-neg'; });
+
+    // Operating surplus
+    var opVarClass = (opSurplusActual - opSurplusBudget) >= 0 ? 'bva-var-pos' : 'bva-var-neg';
+    h += '<div class="bva-sum-row" style="background:#f5f0e8;">'
+      + '<div class="bva-sum-label">Operating Surplus / (Deficit)</div>'
+      + '<div class="bva-sum-cols">'
+      + '<div class="bva-scol ' + surplusClass(opSurplusBudget) + '">' + surplusFmt(opSurplusBudget) + '</div>'
+      + '<div class="bva-scol ' + surplusClass(opSurplusActual) + '">' + surplusFmt(opSurplusActual) + '</div>'
+      + '<div class="bva-scol ' + opVarClass + '">' + bvaFmtVar(opSurplusActual - opSurplusBudget) + '</div>'
+      + '</div></div>';
+
+    // Transfer to sinking fund
+    if (transferBudget > 0 || transferActual > 0) {
+      var tVar = transferActual - transferBudget;
+      var tVarClass = tVar <= 0 ? 'bva-var-pos' : 'bva-var-neg'; // under budget = good
+      h += '<div class="bva-sum-row">'
+        + '<div class="bva-sum-label">Planned Transfer to Sinking Fund</div>'
+        + '<div class="bva-sum-cols">'
+        + '<div class="bva-scol bva-budget-val">' + bvaFmt(transferBudget) + '</div>'
+        + '<div class="bva-scol bva-actual-val">' + (transferActual ? bvaFmt(transferActual) : '—') + '</div>'
+        + '<div class="bva-scol ' + tVarClass + '">' + bvaFmtVar(tVar) + '</div>'
+        + '</div></div>';
+
+      // Retained surplus
+      var rVarClass = (retainedActual - retainedBudget) >= 0 ? 'bva-var-pos' : 'bva-var-neg';
+      h += '<div class="bva-sum-row" style="background:#f5f0e8;">'
+        + '<div class="bva-sum-label">Retained Surplus / (Deficit)</div>'
+        + '<div class="bva-sum-cols">'
+        + '<div class="bva-scol ' + surplusClass(retainedBudget) + '">' + surplusFmt(retainedBudget) + '</div>'
+        + '<div class="bva-scol ' + surplusClass(retainedActual) + '">' + surplusFmt(retainedActual) + '</div>'
+        + '<div class="bva-scol ' + rVarClass + '">' + bvaFmtVar(retainedActual - retainedBudget) + '</div>'
+        + '</div></div>';
+    }
+
+    h += '</div>'; // end summary block
+
+    document.getElementById('bva-report-overlay-content').innerHTML = h;
+  }
+
+  function closeBVAReportOverlay() {
+    var overlay = document.getElementById('bva-report-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function bvaTG(k) {
+    bvaOpenGroups[k] = !bvaOpenGroups[k];
+    var ib = document.getElementById('bva-ib-' + k);
+    var ch = document.getElementById('bva-gc-' + k);
+    if (ib) ib.className = 'bva-items' + (bvaOpenGroups[k] ? ' open' : '');
+    if (ch) ch.className = 'bva-chev' + (bvaOpenGroups[k] ? ' open' : '');
+    bvaUpdateCollapseBtn();
+  }
+
+  function bvaUpdateCollapseBtn() {
+    var anyOpen = Object.keys(bvaOpenGroups).some(function(k){ return bvaOpenGroups[k]; });
+    var btn = document.getElementById('bva-rpt-collapse-btn');
+    if (btn) btn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
+  function bvaRptExpandGroups() {
+    document.querySelectorAll('#bva-report-overlay-content .bva-items').forEach(function(el) {
+      var k = el.id.replace('bva-ib-', '');
+      bvaOpenGroups[k] = true;
+      el.className = 'bva-items open';
+    });
+    document.querySelectorAll('#bva-report-overlay-content .bva-chev').forEach(function(el) {
+      el.className = 'bva-chev open';
+    });
+    bvaUpdateCollapseBtn();
+  }
+
+  function bvaRptExpandAll() {
+    bvaRptExpandGroups();
+  }
+
+  function bvaRptCollapseAll() {
+    bvaOpenGroups = {};
+    document.querySelectorAll('#bva-report-overlay-content .bva-items').forEach(function(el) {
+      el.className = 'bva-items';
+    });
+    document.querySelectorAll('#bva-report-overlay-content .bva-chev').forEach(function(el) {
+      el.className = 'bva-chev';
+    });
+    bvaUpdateCollapseBtn();
+  }
+
+  async function bvaRptChangeYear(y) {
+    if (!y || isNaN(y)) return;
+    bvaReportYear = y;
+    // Ensure actual data for this year
+    if (!finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; })) {
+      try {
+        var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
+        var json = await res.json();
+        if (json.status === 'ok') {
+          if (!finSummaryData) finSummaryData = { status: 'ok', transactions: [] };
+          finSummaryData.transactions = (finSummaryData.transactions || []).concat(json.transactions || []);
+        }
+      } catch(e) {}
+    }
+    bvaOpenGroups = {};
+    renderBVAReport();
   }
 
   loadData();
