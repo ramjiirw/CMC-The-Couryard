@@ -1712,19 +1712,27 @@
     document.documentElement.style.overflow = '';
   }
 
-  function rptChangeYear(y) {
+  async function rptChangeYear(y) {
     if (!y || isNaN(y)) return;
     ietReportYear = y;
     var needsFetch = !finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; });
     if (needsFetch) {
       var lo = document.getElementById('iet-loading-overlay');
       var lt = document.getElementById('iet-loading-text');
-      if (lo) { lo.style.display = 'flex'; }
-      if (lt) lt.textContent = 'Loading ' + y + ' data…';
       var meta = document.getElementById('rpt-meta');
+      if (lo) lo.style.display = 'flex';
+      if (lt) lt.textContent = 'Loading ' + y + ' data…';
       if (meta) meta.innerHTML = '<div style="text-align:right;"><div style="font-size:18px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div></div>';
-      openIETReport();
+      try {
+        var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
+        var json = await res.json();
+        if (json.status === 'ok') {
+          if (!finSummaryData) finSummaryData = { status: 'ok', transactions: [] };
+          finSummaryData.transactions = (finSummaryData.transactions || []).concat(json.transactions || []);
+        }
+      } catch(e) {}
       if (lo) lo.style.display = 'none';
+      openIETReport();
     } else {
       openIETReport();
       setTimeout(function(){
