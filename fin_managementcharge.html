@@ -369,8 +369,8 @@
   .iet-section-head-inc { border-left: 4px solid #2e7d32; }
   .iet-section-head-exp { border-left: 4px solid #c62828; }
   .iet-section-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#c4b8a8; }
-  .iet-section-total-inc { font-size:0.85rem; font-weight:700; text-align:right; color:#4caf50; }
-  .iet-section-total-exp { font-size:0.85rem; font-weight:700; text-align:right; color:#e53935; }
+  .iet-section-total-inc { font-size:0.85rem; font-weight:700; text-align:right; color:#e8e0d4; }
+  .iet-section-total-exp { font-size:0.85rem; font-weight:700; text-align:right; color:#e8e0d4; }
   .iet-group-row {
     display: grid; grid-template-columns: 28px minmax(0,1fr) 170px 50px; width:100%;
     padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border);
@@ -419,8 +419,8 @@
   .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
   .iet-net-label--retained { color:#e8e0d4; }
   .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
-  .iet-income-val { color:#2e7d32; }
-  .iet-expense-val { color:#c62828; }
+  .iet-income-val { color:#6b5f52; }
+  .iet-expense-val { color:#6b5f52; }
   .iet-net-pos { color:#4caf50; }
   .iet-net-neg { color:#e53935; }
   @media (max-width:700px) {
@@ -1576,7 +1576,7 @@
               return (!isNaN(na) && !isNaN(nb)) ? na - nb : a.localeCompare(b);
             }).forEach(function(addr) {
               var tot = apDirect[addr].reduce(function(s, r) { return s + r.amount; }, 0);
-              html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a5e3a;font-weight:600">' + fmt(tot) + '</span></div>';
+              html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(tot) + '</span></div>';
             });
             return;
           }
@@ -1599,11 +1599,11 @@
                 var rows = ap[addr], hasN = rows.some(function(r) { return r.notes && r.notes.trim(); });
                 if (!hasN) {
                   var tot = rows.reduce(function(s, r) { return s + r.amount; }, 0);
-                  html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a5e3a;font-weight:600">' + fmt(tot) + '</span></div>';
+                  html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(tot) + '</span></div>';
                 } else {
                   rows.forEach(function(r) {
                     var lbl = addr + (r.date ? ' \u2014 ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
-                    html += '<div class="rpt-dr"><span>' + lbl + '</span><span style="color:#4a5e3a;font-weight:600">' + fmt(r.amount) + '</span></div>';
+                    html += '<div class="rpt-dr"><span>' + lbl + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(r.amount) + '</span></div>';
                   });
                 }
               });
@@ -1611,7 +1611,7 @@
               var pDMY = function(s){if(!s)return 0;var p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;};
               drills.slice().sort(function(a,b){return pDMY(a.date)-pDMY(b.date);}).forEach(function(r) {
                 var desc = (r.date || '') + (r.description ? ' \u2014 ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
-                html += '<div class="rpt-dr"><span>' + desc + '</span><span style="color:#c62828;font-weight:600">' + fmt(r.amount) + '</span></div>';
+                html += '<div class="rpt-dr"><span>' + desc + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(r.amount) + '</span></div>';
               });
             }
             html += '</div>';
@@ -1622,8 +1622,8 @@
       return html;
     }
 
-    var incHtml = buildSection(DATA.incTxns, 'I-', DATA.incGroups, '#2e7d32');
-    var expHtml = buildSection(DATA.expTxns, 'E-', DATA.expGroups, '#c62828');
+    var incHtml = buildSection(DATA.incTxns, 'I-', DATA.incGroups, '#4a3f35');
+    var expHtml = buildSection(DATA.expTxns, 'E-', DATA.expGroups, '#4a3f35');
     var now = new Date();
 
     var h = '';
@@ -1657,7 +1657,7 @@
     h += '.rpt-dr{display:flex;justify-content:space-between;padding:7px 8px 7px 38px;border-bottom:1px solid #f5f1ea;font-size:15px;color:#6b5f52;}';
     h += '.rpt-totals{display:grid;grid-template-columns:1fr 1px 1fr;margin-bottom:1.25rem;}';
     h += '.rpt-tc{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid #b8ad9e;}';
-    h += '.rpt-tl{font-size:17px;font-weight:700;color:#1e1a16;}';
+    h += '.rpt-tl{font-size:17px;font-weight:700;color:#4a3f35;}';
     h += '.rpt-tv{font-size:17px;font-weight:700;}';
     h += '.rpt-net{background:#ddd5c8;border:2px solid #b8ad9e;border-radius:7px;margin-bottom:1.5rem;overflow:hidden;}';
     h += '.rpt-net-top{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;}';
@@ -1683,9 +1683,9 @@
     h += '</div>';
 
     h += '<div class="rpt-totals">';
-    h += '<div style="padding-right:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Income</span><span class="rpt-tv" style="color:#2e7d32;">' + fmt(DATA.totalInc) + '</span></div></div>';
+    h += '<div style="padding-right:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Income</span><span class="rpt-tv" style="color:#4a3f35;">' + fmt(DATA.totalInc) + '</span></div></div>';
     h += '<div class="rpt-div"></div>';
-    h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#c62828;">' + fmt(DATA.totalExp) + '</span></div></div>';
+    h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#4a3f35;">' + fmt(DATA.totalExp) + '</span></div></div>';
     h += '</div>';
 
     h += '<div class="rpt-net"><div class="rpt-net-top"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>';
