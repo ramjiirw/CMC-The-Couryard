@@ -416,7 +416,7 @@
     padding:0.75rem 1.5rem; background:#2e2318; align-items:center;
   }
   .iet-net-row--retained { border-top:3px solid #4a3f35; background:#261e16; }
-  .iet-net-label { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
+  .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
   .iet-net-label--retained { color:#e8e0d4; }
   .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
   .iet-income-val { color:#2e7d32; }
@@ -1663,7 +1663,7 @@
     h += '.rpt-tv{font-size:17px;font-weight:700;}';
     h += '.rpt-net{background:#ddd5c8;border:2px solid #b8ad9e;border-radius:7px;margin-bottom:1.5rem;overflow:hidden;}';
     h += '.rpt-net-top{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;}';
-    h += '.rpt-net-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}';
+    h += '.rpt-net-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}';
     h += '.rpt-net-val{font-size:1.2rem;font-weight:700;}';
     h += '.rpt-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}';
     h += '.rpt-btn{padding:0.5rem 1.1rem;background:white;color:#4a5e3a;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;}';
@@ -1699,7 +1699,7 @@
          + '<span style="font-size:1.2rem;font-weight:700;color:#6b5f52;">' + fmt(DATA.transferAmt) + '</span>'
          + '</div>';
       h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1.5rem;border-top:3px solid #b8ad9e;background:rgba(0,0,0,0.05);">'
-         + '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#3d3429;">Retained Surplus / (Deficit)</span>'
+         + '<span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#3d3429;">Retained Surplus / (Deficit)</span>'
          + '<span style="font-size:1.2rem;font-weight:700;color:' + (retained >= 0 ? '#2e7d32' : '#c62828') + ';">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>'
          + '</div>';
     }
