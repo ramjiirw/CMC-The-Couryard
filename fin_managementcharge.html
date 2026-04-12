@@ -1330,14 +1330,32 @@
 
     /* Net */
     var net = inc.total - exp.total;
+    var transferTxns = txns.filter(function(t){ return t.category === 'T-Transfer to Sinking Fund'; });
+    var transferAmt = transferTxns.reduce(function(s,t){ return s + t.amtOut; }, 0);
+    var retained = net - transferAmt;
+
     html += '<div class="iet-section-divider"></div>';
     html += '<div class="iet-net-row">';
     html += '<span></span>';
     html += '<span class="iet-net-label">Operating Surplus / (Deficit)</span>';
     html += '<span class="iet-net-val ' + (net >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (net >= 0 ? fmt(net) : '(' + fmt(Math.abs(net)) + ')') + '</span>';
     html += '<span></span></div>';
+
+    if (transferAmt > 0) {
+      html += '<div class="iet-net-row">';
+      html += '<span></span>';
+      html += '<span class="iet-net-label">Transfer to Sinking Fund</span>';
+      html += '<span class="iet-net-val" style="color:var(--stone);">' + fmt(transferAmt) + '</span>';
+      html += '<span></span></div>';
+      html += '<div class="iet-net-row">';
+      html += '<span></span>';
+      html += '<span class="iet-net-label">Retained Surplus / (Deficit)</span>';
+      html += '<span class="iet-net-val ' + (retained >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>';
+      html += '<span></span></div>';
+    }
+
     html += '<div style="padding:0.6rem 1rem 0.75rem 1rem;background:#2e2318;">';
-    html += '<p style="font-size:0.85rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
+    html += '<p style="font-size:0.85rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">** Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
     html += '</div>';
 
     document.getElementById('iet-inner').innerHTML = html;
@@ -1421,11 +1439,13 @@
     var netLabel  = 'Operating Surplus / (Deficit)';
     var netSign   = '';
 
-    var doOpen = function(incT, expT, ti, te, n) {
+    var doOpen = function(incT, expT, ti, te, n, allTxns) {
       var nc = n>=0?'#2e7d32':'#c62828';
       var nl = 'Operating Surplus / (Deficit)';
       var ns = '';
-      var DATA = { year: ietReportYear, generated: generated, netColor: nc, netLabel: nl, netSign: ns, totalInc: ti, totalExp: te, net: n, incTxns: incT, expTxns: expT, incGroups: INCOME_GROUPS, expGroups: EXPENSE_GROUPS };
+      var transferT = (allTxns || []).filter(function(t){ return t.category === 'T-Transfer to Sinking Fund'; });
+      var transferAmt = transferT.reduce(function(s,t){ return s + t.amtOut; }, 0);
+      var DATA = { year: ietReportYear, generated: generated, netColor: nc, netLabel: nl, netSign: ns, totalInc: ti, totalExp: te, net: n, transferAmt: transferAmt, incTxns: incT, expTxns: expT, incGroups: INCOME_GROUPS, expGroups: EXPENSE_GROUPS };
       var content = document.getElementById('iet-report-overlay-content');
       rptOG = {}; rptOD = {};
       if (content) content.innerHTML = buildIETReportContent(DATA);
@@ -1459,14 +1479,14 @@
             var e2 = t2.filter(function(t){ return t.category.startsWith('E-'); });
             var ti = i2.reduce(function(s,t){ return s+t.amtIn;},0);
             var te = e2.reduce(function(s,t){ return s+t.amtOut;},0);
-            doOpen(i2, e2, ti, te, ti-te);
+            doOpen(i2, e2, ti, te, ti-te, t2);
           }
         })
         .catch(function(){ alert('Could not load data for ' + ietReportYear); });
       return;
     }
 
-    doOpen(incTxns, expTxns, totalInc, totalExp, net);
+    doOpen(incTxns, expTxns, totalInc, totalExp, net, txns);
   }
 
   function closeIETReportOverlay() {
@@ -1668,9 +1688,22 @@
     h += '<div style="padding-left:2rem;"><div class="rpt-tc"><span class="rpt-tl">Total Expenditure</span><span class="rpt-tv" style="color:#c62828;">' + fmt(DATA.totalExp) + '</span></div></div>';
     h += '</div>';
 
-    h += '<div class="rpt-net"><div class="rpt-net-top"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>'
-       + '<div style="border-top:1px solid rgba(0,0,0,0.1);padding:0.75rem 1.5rem;">'
-       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>'
+    h += '<div class="rpt-net"><div class="rpt-net-top"><span class="rpt-net-label">' + DATA.netLabel + '</span><span class="rpt-net-val" style="color:' + DATA.netColor + ';">' + (DATA.net >= 0 ? fmt(DATA.totalInc - DATA.totalExp) : '(' + fmt(Math.abs(DATA.totalInc - DATA.totalExp)) + ')') + '</span></div>';
+
+    if (DATA.transferAmt > 0) {
+      var retained = DATA.net - DATA.transferAmt;
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1.5rem;border-top:1px solid rgba(0,0,0,0.08);">'
+         + '<span class="rpt-net-label">Transfer to Sinking Fund</span>'
+         + '<span style="font-size:1.1rem;font-weight:700;color:#6b5f52;">' + fmt(DATA.transferAmt) + '</span>'
+         + '</div>';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1.5rem;border-top:1px solid rgba(0,0,0,0.08);">'
+         + '<span class="rpt-net-label">Retained Surplus / (Deficit)</span>'
+         + '<span style="font-size:1.1rem;font-weight:700;color:' + (retained >= 0 ? '#2e7d32' : '#c62828') + ';">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>'
+         + '</div>';
+    }
+
+    h += '<div style="border-top:1px solid rgba(0,0,0,0.1);padding:0.75rem 1.5rem;">'
+       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">** Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>'
        + '</div></div>';
 
     return h;
