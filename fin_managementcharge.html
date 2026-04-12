@@ -1576,7 +1576,7 @@
               return (!isNaN(na) && !isNaN(nb)) ? na - nb : a.localeCompare(b);
             }).forEach(function(addr) {
               var tot = apDirect[addr].reduce(function(s, r) { return s + r.amount; }, 0);
-              html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(tot) + '</span></div>';
+              html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(tot) + '</span></div>';
             });
             return;
           }
@@ -1584,7 +1584,7 @@
           var hd = gdr[g.key] && gdr[g.key][name] && gdr[g.key][name].length > 0;
           html += '<div class="rpt-ir' + (hd ? ' rpt-cl' : '') + '"' + (hd ? ' onclick="rptTD(\'' + ik + '\')"' : '') + '>';
           html += '<span class="rpt-in">' + (hd ? '<span class="rpt-sc" id="rpt-dc-' + ik + '"></span>' : '') + name + '</span>';
-          html += '<span class="rpt-iv" style="color:' + color + ';">' + fmt(items[name]) + '</span></div>';
+          html += '<span class="rpt-iv" style="color:#6b5f52;">' + fmt(items[name]) + '</span></div>';
 
           if (hd) {
             html += '<div class="rpt-db" id="rpt-db-' + ik + '">';
@@ -1599,11 +1599,11 @@
                 var rows = ap[addr], hasN = rows.some(function(r) { return r.notes && r.notes.trim(); });
                 if (!hasN) {
                   var tot = rows.reduce(function(s, r) { return s + r.amount; }, 0);
-                  html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(tot) + '</span></div>';
+                  html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(tot) + '</span></div>';
                 } else {
                   rows.forEach(function(r) {
                     var lbl = addr + (r.date ? ' \u2014 ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
-                    html += '<div class="rpt-dr"><span>' + lbl + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(r.amount) + '</span></div>';
+                    html += '<div class="rpt-dr"><span>' + lbl + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(r.amount) + '</span></div>';
                   });
                 }
               });
@@ -1611,7 +1611,7 @@
               var pDMY = function(s){if(!s)return 0;var p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;};
               drills.slice().sort(function(a,b){return pDMY(a.date)-pDMY(b.date);}).forEach(function(r) {
                 var desc = (r.date || '') + (r.description ? ' \u2014 ' + r.description : '') + (r.notes ? ' (' + r.notes + ')' : '');
-                html += '<div class="rpt-dr"><span>' + desc + '</span><span style="color:#4a3f35;font-weight:600">' + fmt(r.amount) + '</span></div>';
+                html += '<div class="rpt-dr"><span>' + desc + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(r.amount) + '</span></div>';
               });
             }
             html += '</div>';
