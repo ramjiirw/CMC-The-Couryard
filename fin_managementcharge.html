@@ -689,6 +689,10 @@
     </div>
   </div>
   <div id="bva-report-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+  <div id="bva-loading-overlay" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div class="spinner" style="width:2rem;height:2rem;border-width:3px;"></div>
+    <div id="bva-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Loading data…</div>
+  </div>
 </div>
 
 <!-- I&E Report Overlay -->
@@ -707,6 +711,10 @@
     </div>
   </div>
   <div id="iet-report-overlay-content" style="padding:2rem 3rem;max-width:1200px;margin:0 auto;"></div>
+  <div id="iet-loading-overlay" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div class="spinner" style="width:2rem;height:2rem;border-width:3px;"></div>
+    <div id="iet-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Loading data…</div>
+  </div>
 </div>
 
 <script>
@@ -1709,18 +1717,19 @@
     ietReportYear = y;
     var needsFetch = !finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; });
     if (needsFetch) {
-      // Show loading message in meta area
-      var meta = document.getElementById('rpt-meta');
-      if (meta) meta.innerHTML = '<div style="text-align:right;"><div style="font-size:18px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div></div>';
+      var lo = document.getElementById('iet-loading-overlay');
+      var lt = document.getElementById('iet-loading-text');
+      if (lo) { lo.style.display = 'flex'; }
+      if (lt) lt.textContent = 'Loading ' + y + ' data…';
       openIETReport();
+      if (lo) lo.style.display = 'none';
     } else {
-      // Data already cached — open then pulse the meta area
       openIETReport();
       setTimeout(function(){
         var meta = document.getElementById('rpt-meta');
         if (meta) {
           meta.classList.remove('rpt-meta-pulse');
-          void meta.offsetWidth; // force reflow to restart animation
+          void meta.offsetWidth;
           meta.classList.add('rpt-meta-pulse');
           setTimeout(function(){ meta.classList.remove('rpt-meta-pulse'); }, 650);
         }
@@ -2589,10 +2598,12 @@
     if (enabledYears.indexOf(y) === -1) return;
     bvaReportYear = y;
 
-    // Show year loading if needed
-    var meta = document.getElementById('bva-rpt-meta');
-    if (!finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; })) {
-      if (meta) meta.innerHTML = '<div style="font-size:20px;font-weight:700;color:#4a5e3a;">⏳ Loading ' + y + ' data…</div><div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Please wait</div>';
+    var needsFetch = !finSummaryData || !finSummaryData.transactions.some(function(t){ return t.year === y; });
+    var lo = document.getElementById('bva-loading-overlay');
+    var lt = document.getElementById('bva-loading-text');
+    if (needsFetch) {
+      if (lo) lo.style.display = 'flex';
+      if (lt) lt.textContent = 'Loading ' + y + ' data…';
       try {
         var res = await fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + y);
         var json = await res.json();
@@ -2601,6 +2612,7 @@
           finSummaryData.transactions = (finSummaryData.transactions || []).concat(json.transactions || []);
         }
       } catch(e) {}
+      if (lo) lo.style.display = 'none';
     }
     bvaOpenGroups = {};
     renderBVAReport();
