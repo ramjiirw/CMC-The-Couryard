@@ -413,9 +413,11 @@
   .iet-section-divider { height:8px; background:var(--cream); }
   .iet-net-row {
     display:grid; grid-template-columns:28px minmax(0,1fr) 170px 50px; width:100%;
-    padding:0.85rem 1.5rem; background:#2e2318; align-items:center;
+    padding:0.75rem 1.5rem; background:#2e2318; align-items:center;
   }
-  .iet-net-label { font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
+  .iet-net-row--retained { border-top:3px solid #4a3f35; background:#261e16; }
+  .iet-net-label { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--stone); grid-column:2; }
+  .iet-net-label--retained { color:#e8e0d4; }
   .iet-net-val { font-size:1.1rem; font-weight:700; text-align:right; }
   .iet-income-val { color:#2e7d32; }
   .iet-expense-val { color:#c62828; }
@@ -1347,15 +1349,15 @@
       html += '<span class="iet-net-label">Transfer to Sinking Fund</span>';
       html += '<span class="iet-net-val" style="color:var(--stone);">' + fmt(transferAmt) + '</span>';
       html += '<span></span></div>';
-      html += '<div class="iet-net-row">';
+      html += '<div class="iet-net-row iet-net-row--retained">';
       html += '<span></span>';
-      html += '<span class="iet-net-label">Retained Surplus / (Deficit)</span>';
+      html += '<span class="iet-net-label iet-net-label--retained">Retained Surplus / (Deficit)</span>';
       html += '<span class="iet-net-val ' + (retained >= 0 ? 'iet-net-pos' : 'iet-net-neg') + '">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>';
       html += '<span></span></div>';
     }
 
     html += '<div style="padding:0.6rem 1rem 0.75rem 1rem;background:#2e2318;">';
-    html += '<p style="font-size:0.85rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">** Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
+    html += '<p style="font-size:0.85rem;color:#9e8e7e;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
     html += '</div>';
 
     document.getElementById('iet-inner').innerHTML = html;
@@ -1660,9 +1662,9 @@
     h += '.rpt-tl{font-size:17px;font-weight:700;color:#1e1a16;}';
     h += '.rpt-tv{font-size:17px;font-weight:700;}';
     h += '.rpt-net{background:#ddd5c8;border:2px solid #b8ad9e;border-radius:7px;margin-bottom:1.5rem;overflow:hidden;}';
-    h += '.rpt-net-top{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;}';
-    h += '.rpt-net-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}';
-    h += '.rpt-net-val{font-size:1.75rem;font-weight:700;}';
+    h += '.rpt-net-top{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.5rem;}';
+    h += '.rpt-net-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;}';
+    h += '.rpt-net-val{font-size:1.2rem;font-weight:700;}';
     h += '.rpt-actions{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}';
     h += '.rpt-btn{padding:0.5rem 1.1rem;background:white;color:#4a5e3a;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;}';
     h += '@media print{.rpt-actions{display:none!important;}.rpt-net{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
@@ -1694,16 +1696,16 @@
       var retained = DATA.net - DATA.transferAmt;
       h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1.5rem;border-top:1px solid rgba(0,0,0,0.08);">'
          + '<span class="rpt-net-label">Transfer to Sinking Fund</span>'
-         + '<span style="font-size:1.1rem;font-weight:700;color:#6b5f52;">' + fmt(DATA.transferAmt) + '</span>'
+         + '<span style="font-size:1.2rem;font-weight:700;color:#6b5f52;">' + fmt(DATA.transferAmt) + '</span>'
          + '</div>';
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1.5rem;border-top:1px solid rgba(0,0,0,0.08);">'
-         + '<span class="rpt-net-label">Retained Surplus / (Deficit)</span>'
-         + '<span style="font-size:1.1rem;font-weight:700;color:' + (retained >= 0 ? '#2e7d32' : '#c62828') + ';">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>'
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1.5rem;border-top:3px solid #b8ad9e;background:rgba(0,0,0,0.05);">'
+         + '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#3d3429;">Retained Surplus / (Deficit)</span>'
+         + '<span style="font-size:1.2rem;font-weight:700;color:' + (retained >= 0 ? '#2e7d32' : '#c62828') + ';">' + (retained >= 0 ? fmt(retained) : '(' + fmt(Math.abs(retained)) + ')') + '</span>'
          + '</div>';
     }
 
     h += '<div style="border-top:1px solid rgba(0,0,0,0.1);padding:0.75rem 1.5rem;">'
-       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">** Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>'
+       + '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>'
        + '</div></div>';
 
     return h;
