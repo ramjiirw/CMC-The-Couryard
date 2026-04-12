@@ -622,7 +622,7 @@
     <div class="collapsible-panel" id="panel-ietreport">
       <div id="ietreport-inner">
         <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">
-          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Income &amp; Expenditure Report View</button>
+          <button class="btn-expand-all" onclick="openIETReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;width:420px;">&#128196; Open Income &amp; Expenditure Report View</button>
         </div>
       </div>
     </div>
@@ -645,7 +645,7 @@
     <div class="collapsible-panel" id="panel-bvareport">
       <div id="bvareport-inner">
         <div style="padding:1.2rem 1rem;display:flex;align-items:center;justify-content:flex-start;">
-          <button class="btn-expand-all" onclick="openBVAReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;">&#128196; Open Budget vs Actual Report View</button>
+          <button class="btn-expand-all" onclick="openBVAReport()" style="background:#4a5e3a;color:#fff;border-color:#4a5e3a;padding:0.6rem 3rem;font-size:0.95rem;margin-left:0;width:420px;">&#128196; Open Budget vs Actual Report View</button>
         </div>
       </div>
     </div>
@@ -2430,7 +2430,7 @@
 
     h += '<div style="height:24px;"></div>';
 
-    // SUMMARY BLOCK — 3 separated groups
+    // SUMMARY BLOCK
     h += '<div class="bva-summary-block">';
 
     // Header
@@ -2457,19 +2457,19 @@
     h += '</div></div>';
     h += '</div>';
 
-    // Group 2: Operating Surplus
+    // Group 2: Operating Surplus — warm brown background
     var opVar = opSurplusActual - opSurplusBudget;
-    h += '<div style="background:#f5f0e8;border-bottom:2px solid #b8ad9e;">';
-    h += '<div class="bva-sum-row" style="background:#f5f0e8;">';
-    h += '<div class="bva-sum-label">Operating Surplus / (Deficit)</div>';
+    h += '<div style="border-bottom:2px solid #b8ad9e;">';
+    h += '<div class="bva-sum-row" style="background:#6b5f52;">';
+    h += '<div class="bva-sum-label" style="color:#e8ddd0;">Operating Surplus / (Deficit)</div>';
     h += '<div class="bva-sum-cols">';
-    h += '<div class="bva-scol">' + bvaFmtSurplus(opSurplusBudget) + '</div>';
-    h += '<div class="bva-scol">' + bvaFmtSurplus(opSurplusActual) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (opSurplusBudget >= 0 ? '#4caf50' : '#ef9a9a') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusBudget) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (opSurplusActual >= 0 ? '#4caf50' : '#ef9a9a') + ';font-weight:700;">' + bvaFmtSurplus(opSurplusActual) + '</div>';
     h += '<div class="bva-scol">' + bvaFmtVar(opVar, false) + '</div>';
     h += '</div></div>';
     h += '</div>';
 
-    // Group 3: Transfer + Retained
+    // Group 3: Transfer + Retained (no background on retained)
     var tVar = transferActual - transferBudget;
     var rVar = retainedActual - retainedBudget;
     h += '<div>';
@@ -2477,14 +2477,14 @@
     h += '<div class="bva-sum-label">Planned Transfer to Sinking Fund</div>';
     h += '<div class="bva-sum-cols">';
     h += '<div class="bva-scol bva-budget-val">' + bvaFmt(transferBudget) + '</div>';
-    h += '<div class="bva-scol" style="color:#6b5f52;font-weight:700;">' + (transferActual ? bvaFmt(transferActual) : '—') + '</div>';
-    h += '<div class="bva-scol">' + (transferBudget || transferActual ? bvaFmtVar(tVar, true) : '—') + '</div>';
+    h += '<div class="bva-scol" style="color:#6b5f52;font-weight:700;">£0.00</div>';
+    h += '<div class="bva-scol">' + (transferBudget ? bvaFmtVar(tVar, true) : '—') + '</div>';
     h += '</div></div>';
-    h += '<div class="bva-sum-row" style="background:#f5f0e8;">';
+    h += '<div class="bva-sum-row">';
     h += '<div class="bva-sum-label">Retained Surplus / (Deficit)</div>';
     h += '<div class="bva-sum-cols">';
-    h += '<div class="bva-scol">' + bvaFmtSurplus(retainedBudget) + '</div>';
-    h += '<div class="bva-scol">' + bvaFmtSurplus(retainedActual) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (retainedBudget >= 0 ? '#2e7d32' : '#c62828') + ';font-weight:700;">' + bvaFmtSurplus(retainedBudget) + '</div>';
+    h += '<div class="bva-scol" style="color:' + (retainedActual >= 0 ? '#2e7d32' : '#c62828') + ';font-weight:700;">' + bvaFmtSurplus(retainedActual) + '</div>';
     h += '<div class="bva-scol">' + bvaFmtVar(rVar, false) + '</div>';
     h += '</div></div>';
     h += '</div>';
