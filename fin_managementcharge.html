@@ -1165,7 +1165,7 @@
 
       html += '<div class="month-panel" id="months-' + key + '">';
       html += '<div style="padding:0.5rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;">';
-      html += '<button id="expbtn-' + key + '" style="font-size:0.82rem;font-weight:600;padding:0.4rem 1.2rem;border-radius:4px;border:1px solid #8a7a65;background:linear-gradient(180deg,#e8dcc8 0%,#c8b89a 60%,#b8a888 100%);color:#2e2318;cursor:pointer;letter-spacing:0.03em;text-transform:uppercase;box-shadow:0 4px 8px rgba(0,0,0,0.25),0 1px 3px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.3);" onclick="expandAnnualProperty(\'' + key + '\', event)">Expand property history</button>';
+      html += '<button id="expbtn-' + key + '" style="font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:20px;border:none;background:#4a3f35;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;" onclick="expandAnnualProperty(\'' + key + '\', event)">Expand property history</button>';
       html += '</div>';
       html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
@@ -1301,8 +1301,8 @@
 
     html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;cursor:' + (curYearBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curYearBehind.length > 0 ? 'id="grandrow-cur" onclick="toggleGrandSection(this.id)"' : '') + '>';
     html += '<span></span>';
-    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">' + currentYear + ' charge: properties behind on payments</span>';
-    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:' + (curYearBehind.length > 0 ? '#ff6b6b' : '#66bb6a') + ';">' + (curYearBehind.length > 0 ? '<strong>' + curYearBehind.length + ' propert' + (curYearBehind.length === 1 ? 'y' : 'ies') + '</strong>' : '\u2713 All on track') + '</span>';
+    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">' + currentYear + ' charge · properties behind on payments</span>';
+    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:' + (curYearBehind.length > 0 ? '#ef5350' : '#43a047') + ';font-size:0.92rem;">' + (curYearBehind.length > 0 ? '<strong>' + curYearBehind.length + ' propert' + (curYearBehind.length === 1 ? 'y' : 'ies') + '</strong>' : '\u2713 All on track') + '</span>';
     html += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (curYearBehind.length > 0 ? '<span class="prop-chevron" id="chev-grandcur" style="border-color:#c8b89a;"></span>' : '') + '</span>';
     html += '</div>';
 
@@ -1316,8 +1316,8 @@
       curYearBehind.forEach(function(p) {
         html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;color:var(--color-text-primary);">' + p.addr + '</span>';
-        html += '<span style="text-align:right;font-size:0.85rem;color:#2e7d32;font-weight:500;">' + fmt(p.paid) + '</span>';
-        html += '<span style="text-align:right;font-size:0.85rem;color:#c62828;font-weight:500;">' + fmt(p.shortfall) + '</span>';
+        html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.paid) + '</span>';
+        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(p.shortfall) + '</span>';
         html += '</div>';
       });
       html += '</div>';
@@ -1345,8 +1345,8 @@
 
     html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (prevOutProps.length > 0 ? 'pointer' : 'default') + ';" ' + (prevOutProps.length > 0 ? 'id="grandrow-prev" onclick="toggleGrandSection(this.id)"' : '') + '>';
     html += '<span></span>';
-    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">Previous years: properties with outstanding balances</span>';
-    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:' + (prevOutProps.length > 0 ? '#ff6b6b' : '#66bb6a') + ';">' + (prevOutProps.length > 0 ? '<strong>' + prevOutProps.length + ' propert' + (prevOutProps.length === 1 ? 'y' : 'ies') + '</strong>' : '\u2713 All clear') + '</span>';
+    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">Previous years · properties with outstanding balances</span>';
+    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:' + (prevOutProps.length > 0 ? '#ef5350' : '#43a047') + ';font-size:0.92rem;">' + (prevOutProps.length > 0 ? '<strong>' + prevOutProps.length + ' propert' + (prevOutProps.length === 1 ? 'y' : 'ies') + '</strong>' : '\u2713 All clear') + '</span>';
     html += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (prevOutProps.length > 0 ? '<span class="prop-chevron" id="chev-grandprev" style="border-color:#c8b89a;"></span>' : '') + '</span>';
     html += '</div>';
 
@@ -1360,8 +1360,8 @@
       prevOutProps.forEach(function(p) {
         html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;color:var(--color-text-primary);">' + p.addr + '</span>';
-        html += '<span style="text-align:right;font-size:0.85rem;color:#2e7d32;font-weight:500;">' + fmt(p.paid) + '</span>';
-        html += '<span style="text-align:right;font-size:0.85rem;color:#c62828;font-weight:500;">' + fmt(p.out) + '</span>';
+        html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.paid) + '</span>';
+        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(p.out) + '</span>';
         html += '</div>';
       });
       html += '</div>';
