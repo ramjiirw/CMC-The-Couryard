@@ -1190,7 +1190,7 @@
 
         html += '<div style="height:3px;background:var(--border);"></div>';
         html += '<div class="month-row' + rowBg + '" style="cursor:pointer;" onclick="toggleAnnualMonths(\'' + yrKey + '\')">';
-        html += '<span><span class="month-dot ' + dotC + '"></span></span>';
+        html += '<span style="display:flex;align-items:center;"><span class="month-dot ' + dotC + '" style="width:10px;height:10px;"></span></span>';
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
         html += '<span class="month-val paid" style="text-align:right;">' + (mcPaid > 0 ? fmt(mcPaid) : '<span class="muted">—</span>') + '</span>';
