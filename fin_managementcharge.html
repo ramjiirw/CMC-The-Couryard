@@ -1129,7 +1129,10 @@
 
     html += '<div class="tracker-col-heads">';
     html += '<span></span><span>Property</span>';
-    html += '<span></span><span></span><span></span><span></span></div>';
+    html += '<span style="text-align:right;">Total Due</span>';
+    html += '<span style="text-align:right;">Total Paid</span>';
+    html += '<span style="text-align:right;">Balance</span>';
+    html += '<span></span></div>';
 
     html += '<div id="annual-rows">';
 
@@ -1143,13 +1146,20 @@
 
       var propOut  = propTotalDue - propTotalPaid;
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
-      var key      = 'an_' + addr.replace(/ /g,'_');
+      var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
+      var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Cleared';
+      var propPillHtml = isOnTrack(addr, currentYear)
+        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + currentYear + ' charge up to date</span>'
+        : '';
+      var key = 'an_' + addr.replace(/ /g,'_');
 
       html += '<div class="prop-row" id="proprow-' + key + '">';
       html += '<div class="prop-header" onclick="toggleAnnualProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
-      html += '<span></span><span></span><span></span>';
+      html += '<span class="prop-val val-due">' + fmt(propTotalDue) + '</span>';
+      html += '<span class="prop-val val-paid">' + fmt(propTotalPaid) + '</span>';
+      html += '<span class="prop-val ' + propOutClass + '">' + propOutText + propPillHtml + '</span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
 
@@ -1165,13 +1175,18 @@
       years.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
         var payments = getPayments(addr, yr);
+        var mcPayments = payments.filter(function(p){ return !p.isArrears; });
         var paid = payments.reduce(function(s,p){ return s+p.amount; }, 0);
+        var mcPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
         var outstanding = due - paid;
         var dotC  = (paid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
         var outC  = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
-        var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '✓ Paid in full';
+        var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
         var rowBg = (paid > 0 && outstanding <= 0) ? ' m-green' : paid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
+        var yrPillHtml = (yr === currentYear && isOnTrack(addr, yr))
+          ? ' <span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;">' + yr + ' charge up to date</span>'
+          : '';
 
         html += '<div style="height:3px;background:var(--border);"></div>';
         html += '<div class="month-row' + rowBg + '" style="cursor:pointer;" onclick="toggleAnnualMonths(\'' + yrKey + '\')">';
@@ -1179,7 +1194,7 @@
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
         html += '<span class="month-val paid" style="text-align:right;">' + (paid > 0 ? fmt(paid) : '<span class="muted">—</span>') + '</span>';
-        html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + '</span>';
+        html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</span>';
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '"></span></span>';
         html += '</div>';
 
@@ -1187,6 +1202,15 @@
         html += buildAnnualMonthRows(addr, yr);
         html += '</div>';
       });
+
+      /* Grand total row at bottom of expanded property */
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total</span>';
+      html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
+      html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
+      html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;" class="' + propOutClass + '">' + propOutText + '</span>';
+      html += '<span></span></div>';
 
       html += '</div>';
       html += '</div>';
@@ -1221,11 +1245,11 @@
 
       if (mPayments.length > 1) {
         mPayments.forEach(function(p) {
+          var catLabel = p.isArrears ? 'Management Charge - Arrears' : 'Management Charge';
           html += '<div class="txn-row"><span></span>';
-          html += '<span class="txn-date">' + fmtDate(p.date) + (p.description ? ' — ' + p.description : '') + '</span>';
+          html += '<span class="txn-date">' + fmtDate(p.date) + ' — ' + catLabel + (p.notes ? ' — ' + p.notes : '') + '</span>';
           html += '<span></span><span class="txn-amount">' + fmt(p.amount) + '</span>';
           html += '<span></span><span></span></div>';
-          if (p.notes) html += '<div class="note-row">📝 ' + p.notes + '</div>';
         });
       } else if (mPayments.length === 1 && mPayments[0].notes) {
         html += '<div class="note-row">📝 ' + mPayments[0].notes + '</div>';
