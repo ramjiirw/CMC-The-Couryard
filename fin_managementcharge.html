@@ -1315,13 +1315,21 @@
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Paid to date</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Shortfall</span>';
       html += '</div>';
+      var totalCurShortfall = 0, totalCurPaid = 0;
       curYearBehind.forEach(function(p) {
+        totalCurPaid += p.paid;
+        totalCurShortfall += p.shortfall;
         html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;color:var(--color-text-primary);">' + p.addr + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.paid) + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(p.shortfall) + '</span>';
         html += '</div>';
       });
+      html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total</span>';
+      html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totalCurPaid) + '</span>';
+      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totalCurShortfall) + '</span>';
+      html += '</div>';
       html += '</div>';
     }
 
@@ -1353,19 +1361,27 @@
     html += '</div>';
 
     if (prevOutProps.length > 0) {
-      html += '<div class="month-panel" id="panel-grandprev" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;">';
+      html += '<div class="month-panel" id="panel-grandprev" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
       html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Paid</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Outstanding</span>';
       html += '</div>';
+      var totalPrevPaid = 0, totalPrevOut = 0;
       prevOutProps.forEach(function(p) {
+        totalPrevPaid += p.paid;
+        totalPrevOut  += p.out;
         html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;color:var(--color-text-primary);">' + p.addr + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.paid) + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(p.out) + '</span>';
         html += '</div>';
       });
+      html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total</span>';
+      html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totalPrevPaid) + '</span>';
+      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totalPrevOut) + '</span>';
+      html += '</div>';
       html += '</div>';
     }
 
