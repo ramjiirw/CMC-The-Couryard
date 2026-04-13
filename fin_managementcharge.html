@@ -1123,9 +1123,7 @@
     var years = getAvailableYears();
     var html = '';
 
-    html += '<div class="tracker-controls">';
-    html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all</button>';
-    html += '</div>';
+    html += '<div class="tracker-controls"></div>';
 
     html += '<div class="tracker-col-heads">';
     html += '<span></span><span>Property</span>';
@@ -1154,8 +1152,8 @@
         : '';
       var key = 'an_' + addr.replace(/ /g,'_');
 
-      html += '<div class="prop-row" id="proprow-' + key + '">';
-      html += '<div class="prop-header" onclick="toggleAnnualProp(\'' + key + '\')">';
+      html += '<div class="prop-row" id="proprow-' + key + '" style="border:3px solid #4a3f35;margin-bottom:6px;">';
+      html += '<div class="prop-header" onclick="toggleAnnualProp(\'' + key + '\')" style="position:relative;">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
       html += '<span class="prop-val val-due">' + fmt(propTotalDue) + '</span>';
@@ -1165,6 +1163,10 @@
       html += '</div>';
 
       html += '<div class="month-panel" id="months-' + key + '">';
+      html += '<div style="padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property history</span>';
+      html += '<button class="btn-expand-all" style="margin:0;font-size:0.72rem;padding:0.2rem 0.8rem;" onclick="expandAnnualProperty(\'' + key + '\', event)">Expand property history</button>';
+      html += '</div>';
       html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
@@ -1262,7 +1264,81 @@
     });
 
     html += '</div>';
+
+    /* Grand grand total row */
+    var grandDue = 0, grandPaid = 0;
+    PROPERTIES.forEach(function(addr) {
+      years.forEach(function(yr) {
+        var due = getDue(yr); if (!due) return;
+        grandDue  += due;
+        grandPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
+      });
+    });
+    var grandOut = grandDue - grandPaid;
+    var grandOutClass = grandOut > 0 ? 'val-owed' : grandOut < 0 ? 'val-over' : 'val-clear';
+    var grandOutText  = grandOut > 0 ? fmt(grandOut) : grandOut < 0 ? '+'+fmt(Math.abs(grandOut))+' overpaid' : '\u2713 All cleared';
+
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.6rem 1.5rem;background:#4a3f35;border-top:3px solid #2e2318;cursor:pointer;" onclick="toggleGrandTotal()">';
+    html += '<span></span>';
+    html += '<span style="font-size:0.85rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.05em;">Grand Total</span>';
+    html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#c8b89a;">' + fmt(grandDue) + '</span>';
+    html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#9fd4b0;">' + fmt(grandPaid) + '</span>';
+    html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#f4a89a;">' + grandOutText + '</span>';
+    html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-grandtotal" style="border-color:#c8b89a;"></span></span>';
+    html += '</div>';
+
+    html += '<div class="month-panel" id="panel-grandtotal" style="background:rgba(122,92,62,0.04);border:2px solid #4a3f35;border-top:none;">';
+    html += '<div style="display:grid;grid-template-columns:1fr 150px 150px 170px;padding:0.35rem 1.5rem;background:rgba(122,92,62,0.08);border-bottom:1px solid var(--border);">';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Due</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Paid</span>';
+    html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Balance</span>';
+    html += '</div>';
+
+    PROPERTIES.forEach(function(addr) {
+      var pDue = 0, pPaid = 0;
+      years.forEach(function(yr) {
+        var due = getDue(yr); if (!due) return;
+        pDue  += due;
+        pPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
+      });
+      var pOut = pDue - pPaid;
+      if (pOut <= 0) return;
+      var pOutClass = 'val-owed';
+      html += '<div style="display:grid;grid-template-columns:1fr 150px 150px 170px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
+      html += '<span style="font-size:0.85rem;font-weight:500;color:var(--color-text-primary);">' + addr + '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;color:var(--mid);">' + fmt(pDue) + '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;color:#2e7d32;font-weight:500;">' + fmt(pPaid) + '</span>';
+      html += '<span style="text-align:right;font-size:0.85rem;color:#c62828;font-weight:500;">' + fmt(pOut) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+
     document.getElementById('annual-inner').innerHTML = html;
+  }
+
+  function toggleGrandTotal() {
+    var panel = document.getElementById('panel-grandtotal');
+    var chev  = document.getElementById('chev-grandtotal');
+    if (!panel) return;
+    var isOpen = panel.classList.contains('open');
+    if (isOpen) { panel.classList.remove('open'); if(chev) chev.classList.remove('open'); }
+    else         { panel.classList.add('open');    if(chev) chev.classList.add('open'); }
+  }
+
+  function expandAnnualProperty(key, e) {
+    e.stopPropagation();
+    var years = getAvailableYears();
+    PROPERTIES.forEach(function(addr) {
+      if ('an_' + addr.replace(/ /g,'_') !== key) return;
+      years.forEach(function(yr) {
+        var yrKey = key + '_' + yr;
+        var panel = document.getElementById('yrmonths-' + yrKey);
+        var chev  = document.getElementById('chev-' + yrKey);
+        if (panel) { panel.classList.add('open'); }
+        if (chev)  { chev.classList.add('open'); }
+      });
+    });
   }
 
   function buildAnnualMonthRows(addr, yr) {
