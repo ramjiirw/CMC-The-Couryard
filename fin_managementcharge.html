@@ -265,6 +265,10 @@
     font-size: 0.85rem; font-weight: 600; cursor: pointer;
   }
   .yr-select.active { background: var(--dark); color: var(--accent2); border-color: var(--dark); }
+  @media (max-width: 480px) {
+    .yr-select { -webkit-appearance: menulist; appearance: menulist; padding-right: 1.5rem; }
+    .yr-select.active { background: var(--dark); color: var(--accent2); border-color: var(--dark); }
+  }
   .btn-expand-all {
     padding: 0.3rem 0.9rem; border-radius: 5px; border: 1px solid var(--border);
     background: var(--cream); color: var(--mid); font-family: Arial, sans-serif;
