@@ -975,11 +975,8 @@
     var totalDue = 0, totalPaid = 0;
 
     PROPERTIES.forEach(function(addr) {
-      var payments = getPayments(addr, activeYear);
-      var mcPayments = payments.filter(function(p){ return !p.isArrears; });
-      var arrearsPayments = payments.filter(function(p){ return p.isArrears; });
-      var mcPaid = mcPayments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var arrearsPaid = arrearsPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var payments = getPayments(addr, activeYear).filter(function(p){ return !p.isArrears; });
+      var mcPaid = payments.reduce(function(s,p){ return s + p.amount; }, 0);
       var outstanding = due - mcPaid;
       totalDue += due;
       totalPaid += mcPaid;
@@ -994,7 +991,7 @@
       html += '<div class="prop-row" id="proprow-' + key + '">';
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
-      html += '<span class="prop-name">' + addr + (arrearsPaid > 0 ? '<br><span style="font-size:0.72rem;font-weight:400;color:#4caf50;">' + fmt(arrearsPaid) + ' arrears paid this year</span>' : '') + '</span>';
+      html += '<span class="prop-name">' + addr + '</span>';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
         ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
         : '';
@@ -1026,7 +1023,7 @@
   function buildMonthRows(addr) {
     var due = getDue(activeYear);
     var dueMonthly = due > 0 ? (due / 12) : 0;
-    var payments = getPayments(addr, activeYear);
+    var payments = getPayments(addr, activeYear).filter(function(p){ return !p.isArrears; });
     var isCurrentYear = (activeYear === currentYear);
     var html = '';
 
@@ -1035,33 +1032,28 @@
       var isFuture = isCurrentYear && (mi > currentMonth);
       if (isFuture) return;
 
-      var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
-      var mMcPayments = mPayments.filter(function(p){ return !p.isArrears; });
-      var mArrearsPayments = mPayments.filter(function(p){ return p.isArrears; });
-      var mMcPaid = mMcPayments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var mArrearsPaid = mArrearsPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var mPayments = payments.filter(function(p){ return p.month === mi + 1 && !p.isArrears; });
+      var mPaid = mPayments.reduce(function(s,p){ return s + p.amount; }, 0);
 
-      /* Row colour based on MC payments only */
       var rowClass = 'month-row';
-      if (mMcPaid > 0) rowClass += ' m-green';
+      if (mPaid > 0) rowClass += ' m-green';
       else if (!isFuture) rowClass += ' m-red';
 
       html += '<div class="' + rowClass + '">';
-      var dotCol = mMcPaid > 0 ? 'green' : 'red';
+      var dotCol = mPaid > 0 ? 'green' : 'red';
       html += '<span><span class="month-dot dot-' + dotCol + '"></span></span>';
-      html += '<span class="month-name">' + mName + (mArrearsPaid > 0 ? '<br><span style="font-size:0.7rem;font-weight:400;color:#4caf50;">' + fmt(mArrearsPaid) + ' arrears</span>' : '') + '</span>';
+      html += '<span class="month-name">' + mName + '</span>';
       html += '<span></span>';
-      html += '<span class="month-val ' + (mMcPaid > 0 ? 'paid' : 'muted') + '">' + (mMcPaid > 0 ? fmt(mMcPaid) : '—') + '</span>';
+      html += '<span class="month-val ' + (mPaid > 0 ? 'paid' : 'muted') + '">' + (mPaid > 0 ? fmt(mPaid) : '—') + '</span>';
       html += '<span></span>';
       html += '<span></span></div>';
 
-      /* Individual transactions - show if more than one payment in month */
+      /* Individual transactions - show if more than one MC payment in month */
       if (mPayments.length > 1) {
         mPayments.forEach(function(p) {
-          var catLabel = p.isArrears ? 'Management Charge - Arrears' : 'Management Charge';
           html += '<div class="txn-row">';
           html += '<span></span>';
-          html += '<span class="txn-date">' + fmtDate(p.date) + ' — ' + catLabel + (p.notes ? ' — ' + p.notes : '') + '</span>';
+          html += '<span class="txn-date">' + fmtDate(p.date) + (p.notes ? ' — ' + p.notes : '') + '</span>';
           html += '<span></span><span class="txn-amount">' + fmt(p.amount) + '</span>';
           html += '<span></span><span></span></div>';
         });
