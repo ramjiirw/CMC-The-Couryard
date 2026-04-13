@@ -2056,7 +2056,7 @@
     var olderYrs = allYrs.filter(function(y){ return y !== currentYear; });
     if (olderYrs.length > 0) {
       var olderActive = !isCurrent;
-      html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" onchange="setFHYear(parseInt(this.value))">';
+      html += '<select class="yr-select' + (olderActive ? ' active' : '') + '" onchange="if(this.value) setFHYear(parseInt(this.value))">';
       html += '<option value="">' + (olderActive ? fhYear : 'Earlier Year') + '</option>';
       olderYrs.forEach(function(y) {
         html += '<option value="' + y + '"' + (fhYear === y ? ' selected' : '') + '>' + y + '</option>';
