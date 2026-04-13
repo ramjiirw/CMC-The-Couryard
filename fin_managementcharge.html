@@ -1267,24 +1267,34 @@
 
     html += '</div>';
 
-    /* Grand grand total row */
-    var grandPaid = 0, grandOut = 0;
+    /* Grand grand total row — split into current year and previous years */
+    var grandCurOut = 0, grandPrevOut = 0, grandPaid = 0;
+    var prevYearsForGrand = years.filter(function(yr){ return yr < currentYear; });
     PROPERTIES.forEach(function(addr) {
-      years.forEach(function(yr) {
+      /* Current year outstanding — MC only */
+      var curDue = getDue(currentYear) || 0;
+      var curMcPaid = getPayments(addr, currentYear).filter(function(p){ return !p.isArrears && !p.isRefund; }).reduce(function(s,p){ return s+p.amount; }, 0);
+      grandCurOut += Math.max(0, curDue - curMcPaid);
+      /* Previous years outstanding — all payments vs prev due */
+      var pDue = 0;
+      prevYearsForGrand.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
-        var paid = getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
-        grandPaid += paid;
-        grandOut  += (due - paid);
+        pDue += due;
       });
+      var allPaid = years.reduce(function(s, yr) {
+        return s + getPayments(addr, yr).reduce(function(s2,p){ return s2+p.amount; }, 0);
+      }, 0);
+      var prevEffPaid = allPaid - curMcPaid;
+      grandPrevOut += Math.max(0, pDue - prevEffPaid);
+      /* Total paid */
+      grandPaid += allPaid;
     });
-    var grandOutText = grandOut > 0 ? fmt(grandOut) : grandOut < 0 ? '+'+fmt(Math.abs(grandOut))+' overpaid' : '\u2713 All cleared';
-    var grandOutColour = grandOut > 0 ? '#ef5350' : grandOut < 0 ? '#ffa726' : '#66bb6a';
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 1fr 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
-    html += '<span style="text-align:right;font-size:0.95rem;font-weight:700;color:#66bb6a;">' + fmt(grandPaid) + '</span>';
-    html += '<span style="text-align:right;font-size:0.95rem;font-weight:700;color:' + grandOutColour + ';">' + grandOutText + '</span>';
+    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
+    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div></div>';
     html += '<span></span></div>';
 
     /* Current year behind dropdown */
