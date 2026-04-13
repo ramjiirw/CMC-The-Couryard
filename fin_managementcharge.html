@@ -266,8 +266,18 @@
   }
   .yr-select.active { background: var(--dark); color: var(--accent2); border-color: var(--dark); }
   @media (max-width: 480px) {
-    .yr-select { -webkit-appearance: menulist; appearance: menulist; padding-right: 1.5rem; }
-    .yr-select.active { background: var(--dark); color: var(--accent2); border-color: var(--dark); }
+    .yr-select {
+      -webkit-appearance: none; appearance: none;
+      padding-right: 1.75rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a5c3e'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.5rem center;
+    }
+    .yr-select.active {
+      background-color: var(--dark);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c4956a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.5rem center;
+      color: var(--accent2); border-color: var(--dark);
+    }
   }
   .btn-expand-all {
     padding: 0.3rem 0.9rem; border-radius: 5px; border: 1px solid var(--border);
