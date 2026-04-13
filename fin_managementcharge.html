@@ -994,7 +994,7 @@
       html += '<div class="prop-row" id="proprow-' + key + '">';
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
-      html += '<span class="prop-name">' + addr + (arrearsPaid > 0 ? '<br><span style="font-size:0.72rem;font-weight:400;color:#9fd4b0;">' + fmt(arrearsPaid) + ' arrears paid this year</span>' : '') + '</span>';
+      html += '<span class="prop-name">' + addr + (arrearsPaid > 0 ? '<br><span style="font-size:0.72rem;font-weight:400;color:#4caf50;">' + fmt(arrearsPaid) + ' arrears paid this year</span>' : '') + '</span>';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
         ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
         : '';
@@ -1027,7 +1027,6 @@
     var due = getDue(activeYear);
     var dueMonthly = due > 0 ? (due / 12) : 0;
     var payments = getPayments(addr, activeYear);
-    var yearPaidTotal = payments.reduce(function(s,p){ return s + p.amount; }, 0);
     var isCurrentYear = (activeYear === currentYear);
     var html = '';
 
@@ -1037,28 +1036,23 @@
       if (isFuture) return;
 
       var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
-      var mPaid = mPayments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var mOut = dueMonthly - mPaid;
+      var mMcPayments = mPayments.filter(function(p){ return !p.isArrears; });
+      var mArrearsPayments = mPayments.filter(function(p){ return p.isArrears; });
+      var mMcPaid = mMcPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var mArrearsPaid = mArrearsPayments.reduce(function(s,p){ return s + p.amount; }, 0);
 
-      /* Determine status purely from what was paid vs what was due */
-      var isGreen = mPaid >= dueMonthly;
-      var isRed   = !isGreen && mPaid === 0;
-      var isAmber = !isGreen && !isRed;
-
-      /* No due column on months - just show what was paid */
+      /* Row colour based on MC payments only */
       var rowClass = 'month-row';
-      if (mPaid > 0) rowClass += ' m-green';
+      if (mMcPaid > 0) rowClass += ' m-green';
       else if (!isFuture) rowClass += ' m-red';
 
       html += '<div class="' + rowClass + '">';
-
-      var dotCol = mPaid > 0 ? 'green' : 'red';
+      var dotCol = mMcPaid > 0 ? 'green' : 'red';
       html += '<span><span class="month-dot dot-' + dotCol + '"></span></span>';
-      html += '<span class="month-name">' + mName + '</span>';
+      html += '<span class="month-name">' + mName + (mArrearsPaid > 0 ? '<br><span style="font-size:0.7rem;font-weight:400;color:#4caf50;">' + fmt(mArrearsPaid) + ' arrears</span>' : '') + '</span>';
       html += '<span></span>';
-      html += '<span class="month-val ' + (mPaid > 0 ? 'paid' : 'muted') + '">' + (mPaid > 0 ? fmt(mPaid) : '—') + '</span>';
+      html += '<span class="month-val ' + (mMcPaid > 0 ? 'paid' : 'muted') + '">' + (mMcPaid > 0 ? fmt(mMcPaid) : '—') + '</span>';
       html += '<span></span>';
-
       html += '<span></span></div>';
 
       /* Individual transactions - show if more than one payment in month */
