@@ -1299,7 +1299,7 @@
       if (pOut > 0) prevOutProps.push({ addr: addr, due: pDue, paid: pPaid, out: pOut });
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 30px;padding:0.45rem 1.5rem;background:#2e2318;cursor:' + (prevOutProps.length > 0 ? 'pointer' : 'default') + ';" ' + (prevOutProps.length > 0 ? 'onclick="toggleGrandSection('prev')"' : '') + '>';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 30px;padding:0.45rem 1.5rem;background:#2e2318;cursor:' + (prevOutProps.length > 0 ? 'pointer' : 'default') + ';" ' + (prevOutProps.length > 0 ? 'id="grandrow-prev" onclick="toggleGrandSection(\"prev\")"' : '') + '>';
     html += '<span></span>';
     html += '<span style="font-size:0.78rem;font-weight:600;color:#c8b89a;">Previous years outstanding</span>';
     html += '<span></span>';
@@ -1338,7 +1338,7 @@
       }
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 30px;padding:0.45rem 1.5rem;background:#2e2318;cursor:' + (curYearBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curYearBehind.length > 0 ? 'onclick="toggleGrandSection('cur')"' : '') + '>';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 30px;padding:0.45rem 1.5rem;background:#2e2318;cursor:' + (curYearBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curYearBehind.length > 0 ? 'id="grandrow-cur" onclick="toggleGrandSection(\"cur\")"' : '') + '>';
     html += '<span></span>';
     html += '<span style="font-size:0.78rem;font-weight:600;color:#c8b89a;">' + currentYear + ' charge — behind</span>';
     html += '<span></span>';
