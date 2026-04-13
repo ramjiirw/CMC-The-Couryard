@@ -976,27 +976,30 @@
 
     PROPERTIES.forEach(function(addr) {
       var payments = getPayments(addr, activeYear);
-      var paidTotal = payments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var outstanding = due - paidTotal;
+      var mcPayments = payments.filter(function(p){ return !p.isArrears; });
+      var arrearsPayments = payments.filter(function(p){ return p.isArrears; });
+      var mcPaid = mcPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var arrearsPaid = arrearsPayments.reduce(function(s,p){ return s + p.amount; }, 0);
+      var outstanding = due - mcPaid;
       totalDue += due;
-      totalPaid += paidTotal;
+      totalPaid += mcPaid;
 
       var dotClass = outstanding > 0 ? 'dot-red' : outstanding < 0 ? 'dot-amber' : 'dot-green';
-      if (paidTotal === 0 && due > 0) dotClass = 'dot-red';
+      if (mcPaid === 0 && due > 0) dotClass = 'dot-red';
       var outClass = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
       var outText = outstanding > 0 ? fmt(outstanding) :
-                    outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '✓ Paid in full';
+                    outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '\u2713 Paid in full';
 
       var key = addr.replace(/ /g,'_');
       html += '<div class="prop-row" id="proprow-' + key + '">';
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
-      html += '<span class="prop-name">' + addr + '</span>';
+      html += '<span class="prop-name">' + addr + (arrearsPaid > 0 ? '<br><span style="font-size:0.72rem;font-weight:400;color:#9fd4b0;">' + fmt(arrearsPaid) + ' arrears paid this year</span>' : '') + '</span>';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
         ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
         : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
-      html += '<span class="prop-val val-paid">' + fmt(paidTotal) + '</span>';
+      html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
       html += '<span class="prop-val ' + outClass + '">' + outText + pillHtml + '</span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
