@@ -914,6 +914,18 @@
     });
   }
 
+  function isOnTrack(address, year) {
+    if (year !== currentYear) return false;
+    var due = getDue(year);
+    if (!due || due <= 0) return false;
+    var monthlyAmt = due / 12;
+    var monthsElapsed = currentMonth + 1; // currentMonth is 0-based
+    var expected = monthlyAmt * monthsElapsed;
+    var mcPayments = getPayments(address, year).filter(function(p) { return !p.isArrears; });
+    var mcPaid = mcPayments.reduce(function(s, p) { return s + p.amount; }, 0);
+    return mcPaid >= expected;
+  }
+
   function getAvailableYears() {
     var yrs = [];
     var startYear = Math.max(currentYear - 4, 2024);
@@ -980,9 +992,12 @@
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
+      var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
+        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
+        : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(paidTotal) + '</span>';
-      html += '<span class="prop-val ' + outClass + '">' + outText + '</span>';
+      html += '<span class="prop-val ' + outClass + '">' + outText + pillHtml + '</span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
       html += '<div class="month-panel" id="months-' + key + '" data-addr="' + addr + '" data-built="false"></div>';
@@ -1046,14 +1061,12 @@
       /* Individual transactions - show if more than one payment in month */
       if (mPayments.length > 1) {
         mPayments.forEach(function(p) {
+          var catLabel = p.isArrears ? 'Management Charge - Arrears' : 'Management Charge';
           html += '<div class="txn-row">';
           html += '<span></span>';
-          html += '<span class="txn-date">' + fmtDate(p.date) + (p.description ? ' — ' + p.description : '') + '</span>';
+          html += '<span class="txn-date">' + fmtDate(p.date) + ' — ' + catLabel + (p.notes ? ' — ' + p.notes : '') + '</span>';
           html += '<span></span><span class="txn-amount">' + fmt(p.amount) + '</span>';
           html += '<span></span><span></span></div>';
-          if (p.notes) {
-            html += '<div class="note-row">📝 ' + p.notes + '</div>';
-          }
         });
       } else if (mPayments.length === 1 && mPayments[0].notes) {
         html += '<div class="note-row">📝 ' + mPayments[0].notes + '</div>';
