@@ -1143,6 +1143,7 @@
         propTotalDue  += due;
         propTotalPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
       });
+      /* propTotalPaid already includes arrears (positive) and refunds (negative) via amount sign */
 
       var propOut  = propTotalDue - propTotalPaid;
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
@@ -1175,14 +1176,13 @@
       years.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
         var payments = getPayments(addr, yr);
-        var mcPayments = payments.filter(function(p){ return !p.isArrears; });
-        var paid = payments.reduce(function(s,p){ return s+p.amount; }, 0);
+        var mcPayments = payments.filter(function(p){ return !p.isArrears && !p.isRefund; });
         var mcPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
-        var outstanding = due - paid;
-        var dotC  = (paid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
+        var outstanding = due - mcPaid;
+        var dotC  = (mcPaid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
         var outC  = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
-        var rowBg = (paid > 0 && outstanding <= 0) ? ' m-green' : paid > 0 ? ' m-amber' : ' m-red';
+        var rowBg = (mcPaid > 0 && outstanding <= 0) ? ' m-green' : mcPaid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
         var yrPillHtml = (yr === currentYear && isOnTrack(addr, yr))
           ? ' <span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;">' + yr + ' charge up to date</span>'
@@ -1193,7 +1193,7 @@
         html += '<span><span class="month-dot ' + dotC + '"></span></span>';
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
-        html += '<span class="month-val paid" style="text-align:right;">' + (paid > 0 ? fmt(paid) : '<span class="muted">—</span>') + '</span>';
+        html += '<span class="month-val paid" style="text-align:right;">' + (mcPaid > 0 ? fmt(mcPaid) : '<span class="muted">—</span>') + '</span>';
         html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</span>';
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '"></span></span>';
         html += '</div>';
@@ -1203,14 +1203,59 @@
         html += '</div>';
       });
 
-      /* Grand total row at bottom of expanded property */
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);">';
+      /* Grand total row — MC + arrears + refunds, clickable if arrears/refunds exist */
+      var allPayments = [];
+      years.forEach(function(yr){ allPayments = allPayments.concat(getPayments(addr, yr)); });
+      var arrearsAll = allPayments.filter(function(p){ return p.isArrears; });
+      var refundsAll = allPayments.filter(function(p){ return p.isRefund; });
+      var hasExtras = arrearsAll.length > 0 || refundsAll.length > 0;
+      var totalKey = key + '_total';
+
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasExtras ? 'pointer' : 'default') + ';" ' + (hasExtras ? 'onclick="toggleAnnualTotal(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
       html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total</span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;" class="' + propOutClass + '">' + propOutText + '</span>';
-      html += '<span></span></div>';
+      html += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (hasExtras ? '<span class="prop-chevron" id="chev-' + totalKey + '"></span>' : '') + '</span>';
+      html += '</div>';
+
+      if (hasExtras) {
+        html += '<div class="month-panel" id="totalpanel-' + totalKey + '" style="background:rgba(122,92,62,0.03);border-top:1px solid var(--border);">';
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.3rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
+        html += '<span></span>';
+        html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Date</span>';
+        html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Amount</span>';
+        html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);padding-left:12px;">Category / Note</span>';
+        html += '</div>';
+
+        arrearsAll.forEach(function(p) {
+          html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);align-items:start;">';
+          html += '<span></span>';
+          html += '<span style="font-size:0.82rem;color:var(--mid);">' + fmtDate(p.date) + '</span>';
+          html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
+          html += '<span style="padding-left:12px;"><span style="font-size:0.78rem;color:#8a7a65;font-style:italic;">Management Charge - Arrears</span>' + (p.notes ? '<br><span style="font-size:0.72rem;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
+          html += '</div>';
+        });
+
+        refundsAll.forEach(function(p) {
+          html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);align-items:start;background:rgba(229,57,53,0.03);">';
+          html += '<span></span>';
+          html += '<span style="font-size:0.82rem;color:var(--mid);">' + fmtDate(p.date) + '</span>';
+          html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#c62828;">' + fmt(p.amount) + '</span>';
+          html += '<span style="padding-left:12px;"><span style="font-size:0.78rem;color:#8a7a65;font-style:italic;">Management Charge Refund Overpayment</span>' + (p.notes ? '<br><span style="font-size:0.72rem;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
+          html += '</div>';
+        });
+
+        var netArrears = arrearsAll.reduce(function(s,p){ return s+p.amount; }, 0) + refundsAll.reduce(function(s,p){ return s+p.amount; }, 0);
+        var netCol = netArrears >= 0 ? '#2e7d32' : '#c62828';
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.08);border-top:1px solid var(--border);">';
+        html += '<span></span>';
+        html += '<span style="font-size:0.78rem;font-weight:500;color:var(--mid);">Net arrears &amp; adjustments</span>';
+        html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:' + netCol + ';">' + (netArrears >= 0 ? '+' : '') + fmt(netArrears) + '</span>';
+        html += '<span></span></div>';
+        html += '</div>';
+      }
 
       html += '</div>';
       html += '</div>';
@@ -1224,15 +1269,16 @@
     var due = getDue(yr);
     var dueMonthly = due > 0 ? (due / 12) : 0;
     var payments = getPayments(addr, yr);
-    var yearPaidTotal = payments.reduce(function(s,p){ return s+p.amount; }, 0);
+    var mcPayments = payments.filter(function(p){ return !p.isArrears && !p.isRefund; });
+    var mcYearPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
     var isCurrentYear = (yr === currentYear);
     var html = '';
 
     MONTHS.forEach(function(mName, mi) {
       if (isCurrentYear && mi > currentMonth) return;
-      var mPayments = payments.filter(function(p){ return p.month === mi + 1; });
+      var mPayments = payments.filter(function(p){ return p.month === mi + 1 && !p.isArrears && !p.isRefund; });
       var mPaid = mPayments.reduce(function(s,p){ return s+p.amount; }, 0);
-      var isGreen = yearPaidTotal >= due && due > 0;
+      var isGreen = mcYearPaid >= due && due > 0;
       var rowClass = 'month-row' + ((isGreen || mPaid > 0) ? ' m-green' : ' m-red');
       var dotCol = (isGreen || mPaid > 0) ? 'green' : 'red';
 
@@ -1267,6 +1313,18 @@
       panel.classList.remove('open'); chev.classList.remove('open'); hdr.classList.remove('expanded');
     } else {
       panel.classList.add('open'); chev.classList.add('open'); hdr.classList.add('expanded');
+    }
+  }
+
+  function toggleAnnualTotal(totalKey) {
+    var panel = document.getElementById('totalpanel-' + totalKey);
+    var chev  = document.getElementById('chev-' + totalKey);
+    if (!panel) return;
+    var isOpen = panel.classList.contains('open');
+    if (isOpen) {
+      panel.classList.remove('open'); if (chev) chev.classList.remove('open');
+    } else {
+      panel.classList.add('open'); if (chev) chev.classList.add('open');
     }
   }
 
