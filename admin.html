@@ -771,6 +771,17 @@
       <div class="admin-panel" id="panel-agmagenda">
         <div class="panel-title">AGM Agenda</div>
         <div class="panel-desc">Edit the AGM agenda details, items and voting items. Changes save back to the <strong>AGMAgenda</strong> sheet.</div>
+
+        <div style="background:#f5f0e8;border:1px solid rgba(122,92,62,0.25);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:#4a3f35;margin-bottom:2px;">AGM Reminder Emails</div>
+            <div style="font-size:0.78rem;color:#8a7a65;">Automatic reminders are sent 7 days and 1 day before the AGM date. Tick to suppress both.</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="agmReminderSuppress" onchange="saveAGMReminderSuppress()" style="width:16px;height:16px;cursor:pointer;">
+            <span style="font-size:0.82rem;color:#4a3f35;font-weight:600;">Suppress reminders</span>
+          </label>
+        </div>
         <div id="agmAgendaUnsaved" style="display:none;align-items:center;gap:0.6rem;background:#fff3cd;border:1px solid #f0c040;border-radius:6px;padding:0.5rem 0.9rem;margin-bottom:0.75rem;font-size:0.8rem;color:#7a5c00;font-weight:600;">
           &#9888; Unsaved changes
           <button class="abtn" onclick="agmAgendaSave()" style="margin-left:auto;background:#c4956a;color:#fff;border:none;">&#128190; Save</button>
@@ -1060,6 +1071,7 @@
             style="padding:0.3rem 0.6rem;border:1px solid rgba(122,92,62,0.28);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:var(--dark);outline:none;">
             <option value="">All types</option>
             <option>AGM Agenda</option>
+            <option>AGM Reminder</option>
             <option>Immediate</option>
             <option>Maintenance In Progress</option>
             <option>Maintenance Resolved</option>
@@ -1153,6 +1165,12 @@
                 <tr>
                   <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(70,100,160,0.12);color:#3a5a9a;border:1px solid rgba(70,100,160,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Noticeboard Notify</span></td>
                   <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin clicks Notify Residents on a noticeboard item</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+                </tr>
+                <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Reminder</span></td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic reminder sent 7 days and 1 day before the AGM date<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer. Can be suppressed via the AGM Agenda panel.</span></td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
                 </tr>
@@ -1479,7 +1497,7 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'agmsubmissions') loadAgmSubmissions();
-  if (id === 'agmagenda') agmAgendaLoad();
+  if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); }
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -2793,6 +2811,27 @@ function agmAgendaSetDirty() {
 function agmAgendaClearDirty() {
   agmAgendaDirty = false;
   document.getElementById('agmAgendaUnsaved').style.display = 'none';
+}
+
+async function loadAGMReminderSuppress() {
+  try {
+    const r = await fetch(SCRIPT_URL + '?action=readAGMReminderSuppress');
+    const d = await r.json();
+    const cb = document.getElementById('agmReminderSuppress');
+    if (cb && d.status === 'ok') cb.checked = d.suppress === true;
+  } catch(e) { console.log('Could not load AGM suppress state', e); }
+}
+
+async function saveAGMReminderSuppress() {
+  const cb = document.getElementById('agmReminderSuppress');
+  if (!cb) return;
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'writeAGMReminderSuppress', suppress: cb.checked })
+    });
+    showToast(cb.checked ? 'AGM reminders suppressed' : 'AGM reminders enabled', 'success');
+  } catch(e) { showToast('Could not save — please try again', 'error'); }
 }
 
 async function agmAgendaLoad() {
@@ -4265,7 +4304,8 @@ var BH_TYPE_CHIP_MAP = {
   'Maintenance Submitted':  { bg:'rgba(160,100,50,0.12)',  color:'#8a5520',      border:'rgba(160,100,50,0.25)' },
   'Maintenance In Progress':{ bg:'rgba(160,130,0,0.12)',   color:'#7a6200',      border:'rgba(160,130,0,0.25)' },
   'Maintenance Resolved':   { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a',      border:'rgba(61,107,74,0.25)' },
-  'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' }
+  'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' },
+  'AGM Reminder':           { bg:'rgba(180,100,20,0.12)',  color:'#8a4a10',      border:'rgba(180,100,20,0.25)' }
 };
 
 function bhTypeChip(type) {
