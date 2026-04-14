@@ -850,11 +850,11 @@
   <div class="finance-section" id="bva-section">
     <h3 class="section-heading">Budget vs Actual (Income &amp; Expenditure) Tracker</h3>
     <div style="height:4px;background:var(--cream);"></div>
-    <button class="btn-toggle" onclick="openBVAReport()" style="background:#4a5e3a;">
+    <button class="btn-toggle btn-loading" id="toggle-bvareport" onclick="openBVAReport()" style="background:#4a5e3a;">
       <span class="toggle-left"><span>&#128196; Open Budget vs Actual Report</span></span>
       <span class="toggle-hint">
-        <span id="bva-hint-loading" style="display:none;">⏳ Loading data…</span>
-        <span id="bva-hint-text">Tap to open &amp; view</span>
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to open &amp; view</span>
       </span>
     </button>
     <div id="bva-coming-soon" style="display:none;padding:0.9rem 1.5rem;color:var(--stone);font-size:0.88rem;font-style:italic;border-top:1px solid var(--border);">
@@ -3412,11 +3412,6 @@
   }
 
   async function openBVAReport() {
-    // Show loading hint
-    var hintLoading = document.getElementById('bva-hint-loading');
-    var hintText = document.getElementById('bva-hint-text');
-    if (hintLoading) hintLoading.style.display = 'inline';
-    if (hintText) hintText.style.display = 'none';
     // Load budget data if not yet fetched — silently
     if (!bvaData) {
       try {
@@ -3425,14 +3420,10 @@
         if (json.status === 'ok') { bvaData = json; }
         else throw new Error(json.message || 'Error');
       } catch(e) {
-        if (hintLoading) hintLoading.style.display = 'none';
-        if (hintText) hintText.style.display = 'inline';
         alert('Could not load budget data: ' + e.message);
         return;
       }
     }
-    if (hintLoading) hintLoading.style.display = 'none';
-    if (hintText) hintText.style.display = 'inline';
 
     // Don't open if no years enabled
     var enabledYears = (bvaData && bvaData.years) ? bvaData.years : [];
