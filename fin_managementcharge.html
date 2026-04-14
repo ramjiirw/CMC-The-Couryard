@@ -207,7 +207,7 @@
 
   /* Scroll to top */
   .scroll-top-btn {
-    display: none; position: fixed; bottom: 1.5rem; right: 1.5rem;
+    display: none; position: fixed; bottom: 5rem; right: 1.5rem;
     background: var(--dark); color: var(--cream); border: none;
     border-radius: 50%; width: 2.5rem; height: 2.5rem; font-size: 1rem;
     cursor: pointer; box-shadow: 0 4px 16px rgba(30,26,22,0.25);
@@ -234,7 +234,7 @@
     thead th { padding: 0.6rem 1rem; }
     .btn-toggle { padding: 0.75rem 1rem; font-size: 0.75rem; }
     .toggle-hint { font-size: 0.65rem; }
-    .scroll-top-btn { bottom: 1rem; right: 1rem; width: 2.2rem; height: 2.2rem; font-size: 0.85rem; }
+    .scroll-top-btn { bottom: 4rem; right: 1rem; width: 2.2rem; height: 2.2rem; font-size: 0.85rem; }
   }
   #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
   #adminLink:hover { color:var(--accent2); }
@@ -671,8 +671,8 @@
     </div>
   </div>
 
-  <!-- Farmhouse Rent and Insurance Rent Tracker -->
-  <div class="finance-section">
+  <!-- Farmhouse Rent and Insurance Rent Tracker (hidden - replaced by v2) -->
+  <div class="finance-section" style="display:none;">
     <h3 class="section-heading">Farmhouse Rent &amp; Insurance Tracker</h3>
     <div style="height:4px;background:var(--cream);"></div>
     <button class="btn-toggle btn-loading" id="toggle-farmhouse" onclick="togglePanel('farmhouse')" aria-expanded="false">
@@ -693,7 +693,7 @@
 
   <!-- Farmhouse Rent and Insurance Rent Tracker v2 -->
   <div>
-    <h3 class="section-heading">Farmhouse Rent &amp; Insurance Rent — Full History</h3>
+    <h3 class="section-heading">Farmhouse Rent &amp; Insurance Rent Tracker</h3>
     <button class="btn-toggle btn-loading" id="toggle-farmhouse2" onclick="togglePanel('farmhouse2')" aria-expanded="false">
       <span class="toggle-left" style="flex:1;min-width:0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;"><span style="white-space:nowrap;">🏡 Farmhouse Rent and Insurance Rent Tracker</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Full history by year across all properties</span></span>
       <span class="toggle-hint">
@@ -2642,7 +2642,7 @@
       var curInsStatus  = getFH2InsStatus(addr, currentYear);
       var isUpToDate = curRentStatus === 'green' && (getFH2InsDuePerProp(currentYear) === 0 || curInsStatus === 'green');
       var pillHtml = isUpToDate
-        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + currentYear + ' up to date</span>'
+        ? '<br><span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + currentYear + ' up to date</span>'
         : '';
 
       html += '<div class="prop-row annual-prop-row" id="fh2proprow-' + key + '" style="margin-bottom:6px;">';
@@ -2696,7 +2696,7 @@
           var ins = getFH2InsDuePerProp(yr);
           var is_ = getFH2InsStatus(addr, yr);
           var upToDate = rs === 'green' && (ins === 0 || is_ === 'green');
-          if (upToDate) yrPillHtml = ' <span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;">' + yr + ' up to date</span>';
+          if (upToDate) yrPillHtml = '<br><span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;">' + yr + ' up to date</span>';
         }
 
         html += '<div style="height:3px;background:var(--border);"></div>';
