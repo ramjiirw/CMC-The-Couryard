@@ -1126,7 +1126,9 @@
     var years = getAvailableYears();
     var html = '';
 
-    html += '<div class="tracker-controls"></div>';
+    html += '<div class="tracker-controls">';
+    html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
+    html += '</div>';
 
     html += '<div class="tracker-col-heads">';
     html += '<span></span><span>Property</span>';
@@ -1217,7 +1219,7 @@
 
       html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasExtras ? 'pointer' : 'default') + ';" ' + (hasExtras ? 'onclick="toggleAnnualTotal(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
-      html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total</span>';
+      html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;" class="' + propOutClass + '">' + propOutText + '</span>';
@@ -1294,7 +1296,7 @@
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
     html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
-    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div></div>';
+    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
     html += '<span></span></div>';
 
     /* Current year behind dropdown */
@@ -1514,19 +1516,25 @@
   function toggleAnnualExpandAll() {
     annualAllExpanded = !annualAllExpanded;
     var btn = document.getElementById('annual-expand-btn');
-    if (btn) btn.textContent = annualAllExpanded ? 'Collapse all' : 'Expand all';
+    if (btn) btn.textContent = annualAllExpanded ? 'Collapse all properties' : 'Expand all properties';
     PROPERTIES.forEach(function(addr) {
       var key   = 'an_' + addr.replace(/ /g,'_');
       var panel = document.getElementById('months-' + key);
       var chev  = document.getElementById('chev-' + key);
+      var row   = document.getElementById('proprow-' + key);
+      var hint  = document.getElementById('hint-' + key);
       if (!panel || !chev) return;
       var hdr = chev.closest('.prop-header');
       if (annualAllExpanded) {
         panel.classList.add('open'); chev.classList.add('open');
         if (hdr) hdr.classList.add('expanded');
+        if (row) row.classList.add('prop-expanded');
+        if (hint) hint.style.display = 'inline';
       } else {
         panel.classList.remove('open'); chev.classList.remove('open');
         if (hdr) hdr.classList.remove('expanded');
+        if (row) row.classList.remove('prop-expanded');
+        if (hint) hint.style.display = 'none';
       }
     });
   }
