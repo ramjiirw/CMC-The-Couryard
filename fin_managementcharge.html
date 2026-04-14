@@ -537,7 +537,106 @@
   .bva-scol { width: 130px; text-align: right; font-size: 17px; font-weight: 700; }
   .bva-sum-label { font-size: 17px; font-weight: 700; color: #4a3f35; }
   .bva-surplus { color: #2e7d32; }
-  .bva-deficit { color: #c62828; }</style>
+  .bva-deficit { color: #c62828; }
+
+  /* ── Account Balances ── */
+  .bal-col-heads {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.55rem 1.5rem; background: rgba(122,92,62,0.07);
+    border-bottom: 1px solid var(--border);
+  }
+  .bal-col-heads span {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--mid);
+  }
+  .bal-col-heads span:nth-child(2) { text-align: center; }
+  .bal-col-heads span:nth-child(3) { text-align: right; }
+  .bal-col-heads span:nth-child(4) { text-align: right; }
+  .bal-row {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.85rem 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.15);
+    align-items: center;
+  }
+  .bal-row-current    { background: #2d4a2d; }
+  .bal-row-sinking    { background: #2a2f55; }
+  .bal-row-contingency{ background: #4a1e1e; }
+  .bal-name-current     { color: #c8e6c8; font-size: 0.9rem; font-weight: 600; }
+  .bal-name-sinking     { color: #b8c4e8; font-size: 0.9rem; font-weight: 600; }
+  .bal-name-contingency { color: #e8b8b8; font-size: 0.9rem; font-weight: 600; }
+  .bal-num-current      { color: #a5c8a5; font-family: Arial, sans-serif; font-size: 0.85rem; text-align: center; }
+  .bal-num-sinking      { color: #8fa0d4; font-family: Arial, sans-serif; font-size: 0.85rem; text-align: center; }
+  .bal-num-contingency  { color: #c89090; font-family: Arial, sans-serif; font-size: 0.85rem; text-align: center; }
+  .bal-amt-current      { color: #c8e6c8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-amt-sinking      { color: #b8c4e8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-amt-contingency  { color: #e8b8b8; font-size: 0.9rem; font-weight: 700; text-align: right; }
+  .bal-date-current     { color: #a5c8a5; font-size: 0.85rem; text-align: right; }
+  .bal-date-sinking     { color: #8fa0d4; font-size: 0.85rem; text-align: right; }
+  .bal-date-contingency { color: #c89090; font-size: 0.85rem; text-align: right; }
+  .bal-total-row {
+    display: grid; grid-template-columns: 1fr 140px 160px 180px;
+    padding: 0.9rem 1.5rem; align-items: center; background: var(--dark);
+  }
+  .bal-total-label {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--stone); grid-column: 1 / 3;
+  }
+  .bal-head-date-short { display: none; }
+  .bal-mobile-header { display: none; }
+  .bal-mobile-cell { display: none; }
+  .bal-total-label-full { display: inline; }
+  .bal-total-label-short { display: none; }
+  .bal-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); text-align: right; }
+
+  /* Shimmer */
+  @keyframes balshimmer { 0%{opacity:0.3} 50%{opacity:0.7} 100%{opacity:0.3} }
+  .bal-shimmer {
+    display: inline-block; width: 90px; height: 0.85em; border-radius: 4px;
+    background: rgba(255,255,255,0.2); animation: balshimmer 1.4s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  .bal-shimmer-sm { width: 70px; }
+  .bal-shimmer-total { width: 110px; background: rgba(196,149,106,0.35); }
+  /* desktop/mobile visibility */
+  .bal-mobile-only { display: none; }
+  .bal-desktop-only { display: block; }
+  .bal-date-sep { display: inline; }
+  .bal-date-br  { display: none; }
+
+  @media (max-width: 600px) {
+    .bal-mobile-only { display: block; }
+    .bal-desktop-only { display: none; }
+    .bal-date-sep { display: none; }
+    .bal-date-br  { display: inline; }
+
+    /* Mobile table styles */
+    .balm-head {
+      display: flex; justify-content: space-between;
+      padding: 0.55rem 1rem;
+      background: rgba(122,92,62,0.07); border-bottom: 1px solid var(--border);
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--mid);
+    }
+    .balm-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.85rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.15);
+    }
+    .balm-row-current    { background: #2d4a2d; }
+    .balm-row-sinking    { background: #2a2f55; }
+    .balm-row-contingency{ background: #4a1e1e; }
+    .balm-name { font-size: 0.85rem; font-weight: 600; }
+    .balm-right { text-align: right; }
+    .balm-amt { display: block; font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+    .balm-date { display: block; font-size: 0.72rem; margin-top: 2px; }
+    .balm-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 1rem; background: var(--dark);
+    }
+    .balm-total-label {
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--stone);
+    }
+    .balm-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); white-space: nowrap; }
+  }</style>
 </head>
 <body>
 
@@ -561,6 +660,148 @@
     <h2>Finance Tracker</h2>
     <p>Financial tracking for CMC The Courtyard — management charges, income, expenditure and more.</p>
   </div>
+
+  <!-- Account Balances -->
+  <div class="finance-section" id="section-balances">
+    <h3 class="section-heading" id="bal-section-heading">CMC Account Balances<span id="bal-last-updated" style="display:none;"></span></h3>
+    <div id="balances-inner">
+      <!-- Desktop / iPad layout -->
+      <div class="bal-desktop-only">
+        <div class="bal-col-heads">
+          <span>Account</span><span>Account number</span><span>Balance</span><span>Last updated</span>
+        </div>
+        <div class="bal-row bal-row-current">
+          <span class="bal-name-current">Current Account</span>
+          <span class="bal-num-current">41559044</span>
+          <span class="bal-amt-current" id="bal-amt-current"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-current" id="bal-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-row bal-row-sinking">
+          <span class="bal-name-sinking">Sinking Fund Account</span>
+          <span class="bal-num-sinking">01567284</span>
+          <span class="bal-amt-sinking" id="bal-amt-sinking"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-sinking" id="bal-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-row bal-row-contingency">
+          <span class="bal-name-contingency">Contingency Account</span>
+          <span class="bal-num-contingency">31567403</span>
+          <span class="bal-amt-contingency" id="bal-amt-contingency"><span class="bal-shimmer"></span></span>
+          <span class="bal-date-contingency" id="bal-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+        </div>
+        <div class="bal-total-row">
+          <span class="bal-total-label">Total cash held</span>
+          <span class="bal-total-amt" id="bal-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
+          <span></span>
+        </div>
+      </div>
+
+      <!-- Mobile only layout -->
+      <div class="bal-mobile-only">
+        <div class="balm-head">
+          <span class="balm-col-account">Account</span>
+          <span class="balm-col-right">Balance</span>
+        </div>
+        <div class="balm-row balm-row-current">
+          <span class="balm-name" style="color:#c8e6c8;">Current Account</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#c8e6c8;" id="balm-amt-current"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#a5c8a5;" id="balm-date-current"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-row balm-row-sinking">
+          <span class="balm-name" style="color:#b8c4e8;">Sinking Fund</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#b8c4e8;" id="balm-amt-sinking"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#8fa0d4;" id="balm-date-sinking"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-row balm-row-contingency">
+          <span class="balm-name" style="color:#e8b8b8;">Contingency</span>
+          <span class="balm-right">
+            <span class="balm-amt" style="color:#e8b8b8;" id="balm-amt-contingency"><span class="bal-shimmer"></span></span>
+            <span class="balm-date" style="color:#c89090;" id="balm-date-contingency"><span class="bal-shimmer bal-shimmer-sm"></span></span>
+          </span>
+        </div>
+        <div class="balm-total">
+          <span class="balm-total-label">Total cash held</span>
+          <span class="balm-total-amt" id="balm-total"><span class="bal-shimmer bal-shimmer-total"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* ── Account Balances ── */
+  (async function() {
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+    function fmtBal(n) {
+      return '£ ' + Number(n).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+    function fmtDate(d) {
+      if (!d) return '';
+      var parts = d.split('-');
+      if (parts.length === 3) {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+      }
+      return d;
+    }
+    function fmtDateFull(d) {
+      if (!d) return '';
+      var parts = d.split('-');
+      if (parts.length === 3) {
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+      }
+      return d;
+    }
+    function latestDate(dates) {
+      return dates.filter(Boolean).sort().reverse()[0];
+    }
+    function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var json = await res.json();
+      if (json.status !== 'ok') throw new Error(json.message || 'Error from script');
+      var total = 0;
+      ['current','sinking','contingency'].forEach(function(k) {
+        var d = json[k];
+        if (d) {
+          var amt  = fmtBal(d.balance);
+          var date = fmtDate(d.date);
+          set('bal-amt-'  + k, amt);
+          set('bal-date-' + k, date);
+          set('balm-amt-'  + k, amt);
+          set('balm-date-' + k, date);
+          total += Number(d.balance);
+        } else {
+          set('bal-amt-'  + k, '—');
+          set('bal-date-' + k, '—');
+          set('balm-amt-'  + k, '—');
+          set('balm-date-' + k, '');
+        }
+      });
+      set('bal-total',  fmtBal(total));
+      set('balm-total', fmtBal(total));
+      var rawDates = ['current','sinking','contingency'].map(function(k){ return json[k] && json[k].date; });
+      var latest = latestDate(rawDates);
+      if (latest) {
+        var span = document.getElementById('bal-last-updated');
+        if (span) { span.innerHTML = '<span class="bal-date-sep"> — </span><span class="bal-date-br"><br></span>Last Updated ' + fmtDateFull(latest); span.style.display = ''; }
+      }
+    } catch(err) {
+      ['current','sinking','contingency'].forEach(function(k) {
+        set('bal-amt-'  + k, '⚠️');
+        set('bal-date-' + k, '');
+        set('balm-amt-'  + k, '⚠️');
+        set('balm-date-' + k, '');
+      });
+      set('bal-total',  '⚠️');
+      set('balm-total', '⚠️');
+    }
+  })();
+</script>
 
   <div class="finance-section">
     <h3 class="section-heading">Income &amp; Expenditure Tracker</h3>
