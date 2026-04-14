@@ -563,47 +563,6 @@
   </div>
 
   <div class="finance-section">
-    <h3 class="section-heading">Management Charge Tracker</h3>
-
-    <div style="height:4px;background:var(--cream);"></div>
-
-    <button class="btn-toggle btn-loading" id="toggle-tracker" onclick="togglePanel('tracker')" aria-expanded="false">
-      <span class="toggle-left"><span>💷 Monthly Breakdown</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Management charge payments by property and year</span></span>
-      <span class="toggle-hint">
-        <span class="hint-loading">⏳ Loading data…</span>
-        <span class="hint-open">Tap to expand &amp; view</span>
-        <span class="hint-close">Tap to close</span>
-        <span class="chevron">▶</span>
-      </span>
-    </button>
-
-    <div class="collapsible-panel" id="panel-tracker">
-      <div id="tracker-inner">
-        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
-      </div>
-    </div>
-
-    <div style="height:4px;background:var(--cream);"></div>
-
-    <button class="btn-toggle btn-loading" id="toggle-annual" onclick="togglePanel('annual')" aria-expanded="false">
-      <span class="toggle-left" style="flex:1;min-width:0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;"><span style="white-space:nowrap;">📅 Annual Overview</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Full payment history by year — expand the total to see arrears &amp; adjustments</span></span>
-      <span class="toggle-hint">
-        <span class="hint-loading">⏳ Loading data…</span>
-        <span class="hint-open">Tap to expand &amp; view</span>
-        <span class="hint-close">Tap to close</span>
-        <span class="chevron">▶</span>
-      </span>
-    </button>
-
-    <div class="collapsible-panel" id="panel-annual">
-      <div id="annual-inner">
-        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="finance-section">
     <h3 class="section-heading">Income &amp; Expenditure Tracker</h3>
 
     <div style="height:4px;background:var(--cream);"></div>
@@ -671,6 +630,47 @@
     </div>
   </div>
 
+  <div class="finance-section">
+    <h3 class="section-heading">Management Charge Tracker</h3>
+
+    <div style="height:4px;background:var(--cream);"></div>
+
+    <button class="btn-toggle btn-loading" id="toggle-tracker" onclick="togglePanel('tracker')" aria-expanded="false">
+      <span class="toggle-left"><span>💷 Monthly Breakdown</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Management charge payments by property and year</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+
+    <div class="collapsible-panel" id="panel-tracker">
+      <div id="tracker-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+
+    <div style="height:4px;background:var(--cream);"></div>
+
+    <button class="btn-toggle btn-loading" id="toggle-annual" onclick="togglePanel('annual')" aria-expanded="false">
+      <span class="toggle-left" style="flex:1;min-width:0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;"><span style="white-space:nowrap;">📅 Annual Overview</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Full payment history by year — expand the total to see arrears &amp; adjustments</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+
+    <div class="collapsible-panel" id="panel-annual">
+      <div id="annual-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+
+  </div>
+
   <!-- Farmhouse Rent and Insurance Rent Tracker (hidden - replaced by v2) -->
   <div class="finance-section" style="display:none;">
     <h3 class="section-heading">Farmhouse Rent &amp; Insurance Tracker</h3>
@@ -692,7 +692,7 @@
   </div>
 
   <!-- Farmhouse Rent and Insurance Rent Tracker v2 -->
-  <div>
+  <div class="finance-section">
     <h3 class="section-heading">Farmhouse Rent &amp; Insurance Rent Tracker</h3>
     <button class="btn-toggle btn-loading" id="toggle-farmhouse2" onclick="togglePanel('farmhouse2')" aria-expanded="false">
       <span class="toggle-left" style="flex:1;min-width:0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;"><span style="white-space:nowrap;">🏡 Farmhouse Rent and Insurance Rent</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Full history by year across all properties</span></span>
