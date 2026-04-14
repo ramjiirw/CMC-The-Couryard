@@ -1338,7 +1338,7 @@
         html += '</div>';
       });
       html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
-      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total</span>';
+      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totalCurPaid) + '</span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totalCurShortfall) + '</span>';
       html += '</div>';
@@ -1390,7 +1390,7 @@
         html += '</div>';
       });
       html += '<div style="display:grid;grid-template-columns:1fr 150px 150px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
-      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total</span>';
+      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totalPrevPaid) + '</span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totalPrevOut) + '</span>';
       html += '</div>';
@@ -1427,6 +1427,19 @@
         if (chev)  chev.classList.add('open');
       }
     });
+    /* Also expand/collapse the Total net outstanding (arrears/refunds) panel */
+    var totalKey = key + '_total';
+    var totalPanel = document.getElementById('totalpanel-' + totalKey);
+    var totalChev  = document.getElementById('chev-' + totalKey);
+    if (totalPanel) {
+      if (isExpanded) {
+        totalPanel.classList.remove('open');
+        if (totalChev) totalChev.classList.remove('open');
+      } else {
+        totalPanel.classList.add('open');
+        if (totalChev) totalChev.classList.add('open');
+      }
+    }
     if (btn) {
       btn.setAttribute('data-expanded', isExpanded ? 'false' : 'true');
       btn.textContent = isExpanded ? 'Expand property history' : 'Collapse property history';
