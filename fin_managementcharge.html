@@ -2522,7 +2522,7 @@
     (farmhouseData.insurancePayments || []).forEach(function(p){ allPmtYears.push(p.year); });
     var allYrs = rentYears.concat(insYears).concat(allPmtYears);
     var unique = {};
-    allYrs.forEach(function(y){ if(y && !isNaN(y)) unique[y] = true; });
+    allYrs.forEach(function(y){ if(y && !isNaN(y) && y <= currentYear) unique[y] = true; });
     return Object.keys(unique).map(Number).sort(function(a,b){ return b - a; });
   }
 
