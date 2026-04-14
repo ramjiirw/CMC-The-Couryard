@@ -694,7 +694,7 @@
   <!-- Farmhouse Rent and Insurance Rent Tracker v2 -->
   <div>
     <h3 class="section-heading">Farmhouse Rent &amp; Insurance Rent — Full History</h3>
-    <button class="btn-toggle" id="toggle-farmhouse2" onclick="togglePanel('farmhouse2')" aria-expanded="false">
+    <button class="btn-toggle btn-loading" id="toggle-farmhouse2" onclick="togglePanel('farmhouse2')" aria-expanded="false">
       <span class="toggle-left" style="flex:1;min-width:0;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;"><span style="white-space:nowrap;">🏡 Farmhouse Rent and Insurance Rent Tracker</span><span style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Full history by year across all properties</span></span>
       <span class="toggle-right">
         <span class="hint-open">Tap to expand &amp; view</span>
@@ -2644,7 +2644,7 @@
         : '';
 
       html += '<div class="prop-row annual-prop-row" id="fh2proprow-' + key + '" style="margin-bottom:6px;">';
-      html += '<div class="prop-header" onclick="toggleFH2Prop('' + key + '')" style="position:relative;">';
+      html += '<div class="prop-header" onclick="toggleFH2Prop(\'' + key + '\')" style="position:relative;">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '<span id="fh2hint-' + key + '" style="display:none;font-size:0.85rem;font-weight:400;color:#c8b89a;margin-left:8px;">· click to collapse</span></span>';
       html += '<span class="prop-val val-due">' + fmt(propTotalDue) + '</span>';
@@ -2658,7 +2658,7 @@
 
       // Expand property history button
       html += '<div style="padding:0.5rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;">';
-      html += '<button id="fh2expbtn-' + key + '" class="expand-prop-btn" style="font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:50px;border:1px solid #2e2318;background:#4a3f35;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 6px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);transition:transform 0.15s ease,box-shadow 0.15s ease;" onclick="expandFH2Property('' + key + '', event)">Expand property history</button>';
+      html += '<button id="fh2expbtn-' + key + '" class="expand-prop-btn" style="font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:50px;border:1px solid #2e2318;background:#4a3f35;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 6px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);transition:transform 0.15s ease,box-shadow 0.15s ease;" onclick="expandFH2Property(\'' + key + '\', event)">Expand property history</button>';
       html += '</div>';
 
       // Year column headers
@@ -2698,7 +2698,7 @@
         }
 
         html += '<div style="height:3px;background:var(--border);"></div>';
-        html += '<div class="month-row" style="cursor:pointer;" onclick="toggleFH2Year('' + yrKey + '')">';
+        html += '<div class="month-row" style="cursor:pointer;" onclick="toggleFH2Year(\'' + yrKey + '\')">';
         html += '<span style="display:flex;align-items:center;"><span class="month-dot ' + yrDotC + '" style="width:10px;height:10px;"></span></span>';
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + (yrTotalDue > 0 ? fmt(yrTotalDue) : '—') + '</span>';
@@ -2717,7 +2717,7 @@
         var rOutC   = rOut > 0 ? 'val-owed' : rOut < 0 ? 'val-over' : 'val-clear';
         var rOutT   = rOut > 0 ? fmt(rOut) : rOut < 0 ? '+'+fmt(Math.abs(rOut))+' overpaid' : '✓ Paid in full';
         var rStatus = getFH2RentStatus(addr, yr);
-        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line('' + rentLineKey + '')">';
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + rentLineKey + '\')">';
         html += '<span></span>';
         html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.4rem;"><span class="month-dot ' + fh2DotClass(rStatus) + '" style="width:8px;height:8px;flex-shrink:0;"></span>Farmhouse Rent</span>';
         html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (rDue > 0 ? fmt(rDue) : '—') + '</span>';
@@ -2750,7 +2750,7 @@
         var iOutC   = iOut > 0 ? 'val-owed' : iOut < 0 ? 'val-over' : 'val-clear';
         var iOutT   = iOut > 0 ? fmt(iOut) : iOut < 0 ? '+'+fmt(Math.abs(iOut))+' overpaid' : '✓ Paid in full';
         var iStatus = getFH2InsStatus(addr, yr);
-        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line('' + insLineKey + '')">';
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + insLineKey + '\')">';
         html += '<span></span>';
         html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.4rem;"><span class="month-dot ' + fh2DotClass(iStatus) + '" style="width:8px;height:8px;flex-shrink:0;"></span>Farmhouse Insurance Rent</span>';
         html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (iDue > 0 ? fmt(iDue) : '—') + '</span>';
@@ -2788,7 +2788,7 @@
       hasArrears = rentArrearsAll.length > 0 || insArrearsAll.length > 0;
       var totalKey = key + '_total';
 
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total('' + totalKey + '')"' : '') + '>';
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
       html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
@@ -2895,7 +2895,7 @@
       }
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (curBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curBehind.length > 0 ? 'id="fh2grandrow-cur" onclick="toggleFH2GrandSection('cur')"' : '') + '>';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (curBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curBehind.length > 0 ? 'id="fh2grandrow-cur" onclick="toggleFH2GrandSection(\'cur\')"' : '') + '>';
     html += '<span></span>';
     html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">' + currentYear + ' charge · properties behind on payments</span>';
     html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (curBehind.length > 0 ? curBehind.length + ' propert' + (curBehind.length === 1 ? 'y' : 'ies') : '✓ All on track') + '</span>';
@@ -2945,7 +2945,7 @@
       if (pROut > 0 || pIOut > 0) prevBehind.push({ addr: addr, rentOut: pROut, insOut: pIOut, rentPaid: allRPaid - curRMcPaid, insPaid: allIPaid - curIMcPaid });
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (prevBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (prevBehind.length > 0 ? 'id="fh2grandrow-prev" onclick="toggleFH2GrandSection('prev')"' : '') + '>';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (prevBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (prevBehind.length > 0 ? 'id="fh2grandrow-prev" onclick="toggleFH2GrandSection(\'prev\')"' : '') + '>';
     html += '<span></span>';
     html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">Previous years · properties with outstanding balances</span>';
     html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (prevBehind.length > 0 ? prevBehind.length + ' propert' + (prevBehind.length === 1 ? 'y' : 'ies') : '✓ All clear') + '</span>';
