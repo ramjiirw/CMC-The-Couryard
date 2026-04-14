@@ -1077,6 +1077,8 @@
             <option>Maintenance Resolved</option>
             <option>Maintenance Submitted</option>
             <option>Noticeboard Notify</option>
+            <option>Farmhouse Rent Invoice - January</option>
+            <option>Farmhouse Rent Invoice - July</option>
             <option>Scheduled</option>
           </select>
           <input id="bhFilterText" type="text" placeholder="Search subject / message…"
@@ -1154,6 +1156,18 @@
                   <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Resolved</span></td>
                   <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin marks a maintenance issue as Resolved</td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+                </tr>
+                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - January</span></td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">20 December each year — sends January rent invoices to farmhouse properties not yet paid for the coming year</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+                </tr>
+                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - July</span></td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">20 June each year — sends July rent invoices to farmhouse properties not yet paid; includes any outstanding January instalment</td>
+                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
                   <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
@@ -4305,7 +4319,9 @@ var BH_TYPE_CHIP_MAP = {
   'Maintenance In Progress':{ bg:'rgba(160,130,0,0.12)',   color:'#7a6200',      border:'rgba(160,130,0,0.25)' },
   'Maintenance Resolved':   { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a',      border:'rgba(61,107,74,0.25)' },
   'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' },
-  'AGM Reminder':           { bg:'rgba(180,100,20,0.12)',  color:'#8a4a10',      border:'rgba(180,100,20,0.25)' }
+  'AGM Reminder':           { bg:'rgba(180,100,20,0.12)',  color:'#8a4a10',      border:'rgba(180,100,20,0.25)' },
+  'Farmhouse Rent Invoice - January': { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
+  'Farmhouse Rent Invoice - July':    { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' }
 };
 
 function bhTypeChip(type) {
