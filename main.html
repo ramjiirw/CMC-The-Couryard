@@ -573,6 +573,42 @@
     </div>
   </div>
 
+  <!-- CMC Finance Tracker card -->
+  <div style="
+    background: var(--dark);
+    border: 1px solid rgba(196,149,106,0.25);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  ">
+    <div>
+      <p style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.35rem;">CMC Finance Tracker</p>
+      <p style="font-size:0.88rem;color:var(--stone);line-height:1.5;margin:0;">Track bank account balances, budget vs actual, management charges, income, expenditure and more.</p>
+    </div>
+    <a href="fin_managementcharge.html" style="
+      padding: 0.55rem 1.3rem;
+      border-radius: 6px;
+      border: 1px solid rgba(196,149,106,0.4);
+      background: transparent;
+      color: var(--accent2);
+      font-family: Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s;
+    " onmouseover="this.style.background='rgba(196,149,106,0.12)'" onmouseout="this.style.background='transparent'">
+      View Tracker →
+    </a>
+  </div>
+
   <div class="links-grid">
 
     <!-- AGM Agenda -->
@@ -653,10 +689,10 @@
     <a class="link-card agm-card" href="cmcfinances.html">
       <div class="agm-card-top">
         <span class="icon" style="margin:0">💷</span>
-        <h3 style="margin:0">CMC Finances</h3>
+        <h3 style="margin:0">CMC Finance Documents</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest current account statement</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">View bank statements and account documents</span></div>
         <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="finLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
         <div class="agm-detail-row" style="margin-top:0.4rem;"><span class="agm-detail-label" style="flex:0 0 auto;">Total cash held (all accounts)</span></div>
         <div class="agm-detail-row" style="margin-top:0.1rem;"><span class="agm-detail-val" id="finTotal"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
