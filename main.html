@@ -624,7 +624,7 @@
           <span class="icon" style="margin:0">📋</span>
           <h3 style="margin:0">AGM</h3>
         </div>
-
+        <span id="residentItemsPill" style="display:none;background:#3d6b4a;color:#fff;font-size:0.72rem;font-weight:700;border-radius:10px;padding:0.2rem 0.6rem;letter-spacing:0.02em;white-space:nowrap;"></span>
       </div>
       <div class="agm-details" id="agmDetails">
         <div class="agm-detail-row"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
@@ -888,6 +888,11 @@
         if (key === 'Time')  document.getElementById('agmTime').textContent  = val;
         if (key === 'Venue') document.getElementById('agmVenue').textContent = val;
       });
+      const submissions = data.submissions || [];
+      if (submissions.length > 0) {
+        const pill = document.getElementById('residentItemsPill');
+        if (pill) { pill.textContent = '🙋 Resident items: ' + submissions.length; pill.style.display = 'inline-block'; }
+      }
     } catch(e) {}
   })();
 
