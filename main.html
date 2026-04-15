@@ -213,12 +213,13 @@
   .useful-info-toggle:focus { outline: none; box-shadow: none; }
   .useful-info-toggle:focus-visible { outline: none; box-shadow: none; }
   .useful-info-toggle::-moz-focus-inner { border: 0; }
-  .useful-info-toggle:hover { background: var(--accent2); }
+  .useful-info-toggle:hover { background: #5e4530; }
   .useful-info-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.85; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
   .useful-info-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
   .useful-info-toggle.open .chevron { transform: rotate(90deg); }
   .useful-info-toggle.open .toggle-hint .hint-open { display: none; }
   .useful-info-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .useful-info-toggle:not(.open) .toggle-hint .hint-open[style*="display:none"] { display: none !important; }
   .useful-info-toggle.open .toggle-hint .hint-close { display: inline; }
   .useful-info-toggle:not(.open) .toggle-hint .hint-close { display: none; }
 
@@ -556,7 +557,7 @@
       <span>ℹ️ CMC Useful Information</span>
       <span class="toggle-hint">
         <span id="useful-info-loading" style="animation:pulse 1.2s ease-in-out infinite;">Loading information…</span>
-        <span class="hint-open" style="display:none;">Tap to expand &amp; view</span>
+        <span class="hint-open" id="useful-info-hint-open" style="display:none;">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">▶</span>
       </span>
@@ -578,7 +579,7 @@
   </div>
 
   <!-- CMC Finance Tracker card -->
-  <a href="fin_managementcharge.html" style="text-decoration:none;display:block;" onmouseover="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.6)'" onmouseout="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.25)'">
+  <a href="fin_managementcharge.html" style="text-decoration:none;display:block;" onmouseover="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.6)';this.querySelector('.tracker-card').style.boxShadow='0 10px 36px rgba(122,92,62,0.22)';this.querySelector('.tracker-card').style.transform='translateY(-4px)';" onmouseout="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.25)';this.querySelector('.tracker-card').style.boxShadow='';this.querySelector('.tracker-card').style.transform='';">
   <div class="tracker-card" style="
     background: var(--dark);
     border: 1px solid rgba(196,149,106,0.25);
@@ -590,7 +591,7 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    transition: border-color 0.2s;
+    transition: all 0.25s ease;
     cursor: pointer;
   ">
     <div>
