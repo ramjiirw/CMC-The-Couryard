@@ -648,9 +648,8 @@
         <span id="mntBadge" style="display:none;" class="unread-badge">NEW</span>
       </div>
       <div class="agm-details" id="mntDetails">
-        <div class="agm-detail-row"><span class="agm-detail-label">New</span><span class="agm-detail-val" id="mntNew"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">In Progress</span><span class="agm-detail-val" id="mntProgress"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">Resolved</span><span class="agm-detail-val" id="mntResolved"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="mntNewRow"><span class="agm-detail-label">New</span><span class="agm-detail-val" id="mntNew"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="mntProgressRow"><span class="agm-detail-label">In Progress</span><span class="agm-detail-val" id="mntProgress"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
         <div id="mntAllClear" style="display:none;" class="mnt-all-clear">✓ No open issues</div>
       </div>
       <p class="agm-cta">View &amp; report issues →</p>
@@ -1036,7 +1035,8 @@
       const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
       document.getElementById('mntNew').textContent      = newCount;
       document.getElementById('mntProgress').textContent = progressCount;
-      document.getElementById('mntResolved').textContent = resolvedCount;
+      document.getElementById('mntNewRow').style.display      = newCount > 0 ? '' : 'none';
+      document.getElementById('mntProgressRow').style.display = progressCount > 0 ? '' : 'none';
       // All-clear state
       if (newCount === 0 && progressCount === 0) {
         document.getElementById('mntAllClear').style.display = 'inline-flex';
@@ -1063,7 +1063,6 @@
     } catch(e) {
       document.getElementById('mntNew').textContent = '—';
       document.getElementById('mntProgress').textContent = '—';
-      document.getElementById('mntResolved').textContent = '—';
       showOfflineNotice();
     }
   })();
