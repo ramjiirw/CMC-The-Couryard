@@ -48,7 +48,7 @@
   .welcome-block p { color: var(--mid); line-height: 1.6; font-size: 0.9rem; }
   /* ── Noticeboard ── */
   .noticeboard {
-    display: none; background: white; border: 1px solid var(--border);
+    background: white; border: 1px solid var(--border);
     border-radius: 10px; box-shadow: var(--shadow);
     overflow: hidden; margin-bottom: 2rem;
   }
@@ -542,17 +542,21 @@
 
   <!-- Courtyard Noticeboard — hidden if no messages -->
   <div class="noticeboard" id="noticeboardCard">
-    <div class="noticeboard-header">📰 The Courtyard Noticeboard</div>
+    <div class="noticeboard-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>📰 The Courtyard Noticeboard</span>
+      <span id="noticeboard-loading" style="font-size:0.72rem;font-weight:400;opacity:0.75;letter-spacing:0.03em;animation:pulse 1.2s ease-in-out infinite;text-transform:none;">Loading notices…</span>
+    </div>
     <div class="noticeboard-sub">Latest news &amp; notices for residents</div>
     <div class="noticeboard-body" id="noticeboardBody"></div>
   </div>
 
   <!-- CMC Useful Information — collapsible, below noticeboard -->
-  <div class="useful-info-section" id="usefulInfoSection" style="display:none;">
+  <div class="useful-info-section" id="usefulInfoSection">
     <button class="useful-info-toggle" id="usefulInfoToggle" onclick="toggleUsefulInfo()">
       <span>ℹ️ CMC Useful Information</span>
       <span class="toggle-hint">
-        <span class="hint-open">Tap to expand &amp; view</span>
+        <span id="useful-info-loading" style="animation:pulse 1.2s ease-in-out infinite;">Loading information…</span>
+        <span class="hint-open" style="display:none;">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">▶</span>
       </span>
@@ -1204,7 +1208,10 @@
       if (!items.length) return;
       _usefulInfoData = items;
       renderUsefulInfo();
-      document.getElementById('usefulInfoSection').style.display = 'block';
+      var uiLoading = document.getElementById('useful-info-loading');
+      var uiHintOpen = document.querySelector('#usefulInfoToggle .hint-open');
+      if (uiLoading) uiLoading.style.display = 'none';
+      if (uiHintOpen) uiHintOpen.style.display = 'inline';
     } catch(e) {}
   })();
 
@@ -1270,15 +1277,15 @@
           return line;
         }).join('\n');
       }
-      const body = document.getElementById('noticeboardBody');
-      body.innerHTML = messages.map(m => {
+      document.getElementById('noticeboardBody').innerHTML = messages.map(m => {
         var msg = m.message ? filterPastDates(m.title, m.message) : m.message;
         return '<div class="noticeboard-item">' +
           (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
           (msg ? '<div class="noticeboard-item-msg">' + msg.replace(/\n/g, '<br>') + '</div>' : '') +
           '</div>';
       }).join('');
-      document.getElementById('noticeboardCard').style.display = 'block';
+      var nbLoading = document.getElementById('noticeboard-loading');
+      if (nbLoading) nbLoading.style.display = 'none';
     } catch(e) {}
   })();
   // ── Document Search (Hub) ─────────────────────────────────────────────────
