@@ -1263,7 +1263,7 @@
         var hasFuture = filtered.some(function(line) { return line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
         var futureDates = filtered.filter(function(line) { return line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
         var nonDates = filtered.filter(function(line) { return !line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
-        var result = hasFuture ? nonDates.concat(futureDates.slice(0, 4)) : ['Our bins are having a rest — dates coming soon 📅'];
+        var result = hasFuture ? nonDates.concat(futureDates.slice(0, 3)) : ['Our bins are having a rest — dates coming soon 📅'];
         return result.map(function(line) {
           if (/mixed recycling/i.test(line)) return line + ' ♻️';
           if (/general waste/i.test(line)) return line + ' 🗑️';
