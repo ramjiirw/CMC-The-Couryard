@@ -1629,6 +1629,9 @@
     observer.observe(footer);
   })();
 
+  // ── Pre-load hub index on page load to populate doc count ─────────────────
+  (async function() { try { await hubLoadIndex(); } catch(e) {} })();
+
   var _offlineShown = false;
   function showOfflineNotice() {
     if (_offlineShown) return;
