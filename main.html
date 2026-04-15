@@ -574,7 +574,8 @@
   </div>
 
   <!-- CMC Finance Tracker card -->
-  <div style="
+  <a href="fin_managementcharge.html" style="text-decoration:none;display:block;" onmouseover="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.6)'" onmouseout="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.25)'">
+  <div class="tracker-card" style="
     background: var(--dark);
     border: 1px solid rgba(196,149,106,0.25);
     border-radius: 10px;
@@ -585,12 +586,14 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+    cursor: pointer;
   ">
     <div>
       <p style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.35rem;">CMC Finance Tracker</p>
       <p style="font-size:0.88rem;color:var(--stone);line-height:1.5;margin:0;">Track account balances, budget vs actual, income, management charges, and more.</p>
     </div>
-    <a href="fin_managementcharge.html" style="
+    <span style="
       padding: 0.55rem 1.3rem;
       border-radius: 6px;
       border: 1px solid rgba(196,149,106,0.4);
@@ -600,13 +603,12 @@
       font-size: 0.82rem;
       font-weight: 600;
       letter-spacing: 0.04em;
-      text-decoration: none;
       white-space: nowrap;
-      transition: all 0.2s;
-    " onmouseover="this.style.background='rgba(196,149,106,0.12)'" onmouseout="this.style.background='transparent'">
+    ">
       View Tracker →
-    </a>
+    </span>
   </div>
+  </a>
 
   <div class="links-grid">
 
