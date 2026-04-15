@@ -736,7 +736,7 @@
         <span class="icon" style="margin:0">🔍</span>
         <h3 style="margin:0">Search the Hub</h3>
       </div>
-      <p style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
+      <p id="hubSubtitle" style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
       <div style="display:flex;align-items:center;gap:0.5rem;">
         <input class="search-hub-input" id="hubCardInput" placeholder="Min. 3 characters…" oninput="hubCardSearch(this.value)" autocomplete="off" style="flex:1;">
         <span id="hubCardCount" style="font-size:0.72rem;color:var(--stone);white-space:nowrap;"></span>
@@ -892,7 +892,7 @@
       if (submissions.length > 0) {
         const pill = document.getElementById('residentItemsPill');
         if (pill) {
-          pill.innerHTML = '🙋 Resident items <span style="background:#3d5a0a;color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
+          pill.innerHTML = '📝 Resident items <span style="background:#3d5a0a;color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
           pill.style.display = 'inline-flex';
         }
       }
@@ -1404,6 +1404,10 @@
       });
       _hubDocs   = docs;
       _hubLoaded = true;
+      var subtitle = document.getElementById('hubSubtitle');
+      if (subtitle && docs.length > 0) {
+        subtitle.innerHTML = 'Search across all <strong>' + docs.length + '</strong> CMC documents — click any result to open';
+      }
     } catch(e) {}
   }
 
