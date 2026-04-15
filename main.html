@@ -100,6 +100,7 @@
   .links-grid .link-card:nth-child(5) { animation-delay: 0.45s; }
   .links-grid .link-card:nth-child(6) { animation-delay: 0.55s; }
   .links-grid .link-card:nth-child(7) { animation-delay: 0.65s; }
+  .links-grid .link-card:nth-child(8) { animation-delay: 0.75s; }
   .link-card:hover { border-color: var(--accent2); box-shadow: 0 10px 36px rgba(122,92,62,0.22); transform: translateY(-4px); transition: all 0.25s ease; }
   .link-card { transition: all 0.2s ease; }
   .link-card .icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
@@ -736,7 +737,7 @@
         <span class="icon" style="margin:0">🔍</span>
         <h3 style="margin:0">Search the Hub</h3>
       </div>
-      <p id="hubSubtitle" style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all CMC documents — click any result to open</p>
+      <p id="hubSubtitle" style="font-size:0.78rem;color:var(--mid);margin-bottom:0.5rem;">Search across all <strong id="hubDocCount"></strong> CMC documents — click any result to open</p>
       <div style="display:flex;align-items:center;gap:0.5rem;">
         <input class="search-hub-input" id="hubCardInput" placeholder="Min. 3 characters…" oninput="hubCardSearch(this.value)" autocomplete="off" style="flex:1;">
         <span id="hubCardCount" style="font-size:0.72rem;color:var(--stone);white-space:nowrap;"></span>
@@ -995,6 +996,11 @@
       const files = folder ? (folder.files || []) : [];
       const hasPinned = files.some(f => f.name.startsWith('PIN_'));
       if (hasPinned) document.getElementById('minutesPill').style.display = 'inline-block';
+      const docCount = (idx.folders || []).reduce(function(sum, f) {
+        return sum + (f.files || []).filter(function(file) { return !/^HIDE_/i.test(file.name); }).length;
+      }, 0);
+      const countEl = document.getElementById('hubDocCount');
+      if (countEl && docCount > 0) countEl.textContent = docCount;
     } catch(e) {}
   })();
   (async function() {
@@ -1404,10 +1410,8 @@
       });
       _hubDocs   = docs;
       _hubLoaded = true;
-      var subtitle = document.getElementById('hubSubtitle');
-      if (subtitle && docs.length > 0) {
-        subtitle.innerHTML = 'Search across all <strong>' + docs.length + '</strong> CMC documents — click any result to open';
-      }
+      var countEl = document.getElementById('hubDocCount');
+      if (countEl && docs.length > 0) countEl.textContent = docs.length;
     } catch(e) {}
   }
 
