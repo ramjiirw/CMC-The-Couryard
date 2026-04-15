@@ -18,7 +18,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { overflow-y: scroll; }
-  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; overflow-x: hidden; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; }
 
   header {
     background: var(--dark); padding: 1.5rem 2.5rem;
@@ -349,7 +349,7 @@
   </div>
 </header>
 
-<main>
+<main style="flex:1;">
   <div class="page-header">
     <h2>CMC Finance Documents</h2>
     <p>View all bank statements, invoices, and other financial records for CMC The Courtyard.</p>
