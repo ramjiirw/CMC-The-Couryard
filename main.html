@@ -219,7 +219,7 @@
   .useful-info-toggle.open .chevron { transform: rotate(90deg); }
   .useful-info-toggle.open .toggle-hint .hint-open { display: none; }
   .useful-info-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
-  .useful-info-toggle:not(.open) .toggle-hint .hint-open[style*="display:none"] { display: none !important; }
+  .useful-info-toggle:not(.open) .toggle-hint .hint-open.ui-hidden { display: none !important; }
   .useful-info-toggle.open .toggle-hint .hint-close { display: inline; }
   .useful-info-toggle:not(.open) .toggle-hint .hint-close { display: none; }
 
@@ -557,7 +557,7 @@
       <span>ℹ️ CMC Useful Information</span>
       <span class="toggle-hint">
         <span id="useful-info-loading" style="animation:pulse 1.2s ease-in-out infinite;">Loading information…</span>
-        <span class="hint-open" id="useful-info-hint-open" style="display:none;">Tap to expand &amp; view</span>
+        <span class="hint-open ui-hidden" id="useful-info-hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">▶</span>
       </span>
@@ -1210,9 +1210,9 @@
       _usefulInfoData = items;
       renderUsefulInfo();
       var uiLoading = document.getElementById('useful-info-loading');
-      var uiHintOpen = document.querySelector('#usefulInfoToggle .hint-open');
+      var uiHintOpen = document.getElementById('useful-info-hint-open');
       if (uiLoading) uiLoading.style.display = 'none';
-      if (uiHintOpen) uiHintOpen.style.display = 'inline';
+      if (uiHintOpen) uiHintOpen.classList.remove('ui-hidden');
     } catch(e) {}
   })();
 
