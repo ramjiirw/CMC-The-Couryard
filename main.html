@@ -624,7 +624,7 @@
           <span class="icon" style="margin:0">📋</span>
           <h3 style="margin:0">AGM</h3>
         </div>
-        <span id="residentItemsPill" style="display:none;background:#3d6b4a;color:#fff;font-size:0.72rem;font-weight:700;border-radius:10px;padding:0.2rem 0.6rem;letter-spacing:0.02em;white-space:nowrap;align-items:center;gap:0.4rem;"></span>
+        <span id="residentItemsPill" style="display:none;background:#d6e0c0;color:#3d5a0a;font-size:0.72rem;font-weight:700;border-radius:10px;padding:0.2rem 0.5rem 0.2rem 0.6rem;letter-spacing:0.02em;white-space:nowrap;align-items:center;gap:0.4rem;"></span>
       </div>
       <div class="agm-details" id="agmDetails">
         <div class="agm-detail-row"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
@@ -892,7 +892,7 @@
       if (submissions.length > 0) {
         const pill = document.getElementById('residentItemsPill');
         if (pill) {
-          pill.innerHTML = '🙋 Resident items <span style="background:#fff;color:#3d6b4a;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
+          pill.innerHTML = '🙋 Resident items <span style="background:#3d5a0a;color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
           pill.style.display = 'inline-flex';
         }
       }
