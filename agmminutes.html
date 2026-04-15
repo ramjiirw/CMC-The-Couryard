@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMC The Courtyard — AGM Minutes</title>
+<script src="auth.js"></script>
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --stone: #b8ad9e;
+    --dark: #1e1a16;
+    --mid: #6b5f52;
+    --accent: #7a5c3e;
+    --accent2: #c4956a;
+    --border: #ddd5c8;
+    --shadow: 0 4px 24px rgba(30,26,22,0.10);
+    --green: #2d6a3f;
+    --green-bg: #e8f5ec;
+    --amber-bg: #fff8e7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-y: scroll; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header {
+    background: var(--dark); padding: 1.5rem 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    border-bottom: 1px solid rgba(196,149,106,0.2);
+  }
+  .header-brand { display: flex; align-items: center; gap: 1rem; }
+  .header-brand h1 { color: var(--cream); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.03em; }
+  .header-brand p.sub { color: var(--stone); font-size: 0.78rem; margin-top: 0.1rem; font-weight: 300; letter-spacing: 0.04em; text-transform: uppercase; }
+  .header-brand p.greeting { font-size: 0.78rem; color: var(--accent2); font-style: italic; margin-top: 0.2rem; }
+  .btn-back {
+    padding: 0.5rem 1.1rem; border-radius: 5px; border: 1px solid #3a3530;
+    background: transparent; color: var(--stone); font-family: Arial, sans-serif;
+    font-size: 0.82rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-back:hover { background: #2a2520; color: var(--accent2); }
+
+  main { margin: 3rem 0; padding: 0 170px 4rem 176px; width: 100%; flex: 1; }
+
+  .page-header { margin-bottom: 1.75rem; }
+  .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
+  .page-header p { color: var(--mid); line-height: 1.6; font-size: 0.88rem; }
+
+  /* Live banner */
+  .live-banner {
+    background: var(--amber-bg); border-left: 4px solid var(--accent2);
+    padding: 0.75rem 1.1rem; border-radius: 0 6px 6px 0;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;
+    font-size: 0.82rem; color: var(--mid);
+  }
+  .live-banner .live-label { display: flex; align-items: center; gap: 0.5rem; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #c8a96e; display: inline-block; }
+  .action-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .pill {
+    font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+    border-radius: 999px; letter-spacing: 0.04em;
+  }
+  .pill-green { background: var(--green-bg); color: var(--green); }
+  .pill-amber { background: #fef3c7; color: #92400e; }
+  .pill-grey  { background: rgba(122,92,62,0.1); color: var(--mid); }
+
+  /* PDF button */
+  .btn-pdf {
+    padding: 0.45rem 1rem; border-radius: 5px; border: 1px solid var(--accent2);
+    background: transparent; color: var(--accent2); font-family: Arial, sans-serif;
+    font-size: 0.8rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-pdf:hover { background: var(--accent2); color: white; }
+
+  /* Section blocks */
+  .minutes-section { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+  .section-banner {
+    font-size: 0.72rem; font-weight: 700; color: var(--cream);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.65rem 1.25rem; margin: 0;
+    background: var(--dark); border-bottom: 1px solid rgba(196,149,106,0.2);
+  }
+
+  /* Meta grid */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 1.25rem; background: var(--cream); }
+  .meta-card { background: rgba(122,92,62,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; }
+  .meta-card-title { font-size: 0.68rem; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+  .meta-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.25rem 0; border-bottom: 0.5px solid var(--border); font-size: 0.85rem; }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-key { color: var(--mid); }
+  .meta-val { color: var(--dark); font-weight: 500; text-align: right; }
+
+  /* Attendance */
+  .attend-grid { display: grid; grid-template-columns: 1fr 1fr; background: var(--cream); }
+  .attend-col { padding: 0.85rem 1.25rem; }
+  .attend-col:first-child { border-right: 1px solid var(--border); }
+  .attend-head { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); margin-bottom: 0.6rem; }
+  .attend-name { font-size: 0.85rem; color: var(--dark); padding: 0.2rem 0; display: flex; align-items: center; gap: 0.5rem; }
+  .attend-addr { font-size: 0.75rem; color: var(--mid); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: #2d6a3f; }
+  .dot-amber { background: #c4956a; }
+  .attend-none { font-size: 0.82rem; color: var(--stone); font-style: italic; }
+
+  /* Votes */
+  table.votes-table { width: 100%; border-collapse: collapse; background: var(--cream); }
+  table.votes-table thead th {
+    background: rgba(122,92,62,0.07); padding: 0.6rem 1.25rem;
+    text-align: left; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--mid);
+    border-bottom: 1px solid var(--border);
+  }
+  table.votes-table tbody tr { border-bottom: 1px solid var(--border); }
+  table.votes-table tbody tr:last-child { border-bottom: none; }
+  table.votes-table tbody td { padding: 0.75rem 1.25rem; font-size: 0.85rem; }
+  .badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    padding: 0.2rem 0.6rem; border-radius: 999px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge-passed { background: var(--green-bg); color: var(--green); }
+  .badge-pending { background: #fef3c7; color: #92400e; }
+
+  /* Agenda items */
+  .agenda-item { padding: 0.9rem 1.25rem; border-top: 1px solid var(--border); background: var(--cream); }
+  .agenda-item:first-child { border-top: none; }
+  .agenda-raised { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent2); margin-bottom: 0.3rem; }
+  .agenda-title { font-size: 0.95rem; font-weight: 500; color: var(--dark); margin-bottom: 0.6rem; }
+  .agenda-note {
+    font-size: 0.85rem; color: var(--mid); line-height: 1.7;
+    background: rgba(122,92,62,0.04); border-left: 3px solid var(--border);
+    padding: 0.6rem 0.85rem; border-radius: 0 4px 4px 0;
+    white-space: pre-wrap;
+  }
+  .agenda-note.empty { color: var(--stone); font-style: italic; }
+  .agenda-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem; }
+  .action-chip {
+    font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.6rem;
+    border-radius: 999px; letter-spacing: 0.03em;
+  }
+  .chip-done { background: var(--green-bg); color: var(--green); }
+  .chip-todo { background: #fef3c7; color: #92400e; }
+
+  /* States */
+  .state-loading, .state-error {
+    padding: 2.5rem 1.5rem; text-align: center; color: var(--stone); font-size: 0.88rem;
+    background: var(--cream);
+  }
+  .state-error { color: #a05050; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block; width: 1.4rem; height: 1.4rem;
+    border: 2px solid var(--border); border-top-color: var(--accent2);
+    border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 0.6rem;
+  }
+
+  /* Scroll top */
+  .scroll-top-btn {
+    display: none; position: fixed; bottom: 1.5rem; right: 1.5rem;
+    background: var(--dark); color: var(--cream); border: none;
+    border-radius: 50%; width: 2.5rem; height: 2.5rem; font-size: 1rem;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(30,26,22,0.25);
+    transition: all 0.2s; z-index: 999; align-items: center; justify-content: center;
+  }
+  .scroll-top-btn.visible { display: flex; }
+  .scroll-top-btn:hover { background: var(--accent); transform: translateY(-2px); }
+
+  /* Print styles */
+  @media print {
+    header, .btn-back, .btn-pdf, .scroll-top-btn, .live-banner { display: none !important; }
+    main { margin: 0; padding: 1rem; }
+    .minutes-section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    .section-banner { background: #4a3f35 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .agenda-item { break-inside: avoid; }
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 1rem; }
+    main { padding: 1rem 0.75rem 4rem; margin: 1.5rem auto; }
+    .meta-grid { grid-template-columns: 1fr; }
+    .attend-grid { grid-template-columns: 1fr; }
+    .attend-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    .page-header h2 { font-size: 1.1rem; }
+    .live-banner { flex-direction: column; align-items: flex-start; }
+  }
+
+  #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
+  #adminLink:hover { color:var(--accent2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QAsRXhpZgAATU0AKgAAAAgAAQExAAIAAAAKAAAAGgAAAABHcmVlbnNob3QA/9sAQwAHBQUGBQQHBgUGCAcHCAoRCwoJCQoVDxAMERgVGhkYFRgXGx4nIRsdJR0XGCIuIiUoKSssKxogLzMvKjInKisq/9sAQwEHCAgKCQoUCwsUKhwYHCoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq/8AAEQgCSANCAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A+kaKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoozSZoAWim7xSeYKAH0VEZaaZ6AJ6TcKrG496ja4oAu7hTTIBVE3PvSef70AXDKKUTDFZ5nFJ5/vQBomcUnnis4z+9HnDFAGh54pRMKzTNSib3oA0vOFL5oxWZ53vSfaMd6ANIzCk88VnfaPek8+gDS88U4TjFZnnCl8/3oA0vOFKJQazvPpRPQBo719acDnpWeswp4uMd6ALuaWqYuPepFnoAsUVEJhTxIDQA6igHNFABRRRQAUUUCgAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiikLYoAWiozMBUbTjsaALFMaQCqrXJ/vVCbj1NAFtpwKYZqpmcVC0/PWgC09Rm4qiZ/eozOKAL5uaYZ6z2npPN460AXjPUZnFUzL71E01AF43ApPPrOM1J5/vQBfM9J59UPOppm96ANAz0facVmmb3pRLxQBfNzSfaD2qj5oo870oAu/aGpftHrVDzvejzc0AX/tHvSies/wAygTYoA0RPS+fWeJqXz6ANET0onrOE1OE9AGkJ6d59Zono8/nrQBqiepFn4rJWf3qVJvl60AaonqRZ6y1mp4m96ANVbjFTJOGFZCzVMk3vQBqiUU4Pms1Z/epVn96AL+aKqpPUomFAEtFNDg04HNABRRQDQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUCgAoopPrQAtFJR370ALRSE0tABRSc0hcCgB1NLgVE04FVnn96ALZmAqB7gVTef3qFpvegC08/NQtPVN5veomn96ALbT1CZ6quNkeKhbzJM85rSaHKiSIZXGKAM1JFUHk5FOW4w3TipzCiNyop8cAYfeNAFdZ+cU8zDAx3pz2Y3hkNOa2JTcOCKAIJJ8oQKqTTFzuFWSjI5K0jW5kbBoAitrgo3JrX+0xvbhgvI4zWTJbtHNkimHV44HKEB17UAasU/wC6CrUy3e7hM4NZ9nqVvLbHe2Co5BqP7WJFZ1bK4yCKANlZ8sAnGab5zlx83ysao2t+kiNnD47VKpRslnqQNS3uSrbWYBqJbtB0Nes1+xvJJEA/GlisGk3KVB/OgCOa7BIXd+dLBcHaCW6VNJp6hN20BTWW6PbHBBxigC8JshiDzSpOykkniqX2tl54pI5VkbJBFAF7zV3Zb5RVyKeLYu1iM1zs0/z7cHFQS3kqzKiZA9aAOwWTIJzzilY7u2BXO2mpxkHcxRl9a1vt0RQFWBB9KALCtg1YjYnGBWQbpRJkHFSx3ueQelAG3D0qRZADWMLpV6GrCXIbqelAGwjCpFOT0rFS4VuvHFXInzQBbooooAKKKKACijFGKACiiigAoooxQAUUUGgAopM0ZoAWimhuelAYetADqKbmjcPWgB1FNBBpaACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiikLYoAWiozMBUbTjsaALFMaQCqrXJ/vVCbj1NAFtpwKYZqpmcVC0/PWgC09Rm4qiZ/eozOKAL5uaYZ6z2npPN460AXjPUZnFUzL71E01AF43ApPPrOM1J5/vQBfM9J59UPOppm96ANAz0facVmmb3pRLxQBfNzSfaD2qj5oo870oAu/aGpftHrVDzvejzc0AX/tHvSies/wAygTYoA0RPS+fWeJqXz6ANET0onrOE1OE9AGkJ6d59Zono8/nrQBqiepFn4rJWf3qVJvl60AaonqRZ6y1mp4m96ANVbjFTJOGFZCzVMk3vQBqiUU4Pms1Z/epVn96AL+aKqpPUomFAEtFNDg04HNABRRQDQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUCgAoopPrQAtFJR370ALRSE0tABRSc0hcCgB1NLgVE04FVnn96ALZmAqB7gVTef3qFpvegC08/NQtPVN5veomn96ALbT1CZ6quNkeKhbzJM85rSaHKiSIZXGKAM1JFUHk5FOW4w3TipzCiNyop8cAYfeNAFdZ+cU8zDAx3pz2Y3hkNOa2JTcOCKAIJJ8oQKqTTFzuFWSjI5K0jW5kbBoAitrgo3JrX+0xvbhgvI4zWTJbtHNkimHV44HKEB17UAasU/wC6CrUy3e7hM4NZ9nqVvLbHe2Co5BqP7WJFZ1bK4yCKANlZ8sAnGab5zlx83ysao2t+kiNnD47VKpRslnqQNS3uSrbWYBqJbtB0Nes1+xvJJEA/GlisGk3KVB/OgCOa7BIXd+dLBcHaCW6VNJp6hN20BTWW6PbHBBxigC8JshiDzSpOykkniqX2tl54pI5VkbJBFAF7zV3Zb5RVyKeLYu1iM1zs0/z7cHFQS3kqzKiZA9aAOwWTIJzzilY7u2BXO2mpxkHcxRl9a1vt0RQFWBB9KALCtg1YjYnGBWQbpRJkHFSx3ueQelAG3D0qRZADWMLpV6GrCXIbqelAGwjCpFOT0rFS4VuvHFXInzQBbooooAKKKKACijFGKACiiigAoooxQAUUUGgAopM0ZoAWimhuelAYetADqKbmjcPWgB1FNBBpaACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiikLYoAWiozMBUbTjsaALFMaQCqrXJ/vVCbj1NAFtpwKYZqpmcVC0/PWgC09Rm4qiZ/eozOKAL5uaYZ6z2npPN460AXjPUZnFUzL71E01AF43ApPPrOM1J5/vQBfM9J59UPOppm96ANAz0facVmmb3pRLxQBfNzSfaD2qj5oo870oAu/aGpftHrVDzvejzc0AX/tHvSies/wAygTYoA0RPS+fWeJqXz6ANET0onrOE1OE9AGkJ6d59Zono8/nrQBqiepFn4rJWf3qVJvl60AaonqRZ6y1mp4m96ANVbjFTJOGFZCzVMk3vQBqiUU4Pms1Z/epVn96AL+aKqpPUomFAEtFNDg04HNABRRQDQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUCgAoopPrQAtFJR370ALRSE0tABRSc0hcCgB1NLgVE04FVnn96ALZmAqB7gVTef3qFpvegC08/NQtPVN5veomn96ALbT1CZ6quNkeKhbzJM85rSaHKiSIZXGKAM1JFUHk5FOW4w3TipzCiNyop8cAYfeNAFdZ+cU8zDAx3pz2Y3hkNOa2JTcOCKAIJJ8oQKqTTFzuFWSjI5K0jW5kbBoAitrgo3JrX+0xvbhgvI4zWTJbtHNkimHV44HKEB17UAasU/wC6CrUy3e7hM4NZ9nqVvLbHe2Co5BqP7WJFZ1bK4yCKANlZ8sAnGab5zlx83ysao2t+kiNnD47VKpRslnqQNS3uSrbWYBqJbtB0Nes1+xvJJEA/GlisGk3KVB/OgCOa7BIXd+dLBcHaCW6VNJp6hN20BTWW6PbHBBxigC8JshiDzSpOykkniqX2tl54pI5VkbJBFAF7zV3Zb5RVyKeLYu1iM1zs0/z7cHFQS3kqzKiZA9aAOwWTIJzzilY7u2BXO2mpxkHcxRl9a1vt0RQFWBB9KALCtg1YjYnGBWQbpRJkHFSx3ueQelAG3D0qRZADWMLpV6GrCXIbqelAGwjCpFOT0rFS4VuvHFXInzQBbooooAKKKKACijFGKACiiigAoooxQAUUUGgAopM0ZoAWimhuelAYetADqKbmjcPWgB1FNBBpaACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigA/9k=" alt="CMC Logo" style="height:90px;width:120px;object-fit:cover;border-radius:10px;">
+    <div>
+      <h1>CMC The Courtyard</h1>
+      <p class="sub">AGM Minutes</p>
+      <p class="greeting" id="welcomeMsg"></p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.75rem;align-items:center;">
+    <button class="btn-pdf" onclick="window.print()">Save as PDF</button>
+    <a class="btn-back" href="main.html">&#8592; Back to Home</a>
+  </div>
+</header>
+
+<main>
+  <div id="loadingState" class="state-loading">
+    <div class="spinner"></div>
+    <div>Loading minutes…</div>
+  </div>
+  <div id="minutesContent" style="display:none;">
+
+    <div class="page-header">
+      <h2 id="pageTitle">AGM Minutes</h2>
+      <p id="pageSubtitle"></p>
+    </div>
+
+    <!-- Live banner -->
+    <div class="live-banner">
+      <span class="live-label"><span class="live-dot"></span> Live document — actions updated in real time</span>
+      <div class="action-pills">
+        <span class="pill pill-green" id="pillComplete"></span>
+        <span class="pill pill-amber" id="pillPending" style="display:none;"></span>
+        <span class="pill pill-grey" id="pillTotal"></span>
+      </div>
+    </div>
+
+    <!-- Meeting Details + Officers -->
+    <div class="minutes-section">
+      <div class="section-banner">Meeting Details</div>
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="meta-card-title">Meeting Information</div>
+          <div id="metaDetails"></div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-card-title">CMC Company Officers</div>
+          <div id="metaOfficers"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="minutes-section">
+      <div class="section-banner">Attendance</div>
+      <div class="attend-grid">
+        <div class="attend-col">
+          <div class="attend-head">Present</div>
+          <div id="attendPresent"></div>
+        </div>
+        <div class="attend-col">
+          <div class="attend-head">Apologies</div>
+          <div id="attendApologies"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voting -->
+    <div class="minutes-section" id="votesSection">
+      <div class="section-banner">Voting</div>
+      <table class="votes-table">
+        <thead><tr><th>Vote</th><th>Motion</th><th>Result</th></tr></thead>
+        <tbody id="votesBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Director Agenda Items -->
+    <div class="minutes-section" id="dirSection">
+      <div class="section-banner">Director Agenda Items</div>
+      <div id="dirItems"></div>
+    </div>
+
+    <!-- Resident Agenda Items -->
+    <div class="minutes-section" id="resSection">
+      <div class="section-banner">Resident Agenda Items</div>
+      <div id="resItems"></div>
+    </div>
+
+    <!-- AOB -->
+    <div class="minutes-section" id="aobSection">
+      <div class="section-banner">Any Other Business</div>
+      <div id="aobItems"></div>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem 1.25rem;background:rgba(122,92,62,0.04);border:1px solid var(--border);border-radius:8px;font-size:0.78rem;color:var(--mid);">
+      CMC AGMs take place on the second Sunday of December each year.
+    </div>
+
+  </div>
+  <div id="errorState" class="state-error" style="display:none;">
+    ⚠️ Could not load minutes. Please try again later.
+  </div>
+</main>
+
+<footer style="background:var(--dark);border-top:1px solid rgba(196,149,106,0.2);padding:0.9rem 2.5rem;display:flex;align-items:center;justify-content:center;margin-top:auto;position:relative;">
+  <p style="font-size:0.72rem;color:var(--stone);letter-spacing:0.04em;text-align:center;">
+    <span style="color:var(--accent2);">CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span>
+  </p>
+  <a href="admin.html" id="adminLink" title="Admin">🔒</a>
+</footer>
+<button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">▲</button>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderAgendaItems(items, containerId) {
+    var el = document.getElementById(containerId);
+    if (!items || !items.length) {
+      el.innerHTML = '<div class="agenda-item"><span style="color:var(--stone);font-size:0.85rem;font-style:italic;">No items recorded.</span></div>';
+      return;
+    }
+    var html = '';
+    items.forEach(function(item) {
+      html += '<div class="agenda-item">';
+      if (item.raisedBy || item.number) {
+        html += '<div class="agenda-raised">' + esc(item.number || item.raisedBy) + '</div>';
+        if (item.number && item.raisedBy) {
+          html += '<div class="agenda-raised" style="color:var(--mid);font-size:0.65rem;margin-top:-0.2rem;margin-bottom:0.3rem;">' + esc(item.raisedBy) + '</div>';
+        }
+      }
+      if (item.item) {
+        html += '<div class="agenda-title">' + esc(item.item) + '</div>';
+      }
+      if (item.note) {
+        html += '<div class="agenda-note">' + esc(item.note) + '</div>';
+      } else {
+        html += '<div class="agenda-note empty">No notes recorded for this item.</div>';
+      }
+      if (item.actions && item.actions.length) {
+        html += '<div class="agenda-actions">';
+        item.actions.forEach(function(a, idx) {
+          var cls = a.complete ? 'chip-done' : 'chip-todo';
+          var label = a.complete ? '&#10003; ' : '';
+          html += '<span class="action-chip ' + cls + '">' + label + esc(a.text) + '</span>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  }
+
+  (async function() {
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readAGMMinutes');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error from script');
+
+      var m = data.meta;
+
+      // Page title
+      document.getElementById('pageTitle').textContent = 'AGM Minutes' + (m.date ? ' — ' + m.date : '');
+      document.getElementById('pageSubtitle').textContent = m.venue ? 'Held at ' + m.venue : '';
+
+      // Action summary pills
+      var s = data.summary;
+      document.getElementById('pillComplete').textContent = s.complete + ' action' + (s.complete !== 1 ? 's' : '') + ' complete';
+      document.getElementById('pillTotal').textContent = s.total + ' total';
+      if (s.pending > 0) {
+        document.getElementById('pillPending').textContent = s.pending + ' pending';
+        document.getElementById('pillPending').style.display = '';
+      }
+
+      // Meta details
+      var detailsHtml = '';
+      if (m.chair)        detailsHtml += '<div class="meta-row"><span class="meta-key">Chair</span><span class="meta-val">' + esc(m.chair) + '</span></div>';
+      if (m.minutesTaker) detailsHtml += '<div class="meta-row"><span class="meta-key">Minutes</span><span class="meta-val">' + esc(m.minutesTaker) + '</span></div>';
+      if (m.venue)        detailsHtml += '<div class="meta-row"><span class="meta-key">Venue</span><span class="meta-val">' + esc(m.venue) + '</span></div>';
+      if (m.date)         detailsHtml += '<div class="meta-row"><span class="meta-key">Date</span><span class="meta-val">' + esc(m.date) + '</span></div>';
+      if (m.time)         detailsHtml += '<div class="meta-row"><span class="meta-key">Time</span><span class="meta-val">' + esc(m.time) + '</span></div>';
+      if (m.meetingEnd)   detailsHtml += '<div class="meta-row"><span class="meta-key">Meeting end</span><span class="meta-val">' + esc(m.meetingEnd) + '</span></div>';
+      if (m.nextAGM)      detailsHtml += '<div class="meta-row"><span class="meta-key">Next AGM</span><span class="meta-val">' + esc(m.nextAGM) + '</span></div>';
+      document.getElementById('metaDetails').innerHTML = detailsHtml || '<span style="color:var(--stone);font-size:0.85rem;">No details recorded.</span>';
+
+      // Officers
+      var officersHtml = '';
+      if (m.officers && m.officers.length) {
+        m.officers.forEach(function(o) {
+          officersHtml += '<div class="meta-row"><span class="meta-key">' + esc(o.role) + '</span><span class="meta-val">' + esc(o.name) + '</span></div>';
+        });
+      } else {
+        officersHtml = '<span style="color:var(--stone);font-size:0.85rem;">No officers recorded.</span>';
+      }
+      document.getElementById('metaOfficers').innerHTML = officersHtml;
+
+      // Attendance
+      var presentHtml = '';
+      if (data.present && data.present.length) {
+        data.present.forEach(function(p) {
+          presentHtml += '<div class="attend-name"><span class="dot dot-green"></span><span>' + esc(p.name) + ' <span class="attend-addr">' + esc(p.address) + '</span></span></div>';
+        });
+      } else {
+        presentHtml = '<div class="attend-none">None recorded.</div>';
+      }
+      document.getElementById('attendPresent').innerHTML = presentHtml;
+
+      var apologiesHtml = '';
+      if (data.apologies && data.apologies.length) {
+        data.apologies.forEach(function(p) {
+          apologiesHtml += '<div class="attend-name"><span class="dot dot-amber"></span><span>' + esc(p.name) + ' <span class="attend-addr">' + esc(p.address) + '</span></span></div>';
+        });
+      } else {
+        apologiesHtml = '<div class="attend-none">None recorded.</div>';
+      }
+      document.getElementById('attendApologies').innerHTML = apologiesHtml;
+
+      // Votes
+      var votesHtml = '';
+      if (data.votes && data.votes.length) {
+        data.votes.forEach(function(v) {
+          var badge = v.passed
+            ? '<span class="badge badge-passed">Passed</span>'
+            : '<span class="badge badge-pending">Pending</span>';
+          votesHtml += '<tr><td>' + esc(v.number) + '</td><td>' + esc(v.item) + '</td><td>' + badge + '</td></tr>';
+        });
+      } else {
+        votesHtml = '<tr><td colspan="3" style="padding:1rem 1.25rem;color:var(--stone);font-size:0.85rem;font-style:italic;">No votes recorded.</td></tr>';
+      }
+      document.getElementById('votesBody').innerHTML = votesHtml;
+
+      // Agenda sections
+      renderAgendaItems(data.dirItems, 'dirItems');
+      renderAgendaItems(data.resItems, 'resItems');
+      renderAgendaItems(data.aobItems, 'aobItems');
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('minutesContent').style.display = '';
+
+    } catch(err) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = '';
+      console.error('AGM Minutes error:', err);
+    }
+  })();
+
+  // Greeting
+  (function() {
+    var h = new Date().getHours();
+    var g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    var day = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+    document.getElementById('welcomeMsg').textContent = (g + ' — ' + day).toUpperCase();
+  })();
+
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+  window.addEventListener('scroll', function() {
+    var btn = document.getElementById('scrollTopBtn');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 400);
+  });
+</script>
+</body>
+</html>
