@@ -148,8 +148,10 @@
   .agm-attend-col { padding: 10px 8px; }
   .agm-attend-col:first-child { border-right: 1px solid #ede8e0; }
   .agm-attend-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9e8e7e; margin-bottom: 8px; }
-  .agm-attend-name { font-size: 16px; color: #1e1a16; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
-  .agm-attend-addr { font-size: 13px; color: #6b5f52; }
+  .agm-attend-group { padding: 6px 0; border-bottom: 1px solid #f5f1ea; }
+  .agm-attend-group:last-child { border-bottom: none; }
+  .agm-attend-address { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #4a3f35; margin-bottom: 2px; }
+  .agm-attend-names { font-size: 15px; color: #1e1a16; padding-left: 23px; }
   .agm-attend-none { font-size: 15px; color: #b8ad9e; font-style: italic; }
 
   .agm-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
@@ -551,6 +553,48 @@
     return h;
   }
 
+  /* ── Group attendance by address, combine names smartly ── */
+  function renderAttendanceGroups(people, dotClass) {
+    // Extract property number for sorting (e.g. "3 The Courtyard" -> 3)
+    function propNum(addr) {
+      var m = String(addr || '').match(/^(\d+)/);
+      return m ? parseInt(m[1], 10) : 999;
+    }
+    // Group by address
+    var groups = {};
+    var order = [];
+    people.forEach(function(p) {
+      var addr = p.address || 'Unknown';
+      if (!groups[addr]) { groups[addr] = []; order.push(addr); }
+      groups[addr].push(p.name || '');
+    });
+    // Sort addresses by property number
+    order.sort(function(a, b) { return propNum(a) - propNum(b); });
+    var h = '';
+    order.forEach(function(addr) {
+      var names = groups[addr].slice().sort(function(a, b) {
+        var sA = a.trim().split(' ').pop(), sB = b.trim().split(' ').pop();
+        return sA.localeCompare(sB);
+      });
+      // Combine names: check if all share the same surname
+      var surnames = names.map(function(n) { return n.trim().split(' ').pop(); });
+      var allSameSurname = surnames.length > 1 && surnames.every(function(s) { return s === surnames[0]; });
+      var combined;
+      if (allSameSurname) {
+        // "Ian & Sue Morrison"
+        var firstNames = names.map(function(n) { return n.trim().split(' ').slice(0, -1).join(' '); });
+        combined = firstNames.join(' & ') + ' ' + surnames[0];
+      } else {
+        combined = names.join(' & ');
+      }
+      h += '<div class="agm-attend-group">';
+      h += '<div class="agm-attend-address"><span class="agm-dot ' + dotClass + '"></span>' + esc(addr) + '</div>';
+      h += '<div class="agm-attend-names">' + esc(combined) + '</div>';
+      h += '</div>';
+    });
+    return h;
+  }
+
   /* ── Main render ── */
   function renderAGMOverlay() {
     if (!agmData) return;
@@ -621,9 +665,7 @@
     h += '<div class="agm-attend-col">';
     h += '<div class="agm-attend-head">Present</div>';
     if (d.present && d.present.length) {
-      d.present.forEach(function(p) {
-        h += '<div class="agm-attend-name"><span class="agm-dot agm-dot-green"></span><span>' + esc(p.name) + ' <span class="agm-attend-addr">' + esc(p.address) + '</span></span></div>';
-      });
+      h += renderAttendanceGroups(d.present, 'agm-dot-green');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
@@ -632,9 +674,7 @@
     h += '<div class="agm-attend-col">';
     h += '<div class="agm-attend-head">Apologies</div>';
     if (d.apologies && d.apologies.length) {
-      d.apologies.forEach(function(p) {
-        h += '<div class="agm-attend-name"><span class="agm-dot agm-dot-amber"></span><span>' + esc(p.name) + ' <span class="agm-attend-addr">' + esc(p.address) + '</span></span></div>';
-      });
+      h += renderAttendanceGroups(d.apologies, 'agm-dot-amber');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
