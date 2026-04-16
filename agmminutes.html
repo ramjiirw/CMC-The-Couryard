@@ -200,17 +200,16 @@
   .agm-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 8px; }
   .agm-details-card { background: rgba(122,92,62,0.04); border: 1px solid #ddd5c8; border-radius: 8px; padding: 12px 14px; }
   .agm-details-card-title { font-size: 11px; font-weight: 700; color: #c4956a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .agm-details-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 0.5px solid #ddd5c8; font-size: 15px; }
+  .agm-details-row { display: flex; align-items: baseline; padding: 4px 0; border-bottom: 0.5px solid #ddd5c8; font-size: 15px; gap: 1rem; }
   .agm-details-row:last-child { border-bottom: none; }
-  .agm-details-key { color: #6b5f52; }
-  .agm-details-val { color: #1e1a16; font-weight: 500; text-align: right; }
+  .agm-details-key { color: #6b5f52; min-width: 90px; flex-shrink: 0; }
+  .agm-details-val { color: #1e1a16; font-weight: 500; }
 
   .agm-close-block {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 8px; border-top: 2px solid #b8ad9e; margin-top: 8px;
-    font-size: 16px;
+    padding: 6px 0; font-size: 15px;
   }
-  .agm-close-label { font-weight: 700; color: #4a3f35; }
+  .agm-close-label { font-weight: 400; color: #6b5f52; }
   .agm-close-val { color: #6b5f52; font-weight: 600; }
 
   /* Quick-view modal */
@@ -347,7 +346,7 @@
     if (!raw) return '';
     var d = new Date(raw);
     if (isNaN(d.getTime())) return raw;
-    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).replace(',', '');
   }
 
   /* ── Load data on page load ── */
@@ -379,11 +378,13 @@
     renderAGMOverlay();
     document.getElementById('agm-minutes-overlay').style.display = '';
     document.getElementById('agm-minutes-overlay').scrollTop = 0;
+    document.documentElement.style.overflowY = 'hidden';
     agmUpdateCollapseBtn();
   }
 
   function closeAGMOverlay() {
     document.getElementById('agm-minutes-overlay').style.display = 'none';
+    document.documentElement.style.overflowY = 'scroll';
   }
 
   function agmPrint() {
@@ -587,7 +588,7 @@
     h += '<div class="agm-details-card">';
     h += '<div class="agm-details-card-title">Meeting Information</div>';
     if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + esc(formatAGMDate(m.date)) + '</span></div>';
-    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time started</span><span class="agm-details-val">' + esc(m.time) + '</span></div>';
+    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time</span><span class="agm-details-val">' + esc(m.time) + '</span></div>';
     if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + esc(m.venue) + '</span></div>';
     if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + esc(m.chair) + '</span></div>';
     if (m.minutesTaker) h += '<div class="agm-details-row"><span class="agm-details-key">Minutes</span><span class="agm-details-val">' + esc(m.minutesTaker) + '</span></div>';
@@ -730,10 +731,8 @@
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
     h += '</div>';
-    h += '<div style="height:1.5rem;"></div>';
-
     // ── 7. MEETING CLOSE (always visible) ──
-    h += '<div style="border-top:2px solid #b8ad9e;padding-top:1rem;margin-top:0.5rem;">';
+    h += '<div style="border-top:2px solid #b8ad9e;padding-top:1rem;margin-top:0;">';
     if (m.meetingEnd) {
       h += '<div class="agm-close-block">';
       h += '<span class="agm-close-label">Meeting closed</span>';
@@ -743,7 +742,7 @@
     if (m.nextAGM) {
       h += '<div class="agm-close-block">';
       h += '<span class="agm-close-label">Next AGM</span>';
-      h += '<span class="agm-close-val">' + esc(m.nextAGM) + '</span>';
+      h += '<span class="agm-close-val">' + esc(formatAGMDate(m.nextAGM)) + '</span>';
       h += '</div>';
     }
     h += '<div style="margin-top:1rem;border:1px solid #ddd5c8;border-radius:6px;background:#ddd5c8;padding:0.75rem 1.25rem;">';
