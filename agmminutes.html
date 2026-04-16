@@ -343,6 +343,13 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function formatAGMDate(raw) {
+    if (!raw) return '';
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  }
+
   /* ── Load data on page load ── */
   (async function() {
     try {
@@ -353,7 +360,7 @@
       agmData = data;
 
       var m = data.meta;
-      var label = 'AGM Minutes' + (m && m.date ? ' — ' + m.date : '');
+      var label = 'AGM Minutes' + (m && m.date ? ' — ' + formatAGMDate(m.date) : '');
       document.getElementById('agm-toggle-label').textContent = label;
 
       document.getElementById('mainLoadingState').style.display = 'none';
@@ -382,7 +389,7 @@
   function agmPrint() {
     var origTitle = document.title;
     var m = agmData && agmData.meta;
-    document.title = 'CMC The Courtyard — AGM Minutes' + (m && m.date ? ' ' + m.date : '');
+    document.title = 'CMC The Courtyard — AGM Minutes' + (m && m.date ? ' ' + formatAGMDate(m.date) : '');
     window.print();
     document.title = origTitle;
   }
@@ -567,7 +574,7 @@
     h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">AGM Minutes</div>';
     h += '</div></div>';
     h += '<div style="text-align:right;">';
-    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + esc(m.date || '') + '</div>';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + esc(formatAGMDate(m.date)) + '</div>';
     h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
     h += '</div></div>';
 
@@ -579,7 +586,7 @@
     // Card 1: Meeting Information
     h += '<div class="agm-details-card">';
     h += '<div class="agm-details-card-title">Meeting Information</div>';
-    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + esc(m.date) + '</span></div>';
+    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + esc(formatAGMDate(m.date)) + '</span></div>';
     if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time started</span><span class="agm-details-val">' + esc(m.time) + '</span></div>';
     if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + esc(m.venue) + '</span></div>';
     if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + esc(m.chair) + '</span></div>';
