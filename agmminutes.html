@@ -144,10 +144,10 @@
     padding: 10px 8px 6px; border-bottom: 2px solid #ddd5c8;
     margin-top: 8px;
   }
-  .agm-attend-section { margin-bottom: 20px; }
-  .agm-attend-section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e8e7e; margin-bottom: 10px; }
-  .agm-attend-row { display: flex; align-items: baseline; padding: 7px 0; border-bottom: 1px solid #f0ebe0; gap: 1rem; }
-  .agm-attend-row:last-child { border-bottom: none; }
+  .agm-attend-section { margin-bottom: 0; border-top: 1px solid #ede8e0; padding-top: 10px; margin-top: 16px; }
+  .agm-attend-section:first-child { margin-top: 0; }
+  .agm-attend-section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e8e7e; margin-bottom: 8px; }
+  .agm-attend-row { display: flex; align-items: baseline; padding: 5px 0; gap: 1rem; }
   .agm-attend-addr-col { display: flex; align-items: center; gap: 7px; min-width: 160px; flex-shrink: 0; }
   .agm-attend-addr-label { font-size: 14px; font-weight: 700; color: #4a3f35; }
   .agm-attend-name-col { font-size: 15px; color: #1e1a16; }
@@ -658,23 +658,21 @@
     // Present
     h += '<div class="agm-attend-section">';
     h += '<div class="agm-attend-section-head">Present</div>';
-    h += '<div style="border-top:1px solid #f0ebe0;">';
     if (d.present && d.present.length) {
       h += renderAttendanceGroups(d.present, 'agm-dot-green');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
-    h += '</div></div>';
+    h += '</div>';
     // Apologies
     h += '<div class="agm-attend-section">';
     h += '<div class="agm-attend-section-head">Apologies</div>';
-    h += '<div style="border-top:1px solid #f0ebe0;">';
     if (d.apologies && d.apologies.length) {
       h += renderAttendanceGroups(d.apologies, 'agm-dot-amber');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
-    h += '</div></div>';
+    h += '</div>';
     h += '</div>'; // end attendance items
 
     h += '<div style="height:1.5rem;"></div>';
