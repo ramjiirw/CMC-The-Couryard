@@ -144,14 +144,13 @@
     padding: 10px 8px 6px; border-bottom: 2px solid #ddd5c8;
     margin-top: 8px;
   }
-  .agm-attend-cols { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #ede8e0; }
-  .agm-attend-col { padding: 10px 8px; }
-  .agm-attend-col:first-child { border-right: 1px solid #ede8e0; }
-  .agm-attend-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9e8e7e; margin-bottom: 8px; }
-  .agm-attend-group { padding: 6px 0; border-bottom: 1px solid #f5f1ea; }
-  .agm-attend-group:last-child { border-bottom: none; }
-  .agm-attend-address { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #4a3f35; margin-bottom: 2px; }
-  .agm-attend-names { font-size: 15px; color: #1e1a16; padding-left: 23px; }
+  .agm-attend-section { margin-bottom: 20px; }
+  .agm-attend-section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e8e7e; margin-bottom: 10px; }
+  .agm-attend-row { display: flex; align-items: baseline; padding: 7px 0; border-bottom: 1px solid #f0ebe0; gap: 1rem; }
+  .agm-attend-row:last-child { border-bottom: none; }
+  .agm-attend-addr-col { display: flex; align-items: center; gap: 7px; min-width: 160px; flex-shrink: 0; }
+  .agm-attend-addr-label { font-size: 14px; font-weight: 700; color: #4a3f35; }
+  .agm-attend-name-col { font-size: 15px; color: #1e1a16; }
   .agm-attend-none { font-size: 15px; color: #b8ad9e; font-style: italic; }
 
   .agm-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
@@ -252,8 +251,6 @@
     main { padding: 1rem 0.75rem 4rem; margin: 1.5rem auto; }
     .page-header h2 { font-size: 1.1rem; }
     .agm-details-grid { grid-template-columns: 1fr; }
-    .agm-attend-cols { grid-template-columns: 1fr; }
-    .agm-attend-col:first-child { border-right: none; border-bottom: 1px solid #ede8e0; }
   }
 
   #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
@@ -576,20 +573,18 @@
         var sA = a.trim().split(' ').pop(), sB = b.trim().split(' ').pop();
         return sA.localeCompare(sB);
       });
-      // Combine names: check if all share the same surname
       var surnames = names.map(function(n) { return n.trim().split(' ').pop(); });
       var allSameSurname = surnames.length > 1 && surnames.every(function(s) { return s === surnames[0]; });
       var combined;
       if (allSameSurname) {
-        // "Ian & Sue Morrison"
         var firstNames = names.map(function(n) { return n.trim().split(' ').slice(0, -1).join(' '); });
         combined = firstNames.join(' & ') + ' ' + surnames[0];
       } else {
         combined = names.join(' & ');
       }
-      h += '<div class="agm-attend-group">';
-      h += '<div class="agm-attend-address"><span class="agm-dot ' + dotClass + '"></span>' + esc(addr) + '</div>';
-      h += '<div class="agm-attend-names">' + esc(combined) + '</div>';
+      h += '<div class="agm-attend-row">';
+      h += '<span class="agm-attend-addr-col"><span class="agm-dot ' + dotClass + '"></span><span class="agm-attend-addr-label">' + esc(addr) + '</span></span>';
+      h += '<span class="agm-attend-name-col">' + esc(combined) + '</span>';
       h += '</div>';
     });
     return h;
@@ -660,26 +655,26 @@
     h += '</div>';
     h += '<div class="bva-items' + (attOpen ? ' open' : '') + '" id="agm-grp-attendance">';
 
-    h += '<div class="agm-attend-cols">';
     // Present
-    h += '<div class="agm-attend-col">';
-    h += '<div class="agm-attend-head">Present</div>';
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Present</div>';
+    h += '<div style="border-top:1px solid #f0ebe0;">';
     if (d.present && d.present.length) {
       h += renderAttendanceGroups(d.present, 'agm-dot-green');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
-    h += '</div>';
+    h += '</div></div>';
     // Apologies
-    h += '<div class="agm-attend-col">';
-    h += '<div class="agm-attend-head">Apologies</div>';
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Apologies</div>';
+    h += '<div style="border-top:1px solid #f0ebe0;">';
     if (d.apologies && d.apologies.length) {
       h += renderAttendanceGroups(d.apologies, 'agm-dot-amber');
     } else {
       h += '<div class="agm-attend-none">None recorded.</div>';
     }
-    h += '</div>';
-    h += '</div>'; // end attend-cols
+    h += '</div></div>';
     h += '</div>'; // end attendance items
 
     h += '<div style="height:1.5rem;"></div>';
