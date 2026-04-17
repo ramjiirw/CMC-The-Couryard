@@ -1255,7 +1255,7 @@
     html += '</div>';
 
     /* Summary bar */
-    var totalOut = totalDue - totalPaid;
+    var totalOut = Math.round((totalDue - totalPaid) * 100) / 100;
     html += '<div class="tracker-summary">';
     html += '<div class="sum-card sum-card-due"><span class="sum-card-label">Due</span><span class="sum-card-val">' + fmt(totalDue) + '</span></div>';
     html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Paid</span><span class="sum-card-val">' + fmt(totalPaid) + '</span></div>';
@@ -1393,7 +1393,7 @@
       });
       /* propTotalPaid already includes arrears (positive) and refunds (negative) via amount sign */
 
-      var propOut  = propTotalDue - propTotalPaid;
+      var propOut  = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
       var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Cleared';
@@ -1429,7 +1429,7 @@
         var payments = getPayments(addr, yr);
         var mcPayments = payments.filter(function(p){ return !p.isArrears && !p.isRefund; });
         var mcPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
-        var outstanding = due - mcPaid;
+        var outstanding = Math.round((due - mcPaid) * 100) / 100;
         var dotC  = (mcPaid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
         var outC  = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
@@ -1972,7 +1972,11 @@
         sh += '</div>';
 
         sh += '<div class="iet-items' + (isOpen ? ' open' : '') + '" id="iet-items-' + g.key + '">';
-        Object.keys(items).sort().forEach(function(name) {
+        Object.keys(items).sort(function(a, b) {
+          var aArr = /- Arrears$/i.test(a), bArr = /- Arrears$/i.test(b);
+          if (aArr !== bArr) return aArr ? 1 : -1;
+          return a.localeCompare(b);
+        }).forEach(function(name) {
           var itemKey = g.key + '_' + name.replace(/\W/g,'_');
           var hasDrill = prefix === 'I-' ? (groupedDrillInc[g.key][name] && groupedDrillInc[g.key][name].length > 0)
                                          : (groupedDrillExp[g.key][name] && groupedDrillExp[g.key][name].length > 0);
@@ -2347,7 +2351,11 @@
         html += '<span class="rpt-gv" style="color:' + color + ';">' + fmt(gt) + '</span></div>';
         html += '<div class="rpt-ib" id="rpt-ib-' + g.key + '">';
 
-        Object.keys(items).sort().forEach(function(name) {
+        Object.keys(items).sort(function(a, b) {
+          var aArr = /- Arrears$/i.test(a), bArr = /- Arrears$/i.test(b);
+          if (aArr !== bArr) return aArr ? 1 : -1;
+          return a.localeCompare(b);
+        }).forEach(function(name) {
           if (g.directDrill && pfx === 'I-') {
             var drillsDirect = gdr[g.key] && gdr[g.key][name] ? gdr[g.key][name] : [];
             var apDirect = {};
@@ -2617,7 +2625,7 @@
       var insPaid      = insPayments.reduce(function(s,p){ return s + p.amount; }, 0);
       var totalDue     = rentDue + insDue;
       var totalPaid    = rentPaid + insPaid;
-      var totalOut     = totalDue - totalPaid;
+      var totalOut     = Math.round((totalDue - totalPaid) * 100) / 100;
 
       var rowBg = idx % 2 === 0 ? 'background:#fff;' : 'background:rgba(122,92,62,0.03);';
 
@@ -2644,7 +2652,7 @@
       html += '<div id="fhprop-' + key + '" style="display:none;background:rgba(122,92,62,0.03);border-top:1px solid var(--border);">';
 
       // Farmhouse Rent row
-      var rentOut  = rentDue - rentPaid;
+      var rentOut  = Math.round((rentDue - rentPaid) * 100) / 100;
       var rentOutC = rentOut > 0 ? 'val-owed' : rentOut < 0 ? 'val-over' : 'val-clear';
       var rentOutT = rentOut > 0 ? fmt(rentOut) : rentOut < 0 ? '+' + fmt(Math.abs(rentOut)) + ' overpaid' : '✓ Paid in full';
       html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.5rem 1.25rem;border-bottom:1px solid rgba(184,173,158,0.2);">';
@@ -2655,7 +2663,7 @@
       html += '</div>';
 
       // Farmhouse Insurance Rent row
-      var insOut  = insDue - insPaid;
+      var insOut  = Math.round((insDue - insPaid) * 100) / 100;
       var insOutC = insOut > 0 ? 'val-owed' : insOut < 0 ? 'val-over' : 'val-clear';
       var insOutT = insOut > 0 ? fmt(insOut) : insOut < 0 ? '+' + fmt(Math.abs(insOut)) + ' overpaid' : '✓ Paid in full';
       html += '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.5rem 1.25rem;">';
@@ -2683,7 +2691,7 @@
 
     // Helper for footer row
     function fhFooterRow(label, due, paid, borderTop) {
-      var out  = due - paid;
+      var out  = Math.round((due - paid) * 100) / 100;
       var outC = out > 0 ? 'val-owed' : out < 0 ? 'val-over' : 'val-clear';
       var outT = out > 0 ? fmt(out) : out < 0 ? '+' + fmt(Math.abs(out)) + ' overpaid' : '✓ All paid';
       var border = borderTop ? 'border-top:2px solid rgba(196,149,106,0.3);' : 'border-top:1px solid rgba(196,149,106,0.15);';
@@ -2697,7 +2705,7 @@
     }
 
     // Cumulative total row (slightly larger, accent border)
-    var cumOut  = summOut;
+    var cumOut  = Math.round(summOut * 100) / 100;
     var cumOutC = cumOut > 0 ? 'val-owed' : cumOut < 0 ? 'val-over' : 'val-clear';
     var cumOutT = cumOut > 0 ? fmt(cumOut) : cumOut < 0 ? '+' + fmt(Math.abs(cumOut)) + ' overpaid' : '✓ All paid';
 
@@ -2852,7 +2860,7 @@
       });
       propTotalDue = propRentDue + propInsDue;
       var propTotalPaid = propRentPaid + propInsPaid;
-      var propOut = propTotalDue - propTotalPaid;
+      var propOut = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
 
       var dotClass   = propTotalPaid === 0 && propTotalDue > 0 ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutC   = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
@@ -2904,7 +2912,7 @@
         var rPaid     = rPmts.reduce(function(s,p){ return s + p.amount; }, 0);
         var iPaid     = iPmts.reduce(function(s,p){ return s + p.amount; }, 0);
         var yrPaid    = rPaid + iPaid;
-        var yrOut     = yrTotalDue - yrPaid;
+        var yrOut     = Math.round((yrTotalDue - yrPaid) * 100) / 100;
 
         var yrDotC = yrPaid === 0 && yrTotalDue > 0 ? 'dot-red' : yrOut > 0 ? 'dot-amber' : 'dot-green';
         var yrOutC = yrOut > 0 ? 'val-owed' : yrOut < 0 ? 'val-over' : 'val-clear';
@@ -2936,7 +2944,7 @@
         // Farmhouse Rent line
         var rentLineKey = yrKey + '_rent';
         var rMcPaid = rPmts.filter(function(p){ return !p.isArrears; }).reduce(function(s,p){ return s+p.amount; },0);
-        var rOut    = rDue - rMcPaid;
+        var rOut    = Math.round((rDue - rMcPaid) * 100) / 100;
         var rOutC   = rOut > 0 ? 'val-owed' : rOut < 0 ? 'val-over' : 'val-clear';
         var rOutT   = rOut > 0 ? fmt(rOut) : rOut < 0 ? '+'+fmt(Math.abs(rOut))+' overpaid' : '✓ Paid in full';
         var rStatus = getFH2RentStatus(addr, yr);
@@ -2969,7 +2977,7 @@
         // Farmhouse Insurance Rent line
         var insLineKey = yrKey + '_ins';
         var iMcPaid = iPmts.filter(function(p){ return !p.isArrears; }).reduce(function(s,p){ return s+p.amount; },0);
-        var iOut    = iDue - iMcPaid;
+        var iOut    = Math.round((iDue - iMcPaid) * 100) / 100;
         var iOutC   = iOut > 0 ? 'val-owed' : iOut < 0 ? 'val-over' : 'val-clear';
         var iOutT   = iOut > 0 ? fmt(iOut) : iOut < 0 ? '+'+fmt(Math.abs(iOut))+' overpaid' : '✓ Paid in full';
         var iStatus = getFH2InsStatus(addr, yr);
