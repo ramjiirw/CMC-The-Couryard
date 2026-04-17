@@ -891,11 +891,39 @@
         if (key === 'Venue') document.getElementById('agmVenue').textContent = val;
       });
       const submissions = data.submissions || [];
-      if (submissions.length > 0) {
-        const pill = document.getElementById('residentItemsPill');
-        if (pill) {
-          pill.innerHTML = '📝 Resident items <span style="background:#3d5a0a;color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
+      const pill = document.getElementById('residentItemsPill');
+      if (pill) {
+        // Work out if the AGM is in the past
+        let agmPast = false;
+        const agmRows = data.agenda || [];
+        for (var ri = 0; ri < agmRows.length; ri++) {
+          if ((agmRows[ri][0]||'').toString().trim() === 'Date') {
+            const agmD = new Date(agmRows[ri][1]);
+            if (!isNaN(agmD.getTime())) {
+              const todayP = new Date(); todayP.setHours(0,0,0,0);
+              agmD.setHours(0,0,0,0);
+              agmPast = agmD < todayP;
+            }
+            break;
+          }
+        }
+        if (agmPast) {
+          // AGM has passed — hide pill entirely
+          pill.style.display = 'none';
+        } else if (data.agendaLocked) {
+          // Locked and AGM not yet passed — show locked pill
+          pill.innerHTML = '&#128274; Agenda locked';
+          pill.style.background = '#f5e6d0';
+          pill.style.color = '#8a4a10';
           pill.style.display = 'inline-flex';
+        } else if (submissions.length > 0) {
+          // Open and submissions exist — show count
+          pill.innerHTML = '📝 Resident items <span style="background:#3d5a0a;color:#fff;border-radius:50%;width:1.4em;height:1.4em;display:inline-flex;align-items:center;justify-content:center;font-weight:700;">' + submissions.length + '</span>';
+          pill.style.background = '#d6e0c0';
+          pill.style.color = '#3d5a0a';
+          pill.style.display = 'inline-flex';
+        } else {
+          pill.style.display = 'none';
         }
       }
     } catch(e) {}
