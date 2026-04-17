@@ -1261,7 +1261,7 @@
     html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Paid</span><span class="sum-card-val">' + fmt(totalPaid) + '</span></div>';
     html += totalOut > 0
       ? '<div class="sum-card sum-card-owed"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">' + fmt(totalOut) + '</span></div>'
-      : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">✓ All paid</span></div>';
+      : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">✓ Paid in full</span></div>';
     html += '</div>';
 
     document.getElementById('tracker-inner').innerHTML = html;
@@ -1396,7 +1396,7 @@
       var propOut  = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
-      var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Cleared';
+      var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Paid in full';
       var propPillHtml = isOnTrack(addr, currentYear)
         ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + currentYear + ' charge up to date</span>'
         : '';
@@ -1975,6 +1975,8 @@
         Object.keys(items).sort(function(a, b) {
           var aArr = /- Arrears$/i.test(a), bArr = /- Arrears$/i.test(b);
           if (aArr !== bArr) return aArr ? 1 : -1;
+          var aIns = /Insurance/i.test(a), bIns = /Insurance/i.test(b);
+          if (aIns !== bIns) return aIns ? 1 : -1;
           return a.localeCompare(b);
         }).forEach(function(name) {
           var itemKey = g.key + '_' + name.replace(/\W/g,'_');
@@ -2354,6 +2356,8 @@
         Object.keys(items).sort(function(a, b) {
           var aArr = /- Arrears$/i.test(a), bArr = /- Arrears$/i.test(b);
           if (aArr !== bArr) return aArr ? 1 : -1;
+          var aIns = /Insurance/i.test(a), bIns = /Insurance/i.test(b);
+          if (aIns !== bIns) return aIns ? 1 : -1;
           return a.localeCompare(b);
         }).forEach(function(name) {
           if (g.directDrill && pfx === 'I-') {
@@ -2693,7 +2697,7 @@
     function fhFooterRow(label, due, paid, borderTop) {
       var out  = Math.round((due - paid) * 100) / 100;
       var outC = out > 0 ? 'val-owed' : out < 0 ? 'val-over' : 'val-clear';
-      var outT = out > 0 ? fmt(out) : out < 0 ? '+' + fmt(Math.abs(out)) + ' overpaid' : '✓ All paid';
+      var outT = out > 0 ? fmt(out) : out < 0 ? '+' + fmt(Math.abs(out)) + ' overpaid' : '✓ Paid in full';
       var border = borderTop ? 'border-top:2px solid rgba(196,149,106,0.3);' : 'border-top:1px solid rgba(196,149,106,0.15);';
       var row = '<div style="display:grid;grid-template-columns:1fr 130px 130px 160px 30px;padding:0.55rem 1.25rem;background:var(--dark);' + border + '">';
       row += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--cream);">' + label + '</span>';
@@ -2707,7 +2711,7 @@
     // Cumulative total row (slightly larger, accent border)
     var cumOut  = Math.round(summOut * 100) / 100;
     var cumOutC = cumOut > 0 ? 'val-owed' : cumOut < 0 ? 'val-over' : 'val-clear';
-    var cumOutT = cumOut > 0 ? fmt(cumOut) : cumOut < 0 ? '+' + fmt(Math.abs(cumOut)) + ' overpaid' : '✓ All paid';
+    var cumOutT = cumOut > 0 ? fmt(cumOut) : cumOut < 0 ? '+' + fmt(Math.abs(cumOut)) + ' overpaid' : '✓ Paid in full';
 
     html += fhFooterRow('Farmhouse Rent Total', summRentDue, summRentPaid, true);
     html += fhFooterRow('Farmhouse Insurance Rent Total', summInsDue, summInsPaid, false);
@@ -2864,7 +2868,7 @@
 
       var dotClass   = propTotalPaid === 0 && propTotalDue > 0 ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutC   = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
-      var propOutT   = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '✓ Cleared';
+      var propOutT   = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '✓ Paid in full';
 
       // Current year up to date pill
       var curRentStatus = getFH2RentStatus(addr, currentYear);
