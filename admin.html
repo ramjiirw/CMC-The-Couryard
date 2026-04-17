@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+<div style="border-top:1px solid rgba(184,173,158,0.3);margin-top:1.2rem;padding-top:1rem;">
+          <p style="font-size:0.78rem;color:var(--mid);margin:0;">For a full list of email types, triggers, recipients and body text, see <a href="#" onclick="showPanel('emailref');return false;" style="color:var(--accent);font-weight:600;">Email Reference</a> under Settings.</p>
+        </div><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -346,6 +348,15 @@
   .dash-card-list .dcl-empty { color:rgba(184,173,158,0.5); font-style:italic; }
   /* AGM pill */
   .agm-pill { display:inline-block; border-radius:999px; font-size:0.63rem; font-weight:700; padding:0.15rem 0.6rem; letter-spacing:0.03em; margin-top:0.3rem; }
+  .eref-entry { border:1px solid rgba(184,173,158,0.3); border-radius:7px; margin-bottom:0.6rem; overflow:hidden; }
+  .eref-header { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0.9rem; cursor:pointer; background:#faf7f2; user-select:none; }
+  .eref-header:hover { background:#f5f0e8; }
+  .eref-label { font-size:0.78rem; color:var(--mid); flex:1; }
+  .eref-arrow { font-size:0.6rem; color:var(--accent); margin-left:auto; }
+  .eref-chip { border-radius:4px; padding:0.1rem 0.45rem; font-size:0.72rem; font-weight:600; white-space:nowrap; }
+  .eref-body { padding:0.75rem 0.9rem; background:#fff; border-top:1px solid rgba(184,173,158,0.2); }
+  .eref-sub { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.35rem; }
+  .eref-pre { background:#f5f0e8; border:1px solid rgba(184,173,158,0.3); border-radius:5px; padding:0.75rem 1rem; font-family:Arial,sans-serif; font-size:0.78rem; color:#1e1a16; line-height:1.6; white-space:pre-wrap; word-break:break-word; margin:0; }
   .agm-pill-today  { background:#d4edda; color:#1a5c2e; border:1px solid #a3d9b1; }
   .agm-pill-recent { background:#fff3cd; color:#7a5500; border:1px solid #f5d885; }
   .agm-pill-old    { background:#fdeaea; color:#8b3a3a; border:1px solid #f5c6c6; }
@@ -582,6 +593,7 @@
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
       <div class="sidebar-link" data-panel="changesippw" id="nav-changesippw">&#128196; SIP Password</div>
       <div class="sidebar-link" data-panel="sipqa" id="nav-sipqa">&#10067; SIP Q &amp; A</div>
+      <div class="sidebar-link" data-panel="emailref" id="nav-emailref">&#9993; Email Reference</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -773,15 +785,31 @@
         <div class="panel-title">AGM Agenda</div>
         <div class="panel-desc">Edit the AGM agenda details, items and voting items. Changes save back to the <strong>AGMAgenda</strong> sheet.</div>
 
-        <div style="background:#f5f0e8;border:1px solid rgba(122,92,62,0.25);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+        <div style="background:#f5f0e8;border:1px solid rgba(122,92,62,0.25);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:0.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
           <div>
             <div style="font-size:0.85rem;font-weight:700;color:#4a3f35;margin-bottom:2px;">AGM Reminder Emails</div>
-            <div style="font-size:0.78rem;color:#8a7a65;">Automatic reminders are sent 7 days and 1 day before the AGM date. Tick to suppress both.</div>
+            <div style="font-size:0.78rem;color:#8a7a65;">Automatic reminders are sent 7 days and 2 days before the AGM date. Tick to suppress both.</div>
           </div>
           <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;white-space:nowrap;">
             <input type="checkbox" id="agmReminderSuppress" onchange="saveAGMReminderSuppress()" style="width:16px;height:16px;cursor:pointer;">
             <span style="font-size:0.82rem;color:#4a3f35;font-weight:600;">Suppress reminders</span>
           </label>
+        </div>
+
+        <div style="background:#f5f0e8;border:1px solid rgba(122,92,62,0.25);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+            <div>
+              <div style="font-size:0.85rem;font-weight:700;color:#4a3f35;margin-bottom:2px;">Agenda Submissions</div>
+              <div style="font-size:0.78rem;color:#8a7a65;">Automatically locks 2 days before the AGM. Unlock manually for the next meeting.</div>
+            </div>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;white-space:nowrap;" id="agendaLockLabel">
+              <input type="checkbox" id="agendaLockToggle" onchange="saveAgendaLock()" style="width:16px;height:16px;cursor:pointer;">
+              <span style="font-size:0.82rem;color:#4a3f35;font-weight:600;" id="agendaLockText">Locked</span>
+            </label>
+          </div>
+          <div id="agendaAutoLockNote" style="display:none;margin-top:0.5rem;font-size:0.75rem;color:#8a4a10;background:rgba(180,100,20,0.08);border:1px solid rgba(180,100,20,0.2);border-radius:5px;padding:0.35rem 0.7rem;">
+            &#128274; Automatically locked — within 2 days of AGM
+          </div>
         </div>
         <div id="agmAgendaUnsaved" style="display:none;align-items:center;gap:0.6rem;background:#fff3cd;border:1px solid #f0c040;border-radius:6px;padding:0.5rem 0.9rem;margin-bottom:0.75rem;font-size:0.8rem;color:#7a5c00;font-weight:600;">
           &#9888; Unsaved changes
@@ -1302,6 +1330,268 @@
         </div>
       </div>
 
+      <!-- Email Reference Panel -->
+      <div class="admin-panel" id="panel-emailref">
+        <div class="panel-title">&#9993; Email Reference</div>
+        <div class="panel-desc">A complete reference of every email type the portal can send — triggers, recipients, mode, and body text. This is read-only; changes to email content require a code update in <code>code.gs</code>.</div>
+
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:1.5rem;">
+          <thead>
+            <tr><td colspan="4" style="padding:0.3rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);">Manual</td></tr>
+            <tr style="background:rgba(122,92,62,0.06);">
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Trigger</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Recipients</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends a broadcast manually via the portal</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin schedules a broadcast for a future date/time</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
+            </tr>
+            <tr><td colspan="4" style="padding:1rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);border-top:2px solid rgba(184,173,158,0.4);">Automatic — triggered by Apps Script</td></tr>
+            <tr style="background:rgba(122,92,62,0.06);">
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Trigger</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Recipients</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Mode</th>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(120,60,140,0.12);color:#6a2a7a;border:1px solid rgba(120,60,140,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Agenda</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident submits an AGM agenda item<br><span style="font-size:0.72rem;color:var(--mid);">Sends 3 separate emails: confirmation to submitting address, notification to directors, and a BCC notification to all other residents.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Submitting address, directors &amp; all other residents</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Mixed</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(160,130,0,0.12);color:#7a6200;border:1px solid rgba(160,130,0,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Maintenance In Progress</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin changes a maintenance issue status to In Progress</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Resolved</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin marks a maintenance issue as Resolved</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - January</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">1 January each year — sends January rent invoices to farmhouse properties not yet paid for the current year</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - July</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">20 June each year — sends July rent invoices to farmhouse properties not yet paid; includes any outstanding January instalment</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(160,100,50,0.12);color:#8a5520;border:1px solid rgba(160,100,50,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Submitted</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident submits a new maintenance issue</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address + directors</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(70,100,160,0.12);color:#3a5a9a;border:1px solid rgba(70,100,160,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Noticeboard Notify</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin clicks Notify Residents on a noticeboard item</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Reminder</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic reminder sent 7 days and 2 days before the AGM date<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer. Can be suppressed via the AGM Agenda panel.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="border-top:1px solid rgba(184,173,158,0.3);padding-top:1rem;">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--dark);margin-bottom:0.75rem;">Email body text</div>
+          <p style="font-size:0.78rem;color:var(--mid);margin:0 0 1rem;">Exact text sent for each auto-generated email. To change any wording, update <code>code.gs</code> and redeploy.</p>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(120,60,140,0.12);color:#6a2a7a;border:1px solid rgba(120,60,140,0.25);">AGM Agenda</span>
+              <span class="eref-label">Confirmation to resident &amp; notification to directors + all residents</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To resident (confirmation):</div>
+              <pre class="eref-pre">Dear [Address],
+
+Thank you for contributing to the AGM agenda. Your item has been submitted successfully.
+
+Submitting Address: [address]
+Item: [agenda item text]
+Submitted: [timestamp]
+
+You can view the full agenda and all submitted items by visiting the resident portal.</pre>
+              <div class="eref-sub" style="margin-top:0.75rem;">To directors (notification):</div>
+              <pre class="eref-pre">Dear Director,
+
+A new AGM agenda item has been submitted on the resident portal.
+
+Submitting Address: [address]
+Item: [agenda item text]
+Submitted: [timestamp]
+
+Log in to the portal to view all submitted agenda items.</pre>
+              <div class="eref-sub" style="margin-top:0.75rem;">To all other residents (BCC notification):</div>
+              <pre class="eref-pre">Dear Resident,
+
+A new agenda item has been submitted for the upcoming AGM by [address].
+
+Item: [agenda item text]
+
+You can view the full agenda on the resident portal.</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);">AGM Reminder — 7 Day</span>
+              <span class="eref-label">Sent automatically 7 days before AGM date</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Resident,
+
+This is a reminder that the CMC Annual General Meeting is taking place in 7 days.
+
+Date: [AGM date]
+Time: [AGM time]
+Venue: [AGM venue]
+Agenda items: [N] resident-raised items on the agenda  ← only shown if items exist
+
+You can view the full agenda on the resident portal. If you would like to add an agenda item, please do so within the next 5 days — submissions close 2 days before the meeting.
+
+Kind regards,
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);">AGM Reminder — 2 Day</span>
+              <span class="eref-label">Sent automatically 2 days before AGM date</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Resident,
+
+This is a reminder that the CMC Annual General Meeting is taking place in 2 days.
+
+Date: [AGM date]
+Time: [AGM time]
+Venue: [AGM venue]
+Agenda items: [N] resident-raised items on the agenda  ← only shown if items exist
+
+You can view the full agenda on the resident portal. Agenda submissions are now closed.
+
+Kind regards,
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(160,100,50,0.12);color:#8a5520;border:1px solid rgba(160,100,50,0.25);">Maintenance Submitted</span>
+              <span class="eref-label">Sent when a resident submits a new maintenance issue</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To submitting address:</div>
+              <pre class="eref-pre">Dear [Address],
+
+Thank you for submitting a maintenance issue. We have received your report and it will be reviewed shortly.
+
+Address: [address]
+Category: [category]
+Description: [description]
+Submitted: [timestamp]
+
+You can track the status of your issue on the resident portal.</pre>
+              <div class="eref-sub" style="margin-top:0.75rem;">To directors:</div>
+              <pre class="eref-pre">A new maintenance issue has been submitted:
+
+Address: [address]
+Category: [category]
+Description: [description]
+Submitted: [timestamp]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(160,130,0,0.12);color:#7a6200;border:1px solid rgba(160,130,0,0.25);">Maintenance In Progress</span>
+              <span class="eref-label">Sent when admin changes status to In Progress</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear [Address],
+
+We wanted to let you know that your maintenance issue is now in progress.
+
+Category: [category]
+Description: [description]
+Status: In Progress
+
+We'll update you when it has been resolved. You can track progress on the resident portal.</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);">Maintenance Resolved</span>
+              <span class="eref-label">Sent when admin marks an issue as Resolved</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear [Address],
+
+Your maintenance issue has been resolved.
+
+Category: [category]
+Description: [description]
+Resolved: [date resolved]
+
+Thank you for bringing this to our attention. If you have any further concerns, please submit a new issue via the resident portal.</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(70,100,160,0.12);color:#3a5a9a;border:1px solid rgba(70,100,160,0.25);">Noticeboard Notify</span>
+              <span class="eref-label">Sent when admin clicks Notify Residents on a noticeboard item</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Resident,
+
+There is a new notice on the CMC The Courtyard resident portal.
+
+[Notice title]
+[Notice body text]
+
+Visit the portal to read the full notice and any updates.</pre>
+            </div>
+          </div>
+
+          <p style="margin:1rem 0 0;font-size:0.72rem;color:var(--mid);">When new email types are added to the system, add a row to the table above and an entry here, and add a matching chip to <code>typeChipMap</code> in admin.html.</p>
+        </div>
+      </div>
+
       <!-- Finance Reports Panel -->
       <!-- SIP Q&A Mobile Modal -->
       <div class="nb-mobile-modal" id="qaMobileModal">
@@ -1512,7 +1802,7 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'agmsubmissions') loadAgmSubmissions();
-  if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); }
+  if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -2846,6 +3136,46 @@ async function saveAGMReminderSuppress() {
       body: JSON.stringify({ action: 'writeAGMReminderSuppress', suppress: cb.checked })
     });
     showToast(cb.checked ? 'AGM reminders suppressed' : 'AGM reminders enabled', 'success');
+  } catch(e) { showToast('Could not save — please try again', 'error'); }
+}
+
+async function loadAgendaLock() {
+  try {
+    const r = await fetch(SCRIPT_URL + '?action=readAgendaLock');
+    const d = await r.json();
+    if (d.status !== 'ok') return;
+    var toggle = document.getElementById('agendaLockToggle');
+    var text   = document.getElementById('agendaLockText');
+    var note   = document.getElementById('agendaAutoLockNote');
+    var label  = document.getElementById('agendaLockLabel');
+    if (!toggle) return;
+    toggle.checked = d.locked === true;
+    if (d.autoLocked) {
+      note.style.display = 'block';
+      toggle.disabled = true;
+      label.style.opacity = '0.5';
+      label.style.cursor = 'default';
+    } else {
+      note.style.display = 'none';
+      toggle.disabled = false;
+      label.style.opacity = '';
+      label.style.cursor = 'pointer';
+    }
+    text.textContent = d.locked ? 'Locked' : 'Open';
+  } catch(e) { console.log('Could not load agenda lock state', e); }
+}
+
+async function saveAgendaLock() {
+  var toggle = document.getElementById('agendaLockToggle');
+  var text   = document.getElementById('agendaLockText');
+  if (!toggle) return;
+  text.textContent = toggle.checked ? 'Locked' : 'Open';
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'writeAgendaLock', locked: toggle.checked })
+    });
+    showToast(toggle.checked ? 'Agenda submissions locked' : 'Agenda submissions open', 'success');
   } catch(e) { showToast('Could not save — please try again', 'error'); }
 }
 
