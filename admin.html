@@ -791,8 +791,8 @@
             <div style="font-size:0.78rem;color:#8a7a65;">Automatic reminders are sent 7 days and 2 days before the AGM date. Tick to suppress both.</div>
           </div>
           <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;white-space:nowrap;">
-            <input type="checkbox" id="agmReminderSuppress" onchange="saveAGMReminderSuppress()" style="width:16px;height:16px;cursor:pointer;">
             <span style="font-size:0.82rem;color:#4a3f35;font-weight:600;">Suppress reminders</span>
+            <input type="checkbox" id="agmReminderSuppress" onchange="saveAGMReminderSuppress()" style="width:16px;height:16px;cursor:pointer;">
           </label>
         </div>
 
@@ -803,8 +803,8 @@
               <div style="font-size:0.78rem;color:#8a7a65;">Automatically locks 2 days before the AGM. Unlock manually for the next meeting.</div>
             </div>
             <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;white-space:nowrap;" id="agendaLockLabel">
-              <input type="checkbox" id="agendaLockToggle" onchange="saveAgendaLock()" style="width:16px;height:16px;cursor:pointer;">
               <span style="font-size:0.82rem;color:#4a3f35;font-weight:600;" id="agendaLockText">Locked</span>
+              <input type="checkbox" id="agendaLockToggle" onchange="saveAgendaLock()" style="width:16px;height:16px;cursor:pointer;">
             </label>
           </div>
           <div id="agendaAutoLockNote" style="display:none;margin-top:0.5rem;font-size:0.75rem;color:#8a4a10;background:rgba(180,100,20,0.08);border:1px solid rgba(180,100,20,0.2);border-radius:5px;padding:0.35rem 0.7rem;">
@@ -1128,99 +1128,7 @@
         </div>
 
         <div style="border-top:1px solid rgba(184,173,158,0.3);margin-top:1.2rem;padding-top:1rem;">
-          <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.bh-ref-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(90deg)':'rotate(0deg)'"
-               style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;user-select:none;">
-            <span class="bh-ref-arrow" style="font-size:0.65rem;color:var(--accent);transition:transform 0.2s;transform:rotate(0deg);">&#9654;</span>
-            <span style="font-size:0.82rem;font-weight:700;color:var(--dark);">Email Type Reference</span>
-            <span style="font-size:0.75rem;color:var(--mid);">— all types logged to <strong>BroadcastHistory</strong> and their triggers</span>
-          </div>
-          <div style="display:none;margin-top:0.75rem;">
-            <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
-              <thead>
-                <tr>
-                  <td colspan="4" style="padding:0.3rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);">Manual</td>
-                </tr>
-                <tr style="background:rgba(122,92,62,0.06);">
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Trigger</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Recipients</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Mode</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Immediate</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends a broadcast manually via the portal</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin schedules a broadcast for a future date/time</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
-                </tr>
-                <tr>
-                  <td colspan="4" style="padding:1rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);border-top:2px solid rgba(184,173,158,0.4);">Automatic — triggered by Apps Script</td>
-                </tr>
-                <tr style="background:rgba(122,92,62,0.06);">
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Trigger</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Recipients</th>
-                  <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Mode</th>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(120,60,140,0.12);color:#6a2a7a;border:1px solid rgba(120,60,140,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Agenda</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident submits an AGM agenda item<br><span style="font-size:0.72rem;color:var(--mid);">Sends 3 separate emails: confirmation to submitting address, notification to directors, and a BCC notification to all other residents.</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Submitting address, directors &amp; all other residents</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Mixed</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
-                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(160,130,0,0.12);color:#7a6200;border:1px solid rgba(160,130,0,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Maintenance In Progress</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin changes a maintenance issue status to In Progress</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Resolved</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin marks a maintenance issue as Resolved</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
-                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - January</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">1 January each year — sends January rent invoices to farmhouse properties not yet paid for the current year</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
-                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(101,67,33,0.12);color:#6b4226;border:1px solid rgba(101,67,33,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Rent Invoice - July</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">20 June each year — sends July rent invoices to farmhouse properties not yet paid; includes any outstanding January instalment</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">Residents at each farmhouse property + director summary</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
-                </tr>
-                <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(160,100,50,0.12);color:#8a5520;border:1px solid rgba(160,100,50,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Submitted</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident submits a new maintenance issue</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents at submitting address + directors</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
-                </tr>
-                <tr>
-                  <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(70,100,160,0.12);color:#3a5a9a;border:1px solid rgba(70,100,160,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Noticeboard Notify</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin clicks Notify Residents on a noticeboard item</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
-                </tr>
-                <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
-                  <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Reminder</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic reminder sent 7 days and 1 day before the AGM date<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer. Can be suppressed via the AGM Agenda panel.</span></td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
-                  <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
-                </tr>
-              </tbody>
-            </table>
-            <p style="margin:0.6rem 0 0;font-size:0.72rem;color:var(--mid);">When new email types are added to the system, add a row here and a matching entry to <code>typeChipMap</code> in admin.html.</p>
-          </div>
+          <p style="font-size:0.78rem;color:var(--mid);margin:0;">For a full list of email types, triggers, recipients and body text, see <a href="#" onclick="showPanel('emailref');return false;" style="color:var(--accent);font-weight:600;">Email Reference</a> under Settings.</p>
         </div>
       </div>
 
