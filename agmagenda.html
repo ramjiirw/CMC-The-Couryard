@@ -543,7 +543,8 @@
 </div>
 
 <!-- Floating Add Agenda Item Button -->
-<button class="fab" onclick="openAgendaModal()">➕ Add an Agenda Item</button>
+<button class="fab" id="agendaFab" onclick="openAgendaModal()">➕ Add an Agenda Item</button>
+<div id="agendaClosedNotice" style="display:none;position:fixed;bottom:2rem;right:2rem;background:#f5f0e8;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0.7rem 1.1rem;font-size:0.84rem;color:#6b5f52;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.1);">&#128274; Agenda submissions are currently closed</div>
 
 <!-- Add Agenda Item Modal -->
 <div class="report-modal-overlay" id="agendaModal">
@@ -624,6 +625,16 @@ async function loadAgenda() {
     const res = await fetch(SCRIPT_URL + '?action=readAgenda');
     const data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
+    // Handle agenda lock
+    var fab = document.getElementById('agendaFab');
+    var closedNotice = document.getElementById('agendaClosedNotice');
+    if (data.agendaLocked) {
+      if (fab) fab.style.display = 'none';
+      if (closedNotice) closedNotice.style.display = 'block';
+    } else {
+      if (fab) fab.style.display = '';
+      if (closedNotice) closedNotice.style.display = 'none';
+    }
     renderAgenda(data.agenda, data.submissions);
   } catch(e) {
     document.getElementById('agendaBody').innerHTML =
