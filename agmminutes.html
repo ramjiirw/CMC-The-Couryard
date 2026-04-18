@@ -179,7 +179,7 @@
   .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
   .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
   .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
-  .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; border-bottom: 1px solid #ddd5c8; margin-bottom: 4px; }
+  .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; margin-bottom: 4px; }
 
   .agm-action-row {
     display: flex; align-items: flex-start; gap: 10px;
@@ -541,7 +541,7 @@
     });
     if (!filtered.length) return '';
 
-    var h = '<div class="agm-actions-group-head">' + esc(sectionLabel) + '</div>';
+    var h = '';
 
     (items || []).forEach(function(item, idx) {
       if (!hasContent(item) || !item.actions || !item.actions.length) return;
@@ -564,7 +564,7 @@
         h += '</div>';
         if (itemRef) {
           h += '<div class="agm-action-card-bottom">';
-          h += '<span class="agm-action-card-label">Agenda item</span>';
+          h += '<span class="agm-action-card-label">Related agenda item</span>';
           h += '<span class="agm-action-card-ref">' + esc(itemRef) + '</span>';
           h += '</div>';
         }
@@ -740,8 +740,8 @@
     if (hasActions) {
       h += '<div class="agm-actions-hint">Click any action to view the full agenda item detail</div>';
       h += dirActions;
-      if (resActions) h += '<div style="height:0.5rem;"></div>' + resActions;
-      if (aobActions) h += '<div style="height:0.5rem;"></div>' + aobActions;
+      if (resActions) h += resActions;
+      if (aobActions) h += aobActions;
     } else {
       h += '<div style="padding:10px 8px;font-size:15px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
     }
