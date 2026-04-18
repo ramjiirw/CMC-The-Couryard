@@ -350,6 +350,8 @@
   var agmActionCounter = 0;
   var agmItemCounter = 0;
   var agmActionNumberMap = {};
+  var agmActionsSortByStatus = false;
+  var agmAllActionCards = [];
 
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -416,6 +418,32 @@
   function agmCollapseAll() {
     Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = false; });
     renderAGMOverlay();
+  }
+
+  function agmToggleActionSort() {
+    agmActionsSortByStatus = !agmActionsSortByStatus;
+    var btn = document.getElementById('agm-sort-btn');
+    var list = document.getElementById('agm-actions-list');
+    if (!list) return;
+    var cards = Array.from(list.querySelectorAll('.agm-action-card'));
+    if (agmActionsSortByStatus) {
+      // Sort: outstanding first, complete second — stable within each group
+      cards.sort(function(a, b) {
+        var aOut = a.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        var bOut = b.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        return aOut - bOut;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by number';
+    } else {
+      // Restore original order by Action number
+      cards.sort(function(a, b) {
+        var aNum = parseInt((a.querySelector('.agm-action-card-num') || {}).textContent || '0');
+        var bNum = parseInt((b.querySelector('.agm-action-card-num') || {}).textContent || '0');
+        return aNum - bNum;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by status';
+    }
+    cards.forEach(function(card) { list.appendChild(card); });
   }
 
   function agmToggle(key) {
@@ -522,11 +550,11 @@
   }
 
   /* ── Show quick-view modal ── */
-  function agmShowModalByKey(storeKey, sectionLabel, section, highlightAction) {
+  function agmShowModalByKey(storeKey, sectionLabel, section) {
     var item = agmItemStore[storeKey];
     if (!item) return;
     document.getElementById('agm-modal-title').textContent = sectionLabel;
-    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section, highlightAction);
+    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section);
     document.getElementById('agm-modal-overlay').classList.add('open');
   }
 
@@ -561,7 +589,7 @@
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
 
-        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + JSON.stringify(a.text) + ')">';
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\')">';
         h += '<div class="agm-action-card-top">';
         h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
         h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
@@ -740,10 +768,15 @@
     h += '</div>';
     h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
     if (hasActions) {
-      h += '<div class="agm-actions-hint">Click any action to view the full agenda item detail</div>';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 8px;">';
+      h += '<span class="agm-actions-hint" style="margin-bottom:0;">Click any action to view the full agenda item detail</span>';
+      h += '<button onclick="agmToggleActionSort()" id="agm-sort-btn" style="padding:0.35rem 0.8rem;width:130px;background:rgba(74,94,58,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#8645; Sort by status</button>';
+      h += '</div>';
+      h += '<div id="agm-actions-list">';
       h += dirActions;
       if (resActions) h += resActions;
       if (aobActions) h += aobActions;
+      h += '</div>';
     } else {
       h += '<div style="padding:10px 8px;font-size:15px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
     }
