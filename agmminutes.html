@@ -64,6 +64,13 @@
   .btn-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
   .btn-toggle.open .toggle-hint .hint-close { display: inline; }
   .btn-toggle:not(.open) .toggle-hint .hint-close { display: none; }
+  .btn-loading { pointer-events: none; opacity: 0.8; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
 
   .collapsible-panel { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
   .collapsible-panel.open { max-height: 8000px; }
@@ -290,18 +297,18 @@
     <h2>AGM Minutes</h2>
     <p>Annual General Meeting minutes, attendance, voting records and action tracking for CMC The Courtyard.</p>
   </div>
-  <div id="mainLoadingState" class="state-loading">
-    <div class="spinner"></div>
-    <div>Loading minutes…</div>
-  </div>
-  <div id="mainContent" style="display:none;">
+
+  <div id="mainContent">
     <div class="finance-section">
-      <button class="btn-toggle" id="toggle-agm" onclick="openAGMOverlay()">
+      <button class="btn-toggle btn-loading" id="toggle-agm" onclick="openAGMOverlay()">
         <span class="toggle-left">
           <span>&#8645;</span>
-          <span id="agm-toggle-label">AGM Minutes</span><span id="agm-toggle-counts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;"></span>
+          <span id="agm-toggle-label">AGM MINUTES · LIVE</span><span id="agm-toggle-counts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;"></span>
         </span>
-        <span class="toggle-hint">Click to open full minutes view</span>
+        <span class="toggle-hint">
+          <span class="hint-loading">⏳ Loading minutes…</span>
+          <span class="hint-open">Tap to open &amp; view full minutes</span>
+        </span>
       </button>
     </div>
   </div>
@@ -376,7 +383,7 @@
       agmData = data;
 
       var m = data.meta;
-      var label = 'AGM MINUTES' + (m && m.date ? ' — ' + formatAGMDate(m.date).toUpperCase() : '');
+      var label = 'AGM MINUTES · LIVE' + (m && m.date ? ' — ' + formatAGMDate(m.date).toUpperCase() : '');
       // Count actions
       var totComplete = 0, totOutstanding = 0;
       ['dirItems','resItems','aobItems'].forEach(function(k) {
@@ -400,6 +407,8 @@
 
       document.getElementById('mainLoadingState').style.display = 'none';
       document.getElementById('mainContent').style.display = '';
+      var toggleBtn = document.getElementById('toggle-agm');
+      if (toggleBtn) toggleBtn.classList.remove('btn-loading');
 
     } catch(err) {
       document.getElementById('mainLoadingState').style.display = 'none';
