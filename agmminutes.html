@@ -703,7 +703,7 @@
     h += '<div class="agm-details-card-title">CMC Company Officers</div>';
     if (m.officers && m.officers.length) {
       m.officers.forEach(function(o) {
-        h += '<div class="agm-details-row"><span class="agm-details-key">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
+        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:130px;">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
       });
     } else {
       h += '<div style="font-size:15px;color:#b8ad9e;font-style:italic;">No officers recorded.</div>';
@@ -714,9 +714,17 @@
     h += '</div>'; // end section 1
 
     // ── 2. ATTENDANCE (collapsible) ──
+    var attPresent = (d.present || []).length;
+    var attApologies = (d.apologies || []).length;
+    var attSummary = '';
+    if (attPresent > 0 || attApologies > 0) {
+      attSummary = '<span style="font-size:12px;color:#9e8e7e;">' + attPresent + ' attended &nbsp;·&nbsp; ' + attApologies + ' apolog' + (attApologies === 1 ? 'y' : 'ies') + '</span>';
+    }
+
     var attOpen = agmOpenGroups.attendance;
     h += '<div class="bva-group-row" onclick="agmToggle(\'attendance\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (attOpen ? ' open' : '') + '"></span>Attendance</span>';
+    if (attSummary) h += attSummary;
     h += '</div>';
     h += '<div class="bva-items' + (attOpen ? ' open' : '') + '" id="agm-grp-attendance">';
 
@@ -786,7 +794,7 @@
     });
     var actionsSummary = '';
     if (totalOutstanding === 0 && totalComplete > 0) {
-      actionsSummary = '<span style="font-size:11px;font-weight:500;background:#eaf3e0;color:#2e7d32;border-radius:4px;padding:3px 10px;">✓ All complete</span>';
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">✓ All complete</span>';
     } else if (totalComplete > 0 || totalOutstanding > 0) {
       actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">' + totalComplete + ' complete &nbsp;·&nbsp; ' + totalOutstanding + ' outstanding</span>';
     }
