@@ -430,12 +430,11 @@
 
   /* ── Render a single agenda item — Option 3 style ── */
   // section: 'dir' | 'res' | 'aob' | '' (modal)
-  function renderAgendaItemHTML(item, inModal, section) {
-    agmItemCounter++;
+  function renderAgendaItemHTML(item, inModal, section, highlightAction) {
+    if (!inModal) agmItemCounter++;
+    var itemNum = inModal ? (agmActionNumberMap[highlightAction] ? agmActionNumberMap[highlightAction].replace('Action ','') : '') : agmItemCounter;
     var h = '<div class="agm-agenda-item">';
-    if (!inModal) {
-      h += '<div class="agm-agenda-numcol">' + agmItemCounter + '</div>';
-    }
+    h += '<div class="agm-agenda-numcol">' + itemNum + '</div>';
     h += '<div class="agm-agenda-content">';
     if (item.item) {
       var titleHtml = '';
@@ -465,9 +464,11 @@
         var badge = a.complete
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
-        h += '<div class="agm-agenda-action-row">';
+        var isHighlighted = inModal && highlightAction && (a.text === highlightAction);
+        var highlightStyle = isHighlighted ? ' style="background:#fdf8f0;border-radius:4px;margin:2px 0;padding:6px 6px;"' : '';
+        h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
         if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
-        h += '<span class="agm-agenda-action-text">' + esc(a.text) + '</span>';
+        h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
         h += badge;
         h += '</div>';
       });
@@ -521,11 +522,11 @@
   }
 
   /* ── Show quick-view modal ── */
-  function agmShowModalByKey(storeKey, sectionLabel) {
+  function agmShowModalByKey(storeKey, sectionLabel, section, highlightAction) {
     var item = agmItemStore[storeKey];
     if (!item) return;
-    document.getElementById('agm-modal-title').textContent = sectionLabel + (item.number ? ' — ' + item.number : '');
-    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true);
+    document.getElementById('agm-modal-title').textContent = sectionLabel;
+    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section, highlightAction);
     document.getElementById('agm-modal-overlay').classList.add('open');
   }
 
@@ -560,7 +561,7 @@
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
 
-        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\')">';
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + JSON.stringify(a.text) + ')">';
         h += '<div class="agm-action-card-top">';
         h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
         h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
