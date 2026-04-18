@@ -775,9 +775,26 @@
     var aobActions  = buildActionRowsKeyed(d.aobItems,  'aob',  'Any Other Business');
     var hasActions  = dirActions || resActions || aobActions;
 
+    // Count complete and outstanding across all action groups
+    var totalComplete = 0, totalOutstanding = 0;
+    [d.dirItems, d.resItems, d.aobItems].forEach(function(section) {
+      (section || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) {
+          if (a.complete) totalComplete++; else totalOutstanding++;
+        });
+      });
+    });
+    var actionsSummary = '';
+    if (totalOutstanding === 0 && totalComplete > 0) {
+      actionsSummary = '<span style="font-size:11px;font-weight:500;background:#eaf3e0;color:#2e7d32;border-radius:4px;padding:3px 10px;">✓ All complete</span>';
+    } else if (totalComplete > 0 || totalOutstanding > 0) {
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">' + totalComplete + ' complete &nbsp;·&nbsp; ' + totalOutstanding + ' outstanding</span>';
+    }
+
     var actionsOpen = agmOpenGroups.actions;
     h += '<div class="bva-group-row" onclick="agmToggle(\'actions\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (actionsOpen ? ' open' : '') + '"></span>Actions</span>';
+    if (actionsSummary) h += actionsSummary;
     h += '</div>';
     h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
     if (hasActions) {
