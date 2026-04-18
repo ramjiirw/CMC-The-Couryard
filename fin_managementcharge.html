@@ -939,7 +939,7 @@
 <div id="bva-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
     <select id="bva-rpt-year-select" onchange="bvaRptChangeYear(parseInt(this.value))" style="width:90px;padding:0.35rem 0.6rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
-    <button id="bva-hide-actuals-btn" onclick="bvaToggleActuals()" style="width:120px;padding:0.35rem 0.9rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.35);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Hide Actuals</button>
+    <button id="bva-hide-actuals-btn" onclick="bvaToggleActuals()" style="width:120px;padding:0.35rem 0.9rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.35);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Hide Actual</button>
     <button id="bva-rpt-expand-btn" onclick="bvaRptExpandGroups()" style="width:160px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand Groups</button>
     <button id="bva-rpt-collapse-btn" onclick="bvaRptCollapseAll()" style="display:none;width:160px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse Groups</button>
     <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
@@ -3487,7 +3487,7 @@
   function bvaToggleActuals() {
     bvaHideActuals = !bvaHideActuals;
     var btn = document.getElementById('bva-hide-actuals-btn');
-    if (btn) btn.textContent = bvaHideActuals ? 'Show Actuals' : 'Hide Actuals';
+    if (btn) btn.textContent = bvaHideActuals ? 'Show Actual' : 'Hide Actual';
     renderBVAReport();
   }
 
