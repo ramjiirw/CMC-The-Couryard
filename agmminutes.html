@@ -411,8 +411,10 @@
       if (toggleBtn) toggleBtn.classList.remove('btn-loading');
 
     } catch(err) {
-      document.getElementById('mainLoadingState').style.display = 'none';
-      document.getElementById('mainErrorState').style.display = '';
+      var errEl = document.getElementById('mainErrorState');
+      if (errEl) errEl.style.display = '';
+      var toggleBtn = document.getElementById('toggle-agm');
+      if (toggleBtn) toggleBtn.classList.remove('btn-loading');
       console.error('AGM Minutes error:', err);
     }
   })();
