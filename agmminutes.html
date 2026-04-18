@@ -158,15 +158,28 @@
   .agm-dot-amber { background: #c4956a; }
 
   .agm-vote-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 8px 8px 24px; border-bottom: 1px solid #f0ebe0; font-size: 16px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 8px; border-bottom: 1px solid #f0ebe0; font-size: 16px;
   }
   .agm-vote-row:last-child { border-bottom: none; }
-  .agm-vote-num { color: #9e8e7e; width: 36px; flex-shrink: 0; font-size: 14px; }
-  .agm-vote-motion { flex: 1; color: #333; }
-  .agm-vote-result { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
-  .agm-vote-passed { color: #2e7d32; }
-  .agm-vote-pending { color: #c4956a; }
+  .agm-vote-num { color: #7a5c3e; min-width: 60px; flex-shrink: 0; font-size: 14px; font-weight: 500; }
+  .agm-vote-motion { flex: 1; color: #1e1a16; font-size: 15px; }
+  .agm-vote-result { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .agm-vote-passed { background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; }
+  .agm-vote-pending { background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; }
+
+  .agm-action-card { border: 1px solid #ddd5c8; border-radius: 6px; margin: 6px 0; overflow: hidden; cursor: pointer; }
+  .agm-action-card:hover .agm-action-card-top { background: #f0ebe0; }
+  .agm-action-card-top { background: #faf7f2; padding: 9px 14px; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+  .agm-action-card-num { font-size: 13px; font-weight: 500; color: #9e8e7e; min-width: 68px; flex-shrink: 0; }
+  .agm-action-card-text { font-size: 15px; color: #1e1a16; flex: 1; line-height: 1.4; }
+  .agm-action-card-bottom { padding: 6px 14px 8px; border-top: 1px solid #ede8e0; display: flex; gap: 8px; align-items: baseline; }
+  .agm-action-card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; }
+  .agm-action-card-ref { font-size: 13px; color: #6b5f52; line-height: 1.4; }
+  .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
+  .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; border-bottom: 1px solid #ddd5c8; margin-bottom: 4px; }
 
   .agm-action-row {
     display: flex; align-items: flex-start; gap: 10px;
@@ -335,7 +348,8 @@
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 
   var agmData = null;
-  var agmOpenGroups = { attendance: false, votingactions: false, director: false, resident: false, aob: false };
+  var agmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
+  var agmActionCounter = 0;
 
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -520,37 +534,47 @@
     if (e.target === document.getElementById('agm-modal-overlay')) closeAgmModal();
   }
 
-  /* ── Build action rows with store key references ── */
+  /* ── Build action cards with sequential numbering ── */
   function buildActionRowsKeyed(items, prefix, sectionLabel) {
     var filtered = (items || []).filter(function(item) {
       return hasContent(item) && item.actions && item.actions.length;
     });
     if (!filtered.length) return '';
 
-    var h = '<div class="agm-section-subhead">' + esc(sectionLabel) + '</div>';
+    var h = '<div class="agm-actions-group-head">' + esc(sectionLabel) + '</div>';
 
     (items || []).forEach(function(item, idx) {
       if (!hasContent(item) || !item.actions || !item.actions.length) return;
       var storeKey = prefix + '_' + idx;
-      var itemRef = item.item ? esc(item.item) : (item.number ? esc(item.number) : '');
+      var itemRef = item.item ? item.item : (item.number ? item.number : '');
+      itemRef = itemRef.replace(/AOB0+(\d)/g, 'AOB$1');
 
       item.actions.forEach(function(a) {
-        h += '<div class="agm-action-row" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\')">';
-        if (a.complete) {
-          h += '<span class="agm-action-indicator agm-chip-complete" style="font-size:14px;font-weight:700;">✓</span>';
-        } else {
-          h += '<span class="agm-action-indicator agm-chip-outstanding" style="font-size:18px;font-weight:700;line-height:1;">·</span>';
+        agmActionCounter++;
+        var num = 'Action ' + agmActionCounter;
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\')">';
+        h += '<div class="agm-action-card-top">';
+        h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
+        h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+        h += badge;
+        h += '</div>';
+        if (itemRef) {
+          h += '<div class="agm-action-card-bottom">';
+          h += '<span class="agm-action-card-label">Agenda item</span>';
+          h += '<span class="agm-action-card-ref">' + esc(itemRef) + '</span>';
+          h += '</div>';
         }
-        h += '<div class="agm-action-text">';
-        h += '<div>' + esc(a.text) + '</div>';
-        if (itemRef) h += '<div class="agm-action-item-ref">' + itemRef + '</div>';
-        h += '</div></div>';
+        h += '</div>';
       });
     });
     return h;
   }
 
-  /* ── Group attendance by address, combine names smartly ── */
+    /* ── Group attendance by address, combine names smartly ── */
   function renderAttendanceGroups(people, dotClass) {
     // Extract property number for sorting (e.g. "3 The Courtyard" -> 3)
     function propNum(addr) {
@@ -677,48 +701,51 @@
 
     h += '<div style="height:1.5rem;"></div>';
 
-    // ── 3. VOTING & ACTIONS (collapsible) ──
-    var vaOpen = agmOpenGroups.votingactions;
-    h += '<div class="bva-group-row" onclick="agmToggle(\'votingactions\')">';
-    h += '<span class="bva-group-name"><span class="bva-chev' + (vaOpen ? ' open' : '') + '"></span>Voting &amp; Actions</span>';
+    // ── 3. VOTING (collapsible) ──
+    var votingOpen = agmOpenGroups.voting;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'voting\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (votingOpen ? ' open' : '') + '"></span>Voting</span>';
     h += '</div>';
-    h += '<div class="bva-items' + (vaOpen ? ' open' : '') + '" id="agm-grp-votingactions">';
-
-    // Voting sub-section
-    h += '<div class="agm-section-subhead">Voting</div>';
+    h += '<div class="bva-items' + (votingOpen ? ' open' : '') + '" id="agm-grp-voting">';
     if (d.votes && d.votes.length) {
       d.votes.forEach(function(v) {
         h += '<div class="agm-vote-row">';
         h += '<span class="agm-vote-num">' + esc(v.number) + '</span>';
         h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>';
         if (v.passed) {
-          h += '<span class="agm-vote-result agm-vote-passed"><span style="font-size:13px;">✓</span> Passed</span>';
+          h += '<span class="agm-vote-result agm-vote-passed">✓ Passed</span>';
         } else {
-          h += '<span class="agm-vote-result agm-vote-pending"><span class="agm-dot agm-dot-amber" style="margin-top:1px;"></span> Pending</span>';
+          h += '<span class="agm-vote-result agm-vote-pending">● Pending</span>';
         }
         h += '</div>';
       });
     } else {
-      h += '<div style="padding:10px 8px 10px 24px;font-size:15px;color:#b8ad9e;font-style:italic;border-bottom:1px solid #f0ebe0;">No votes recorded.</div>';
+      h += '<div style="padding:10px 8px;font-size:15px;color:#b8ad9e;font-style:italic;">No votes recorded.</div>';
     }
+    h += '</div>'; // end voting items
+    h += '<div style="height:1.5rem;"></div>';
 
-    // Actions sub-sections — grouped, always expanded, clickable
-    var dirActions  = buildActionRowsKeyed(d.dirItems,  'dir',  'Director Items');
-    var resActions  = buildActionRowsKeyed(d.resItems,  'res',  'Resident Items');
+    // ── 4. ACTIONS (collapsible) ──
+    agmActionCounter = 0;
+    var dirActions  = buildActionRowsKeyed(d.dirItems,  'dir',  'Director - Agenda Items');
+    var resActions  = buildActionRowsKeyed(d.resItems,  'res',  'Resident - Agenda Items');
     var aobActions  = buildActionRowsKeyed(d.aobItems,  'aob',  'Any Other Business');
     var hasActions  = dirActions || resActions || aobActions;
 
+    var actionsOpen = agmOpenGroups.actions;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'actions\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (actionsOpen ? ' open' : '') + '"></span>Actions</span>';
+    h += '</div>';
+    h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
     if (hasActions) {
-      h += '<div style="margin-top:8px;">';
+      h += '<div class="agm-actions-hint">Click any action to view the full agenda item detail</div>';
       h += dirActions;
-      h += resActions;
-      h += aobActions;
-      h += '</div>';
+      if (resActions) h += '<div style="height:0.5rem;"></div>' + resActions;
+      if (aobActions) h += '<div style="height:0.5rem;"></div>' + aobActions;
     } else {
-      h += '<div style="padding:10px 8px 10px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
+      h += '<div style="padding:10px 8px;font-size:15px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
     }
-
-    h += '</div>'; // end votingactions items
+    h += '</div>'; // end actions items
     h += '<div style="height:1.5rem;"></div>';
 
     // ── 4. DIRECTOR AGENDA ITEMS (collapsible) ──
