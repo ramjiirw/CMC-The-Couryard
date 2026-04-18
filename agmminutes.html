@@ -192,24 +192,22 @@
   .agm-action-text { flex: 1; color: #333; line-height: 1.4; }
   .agm-action-item-ref { font-size: 13px; color: #9e8e7e; margin-top: 2px; }
 
-  .agm-agenda-item { padding: 14px 8px 14px 24px; border-bottom: 1px solid #f0ebe0; }
+  .agm-agenda-item { display: flex; gap: 16px; padding: 14px 8px; border-bottom: 1px solid #f0ebe0; }
   .agm-agenda-item:last-child { border-bottom: none; }
-  .agm-agenda-raised { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9e8e7e; margin-bottom: 4px; }
-  .agm-agenda-title { font-size: 16px; font-weight: 600; color: #1e1a16; margin-bottom: 8px; }
+  .agm-agenda-numcol { font-size: 22px; font-weight: 500; color: #b8ad9e; min-width: 28px; flex-shrink: 0; line-height: 1.2; padding-top: 2px; }
+  .agm-agenda-content { flex: 1; }
+  .agm-agenda-title { font-size: 15px; font-weight: 500; color: #1e1a16; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ddd5c8; }
   .agm-agenda-note {
-    font-size: 15px; color: #6b5f52; line-height: 1.7;
+    font-size: 13px; color: #6b5f52; line-height: 1.7;
     background: rgba(122,92,62,0.04); border-left: 3px solid #ddd5c8;
     padding: 8px 12px; border-radius: 0 4px 4px 0;
     white-space: pre-wrap; margin-bottom: 8px;
   }
-  .agm-action-chips { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-  .agm-chip {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 14px; padding: 4px 0;
-  }
-  .agm-chip-complete { color: #2e7d32; }
-  .agm-chip-outstanding { color: #c4956a; }
-  .agm-chip-icon { font-size: 13px; flex-shrink: 0; }
+  .agm-agenda-actions { margin-top: 4px; border-top: 1px solid #ddd5c8; padding-top: 6px; }
+  .agm-agenda-action-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 0.5px solid #f0ebe0; }
+  .agm-agenda-action-row:first-child { border-top: none; }
+  .agm-agenda-action-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; min-width: 60px; }
+  .agm-agenda-action-text { font-size: 13px; color: #1e1a16; flex: 1; }
 
   .agm-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 8px; }
   .agm-details-card { background: rgba(122,92,62,0.04); border: 1px solid #ddd5c8; border-radius: 8px; padding: 12px 14px; }
@@ -350,6 +348,8 @@
   var agmData = null;
   var agmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
   var agmActionCounter = 0;
+  var agmItemCounter = 0;
+  var agmActionNumberMap = {};
 
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -437,30 +437,14 @@
   }
 
   /* ── Render chips (complete / outstanding) ── */
-  function renderChips(actions) {
-    if (!actions || !actions.length) return '';
-    var h = '<div class="agm-action-chips">';
-    actions.forEach(function(a) {
-      if (a.complete) {
-        h += '<div class="agm-chip agm-chip-complete"><span class="agm-chip-icon">✓</span><span>' + esc(a.text) + '</span></div>';
-      } else {
-        h += '<div class="agm-chip agm-chip-outstanding"><span class="agm-chip-icon">·</span><span>' + esc(a.text) + '</span></div>';
-      }
-    });
-    h += '</div>';
-    return h;
-  }
-
-  /* ── Render a single agenda item (used in sections and modal) ── */
-  function renderAgendaItemHTML(item) {
+  /* ── Render a single agenda item — Option 3 style ── */
+  function renderAgendaItemHTML(item, inModal) {
+    agmItemCounter++;
     var h = '<div class="agm-agenda-item">';
-    if (item.number || item.raisedBy) {
-      h += '<div class="agm-agenda-raised">';
-      if (item.number) h += esc(item.number);
-      if (item.number && item.raisedBy) h += ' &nbsp;·&nbsp; ';
-      if (item.raisedBy) h += esc(item.raisedBy);
-      h += '</div>';
+    if (!inModal) {
+      h += '<div class="agm-agenda-numcol">' + agmItemCounter + '</div>';
     }
+    h += '<div class="agm-agenda-content">';
     if (item.item) {
       h += '<div class="agm-agenda-title">' + esc(item.item) + '</div>';
     }
@@ -468,9 +452,22 @@
       h += '<div class="agm-agenda-note">' + esc(item.note) + '</div>';
     }
     if (item.actions && item.actions.length) {
-      h += renderChips(item.actions);
+      h += '<div class="agm-agenda-actions">';
+      item.actions.forEach(function(a) {
+        // Look up this action's sequential number from the actionNumberMap
+        var actionNum = agmActionNumberMap[a.text] || '';
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+        h += '<div class="agm-agenda-action-row">';
+        if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
+        h += '<span class="agm-agenda-action-text">' + esc(a.text) + '</span>';
+        h += badge;
+        h += '</div>';
+      });
+      h += '</div>';
     }
-    h += '</div>';
+    h += '</div></div>';
     return h;
   }
 
@@ -522,7 +519,7 @@
     var item = agmItemStore[storeKey];
     if (!item) return;
     document.getElementById('agm-modal-title').textContent = sectionLabel + (item.number ? ' — ' + item.number : '');
-    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item);
+    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true);
     document.getElementById('agm-modal-overlay').classList.add('open');
   }
 
@@ -552,6 +549,7 @@
       item.actions.forEach(function(a) {
         agmActionCounter++;
         var num = 'Action ' + agmActionCounter;
+        agmActionNumberMap[a.text] = num;
         var badge = a.complete
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
@@ -722,6 +720,8 @@
 
     // ── 4. ACTIONS (collapsible) ──
     agmActionCounter = 0;
+    agmItemCounter = 0;
+    agmActionNumberMap = {};
     var dirActions  = buildActionRowsKeyed(d.dirItems,  'dir',  'Director - Agenda Items');
     var resActions  = buildActionRowsKeyed(d.resItems,  'res',  'Resident - Agenda Items');
     var aobActions  = buildActionRowsKeyed(d.aobItems,  'aob',  'Any Other Business');
@@ -750,8 +750,9 @@
     h += '<span class="bva-group-name"><span class="bva-chev' + (dirOpen ? ' open' : '') + '"></span>Director Agenda Items</span>';
     h += '</div>';
     h += '<div class="bva-items' + (dirOpen ? ' open' : '') + '" id="agm-grp-director">';
+    agmItemCounter = 0;
     if (dirItems.length) {
-      dirItems.forEach(function(item) { h += renderAgendaItemHTML(item); });
+      dirItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
@@ -765,8 +766,9 @@
     h += '<span class="bva-group-name"><span class="bva-chev' + (resOpen ? ' open' : '') + '"></span>Resident Agenda Items</span>';
     h += '</div>';
     h += '<div class="bva-items' + (resOpen ? ' open' : '') + '" id="agm-grp-resident">';
+    agmItemCounter = 0;
     if (resItems.length) {
-      resItems.forEach(function(item) { h += renderAgendaItemHTML(item); });
+      resItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
@@ -780,8 +782,9 @@
     h += '<span class="bva-group-name"><span class="bva-chev' + (aobOpen ? ' open' : '') + '"></span>Any Other Business</span>';
     h += '</div>';
     h += '<div class="bva-items' + (aobOpen ? ' open' : '') + '" id="agm-grp-aob">';
+    agmItemCounter = 0;
     if (aobItems.length) {
-      aobItems.forEach(function(item) { h += renderAgendaItemHTML(item); });
+      aobItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
