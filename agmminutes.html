@@ -434,20 +434,21 @@
     agmItemCounter++;
     var h = '<div class="agm-agenda-item">';
     if (!inModal) {
-      h += '<div class="agm-agenda-numcol">' + agmItemCounter + '</div>';
+      var numLabel = (section === 'aob')
+        ? (item.number || '').replace(/AOB0*(\d+)/i, 'AOB $1')
+        : String(agmItemCounter);
+      h += '<div class="agm-agenda-numcol">' + esc(numLabel) + '</div>';
     }
     h += '<div class="agm-agenda-content">';
     if (item.item) {
       var titleHtml = '';
       if (section === 'aob') {
-        // AOB: show number + title e.g. "AOB 1 Farmhouse Communal Areas"
-        var aobNum = (item.number || '').replace(/AOB0*(\d+)/i, 'AOB $1');
-        var aobTitle = aobNum ? aobNum + ' ' + esc(item.item) : esc(item.item);
-        var raisedBy = item.raisedBy ? '<span style="font-size:13px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + aobTitle + raisedBy + '</div>';
+        // AOB: title + raised by to the right, same style as resident
+        var raisedBy = item.raisedBy ? '<span style="font-size:15px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(item.item) + raisedBy + '</div>';
       } else if (section === 'res') {
         // Resident: show title + raised by to the right
-        var raisedBy = item.raisedBy ? '<span style="font-size:13px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        var raisedBy = item.raisedBy ? '<span style="font-size:15px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
         titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(item.item) + raisedBy + '</div>';
       } else {
         // Director or modal: title only
