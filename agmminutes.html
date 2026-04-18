@@ -434,18 +434,16 @@
     agmItemCounter++;
     var h = '<div class="agm-agenda-item">';
     if (!inModal) {
-      var numLabel = (section === 'aob')
-        ? (item.number || '').replace(/AOB0*(\d+)/i, 'AOB $1')
-        : String(agmItemCounter);
-      h += '<div class="agm-agenda-numcol">' + esc(numLabel) + '</div>';
+      h += '<div class="agm-agenda-numcol">' + agmItemCounter + '</div>';
     }
     h += '<div class="agm-agenda-content">';
     if (item.item) {
       var titleHtml = '';
       if (section === 'aob') {
-        // AOB: title + raised by to the right, same style as resident
+        // AOB: strip AOB prefix from title, show raised by to the right
+        var aobCleanTitle = (item.item || '').replace(/^AOB\d+\s*/i, '');
         var raisedBy = item.raisedBy ? '<span style="font-size:15px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(item.item) + raisedBy + '</div>';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(aobCleanTitle) + raisedBy + '</div>';
       } else if (section === 'res') {
         // Resident: show title + raised by to the right
         var raisedBy = item.raisedBy ? '<span style="font-size:15px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
