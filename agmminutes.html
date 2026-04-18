@@ -241,7 +241,7 @@
     display: flex; align-items: center; justify-content: space-between;
     border-radius: 10px 10px 0 0;
   }
-  #agm-modal-title { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
   #agm-modal-close {
     background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
     border-radius: 5px; padding: 0.3rem 0.75rem; font-family: Arial, sans-serif;
@@ -327,7 +327,9 @@
 <div id="agm-modal-overlay" onclick="agmModalClickOutside(event)">
   <div id="agm-modal-box">
     <div id="agm-modal-header">
-      <span id="agm-modal-title">Agenda Item</span>
+      <div>
+        <div id="agm-modal-title" style="font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:white;"></div>
+      </div>
       <button id="agm-modal-close" onclick="closeAgmModal()">✕ Close</button>
     </div>
     <div id="agm-modal-body"></div>
@@ -384,9 +386,14 @@
           });
         });
       });
-      var countStr = (totComplete + totOutstanding > 0)
-        ? ' · ACTIONS · ' + totComplete + ' COMPLETE · ' + totOutstanding + ' OUTSTANDING'
-        : '';
+      var countStr = '';
+      if (totComplete + totOutstanding > 0) {
+        if (totOutstanding === 0) {
+          countStr = ' · ACTIONS · ✓ ALL COMPLETE';
+        } else {
+          countStr = ' · ACTIONS · ' + totComplete + ' COMPLETE · ' + totOutstanding + ' OUTSTANDING';
+        }
+      }
       document.getElementById('agm-toggle-label').textContent = label;
       var countEl = document.getElementById('agm-toggle-counts');
       if (countEl) countEl.textContent = countStr;
@@ -571,7 +578,10 @@
   function agmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
     var item = agmItemStore[storeKey];
     if (!item) return;
-    document.getElementById('agm-modal-title').textContent = sectionLabel;
+    // Build subtitle: section label + item number
+    var itemNum = parseInt((storeKey.split('_')[1] || '0')) + 1;
+    var subtitle = sectionLabel + ' — Item ' + itemNum;
+    document.getElementById('agm-modal-title').textContent = subtitle;
     document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section);
     // Highlight the specific action row
     if (actionIdx !== undefined) {
@@ -854,8 +864,18 @@
     // ── 4. DIRECTOR AGENDA ITEMS (collapsible) ──
     var dirItems = (d.dirItems || []).filter(hasContent);
     var dirOpen = agmOpenGroups.director;
+    var dirSummary = (function() {
+      var c = 0, o = 0;
+      (d.dirItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
     h += '<div class="bva-group-row" onclick="agmToggle(\'director\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (dirOpen ? ' open' : '') + '"></span>Director Agenda Items</span>';
+    if (dirSummary) h += dirSummary;
     h += '</div>';
     h += '<div class="bva-items' + (dirOpen ? ' open' : '') + '" id="agm-grp-director">';
     agmItemCounter = 0;
@@ -870,8 +890,18 @@
     // ── 5. RESIDENT AGENDA ITEMS (collapsible) ──
     var resItems = (d.resItems || []).filter(hasContent);
     var resOpen = agmOpenGroups.resident;
+    var resSummary = (function() {
+      var c = 0, o = 0;
+      (d.resItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
     h += '<div class="bva-group-row" onclick="agmToggle(\'resident\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (resOpen ? ' open' : '') + '"></span>Resident Agenda Items</span>';
+    if (resSummary) h += resSummary;
     h += '</div>';
     h += '<div class="bva-items' + (resOpen ? ' open' : '') + '" id="agm-grp-resident">';
     agmItemCounter = 0;
@@ -886,8 +916,18 @@
     // ── 6. AOB (collapsible) ──
     var aobItems = (d.aobItems || []).filter(hasContent);
     var aobOpen = agmOpenGroups.aob;
+    var aobSummary = (function() {
+      var c = 0, o = 0;
+      (d.aobItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
     h += '<div class="bva-group-row" onclick="agmToggle(\'aob\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (aobOpen ? ' open' : '') + '"></span>Any Other Business</span>';
+    if (aobSummary) h += aobSummary;
     h += '</div>';
     h += '<div class="bva-items' + (aobOpen ? ' open' : '') + '" id="agm-grp-aob">';
     agmItemCounter = 0;
