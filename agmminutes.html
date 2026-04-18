@@ -198,7 +198,7 @@
   .agm-agenda-content { flex: 1; }
   .agm-agenda-title { font-size: 15px; font-weight: 500; color: #1e1a16; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ddd5c8; }
   .agm-agenda-note {
-    font-size: 13px; color: #6b5f52; line-height: 1.7;
+    font-size: 15px; color: #6b5f52; line-height: 1.7;
     background: rgba(122,92,62,0.04); border-left: 3px solid #ddd5c8;
     padding: 8px 12px; border-radius: 0 4px 4px 0;
     white-space: pre-wrap; margin-bottom: 8px;
@@ -206,8 +206,8 @@
   .agm-agenda-actions { margin-top: 4px; border-top: 1px solid #ddd5c8; padding-top: 6px; }
   .agm-agenda-action-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 0.5px solid #f0ebe0; }
   .agm-agenda-action-row:first-child { border-top: none; }
-  .agm-agenda-action-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; min-width: 60px; }
-  .agm-agenda-action-text { font-size: 13px; color: #1e1a16; flex: 1; }
+  .agm-agenda-action-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; min-width: 65px; }
+  .agm-agenda-action-text { font-size: 15px; color: #1e1a16; flex: 1; }
 
   .agm-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 8px; }
   .agm-details-card { background: rgba(122,92,62,0.04); border: 1px solid #ddd5c8; border-radius: 8px; padding: 12px 14px; }
@@ -313,8 +313,8 @@
 <!-- AGM Minutes Overlay — identical structure to BVA overlay -->
 <div id="agm-minutes-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-    <button id="agm-expand-btn" onclick="agmExpandGroups()" style="width:160px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand Groups</button>
-    <button id="agm-collapse-btn" onclick="agmCollapseAll()" style="display:none;width:160px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse Groups</button>
+    <button onclick="agmExpandGroups()" style="width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All</button>
+    <button onclick="agmCollapseAll()" style="width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse All</button>
     <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
       <button onclick="agmPrint()" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
       <button onclick="closeAGMOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
@@ -392,7 +392,6 @@
     document.getElementById('agm-minutes-overlay').style.display = '';
     document.getElementById('agm-minutes-overlay').scrollTop = 0;
     document.documentElement.style.overflowY = 'hidden';
-    agmUpdateCollapseBtn();
   }
 
   function closeAGMOverlay() {
@@ -412,13 +411,11 @@
   function agmExpandGroups() {
     Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = true; });
     renderAGMOverlay();
-    agmUpdateCollapseBtn();
   }
 
   function agmCollapseAll() {
     Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = false; });
     renderAGMOverlay();
-    agmUpdateCollapseBtn();
   }
 
   function agmToggle(key) {
@@ -427,18 +424,13 @@
     agmOpenGroups[key] = !agmOpenGroups[key];
     renderAGMOverlay();
     if (overlay) overlay.scrollTop = scrollTop;
-    agmUpdateCollapseBtn();
   }
 
-  function agmUpdateCollapseBtn() {
-    var anyOpen = Object.keys(agmOpenGroups).some(function(k){ return agmOpenGroups[k]; });
-    document.getElementById('agm-collapse-btn').style.display = anyOpen ? '' : 'none';
-    document.getElementById('agm-expand-btn').style.display = anyOpen ? 'none' : '';
-  }
 
-  /* ── Render chips (complete / outstanding) ── */
+
   /* ── Render a single agenda item — Option 3 style ── */
-  function renderAgendaItemHTML(item, inModal) {
+  // section: 'dir' | 'res' | 'aob' | '' (modal)
+  function renderAgendaItemHTML(item, inModal, section) {
     agmItemCounter++;
     var h = '<div class="agm-agenda-item">';
     if (!inModal) {
@@ -446,7 +438,22 @@
     }
     h += '<div class="agm-agenda-content">';
     if (item.item) {
-      h += '<div class="agm-agenda-title">' + esc(item.item) + '</div>';
+      var titleHtml = '';
+      if (section === 'aob') {
+        // AOB: show number + title e.g. "AOB 1 Farmhouse Communal Areas"
+        var aobNum = (item.number || '').replace(/AOB0*(\d+)/i, 'AOB $1');
+        var aobTitle = aobNum ? aobNum + ' ' + esc(item.item) : esc(item.item);
+        var raisedBy = item.raisedBy ? '<span style="font-size:13px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + aobTitle + raisedBy + '</div>';
+      } else if (section === 'res') {
+        // Resident: show title + raised by to the right
+        var raisedBy = item.raisedBy ? '<span style="font-size:13px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(item.item) + raisedBy + '</div>';
+      } else {
+        // Director or modal: title only
+        titleHtml = '<div class="agm-agenda-title">' + esc(item.item) + '</div>';
+      }
+      h += titleHtml;
     }
     if (item.note) {
       h += '<div class="agm-agenda-note">' + esc(item.note) + '</div>';
@@ -752,7 +759,7 @@
     h += '<div class="bva-items' + (dirOpen ? ' open' : '') + '" id="agm-grp-director">';
     agmItemCounter = 0;
     if (dirItems.length) {
-      dirItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
+      dirItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'dir'); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
@@ -768,7 +775,7 @@
     h += '<div class="bva-items' + (resOpen ? ' open' : '') + '" id="agm-grp-resident">';
     agmItemCounter = 0;
     if (resItems.length) {
-      resItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
+      resItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'res'); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
@@ -784,7 +791,7 @@
     h += '<div class="bva-items' + (aobOpen ? ' open' : '') + '" id="agm-grp-aob">';
     agmItemCounter = 0;
     if (aobItems.length) {
-      aobItems.forEach(function(item) { h += renderAgendaItemHTML(item, false); });
+      aobItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'aob'); });
     } else {
       h += '<div style="padding:14px 24px;font-size:15px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
     }
