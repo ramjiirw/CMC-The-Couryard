@@ -299,7 +299,7 @@
       <button class="btn-toggle" id="toggle-agm" onclick="openAGMOverlay()">
         <span class="toggle-left">
           <span>&#8645;</span>
-          <span id="agm-toggle-label">AGM Minutes</span>
+          <span id="agm-toggle-label">AGM Minutes</span><span id="agm-toggle-counts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;"></span>
         </span>
         <span class="toggle-hint">Click to open full minutes view</span>
       </button>
@@ -374,8 +374,22 @@
       agmData = data;
 
       var m = data.meta;
-      var label = 'AGM Minutes' + (m && m.date ? ' — ' + formatAGMDate(m.date) : '');
+      var label = 'AGM MINUTES' + (m && m.date ? ' — ' + formatAGMDate(m.date).toUpperCase() : '');
+      // Count actions
+      var totComplete = 0, totOutstanding = 0;
+      ['dirItems','resItems','aobItems'].forEach(function(k) {
+        (data[k] || []).forEach(function(item) {
+          (item.actions || []).forEach(function(a) {
+            if (a.complete) totComplete++; else totOutstanding++;
+          });
+        });
+      });
+      var countStr = (totComplete + totOutstanding > 0)
+        ? ' · ' + totComplete + ' Complete · ' + totOutstanding + ' Outstanding Actions'
+        : '';
       document.getElementById('agm-toggle-label').textContent = label;
+      var countEl = document.getElementById('agm-toggle-counts');
+      if (countEl) countEl.textContent = countStr;
 
       document.getElementById('mainLoadingState').style.display = 'none';
       document.getElementById('mainContent').style.display = '';
@@ -703,7 +717,7 @@
     h += '<div class="agm-details-card-title">CMC Company Officers</div>';
     if (m.officers && m.officers.length) {
       m.officers.forEach(function(o) {
-        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:130px;">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
+        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:145px;">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
       });
     } else {
       h += '<div style="font-size:15px;color:#b8ad9e;font-style:italic;">No officers recorded.</div>';
@@ -756,9 +770,20 @@
     h += '<div style="height:1.5rem;"></div>';
 
     // ── 3. VOTING (collapsible) ──
+    var votingPassed = (d.votes || []).filter(function(v){ return v.passed; }).length;
+    var votingPending = (d.votes || []).filter(function(v){ return !v.passed; }).length;
+    var votingSummary = '';
+    if (d.votes && d.votes.length) {
+      var vParts = [];
+      if (votingPassed > 0) vParts.push(votingPassed + ' passed');
+      if (votingPending > 0) vParts.push(votingPending + ' pending');
+      if (vParts.length) votingSummary = '<span style="font-size:12px;color:#9e8e7e;">' + vParts.join(' &nbsp;·&nbsp; ') + '</span>';
+    }
+
     var votingOpen = agmOpenGroups.voting;
     h += '<div class="bva-group-row" onclick="agmToggle(\'voting\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (votingOpen ? ' open' : '') + '"></span>Voting</span>';
+    if (votingSummary) h += votingSummary;
     h += '</div>';
     h += '<div class="bva-items' + (votingOpen ? ' open' : '') + '" id="agm-grp-voting">';
     if (d.votes && d.votes.length) {
