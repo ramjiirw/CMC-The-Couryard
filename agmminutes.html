@@ -420,14 +420,13 @@
     renderAGMOverlay();
   }
 
-  function agmToggleActionSort() {
-    agmActionsSortByStatus = !agmActionsSortByStatus;
+  function agmApplySort() {
     var btn = document.getElementById('agm-sort-btn');
     var list = document.getElementById('agm-actions-list');
     if (!list) return;
     var cards = Array.from(list.querySelectorAll('.agm-action-card'));
     if (agmActionsSortByStatus) {
-      // Sort: outstanding first, complete second — stable within each group
+      // Outstanding first, then complete — preserve order within each group
       cards.sort(function(a, b) {
         var aOut = a.querySelector('.agm-badge-outstanding') ? 0 : 1;
         var bOut = b.querySelector('.agm-badge-outstanding') ? 0 : 1;
@@ -435,15 +434,20 @@
       });
       if (btn) btn.textContent = '\u21C5 Sort by number';
     } else {
-      // Restore original order by Action number
+      // Restore Action 1-100 order
       cards.sort(function(a, b) {
-        var aNum = parseInt((a.querySelector('.agm-action-card-num') || {}).textContent || '0');
-        var bNum = parseInt((b.querySelector('.agm-action-card-num') || {}).textContent || '0');
+        var aNum = parseInt(((a.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
+        var bNum = parseInt(((b.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
         return aNum - bNum;
       });
       if (btn) btn.textContent = '\u21C5 Sort by status';
     }
     cards.forEach(function(card) { list.appendChild(card); });
+  }
+
+  function agmToggleActionSort() {
+    agmActionsSortByStatus = !agmActionsSortByStatus;
+    agmApplySort();
   }
 
   function agmToggle(key) {
@@ -550,11 +554,20 @@
   }
 
   /* ── Show quick-view modal ── */
-  function agmShowModalByKey(storeKey, sectionLabel, section) {
+  function agmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
     var item = agmItemStore[storeKey];
     if (!item) return;
     document.getElementById('agm-modal-title').textContent = sectionLabel;
     document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section);
+    // Highlight the specific action row
+    if (actionIdx !== undefined) {
+      var rows = document.getElementById('agm-modal-body').querySelectorAll('.agm-agenda-action-row');
+      if (rows[actionIdx]) {
+        rows[actionIdx].style.background = '#fdf0e4';
+        rows[actionIdx].style.borderRadius = '4px';
+        rows[actionIdx].style.padding = '6px 4px';
+      }
+    }
     document.getElementById('agm-modal-overlay').classList.add('open');
   }
 
@@ -581,7 +594,7 @@
       var itemRef = item.item ? item.item : (item.number ? item.number : '');
       itemRef = itemRef.replace(/AOB0+(\d)/g, 'AOB$1');
 
-      item.actions.forEach(function(a) {
+      item.actions.forEach(function(a, aIdx) {
         agmActionCounter++;
         var num = 'Action ' + agmActionCounter;
         agmActionNumberMap[a.text] = num;
@@ -589,7 +602,7 @@
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
 
-        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\')">';
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
         h += '<div class="agm-action-card-top">';
         h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
         h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
@@ -768,7 +781,7 @@
     h += '</div>';
     h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
     if (hasActions) {
-      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 8px;">';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:6px;padding:0 8px;">';
       h += '<span class="agm-actions-hint" style="margin-bottom:0;">Click any action to view the full agenda item detail</span>';
       h += '<button onclick="agmToggleActionSort()" id="agm-sort-btn" style="padding:0.35rem 0.8rem;width:130px;background:rgba(74,94,58,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#8645; Sort by status</button>';
       h += '</div>';
