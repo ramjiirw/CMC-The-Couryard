@@ -512,7 +512,7 @@
   <!-- AGM Minutes -->
   <div class="agenda-card" style="margin-bottom: 1.5rem;">
     <button class="btn-toggle" id="toggle-agmminutes" onclick="toggleMinutes()" aria-expanded="false">
-      <span>📋 AGM Minutes<span id="minutesPinBadge" style="display:none;background:#e8f2eb;color:#3d6b4a;border:1px solid #c8e2ce;border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.1rem 0.5rem;margin-left:0.5rem;letter-spacing:0.02em;">📌 Latest minutes available</span></span>
+      <span>📋 AGM MINUTES · ARCHIVE</span>
       <span class="toggle-hint">
         <span class="hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
@@ -1203,12 +1203,6 @@ function renderMinutes() {
     withDates.sort(function(a, b) { return b.date - a.date; });
     pinned = withDates[0].file;
     rest = state.files.filter(function(f) { return f !== pinned; });
-    // Show badge on toggle button only if latest minutes are within 60 days
-    var daysSince = Math.round((new Date() - withDates[0].date) / (1000*60*60*24));
-    if (daysSince <= 60) {
-      var badge = document.getElementById('minutesPinBadge');
-      if (badge) badge.style.display = 'inline';
-    }
   }
 
   var html = '';
