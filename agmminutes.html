@@ -383,7 +383,7 @@
       agmData = data;
 
       var m = data.meta;
-      var label = 'AGM MINUTES · LIVE' + (m && m.date ? ' — ' + formatAGMDate(m.date).toUpperCase() : '');
+      var label = 'AGM MINUTES · LIVE' + (m && m.date ? ' · ' + formatAGMDate(m.date).toUpperCase() : '');
       // Count actions
       var totComplete = 0, totOutstanding = 0;
       ['dirItems','resItems','aobItems'].forEach(function(k) {
@@ -452,6 +452,8 @@
   function agmCollapseAll() {
     Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = false; });
     renderAGMOverlay();
+    var cb = document.getElementById('agm-collapse-btn');
+    if (cb) cb.style.display = 'none';
   }
 
   function agmApplySort() {
