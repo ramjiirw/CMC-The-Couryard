@@ -526,13 +526,14 @@
     .agm-action-card-text { width: 100%; }
 
     /* ── Voting rows: num+result on top, motion below ── */
-    .agm-vote-row { flex-direction: column; align-items: stretch; gap: 4px; }
-    .agm-vote-motion { width: 100%; }
+    .agm-vote-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .agm-vote-row > div { width: 100%; }
+    .agm-vote-motion { width: 100%; text-align: left; }
 
     /* ── Agenda item: number inline with title, not separate column ── */
-    .agm-agenda-item { flex-direction: column; gap: 4px; }
+    .agm-agenda-item { flex-direction: column; gap: 4px; align-items: flex-start; }
     .agm-agenda-numcol { font-size: 13px; font-weight: 500; min-width: auto; padding-top: 0; display: inline; }
-    .agm-agenda-title { display: flex; align-items: baseline; gap: 6px; }
+    .agm-agenda-title { display: flex; align-items: baseline; gap: 6px; text-align: left; }
 
     /* ── Agenda action rows: label+badge on top, text below ── */
     .agm-agenda-action-row { flex-direction: column; align-items: flex-start; gap: 4px; }
