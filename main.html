@@ -488,6 +488,36 @@
   .search-hub-empty { padding: 1rem 0; font-size: 0.8rem; color: var(--stone); font-style: italic; text-align: center; }
 
 
+
+  /* ── AGM Minutes toggle button styles ── */
+  .finance-section { border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+
+  .btn-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0.75rem 1.25rem;
+    background: var(--dark); color: var(--cream);
+    border: none; border-radius: 0;
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; transition: background 0.2s; margin-bottom: 0;
+  }
+  .btn-toggle:hover { background: #2a2520; }
+  .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
+  .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
+  .btn-toggle.open .chevron { transform: rotate(90deg); }
+  .btn-toggle.open .toggle-hint .hint-open { display: none; }
+  .btn-toggle:not(.open) .toggle-hint .hint-open { display: inline; }
+  .btn-toggle.open .toggle-hint .hint-close { display: inline; }
+  .btn-toggle:not(.open) .toggle-hint .hint-close { display: none; }
+  .btn-loading { pointer-events: none; opacity: 0.8; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
+
   /* ── BVA-identical styles (used in overlay) ── */
   .bva-col-head {
     font-size: 12px; font-weight: 700; text-transform: uppercase;
