@@ -1891,6 +1891,7 @@
   /* ── AGM Minutes ── */
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
   var agmData = null;
+  var isMobile = window.innerWidth <= 600;
   var agmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
   var agmActionCounter = 0;
   var agmItemCounter = 0;
@@ -2246,7 +2247,6 @@
     if (!agmData) return;
     var d = agmData;
     var m = d.meta || {};
-    var isMobile = window.innerWidth <= 600;
 
     // Store items for modal lookup
     agmItemStore = {};
