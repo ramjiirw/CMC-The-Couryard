@@ -487,6 +487,183 @@
   .search-hub-result-folder { font-size: 0.72rem; color: var(--stone); margin-top: 0.05rem; }
   .search-hub-empty { padding: 1rem 0; font-size: 0.8rem; color: var(--stone); font-style: italic; text-align: center; }
 
+
+  /* ── BVA-identical styles (used in overlay) ── */
+  .bva-col-head {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #6b5f52;
+    padding-bottom: 6px; border-bottom: 2px solid #ddd5c8;
+    margin-bottom: 0;
+  }
+  .bva-group-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 8px; cursor: pointer; border-bottom: 1px solid #ede8e0;
+  }
+  .bva-group-row:hover { background: #faf7f2; }
+  .bva-group-name {
+    font-size: 17px; font-weight: 700; color: #7a5c3e;
+    display: flex; align-items: center; gap: 7px; flex: 1;
+  }
+  .bva-chev {
+    display: inline-block; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 7px solid #b8ad9e; transition: transform 0.2s; flex-shrink: 0;
+  }
+  .bva-chev.open { transform: rotate(90deg); }
+  .bva-items { display: none; }
+  .bva-items.open { display: block; }
+  .bva-item-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 8px 8px 24px; border-bottom: 1px solid #f0ebe0; font-size: 16px;
+  }
+  .bva-item-name { color: #333; flex: 1; }
+  .bva-budget-val { color: #9e8e7e; }
+  .bva-actual-val { color: #1e1a16; font-weight: 600; }
+  .bva-summary-block {
+    border: 2px solid #b8ad9e; border-radius: 7px; overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .bva-sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid #ddd5c8;
+    font-family: Arial, sans-serif;
+  }
+  .bva-sum-row:last-child { border-bottom: none; }
+  .bva-sum-head {
+    background: #ddd5c8; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; color: #6b5f52;
+  }
+  .bva-sum-label { font-size: 17px; font-weight: 700; color: #4a3f35; }
+
+  /* ── AGM overlay specific ── */
+  .agm-section-subhead {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: #6b5f52;
+    padding: 10px 8px 6px; border-bottom: 2px solid #ddd5c8;
+    margin-top: 8px;
+  }
+  .agm-attend-section { margin-bottom: 0; border-top: 1px solid #ede8e0; padding-top: 10px; margin-top: 16px; }
+  .agm-attend-section:first-child { margin-top: 0; }
+  .agm-attend-section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e8e7e; margin-bottom: 8px; }
+  .agm-attend-row { display: flex; align-items: baseline; padding: 5px 0; gap: 1rem; }
+  .agm-attend-addr-col { display: flex; align-items: center; gap: 7px; min-width: 160px; flex-shrink: 0; }
+  .agm-attend-addr-label { font-size: 14px; font-weight: 700; color: #4a3f35; }
+  .agm-attend-name-col { font-size: 16px; color: #1e1a16; }
+  .agm-attend-none { font-size: 16px; color: #b8ad9e; font-style: italic; }
+
+  .agm-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .agm-dot-green { background: #2e7d32; }
+  .agm-dot-amber { background: #c4956a; }
+
+  .agm-vote-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 8px; border-bottom: 1px solid #f0ebe0; font-size: 16px;
+  }
+  .agm-vote-row:last-child { border-bottom: none; }
+  .agm-vote-num { color: #7a5c3e; min-width: 60px; flex-shrink: 0; font-size: 14px; font-weight: 500; }
+  .agm-vote-motion { flex: 1; color: #1e1a16; font-size: 16px; }
+  .agm-vote-result { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .agm-vote-passed { background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; }
+  .agm-vote-pending { background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; }
+
+  .agm-action-card { border: 1px solid #ddd5c8; border-radius: 6px; margin: 6px 0; overflow: hidden; cursor: pointer; }
+  .agm-action-card:hover .agm-action-card-top { background: #f0ebe0; }
+  .agm-action-card-top { background: #faf7f2; padding: 9px 14px; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+  .agm-action-card-num { font-size: 13px; font-weight: 500; color: #9e8e7e; min-width: 68px; flex-shrink: 0; }
+  .agm-action-card-text { font-size: 16px; color: #1e1a16; flex: 1; line-height: 1.4; }
+  .agm-action-card-bottom { padding: 6px 14px 8px; border-top: 1px solid #ede8e0; display: flex; gap: 8px; align-items: baseline; }
+  .agm-action-card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; }
+  .agm-action-card-ref { font-size: 13px; color: #6b5f52; line-height: 1.4; }
+  .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
+  .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; margin-bottom: 4px; }
+
+  .agm-action-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 8px 9px 24px; border-bottom: 1px solid #f0ebe0;
+    font-size: 16px; cursor: pointer; transition: background 0.15s;
+  }
+  .agm-action-row:last-child { border-bottom: none; }
+  .agm-action-row:hover { background: #faf7f2; }
+  .agm-action-indicator { flex-shrink: 0; margin-top: 3px; }
+  .agm-action-text { flex: 1; color: #333; line-height: 1.4; }
+  .agm-action-item-ref { font-size: 13px; color: #9e8e7e; margin-top: 2px; }
+
+  .agm-agenda-item { display: flex; gap: 16px; padding: 14px 8px; border-bottom: 1px solid #f0ebe0; }
+  .agm-agenda-item:last-child { border-bottom: none; }
+  .agm-agenda-numcol { font-size: 22px; font-weight: 500; color: #b8ad9e; min-width: 28px; flex-shrink: 0; line-height: 1.2; padding-top: 2px; }
+  .agm-agenda-content { flex: 1; }
+  .agm-agenda-title { font-size: 16px; font-weight: 500; color: #1e1a16; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ddd5c8; }
+  .agm-agenda-note {
+    font-size: 16px; color: #6b5f52; line-height: 1.7;
+    background: rgba(122,92,62,0.04); border-left: 3px solid #ddd5c8;
+    padding: 8px 12px; border-radius: 0 4px 4px 0;
+    white-space: pre-wrap; margin-bottom: 8px;
+  }
+  .agm-agenda-actions { margin-top: 4px; border-top: 1px solid #ddd5c8; padding-top: 6px; }
+  .agm-agenda-action-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 0.5px solid #f0ebe0; }
+  .agm-agenda-action-row:first-child { border-top: none; }
+  .agm-agenda-action-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; min-width: 65px; }
+  .agm-agenda-action-text { font-size: 16px; color: #1e1a16; flex: 1; }
+
+  .agm-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 8px; }
+  .agm-details-card { background: rgba(122,92,62,0.04); border: 1px solid #ddd5c8; border-radius: 8px; padding: 12px 14px; }
+  .agm-details-card-title { font-size: 11px; font-weight: 700; color: #c4956a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .agm-details-row { display: flex; align-items: baseline; padding: 4px 0; border-bottom: 0.5px solid #ddd5c8; font-size: 16px; gap: 1rem; }
+  .agm-details-row:last-child { border-bottom: none; }
+  .agm-details-key { color: #6b5f52; min-width: 90px; flex-shrink: 0; }
+  .agm-details-val { color: #1e1a16; font-weight: 500; }
+
+  .agm-close-block {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; font-size: 16px;
+  }
+  .agm-close-label { font-weight: 400; color: #6b5f52; }
+  .agm-close-val { color: #6b5f52; font-weight: 600; }
+
+  /* Quick-view modal */
+  #agm-modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(30,26,22,0.55); z-index: 10001;
+    align-items: center; justify-content: center;
+  }
+  #agm-modal-overlay.open { display: flex; }
+  #agm-modal-box {
+    background: white; border-radius: 10px; max-width: 640px; width: 90%;
+    max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(30,26,22,0.28);
+  }
+  #agm-modal-header {
+    background: #4a5e3a; color: white; padding: 0.65rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 10px 10px 0 0;
+  }
+
+  #agm-modal-close {
+    background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 5px; padding: 0.3rem 0.75rem; font-family: Arial, sans-serif;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  }
+  #agm-modal-body { padding: 1rem 1.25rem; }
+
+  /* Print */
+  @media print {
+    body > *:not(#agm-minutes-overlay) { display: none !important; }
+    #agm-minutes-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
+    #agm-minutes-overlay > div:first-child { display: none !important; }
+    #agm-modal-overlay { display: none !important; }
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 1rem; }
+    main { padding: 1rem 0.75rem 4rem; margin: 1.5rem auto; }
+    .page-header h2 { font-size: 1.1rem; }
+    .agm-details-grid { grid-template-columns: 1fr; }
+  }
+
+  #adminLink { position:absolute; right:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(196,149,106,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
+  #adminLink:hover { color:var(--accent2); }
 </style>
 <body>
 
@@ -618,6 +795,20 @@
   </div>
   </a>
 
+  <!-- AGM Minutes toggle row -->
+  <div class="finance-section" style="margin-bottom:1.5rem;">
+    <button class="btn-toggle btn-loading" id="toggle-agm" onclick="openAGMOverlay()">
+      <span class="toggle-left">
+        <span>&#8645;</span>
+        <span id="agm-toggle-label">AGM MINUTES · LIVE</span><span id="agm-toggle-counts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;"></span>
+      </span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading minutes…</span>
+        <span class="hint-open">Tap to view live minutes</span>
+      </span>
+    </button>
+  </div>
+
   <div class="links-grid">
 
     <!-- AGM Agenda -->
@@ -635,7 +826,7 @@
         <div class="agm-detail-row"><span class="agm-detail-label">Venue</span><span class="agm-detail-val" id="agmVenue"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-        <p class="agm-cta" style="margin:0">View agenda, minutes &amp; submit agenda items →</p>
+        <p class="agm-cta" style="margin:0">View agenda, archived minutes &amp; submit agenda items →</p>
         <span id="minutesPill" class="minutes-pill">📌 Latest minutes available</span>
       </div>
     </a>
@@ -1641,6 +1832,634 @@
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') hubCloseModal();
   });
+
+  /* ── AGM Minutes ── */
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+  var agmData = null;
+  var agmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
+  var agmActionCounter = 0;
+  var agmItemCounter = 0;
+  var agmActionNumberMap = {};
+  var agmActionsSortByStatus = false;
+  var agmAllActionCards = [];
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatAGMDate(raw) {
+    if (!raw) return '';
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).replace(',', '');
+  }
+
+  /* ── Load data on page load ── */
+  (async function() {
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readAGMMinutes');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error from script');
+      agmData = data;
+
+      var m = data.meta;
+      var label = 'AGM MINUTES · LIVE' + (m && m.date ? ' · ' + formatAGMDate(m.date).toUpperCase() : '');
+      // Count actions
+      var totComplete = 0, totOutstanding = 0;
+      ['dirItems','resItems','aobItems'].forEach(function(k) {
+        (data[k] || []).forEach(function(item) {
+          (item.actions || []).forEach(function(a) {
+            if (a.complete) totComplete++; else totOutstanding++;
+          });
+        });
+      });
+      var countStr = '';
+      if (totComplete + totOutstanding > 0) {
+        if (totOutstanding === 0) {
+          countStr = ' · ACTIONS · ✓ ALL COMPLETE';
+        } else {
+          countStr = ' · ACTIONS · ' + totComplete + ' COMPLETE · ' + totOutstanding + ' OUTSTANDING';
+        }
+      }
+      document.getElementById('agm-toggle-label').textContent = label;
+      var countEl = document.getElementById('agm-toggle-counts');
+      if (countEl) countEl.textContent = countStr;
+
+      document.getElementById('mainLoadingState').style.display = 'none';
+      document.getElementById('mainContent').style.display = '';
+      var toggleBtn = document.getElementById('toggle-agm');
+      if (toggleBtn) toggleBtn.classList.remove('btn-loading');
+
+    } catch(err) {
+      var errEl = document.getElementById('mainErrorState');
+      if (errEl) errEl.style.display = '';
+      var toggleBtn = document.getElementById('toggle-agm');
+      if (toggleBtn) toggleBtn.classList.remove('btn-loading');
+      console.error('AGM Minutes error:', err);
+    }
+  })();
+
+  /* ── Open / close overlay ── */
+  function openAGMOverlay() {
+    if (!agmData) return;
+    renderAGMOverlay();
+    document.getElementById('agm-minutes-overlay').style.display = '';
+    document.getElementById('agm-minutes-overlay').scrollTop = 0;
+    document.documentElement.style.overflowY = 'hidden';
+  }
+
+  function closeAGMOverlay() {
+    document.getElementById('agm-minutes-overlay').style.display = 'none';
+    document.documentElement.style.overflowY = 'scroll';
+  }
+
+  function agmPrint() {
+    var origTitle = document.title;
+    var m = agmData && agmData.meta;
+    document.title = 'CMC The Courtyard — AGM Minutes' + (m && m.date ? ' ' + formatAGMDate(m.date) : '');
+    window.print();
+    document.title = origTitle;
+  }
+
+  /* ── Expand / collapse ── */
+  function agmUpdateCollapseBtn() {
+    var anyOpen = Object.keys(agmOpenGroups).some(function(k){ return agmOpenGroups[k]; });
+    var cb = document.getElementById('agm-collapse-btn');
+    if (cb) cb.style.display = anyOpen ? '' : 'none';
+  }
+
+  function agmExpandGroups() {
+    Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = true; });
+    renderAGMOverlay();
+    agmUpdateCollapseBtn();
+  }
+
+  function agmCollapseAll() {
+    Object.keys(agmOpenGroups).forEach(function(k){ agmOpenGroups[k] = false; });
+    renderAGMOverlay();
+    agmUpdateCollapseBtn();
+  }
+
+  function agmApplySort() {
+    var btn = document.getElementById('agm-sort-btn');
+    var list = document.getElementById('agm-actions-list');
+    if (!list) return;
+    var cards = Array.from(list.querySelectorAll('.agm-action-card'));
+    if (agmActionsSortByStatus) {
+      // Outstanding first, then complete — preserve order within each group
+      cards.sort(function(a, b) {
+        var aOut = a.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        var bOut = b.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        return aOut - bOut;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by number';
+    } else {
+      // Restore Action 1-100 order
+      cards.sort(function(a, b) {
+        var aNum = parseInt(((a.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
+        var bNum = parseInt(((b.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
+        return aNum - bNum;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by status';
+    }
+    cards.forEach(function(card) { list.appendChild(card); });
+  }
+
+  function agmToggleActionSort() {
+    agmActionsSortByStatus = !agmActionsSortByStatus;
+    agmApplySort();
+  }
+
+  function agmToggle(key) {
+    var overlay = document.getElementById('agm-minutes-overlay');
+    var scrollTop = overlay ? overlay.scrollTop : 0;
+    agmOpenGroups[key] = !agmOpenGroups[key];
+    renderAGMOverlay();
+    if (overlay) overlay.scrollTop = scrollTop;
+    agmUpdateCollapseBtn();
+  }
+
+
+
+  /* ── Render a single agenda item — Option 3 style ── */
+  // section: 'dir' | 'res' | 'aob' | '' (modal)
+  function renderAgendaItemHTML(item, inModal, section, highlightAction) {
+    if (!inModal) agmItemCounter++;
+    var itemNum = inModal ? (agmActionNumberMap[highlightAction] ? agmActionNumberMap[highlightAction].replace('Action ','') : '') : agmItemCounter;
+    var h = '<div class="agm-agenda-item">';
+    h += '<div class="agm-agenda-numcol">' + itemNum + '</div>';
+    h += '<div class="agm-agenda-content">';
+    if (item.item) {
+      var titleHtml = '';
+      if (section === 'aob') {
+        // AOB: strip AOB prefix from title, show raised by to the right
+        var aobCleanTitle = (item.item || '').replace(/^AOB\d+\s*/i, '');
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(aobCleanTitle) + raisedBy + '</div>';
+      } else if (section === 'res') {
+        // Resident: show title + raised by to the right
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + esc(item.item) + raisedBy + '</div>';
+      } else {
+        // Director or modal: title only
+        titleHtml = '<div class="agm-agenda-title">' + esc(item.item) + '</div>';
+      }
+      h += titleHtml;
+    }
+    if (item.note) {
+      h += '<div class="agm-agenda-note">' + esc(item.note) + '</div>';
+    }
+    if (item.actions && item.actions.length) {
+      h += '<div class="agm-agenda-actions">';
+      item.actions.forEach(function(a) {
+        // Look up this action's sequential number from the actionNumberMap
+        var actionNum = agmActionNumberMap[a.text] || '';
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+        var isHighlighted = inModal && highlightAction && (a.text === highlightAction);
+        var highlightStyle = isHighlighted ? ' style="background:#fdf8f0;border-radius:4px;margin:2px 0;padding:6px 6px;"' : '';
+        h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
+        if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
+        h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
+        h += badge;
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  /* ── Filter items to only those with content ── */
+  function hasContent(item) {
+    return (item.item && item.item.trim()) || (item.note && item.note.trim());
+  }
+
+  /* ── Build action rows for Voting & Actions section ── */
+  function buildActionRows(items, sectionKey, sectionLabel) {
+    var filtered = (items || []).filter(function(item) {
+      return hasContent(item) && item.actions && item.actions.length;
+    });
+    if (!filtered.length) return '';
+
+    var h = '<div class="agm-section-subhead">' + esc(sectionLabel) + '</div>';
+    filtered.forEach(function(item) {
+      item.actions.forEach(function(a) {
+        var actionText = esc(a.text);
+        var itemRef = item.item ? esc(item.item) : (item.number ? esc(item.number) : '');
+        var dataKey = JSON.stringify({ sectionKey: sectionKey, itemItem: item.item || '', itemNumber: item.number || '', itemRaisedBy: item.raisedBy || '', itemNote: item.note || '', actions: item.actions });
+
+        h += '<div class="agm-action-row" onclick="agmShowModal(' + esc(JSON.stringify({ sectionKey: sectionKey, item: item })).replace(/"/g, '&quot;') + ')">';
+        if (a.complete) {
+          h += '<span class="agm-action-indicator agm-chip-complete" style="font-size:14px;font-weight:700;">✓</span>';
+        } else {
+          h += '<span class="agm-action-indicator agm-chip-outstanding" style="font-size:18px;font-weight:700;line-height:1;">·</span>';
+        }
+        h += '<div class="agm-action-text">';
+        h += '<div>' + actionText + '</div>';
+        if (itemRef) h += '<div class="agm-action-item-ref">' + itemRef + '</div>';
+        h += '</div></div>';
+      });
+    });
+    return h;
+  }
+
+  /* ── Store items for modal lookup ── */
+  var agmItemStore = {};
+
+  function storeItems(items, prefix) {
+    (items || []).forEach(function(item, idx) {
+      agmItemStore[prefix + '_' + idx] = item;
+    });
+  }
+
+  /* ── Show quick-view modal ── */
+  function agmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
+    var item = agmItemStore[storeKey];
+    if (!item) return;
+    // Build subtitle: section label + item number
+    var itemNum = parseInt((storeKey.split('_')[1] || '0')) + 1;
+    var subtitle = sectionLabel + ' — Item ' + itemNum;
+    document.getElementById('agm-modal-title').textContent = subtitle;
+    document.getElementById('agm-modal-body').innerHTML = renderAgendaItemHTML(item, true, section);
+    // Highlight the specific action row
+    if (actionIdx !== undefined) {
+      var rows = document.getElementById('agm-modal-body').querySelectorAll('.agm-agenda-action-row');
+      if (rows[actionIdx]) {
+        rows[actionIdx].style.background = '#fdf0e4';
+        rows[actionIdx].style.borderRadius = '4px';
+        rows[actionIdx].style.padding = '6px 4px';
+      }
+    }
+    document.getElementById('agm-modal-overlay').classList.add('open');
+  }
+
+  function closeAgmModal() {
+    document.getElementById('agm-modal-overlay').classList.remove('open');
+  }
+
+  function agmModalClickOutside(e) {
+    if (e.target === document.getElementById('agm-modal-overlay')) closeAgmModal();
+  }
+
+  /* ── Build action cards with sequential numbering ── */
+  function buildActionRowsKeyed(items, prefix, sectionLabel) {
+    var filtered = (items || []).filter(function(item) {
+      return hasContent(item) && item.actions && item.actions.length;
+    });
+    if (!filtered.length) return '';
+
+    var h = '';
+
+    (items || []).forEach(function(item, idx) {
+      if (!hasContent(item) || !item.actions || !item.actions.length) return;
+      var storeKey = prefix + '_' + idx;
+      var itemRef = item.item ? item.item : (item.number ? item.number : '');
+      itemRef = itemRef.replace(/AOB0+(\d)/g, 'AOB$1');
+
+      item.actions.forEach(function(a, aIdx) {
+        agmActionCounter++;
+        var num = 'Action ' + agmActionCounter;
+        agmActionNumberMap[a.text] = num;
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
+        h += '<div class="agm-action-card-top">';
+        h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
+        h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+        h += badge;
+        h += '</div>';
+
+        h += '</div>';
+      });
+    });
+    return h;
+  }
+
+    /* ── Group attendance by address, combine names smartly ── */
+  function renderAttendanceGroups(people, dotClass) {
+    // Extract property number for sorting (e.g. "3 The Courtyard" -> 3)
+    function propNum(addr) {
+      var m = String(addr || '').match(/^(\d+)/);
+      return m ? parseInt(m[1], 10) : 999;
+    }
+    // Group by address
+    var groups = {};
+    var order = [];
+    people.forEach(function(p) {
+      var addr = p.address || 'Unknown';
+      if (!groups[addr]) { groups[addr] = []; order.push(addr); }
+      groups[addr].push(p.name || '');
+    });
+    // Sort addresses by property number
+    order.sort(function(a, b) { return propNum(a) - propNum(b); });
+    var h = '';
+    order.forEach(function(addr) {
+      var names = groups[addr].slice().sort(function(a, b) {
+        var sA = a.trim().split(' ').pop(), sB = b.trim().split(' ').pop();
+        return sA.localeCompare(sB);
+      });
+      var surnames = names.map(function(n) { return n.trim().split(' ').pop(); });
+      var allSameSurname = surnames.length > 1 && surnames.every(function(s) { return s === surnames[0]; });
+      var combined;
+      if (allSameSurname) {
+        var firstNames = names.map(function(n) { return n.trim().split(' ').slice(0, -1).join(' '); });
+        combined = firstNames.join(' & ') + ' ' + surnames[0];
+      } else {
+        combined = names.join(' & ');
+      }
+      h += '<div class="agm-attend-row">';
+      h += '<span class="agm-attend-addr-col"><span class="agm-dot ' + dotClass + '"></span><span class="agm-attend-addr-label">' + esc(addr) + '</span></span>';
+      h += '<span class="agm-attend-name-col">' + esc(combined) + '</span>';
+      h += '</div>';
+    });
+    return h;
+  }
+
+  /* ── Main render ── */
+  function renderAGMOverlay() {
+    if (!agmData) return;
+    var d = agmData;
+    var m = d.meta || {};
+
+    // Store items for modal lookup
+    agmItemStore = {};
+    storeItems(d.dirItems, 'dir');
+    storeItems(d.resItems, 'res');
+    storeItems(d.aobItems, 'aob');
+
+    var h = '';
+
+    // ── HEADER (identical to BVA) ──
+    var generated = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}) + ' at ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+    h += '<div style="display:flex;align-items:center;">';
+    h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+    h += '<div style="margin-left:1rem;">';
+    h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+    h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">AGM Minutes</div>';
+    h += '</div></div>';
+    h += '<div style="text-align:right;">';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + esc(formatAGMDate(m.date)) + '</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+    h += '</div></div>';
+
+    // ── 1. MEETING DETAILS (always visible) ──
+    h += '<div style="margin-bottom:1.5rem;">';
+
+    h += '<div class="agm-details-grid">';
+
+    // Card 1: Meeting Information
+    h += '<div class="agm-details-card">';
+    h += '<div class="agm-details-card-title">Meeting Information</div>';
+    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + esc(formatAGMDate(m.date)) + '</span></div>';
+    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time</span><span class="agm-details-val">' + esc(m.time) + '</span></div>';
+    if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + esc(m.venue) + '</span></div>';
+    if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + esc(m.chair) + '</span></div>';
+    if (m.minutesTaker) h += '<div class="agm-details-row"><span class="agm-details-key">Minutes</span><span class="agm-details-val">' + esc(m.minutesTaker) + '</span></div>';
+    h += '</div>';
+
+    // Card 2: Company Officers
+    h += '<div class="agm-details-card">';
+    h += '<div class="agm-details-card-title">CMC Company Officers</div>';
+    if (m.officers && m.officers.length) {
+      m.officers.forEach(function(o) {
+        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:145px;">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
+      });
+    } else {
+      h += '<div style="font-size:16px;color:#b8ad9e;font-style:italic;">No officers recorded.</div>';
+    }
+    h += '</div>';
+
+    h += '</div>'; // end details-grid
+    h += '</div>'; // end section 1
+
+    // ── 2. ATTENDANCE (collapsible) ──
+    var attPresent = (d.present || []).length;
+    var attApologies = (d.apologies || []).length;
+    var attProps = (d.present || []).reduce(function(acc, p) {
+      if (p.address && acc.indexOf(p.address) === -1) acc.push(p.address);
+      return acc;
+    }, []).length;
+    var attSummary = '';
+    if (attPresent > 0 || attApologies > 0) {
+      var propStr = attProps > 0 ? ' (' + attProps + ' propert' + (attProps === 1 ? 'y' : 'ies') + ')' : '';
+      attSummary = '<span style="font-size:12px;color:#9e8e7e;">' + attPresent + ' attended' + propStr + ' &nbsp;·&nbsp; ' + attApologies + ' apolog' + (attApologies === 1 ? 'y' : 'ies') + '</span>';
+    }
+
+    var attOpen = agmOpenGroups.attendance;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'attendance\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (attOpen ? ' open' : '') + '"></span>Attendance</span>';
+    if (attSummary) h += attSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (attOpen ? ' open' : '') + '" id="agm-grp-attendance">';
+
+    // Present
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Present</div>';
+    if (d.present && d.present.length) {
+      h += renderAttendanceGroups(d.present, 'agm-dot-green');
+    } else {
+      h += '<div class="agm-attend-none">None recorded.</div>';
+    }
+    h += '</div>';
+    // Apologies
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Apologies</div>';
+    if (d.apologies && d.apologies.length) {
+      h += renderAttendanceGroups(d.apologies, 'agm-dot-amber');
+    } else {
+      h += '<div class="agm-attend-none">None recorded.</div>';
+    }
+    h += '</div>';
+    h += '</div>'; // end attendance items
+
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 3. VOTING (collapsible) ──
+    var votingPassed = (d.votes || []).filter(function(v){ return v.passed; }).length;
+    var votingPending = (d.votes || []).filter(function(v){ return !v.passed; }).length;
+    var votingSummary = '';
+    if (d.votes && d.votes.length) {
+      var vParts = [];
+      if (votingPassed > 0) vParts.push(votingPassed + ' passed');
+      if (votingPending > 0) vParts.push(votingPending + ' pending');
+      if (vParts.length) votingSummary = '<span style="font-size:12px;color:#9e8e7e;">' + vParts.join(' &nbsp;·&nbsp; ') + '</span>';
+    }
+
+    var votingOpen = agmOpenGroups.voting;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'voting\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (votingOpen ? ' open' : '') + '"></span>Voting</span>';
+    if (votingSummary) h += votingSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (votingOpen ? ' open' : '') + '" id="agm-grp-voting">';
+    if (d.votes && d.votes.length) {
+      d.votes.forEach(function(v) {
+        h += '<div class="agm-vote-row">';
+        h += '<span class="agm-vote-num">' + esc(v.number) + '</span>';
+        h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>';
+        if (v.passed) {
+          h += '<span class="agm-vote-result agm-vote-passed">✓ Passed</span>';
+        } else {
+          h += '<span class="agm-vote-result agm-vote-pending">● Pending</span>';
+        }
+        h += '</div>';
+      });
+    } else {
+      h += '<div style="padding:10px 8px;font-size:16px;color:#b8ad9e;font-style:italic;">No votes recorded.</div>';
+    }
+    h += '</div>'; // end voting items
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 4. ACTIONS (collapsible) ──
+    agmActionCounter = 0;
+    agmItemCounter = 0;
+    agmActionNumberMap = {};
+    var dirActions  = buildActionRowsKeyed(d.dirItems,  'dir',  'Director - Agenda Items');
+    var resActions  = buildActionRowsKeyed(d.resItems,  'res',  'Resident - Agenda Items');
+    var aobActions  = buildActionRowsKeyed(d.aobItems,  'aob',  'Any Other Business');
+    var hasActions  = dirActions || resActions || aobActions;
+
+    // Count complete and outstanding across all action groups
+    var totalComplete = 0, totalOutstanding = 0;
+    [d.dirItems, d.resItems, d.aobItems].forEach(function(section) {
+      (section || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) {
+          if (a.complete) totalComplete++; else totalOutstanding++;
+        });
+      });
+    });
+    var actionsSummary = '';
+    if (totalOutstanding === 0 && totalComplete > 0) {
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">✓ All complete</span>';
+    } else if (totalComplete > 0 || totalOutstanding > 0) {
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">' + totalComplete + ' complete &nbsp;·&nbsp; ' + totalOutstanding + ' outstanding</span>';
+    }
+
+    var actionsOpen = agmOpenGroups.actions;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'actions\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (actionsOpen ? ' open' : '') + '"></span>Actions</span>';
+    if (actionsSummary) h += actionsSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
+    if (hasActions) {
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:6px;padding:0 8px;">';
+      h += '<span class="agm-actions-hint" style="margin-bottom:0;">Click any action to view the full agenda item detail</span>';
+      h += '<button onclick="agmToggleActionSort()" id="agm-sort-btn" style="padding:0.35rem 0.8rem;width:130px;background:rgba(74,94,58,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#8645; Sort by status</button>';
+      h += '</div>';
+      h += '<div id="agm-actions-list">';
+      h += dirActions;
+      if (resActions) h += resActions;
+      if (aobActions) h += aobActions;
+      h += '</div>';
+    } else {
+      h += '<div style="padding:10px 8px;font-size:16px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
+    }
+    h += '</div>'; // end actions items
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 4. DIRECTOR AGENDA ITEMS (collapsible) ──
+    var dirItems = (d.dirItems || []).filter(hasContent);
+    var dirOpen = agmOpenGroups.director;
+    var dirSummary = (function() {
+      var c = 0, o = 0;
+      (d.dirItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'director\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (dirOpen ? ' open' : '') + '"></span>Director Agenda Items</span>';
+    if (dirSummary) h += dirSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (dirOpen ? ' open' : '') + '" id="agm-grp-director">';
+    agmItemCounter = 0;
+    if (dirItems.length) {
+      dirItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'dir'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 5. RESIDENT AGENDA ITEMS (collapsible) ──
+    var resItems = (d.resItems || []).filter(hasContent);
+    var resOpen = agmOpenGroups.resident;
+    var resSummary = (function() {
+      var c = 0, o = 0;
+      (d.resItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'resident\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (resOpen ? ' open' : '') + '"></span>Resident Agenda Items</span>';
+    if (resSummary) h += resSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (resOpen ? ' open' : '') + '" id="agm-grp-resident">';
+    agmItemCounter = 0;
+    if (resItems.length) {
+      resItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'res'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 6. AOB (collapsible) ──
+    var aobItems = (d.aobItems || []).filter(hasContent);
+    var aobOpen = agmOpenGroups.aob;
+    var aobSummary = (function() {
+      var c = 0, o = 0;
+      (d.aobItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'aob\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (aobOpen ? ' open' : '') + '"></span>Any Other Business</span>';
+    if (aobSummary) h += aobSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (aobOpen ? ' open' : '') + '" id="agm-grp-aob">';
+    agmItemCounter = 0;
+    if (aobItems.length) {
+      aobItems.forEach(function(item) { h += renderAgendaItemHTML(item, false, 'aob'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    // ── 7. MEETING CLOSE (always visible) ──
+    h += '<div style="border-top:2px solid #b8ad9e;padding-top:1rem;margin-top:0;">';
+    if (m.meetingEnd) {
+      h += '<div class="agm-close-block">';
+      h += '<span class="agm-close-label">Meeting closed</span>';
+      h += '<span class="agm-close-val">' + esc(m.meetingEnd) + '</span>';
+      h += '</div>';
+    }
+    if (m.nextAGM) {
+      h += '<div class="agm-close-block">';
+      h += '<span class="agm-close-label">Next AGM</span>';
+      h += '<span class="agm-close-val">' + esc(formatAGMDate(m.nextAGM)) + '</span>';
+      h += '</div>';
+    }
+    h += '<div style="margin-top:1rem;border:1px solid #ddd5c8;border-radius:6px;background:#ddd5c8;padding:0.75rem 1.25rem;">';
+    h += '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">CMC AGMs take place on the second Sunday of December each year.</p>';
+    h += '</div>';
+    h += '</div>';
+
+    document.getElementById('agm-overlay-content').innerHTML = h;
+  }
+
 </script>
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
@@ -1703,5 +2522,32 @@
   <div class="sw-sub">You'll be logged out in 2 minutes due to inactivity</div>
   <button class="sw-btn" onclick="stayLoggedIn()">Stay logged in</button>
 </div>
+
+<!-- AGM Minutes Overlay — identical structure to BVA overlay -->
+<div id="agm-minutes-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+  <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button onclick="agmExpandGroups()" style="width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All</button>
+    <button id="agm-collapse-btn" onclick="agmCollapseAll()" style="display:none;width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse All</button>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+      <button onclick="agmPrint()" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+      <button onclick="closeAGMOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
+    </div>
+  </div>
+  <div id="agm-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+</div>
+
+<!-- Quick-view modal -->
+<div id="agm-modal-overlay" onclick="agmModalClickOutside(event)">
+  <div id="agm-modal-box">
+    <div id="agm-modal-header">
+      <div>
+        <div id="agm-modal-title" style="font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:white;"></div>
+      </div>
+      <button id="agm-modal-close" onclick="closeAgmModal()">✕ Close</button>
+    </div>
+    <div id="agm-modal-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
