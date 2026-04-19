@@ -524,14 +524,14 @@
     /* ── Action cards: num+badge on top, text below ── */
     .agm-action-card-top { flex-wrap: wrap; }
     .agm-action-card-num { min-width: auto; flex-shrink: 1; }
-    .agm-action-card-text { width: 100%; order: 3; }
+    .agm-action-card-text { width: 100%; order: 3; flex: none; }
     .agm-action-card-top .agm-badge-outstanding,
     .agm-action-card-top .agm-badge-complete { order: 2; }
 
     /* ── Voting rows: num+result on top, motion below ── */
     .agm-vote-row { flex-wrap: wrap; }
     .agm-vote-num { flex-shrink: 1; }
-    .agm-vote-motion { width: 100%; order: 3; }
+    .agm-vote-motion { width: 100%; order: 3; flex: none; }
     .agm-vote-result { order: 2; }
 
     /* ── Agenda item: number inline with title, not separate column ── */
@@ -542,7 +542,7 @@
     /* ── Agenda action rows: label+badge on top, text below ── */
     .agm-agenda-action-row { flex-wrap: wrap; }
     .agm-agenda-action-label { min-width: auto; }
-    .agm-agenda-action-text { width: 100%; order: 3; }
+    .agm-agenda-action-text { width: 100%; order: 3; flex: none; }
     .agm-agenda-action-row .agm-badge-outstanding,
     .agm-agenda-action-row .agm-badge-complete { order: 2; }
 
