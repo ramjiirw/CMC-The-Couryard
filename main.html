@@ -522,17 +522,12 @@
   @media (max-width: 600px) {
 
     /* ── Action cards: num+badge on top, text below ── */
-    .agm-action-card-top { flex-wrap: wrap; }
-    .agm-action-card-num { min-width: auto; flex-shrink: 1; }
-    .agm-action-card-text { width: 100%; order: 3; flex: none; }
-    .agm-action-card-top .agm-badge-outstanding,
-    .agm-action-card-top .agm-badge-complete { order: 2; }
+    .agm-action-card-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .agm-action-card-text { width: 100%; }
 
     /* ── Voting rows: num+result on top, motion below ── */
-    .agm-vote-row { flex-wrap: wrap; }
-    .agm-vote-num { flex-shrink: 1; }
-    .agm-vote-motion { width: 100%; order: 3; flex: none; }
-    .agm-vote-result { order: 2; }
+    .agm-vote-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .agm-vote-motion { width: 100%; }
 
     /* ── Agenda item: number inline with title, not separate column ── */
     .agm-agenda-item { flex-direction: column; gap: 4px; }
@@ -2190,9 +2185,14 @@
 
         h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
         h += '<div class="agm-action-card-top">';
-        h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
-        h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
-        h += badge;
+        if (isMobile) {
+          h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + esc(num) + '</span>' + badge + '</div>';
+          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+        } else {
+          h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
+          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+          h += badge;
+        }
         h += '</div>';
 
         h += '</div>';
@@ -2246,6 +2246,7 @@
     if (!agmData) return;
     var d = agmData;
     var m = d.meta || {};
+    var isMobile = window.innerWidth <= 600;
 
     // Store items for modal lookup
     agmItemStore = {};
@@ -2361,12 +2362,18 @@
     if (d.votes && d.votes.length) {
       d.votes.forEach(function(v) {
         h += '<div class="agm-vote-row">';
-        h += '<span class="agm-vote-num">' + esc(v.number) + '</span>';
-        h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>';
+        if (isMobile) {
+          h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-vote-num">' + esc(v.number) + '</span>';
+        } else {
+          h += '<span class="agm-vote-num">' + esc(v.number) + '</span>';
+          h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>';
+        }
         if (v.passed) {
           h += '<span class="agm-vote-result agm-vote-passed">✓ Passed</span>';
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>'; }
         } else {
           h += '<span class="agm-vote-result agm-vote-pending">● Pending</span>';
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>'; }
         }
         h += '</div>';
       });
