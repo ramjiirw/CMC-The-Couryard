@@ -526,7 +526,7 @@
     .agm-action-card-text { width: 100%; }
 
     /* ── Voting rows: num+result on top, motion below ── */
-    .agm-vote-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .agm-vote-row { flex-direction: column; align-items: stretch; gap: 4px; }
     .agm-vote-motion { width: 100%; }
 
     /* ── Agenda item: number inline with title, not separate column ── */
@@ -535,11 +535,8 @@
     .agm-agenda-title { display: flex; align-items: baseline; gap: 6px; }
 
     /* ── Agenda action rows: label+badge on top, text below ── */
-    .agm-agenda-action-row { flex-wrap: wrap; }
-    .agm-agenda-action-label { min-width: auto; }
-    .agm-agenda-action-text { width: 100%; order: 3; flex: none; }
-    .agm-agenda-action-row .agm-badge-outstanding,
-    .agm-agenda-action-row .agm-badge-complete { order: 2; }
+    .agm-agenda-action-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .agm-agenda-action-text { width: 100%; }
 
   }
 
@@ -2078,9 +2075,14 @@
         var isHighlighted = inModal && highlightAction && (a.text === highlightAction);
         var highlightStyle = isHighlighted ? ' style="background:#fdf8f0;border-radius:4px;margin:2px 0;padding:6px 6px;"' : '';
         h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
-        if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
-        h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
-        h += badge;
+        if (isMobile) {
+          if (actionNum) h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>' + badge + '</div>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
+        } else {
+          if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
+          h += badge;
+        }
         h += '</div>';
       });
       h += '</div>';
