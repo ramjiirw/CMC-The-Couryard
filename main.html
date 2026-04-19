@@ -487,6 +487,8 @@
 
 
 
+
+
   /* ── AGM Minutes toggle button styles ── */
   .finance-section { border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
 
@@ -515,6 +517,36 @@
   .btn-loading .hint-close { display: none !important; }
   @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
   .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
+
+
+  @media (max-width: 600px) {
+
+    /* ── Action cards: num+badge on top, text below ── */
+    .agm-action-card-top { flex-wrap: wrap; }
+    .agm-action-card-num { min-width: auto; flex-shrink: 1; }
+    .agm-action-card-text { width: 100%; order: 3; }
+    .agm-action-card-top .agm-badge-outstanding,
+    .agm-action-card-top .agm-badge-complete { order: 2; }
+
+    /* ── Voting rows: num+result on top, motion below ── */
+    .agm-vote-row { flex-wrap: wrap; }
+    .agm-vote-num { flex-shrink: 1; }
+    .agm-vote-motion { width: 100%; order: 3; }
+    .agm-vote-result { order: 2; }
+
+    /* ── Agenda item: number inline with title, not separate column ── */
+    .agm-agenda-item { flex-direction: column; gap: 4px; }
+    .agm-agenda-numcol { font-size: 13px; font-weight: 500; min-width: auto; padding-top: 0; display: inline; }
+    .agm-agenda-title { display: flex; align-items: baseline; gap: 6px; }
+
+    /* ── Agenda action rows: label+badge on top, text below ── */
+    .agm-agenda-action-row { flex-wrap: wrap; }
+    .agm-agenda-action-label { min-width: auto; }
+    .agm-agenda-action-text { width: 100%; order: 3; }
+    .agm-agenda-action-row .agm-badge-outstanding,
+    .agm-agenda-action-row .agm-badge-complete { order: 2; }
+
+  }
 
   /* ── BVA-identical styles (used in overlay) ── */
   .bva-col-head {
@@ -1935,6 +1967,7 @@
     document.getElementById('agm-minutes-overlay').style.display = '';
     document.getElementById('agm-minutes-overlay').scrollTop = 0;
     document.documentElement.style.overflowY = 'hidden';
+
   }
 
   function closeAGMOverlay() {
@@ -2561,7 +2594,7 @@
       <button onclick="closeAGMOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
     </div>
   </div>
-  <div id="agm-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+  <div id="agm-overlay-content" style="padding:2rem clamp(0.75rem, 4vw, 3rem);max-width:1000px;margin:0 auto;"></div>
 </div>
 
 <!-- Quick-view modal -->
