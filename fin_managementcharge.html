@@ -1265,12 +1265,14 @@
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
+      var pillTag = isMobile ? 'div' : 'span';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
-        ? ' <div style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;display:inline-block;margin-top:3px;">' + activeYear + ' charge up to date</div>'
+        ? ' <' + pillTag + ' style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + activeYear + ' charge up to date</' + pillTag + '>'
         : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
-      html += '<div class="prop-val ' + outClass + '" style="text-align:right;">' + outText + pillHtml + '</div>';
+      var balTag = isMobile ? 'div' : 'span';
+      html += '<' + balTag + ' class="prop-val ' + outClass + '" style="text-align:right;">' + (isMobile ? '<span style="display:block;">' + outText + '</span>' : outText) + pillHtml + '</' + balTag + '>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
       html += '<div class="month-panel" id="months-' + key + '" data-addr="' + addr + '" data-built="false"></div>';
@@ -1424,8 +1426,9 @@
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
       var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Paid in full';
+      var propPillTag = isMobile ? 'div' : 'span';
       var propPillHtml = isOnTrack(addr, currentYear)
-        ? ' <div style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;display:inline-block;margin-top:3px;">' + currentYear + ' charge up to date</div>'
+        ? ' <' + propPillTag + ' style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + currentYear + ' charge up to date</' + propPillTag + '>'
         : '';
       var key = 'an_' + addr.replace(/ /g,'_');
 
@@ -1435,7 +1438,8 @@
       html += '<span class="prop-name">' + addr + '<span id="hint-' + key + '" style="display:none;font-size:0.85rem;font-weight:400;color:#c8b89a;margin-left:8px;">· click to collapse</span></span>';
       html += '<span class="prop-val val-due">' + fmt(propTotalDue) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(propTotalPaid) + '</span>';
-      html += '<div class="prop-val ' + propOutClass + '" style="text-align:right;">' + propOutText + propPillHtml + '</div>';
+      var propBalTag = isMobile ? 'div' : 'span';
+      html += '<' + propBalTag + ' class="prop-val ' + propOutClass + '" style="text-align:right;">' + (isMobile ? '<span style="display:block;">' + propOutText + '</span>' : propOutText) + propPillHtml + '</' + propBalTag + '>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
 
@@ -1462,8 +1466,9 @@
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
         var rowBg = (mcPaid > 0 && outstanding <= 0) ? ' m-green' : mcPaid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
+        var yrPillTag = isMobile ? 'div' : 'span';
         var yrPillHtml = (yr === currentYear && isOnTrack(addr, yr))
-          ? ' <div style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;display:inline-block;margin-top:3px;">' + yr + ' charge up to date</div>'
+          ? ' <' + yrPillTag + ' style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + yr + ' charge up to date</' + yrPillTag + '>'
           : '';
 
         html += '<div style="height:3px;background:var(--border);"></div>';
@@ -1472,7 +1477,8 @@
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
         html += '<span class="month-val paid" style="text-align:right;">' + (mcPaid > 0 ? fmt(mcPaid) : '<span class="muted">—</span>') + '</span>';
-        html += '<div class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</div>';
+        var yrBalTag = isMobile ? 'div' : 'span';
+        html += '<' + yrBalTag + ' class="month-val ' + outC + '" style="text-align:right;">' + (isMobile ? '<span style="display:block;">' + outT + '</span>' : outT) + yrPillHtml + '</' + yrBalTag + '>';
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '"></span></span>';
         html += '</div>';
 
