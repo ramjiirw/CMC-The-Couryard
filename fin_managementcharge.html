@@ -2881,6 +2881,9 @@
     if (!farmhouseData) return;
     var years = getFH2AvailableYears();
     var html  = '';
+    var fh2Mobile = window.innerWidth <= 700;
+    var fh2ExpandCols = fh2Mobile ? '120px 110px 110px 110px 110px 120px' : '1fr 110px 110px 110px 110px 120px';
+    var fh2PrevCols = fh2Mobile ? '120px 150px 150px 150px' : '1fr 150px 150px 150px';
 
     // Controls
     html += '<div class="tracker-controls">';
@@ -3191,7 +3194,7 @@
 
     if (curBehind.length > 0) {
       html += '<div class="month-panel" id="fh2panel-grandcur" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
-      html += '<div style="display:grid;grid-template-columns:1fr 110px 110px 110px 110px 120px;padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
+      html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Paid</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Owed</span>';
@@ -3203,7 +3206,7 @@
       curBehind.forEach(function(p) {
         totRPaid+=p.rentPaid; totROut+=p.rentOut; totIPaid+=p.insPaid; totIOut+=p.insOut;
         var totOwed = p.rentOut + p.insOut;
-        html += '<div style="display:grid;grid-template-columns:1fr 110px 110px 110px 110px 120px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
+        html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.rentPaid) + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
@@ -3212,7 +3215,7 @@
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (totOwed > 0 ? fmt(totOwed) : '—') + '</span>';
         html += '</div>';
       });
-      html += '<div style="display:grid;grid-template-columns:1fr 110px 110px 110px 110px 120px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
       html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totRPaid) + '</span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totROut) + '</span>';
@@ -3245,7 +3248,7 @@
 
     if (prevBehind.length > 0) {
       html += '<div class="month-panel" id="fh2panel-grandprev" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
-      html += '<div style="display:grid;grid-template-columns:1fr 150px 150px 150px;padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
+      html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Outstanding</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Outstanding</span>';
@@ -3255,14 +3258,14 @@
       prevBehind.forEach(function(p) {
         totPROut+=p.rentOut; totPIOut+=p.insOut;
         var totPOwed = p.rentOut + p.insOut;
-        html += '<div style="display:grid;grid-template-columns:1fr 150px 150px 150px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
+        html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
         html += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.insOut > 0 ? fmt(p.insOut) : '—') + '</span>';
         html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPOwed) + '</span>';
         html += '</div>';
       });
-      html += '<div style="display:grid;grid-template-columns:1fr 150px 150px 150px;padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
       html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPROut) + '</span>';
       html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPIOut) + '</span>';
