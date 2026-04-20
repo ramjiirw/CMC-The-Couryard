@@ -2763,7 +2763,9 @@
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:700;" class="' + cumOutC + '">' + (summDue > 0 ? cumOutT : '—') + '</span>';
     html += '<span></span></div>';
 
-    document.getElementById('farmhouse-inner').innerHTML = html;
+    var fhWrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
+    var fhWrapEnd = window.innerWidth <= 700 ? '</div>' : '';
+    document.getElementById('farmhouse-inner').innerHTML = fhWrap + html + fhWrapEnd;
   }
 
   function toggleFHProp(key) {
