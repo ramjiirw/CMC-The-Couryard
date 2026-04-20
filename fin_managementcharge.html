@@ -387,7 +387,7 @@
   .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
-      grid-template-columns: 20px 1fr 90px 90px 170px 24px;
+      grid-template-columns: 20px 1fr 90px 90px 200px 24px;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
@@ -1390,7 +1390,7 @@
     var years = getAvailableYears();
     var html = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 200px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
     html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
@@ -2854,7 +2854,7 @@
     var years = getFH2AvailableYears();
     var html  = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 200px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
