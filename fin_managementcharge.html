@@ -1271,7 +1271,8 @@
         : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
-      html += '<span class="prop-val ' + outClass + '">' + outText + pillHtml + '</span>';
+      var balTag = isMobile ? 'div' : 'span';
+      html += '<' + balTag + ' class="prop-val ' + outClass + '">' + outText + pillHtml + '</' + balTag + '>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
       html += '<div class="month-panel" id="months-' + key + '" data-addr="' + addr + '" data-built="false"></div>';
@@ -1437,7 +1438,8 @@
       html += '<span class="prop-name">' + addr + '<span id="hint-' + key + '" style="display:none;font-size:0.85rem;font-weight:400;color:#c8b89a;margin-left:8px;">· click to collapse</span></span>';
       html += '<span class="prop-val val-due">' + fmt(propTotalDue) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(propTotalPaid) + '</span>';
-      html += '<span class="prop-val ' + propOutClass + '">' + propOutText + propPillHtml + '</span>';
+      var propBalTag = isMobile ? 'div' : 'span';
+      html += '<' + propBalTag + ' class="prop-val ' + propOutClass + '">' + propOutText + propPillHtml + '</' + propBalTag + '>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
 
@@ -1475,7 +1477,8 @@
         html += '<span class="month-name" style="font-weight:600;">' + yr + '</span>';
         html += '<span class="month-val" style="text-align:right;color:var(--mid);">' + fmt(due) + '</span>';
         html += '<span class="month-val paid" style="text-align:right;">' + (mcPaid > 0 ? fmt(mcPaid) : '<span class="muted">—</span>') + '</span>';
-        html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</span>';
+        var yrBalTag = isMobile ? 'div' : 'span';
+        html += '<' + yrBalTag + ' class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</' + yrBalTag + '>';
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '"></span></span>';
         html += '</div>';
 
