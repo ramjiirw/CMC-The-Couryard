@@ -387,7 +387,7 @@
   .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
-      grid-template-columns: 20px 1fr 90px 90px 100px 20px;
+      grid-template-columns: 20px 1fr 90px 90px 150px 24px;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
@@ -396,8 +396,13 @@
     #tracker-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     #tracker-inner .tracker-col-heads,
     #tracker-inner .prop-row,
-    #tracker-inner .tracker-summary { min-width: 520px; }
+    #tracker-inner .tracker-summary { min-width: 540px; }
     #panel-tracker { overflow-x: auto; }
+    #annual-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    #annual-inner .tracker-col-heads,
+    #annual-inner .prop-row,
+    #annual-inner .tracker-summary { min-width: 540px; }
+    #panel-annual { overflow-x: auto; }
   }
   /* ── IET ── */
   .iet-section-head {
