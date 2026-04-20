@@ -387,7 +387,7 @@
   .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
-      grid-template-columns: 20px 1fr 90px 90px 220px 28px;
+      grid-template-columns: 20px 1fr 90px 90px 100px 28px;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
@@ -1224,6 +1224,7 @@
     var due = getDue(activeYear);
     var dueMonthly = due > 0 ? (due / 12) : 0;
     var html = '';
+    var isMobile = window.innerWidth <= 700;
 
     /* Controls bar */
     html += '<div class="tracker-controls">';
@@ -1264,8 +1265,9 @@
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
+      var mPillStyle = isMobile ? 'display:block;font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;margin-top:3px;' : 'font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
-        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
+        ? ' <span style="' + mPillStyle + '">' + activeYear + ' charge up to date</span>'
         : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
@@ -1395,7 +1397,7 @@
     var years = getAvailableYears();
     var html = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 220px 28px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 100px 28px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
     html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
@@ -1423,8 +1425,9 @@
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
       var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Paid in full';
+      var pillStyle = isMobile ? 'display:block;font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;margin-top:3px;' : 'font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;';
       var propPillHtml = isOnTrack(addr, currentYear)
-        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + currentYear + ' charge up to date</span>'
+        ? ' <span style="' + pillStyle + '">' + currentYear + ' charge up to date</span>'
         : '';
       var key = 'an_' + addr.replace(/ /g,'_');
 
@@ -1461,8 +1464,9 @@
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
         var rowBg = (mcPaid > 0 && outstanding <= 0) ? ' m-green' : mcPaid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
+        var yrPillStyle = isMobile ? 'display:block;font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;margin-top:3px;' : 'font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;';
         var yrPillHtml = (yr === currentYear && isOnTrack(addr, yr))
-          ? ' <span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;white-space:nowrap;">' + yr + ' charge up to date</span>'
+          ? ' <span style="' + yrPillStyle + '">' + yr + ' charge up to date</span>'
           : '';
 
         html += '<div style="height:3px;background:var(--border);"></div>';
@@ -2869,7 +2873,7 @@
     var years = getFH2AvailableYears();
     var html  = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 220px 28px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 100px 28px' : '20px 1fr 150px 150px 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
