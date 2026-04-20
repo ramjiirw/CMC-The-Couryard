@@ -406,7 +406,6 @@
     #annual-inner .annual-yr-head,
     #annual-inner .txn-row { min-width: 480px; }
     #panel-annual { overflow-x: auto; }
-    .val-owed, .val-clear, .val-over { display: flex; flex-direction: column; align-items: flex-end; }
   }
   /* ── IET ── */
   .iet-section-head {
@@ -1266,8 +1265,9 @@
       html += '<div class="prop-header" onclick="toggleProp(\'' + key + '\')">';
       html += '<span><span class="prop-status-dot ' + dotClass + '"></span></span>';
       html += '<span class="prop-name">' + addr + '</span>';
+      var pillTag = isMobile ? 'div' : 'span';
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
-        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'display:block;margin-top:3px;' : 'white-space:nowrap;') + '">' + activeYear + ' charge up to date</span>'
+        ? ' <' + pillTag + ' style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + activeYear + ' charge up to date</' + pillTag + '>'
         : '';
       html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
@@ -1425,8 +1425,9 @@
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
       var propOutText  = propOut > 0 ? fmt(propOut) : propOut < 0 ? '+'+fmt(Math.abs(propOut))+' overpaid' : '\u2713 Paid in full';
+      var propPillTag = isMobile ? 'div' : 'span';
       var propPillHtml = isOnTrack(addr, currentYear)
-        ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'display:block;margin-top:3px;' : 'white-space:nowrap;') + '">' + currentYear + ' charge up to date</span>'
+        ? ' <' + propPillTag + ' style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + currentYear + ' charge up to date</' + propPillTag + '>'
         : '';
       var key = 'an_' + addr.replace(/ /g,'_');
 
@@ -1463,8 +1464,9 @@
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
         var rowBg = (mcPaid > 0 && outstanding <= 0) ? ' m-green' : mcPaid > 0 ? ' m-amber' : ' m-red';
         var yrKey = key + '_' + yr;
+        var yrPillTag = isMobile ? 'div' : 'span';
         var yrPillHtml = (yr === currentYear && isOnTrack(addr, yr))
-          ? ' <span style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;' + (isMobile ? 'display:block;margin-top:3px;' : 'white-space:nowrap;') + '">' + yr + ' charge up to date</span>'
+          ? ' <' + yrPillTag + ' style="font-size:0.68rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:1px 5px;font-weight:600;' + (isMobile ? 'margin-top:3px;text-align:center;' : 'white-space:nowrap;') + '">' + yr + ' charge up to date</' + yrPillTag + '>'
           : '';
 
         html += '<div style="height:3px;background:var(--border);"></div>';
