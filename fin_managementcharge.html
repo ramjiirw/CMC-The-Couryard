@@ -387,7 +387,7 @@
   .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
-      grid-template-columns: 20px 1fr 90px 90px 200px 24px;
+      grid-template-columns: 20px 1fr 90px 90px 220px 28px;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
@@ -399,7 +399,12 @@
     #tracker-inner .tracker-summary { min-width: 540px; }
     #panel-tracker { overflow-x: auto; }
     #annual-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
-    #annual-inner > * { min-width: 640px; }
+    #annual-inner > *,
+    #annual-inner .prop-header,
+    #annual-inner .month-panel,
+    #annual-inner .month-row,
+    #annual-inner .annual-yr-head,
+    #annual-inner .txn-row { min-width: 640px; }
     #panel-annual { overflow-x: auto; }
   }
   /* ── IET ── */
@@ -1390,7 +1395,7 @@
     var years = getAvailableYears();
     var html = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 200px 24px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 220px 28px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
     html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
@@ -1558,12 +1563,22 @@
       grandPaid += allPaid;
     });
 
-    html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
-    html += '<span></span>';
-    html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
-    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
-    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
-    html += '<span></span></div>';
+    if (isMobile) {
+      html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
+      html += '<span></span>';
+      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
+      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
+      html += '<span></span></div>';
+    } else {
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 1fr 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
+      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
+      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '\u2713 All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
+      html += '<span></span></div>';
+    }
 
     /* Current year behind dropdown */
     var curYearBehind = [];
@@ -2854,7 +2869,7 @@
     var years = getFH2AvailableYears();
     var html  = '';
     var isMobile = window.innerWidth <= 700;
-    var annualCols = isMobile ? '20px 1fr 90px 90px 200px 24px' : '20px 1fr 150px 150px 170px 30px';
+    var annualCols = isMobile ? '20px 1fr 90px 90px 220px 28px' : '20px 1fr 150px 150px 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
