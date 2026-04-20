@@ -387,7 +387,7 @@
   .sum-card-owed .sum-card-val { color: #c62828; }
   @media (max-width: 700px) {
     .tracker-col-heads, .prop-header, .month-row, .txn-row {
-      grid-template-columns: 20px 1fr 90px 90px 150px 24px;
+      grid-template-columns: 20px 1fr 90px 90px 170px 24px;
       padding-left: 0.75rem; padding-right: 0.75rem;
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
@@ -1556,7 +1556,7 @@
       grandPaid += allPaid;
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 1fr 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
     html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
@@ -3117,7 +3117,7 @@
     var grandPrevOut = prevRentOut + prevInsOut;
 
     // Grand total bar
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 1fr 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
     html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
