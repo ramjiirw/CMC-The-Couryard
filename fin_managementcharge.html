@@ -401,7 +401,6 @@
     #annual-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
     #annual-inner > * { min-width: 640px; }
     #panel-annual { overflow-x: auto; }
-    .annual-yr-head { grid-template-columns: 20px 1fr 90px 90px 170px 24px !important; }
   }
   /* ── IET ── */
   .iet-section-head {
@@ -1390,6 +1389,8 @@
   function renderAnnual() {
     var years = getAvailableYears();
     var html = '';
+    var isMobile = window.innerWidth <= 700;
+    var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
     html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
@@ -1436,7 +1437,7 @@
       html += '<div style="padding:0.5rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;">';
       html += '<button id="expbtn-' + key + '" class="expand-prop-btn" style="font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:50px;border:1px solid #2e2318;background:#4a3f35;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 6px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);transition:transform 0.15s ease,box-shadow 0.15s ease;" onclick="expandAnnualProperty(\'' + key + '\', event)">Expand property history</button>';
       html += '</div>';
-      html += '<div class="annual-yr-head" style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
+      html += '<div class="annual-yr-head" style="display:grid;grid-template-columns:' + annualCols + ';padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Due</span>';
@@ -1482,7 +1483,7 @@
       var hasExtras = arrearsAll.length > 0 || refundsAll.length > 0;
       var totalKey = key + '_total';
 
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasExtras ? 'pointer' : 'default') + ';" ' + (hasExtras ? 'onclick="toggleAnnualTotal(\'' + totalKey + '\')"' : '') + '>';
+      html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasExtras ? 'pointer' : 'default') + ';" ' + (hasExtras ? 'onclick="toggleAnnualTotal(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
       html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
@@ -1557,7 +1558,7 @@
       grandPaid += allPaid;
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
     html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:#ef5350;">' + fmt(grandCurOut) + '</div></div>';
@@ -2852,6 +2853,8 @@
     if (!farmhouseData) return;
     var years = getFH2AvailableYears();
     var html  = '';
+    var isMobile = window.innerWidth <= 700;
+    var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
@@ -2917,7 +2920,7 @@
       html += '</div>';
 
       // Year column headers
-      html += '<div class="annual-yr-head" style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
+      html += '<div class="annual-yr-head" style="display:grid;grid-template-columns:' + annualCols + ';padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Year</span>';
       html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Due</span>';
@@ -3043,7 +3046,7 @@
       hasArrears = rentArrearsAll.length > 0 || insArrearsAll.length > 0;
       var totalKey = key + '_total';
 
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total(\'' + totalKey + '\')"' : '') + '>';
+      html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
       html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
@@ -3118,7 +3121,7 @@
     var grandPrevOut = prevRentOut + prevInsOut;
 
     // Grand total bar
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<div style="display:grid;grid-template-columns:' + annualCols + ';padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
     html += '<span></span>';
     html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
     html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
