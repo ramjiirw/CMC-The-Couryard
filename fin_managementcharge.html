@@ -968,8 +968,8 @@
       <div id="farmhouse2-inner">
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
+      <div id="farmhouse2-brown"></div>
     </div>
-    <div id="farmhouse2-brown"></div>
   </div>
 
 </main>
@@ -1062,10 +1062,6 @@
     var open = panel.classList.toggle('open');
     btn.classList.toggle('open', open);
     btn.setAttribute('aria-expanded', open);
-    if (key === 'farmhouse2') {
-      var brown = document.getElementById('farmhouse2-brown');
-      if (brown) brown.style.display = open ? '' : 'none';
-    }
     if (open) {
       setTimeout(function() {
         btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3304,11 +3300,7 @@
     var fh2WrapEnd = window.innerWidth < 700 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
     var fh2Brown = document.getElementById('farmhouse2-brown');
-    if (fh2Brown) {
-      fh2Brown.innerHTML = brownHtml;
-      var fh2Panel = document.getElementById('panel-farmhouse2');
-      fh2Brown.style.display = (fh2Panel && fh2Panel.classList.contains('open')) ? '' : 'none';
-    }
+    if (fh2Brown) fh2Brown.innerHTML = brownHtml;
   }
 
   function toggleFH2Prop(key) {
