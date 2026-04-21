@@ -3131,7 +3131,7 @@ async function agmAgendaLoad() {
       // Desktop: inline inputs
       html += '<tr id="agmItemRow_' + i + '" style="background:' + rowBg + ';border-bottom:1px solid rgba(184,173,158,0.15);">'
         + '<td style="padding:0.3rem 0.6rem;color:var(--mid);font-size:0.75rem;">' + (i + 1) + '</td>'
-        + '<td class="agm-desktop-cell" style="padding:0.3rem 0.4rem;"><input type="text" id="agmItem_' + i + '" value="' + itemVal + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '"></td>'
+        + '<td class="agm-desktop-cell" style="padding:0.3rem 0.4rem;"><textarea id="agmItem_' + i + '" oninput="agmAgendaSetDirty();this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';" style="' + fieldStyle + 'resize:none;overflow:hidden;min-height:32px;">' + itemVal + '</textarea></td>'
         + '<td class="agm-desktop-cell" style="padding:0.3rem 0.4rem;"><input type="text" id="agmRaisedBy_' + i + '" value="' + rbVal + '" oninput="agmAgendaSetDirty()" style="' + fieldStyle + '"></td>'
         // Mobile: tappable read-only cells
         + '<td class="agm-mobile-cell" style="display:none;padding:0.55rem 0.6rem;font-size:0.82rem;color:var(--dark);cursor:pointer;" id="agmItemText_' + i + '" onclick="agmItemModalOpen(' + i + ')">' + (itemVal || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>') + '</td>'
@@ -3280,6 +3280,10 @@ async function agmItemModalSave() {
   document.getElementById('agmRaisedByHidden_' + agmItemModalIdx).value = newRB;
   document.getElementById('agmItemText_' + agmItemModalIdx).innerHTML   = newText || '<span style="color:#bbb;font-style:italic;">Tap to edit…</span>';
   document.getElementById('agmItemRB_'   + agmItemModalIdx).innerHTML   = newRB   || '<span style="color:#bbb;font-style:italic;">—</span>';
+  var desktopTA = document.getElementById('agmItem_' + agmItemModalIdx);
+  if (desktopTA) { desktopTA.value = newText; desktopTA.style.height = 'auto'; desktopTA.style.height = desktopTA.scrollHeight + 'px'; }
+  var desktopRB = document.getElementById('agmRaisedBy_' + agmItemModalIdx);
+  if (desktopRB) { desktopRB.value = newRB; }
 
   // Lock the modal while saving
   saveBtn.disabled = true;
