@@ -3076,7 +3076,7 @@
             var arrearsLabel = p.isArrears ? ' <span style="font-size:0.7rem;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;">Arrears</span>' : '';
             html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.3rem 1.5rem;border-bottom:1px solid var(--border);align-items:center;">';
             html += '<span></span>';
-            html += '<span style="font-size:0.8rem;color:var(--mid);">' + fmtDate(p.date) + arrearsLabel + (p.notes ? ' — ' + p.notes : '') + '</span>';
+            html += '<span style="font-size:0.8rem;color:var(--mid);">' + fmtDate(p.date) + arrearsLabel + '</span>' + (p.notes ? '<span style="font-size:0.8rem;color:var(--mid);"> — ' + p.notes + '</span>' : '');
             html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#2e7d32;">' + fmt(p.amount) + '</span>';
             html += '<span style="font-size:0.75rem;color:#9a8a75;padding-left:12px;">' + (p.category || '') + '</span>';
             html += '</div>';
@@ -3109,7 +3109,7 @@
             var arrearsLabel = p.isArrears ? ' <span style="font-size:0.7rem;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;">Arrears</span>' : '';
             html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.3rem 1.5rem;border-bottom:1px solid var(--border);align-items:center;">';
             html += '<span></span>';
-            html += '<span style="font-size:0.8rem;color:var(--mid);">' + fmtDate(p.date) + arrearsLabel + (p.notes ? ' — ' + p.notes : '') + '</span>';
+            html += '<span style="font-size:0.8rem;color:var(--mid);">' + fmtDate(p.date) + arrearsLabel + '</span>' + (p.notes ? '<span style="font-size:0.8rem;color:var(--mid);"> — ' + p.notes + '</span>' : '');
             html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#2e7d32;">' + fmt(p.amount) + '</span>';
             html += '<span style="font-size:0.75rem;color:#9a8a75;padding-left:12px;">' + (p.category || '') + '</span>';
             html += '</div>';
