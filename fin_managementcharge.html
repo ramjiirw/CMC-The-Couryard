@@ -300,7 +300,15 @@
   }
   .expand-collapse-btns .btn-expand-all,
   .expand-collapse-btns .btn-collapse-all {
-    flex: 1;
+    white-space: nowrap; text-align: center;
+  }
+  .expand-collapse-btns.btns-sm .btn-expand-all,
+  .expand-collapse-btns.btns-sm .btn-collapse-all {
+    min-width: 6rem;
+  }
+  .expand-collapse-btns.btns-lg .btn-expand-all,
+  .expand-collapse-btns.btns-lg .btn-collapse-all {
+    min-width: 9.5rem;
   }
   .tracker-col-heads {
     display: grid; grid-template-columns: 20px 1fr 150px 150px 170px 30px;
@@ -1244,7 +1252,7 @@
     years.forEach(function(y) {
       html += '<button class="yr-btn' + (activeYear === y ? ' active' : '') + '" id="yrbtn-' + y + '" onclick="setYear(' + y + ')">' + y + '</button>';
     });
-    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="mc-expand-btn" onclick="mcExpandAll()">Expand All</button><button class="btn-collapse-all" id="mc-collapse-btn" onclick="mcCollapseAll()" style="display:none;">Collapse All</button></div>';
+    html += '<div class="expand-collapse-btns btns-sm"><button class="btn-expand-all" id="mc-expand-btn" onclick="mcExpandAll()">Expand All</button><button class="btn-collapse-all" id="mc-collapse-btn" onclick="mcCollapseAll()" style="display:none;">Collapse All</button></div>';
     html += '</div>';
 
     /* Column headers */
@@ -1429,7 +1437,7 @@
     var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
-    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="annual-expand-btn" onclick="annualExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="annual-collapse-btn" onclick="annualCollapseAll()" style="display:none;">Collapse All Properties</button></div>';
+    html += '<div class="expand-collapse-btns btns-lg"><button class="btn-expand-all" id="annual-expand-btn" onclick="annualExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="annual-collapse-btn" onclick="annualCollapseAll()" style="display:none;">Collapse All Properties</button></div>';
     html += '</div>';
 
     html += '<div class="tracker-col-heads">';
@@ -2933,7 +2941,7 @@
 
     // Controls
     html += '<div class="tracker-controls">';
-    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="fh2-expand-btn" onclick="fh2ExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="fh2-collapse-btn" onclick="fh2CollapseAll()" style="display:none;">Collapse All Properties</button></div>';
+    html += '<div class="expand-collapse-btns btns-lg"><button class="btn-expand-all" id="fh2-expand-btn" onclick="fh2ExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="fh2-collapse-btn" onclick="fh2CollapseAll()" style="display:none;">Collapse All Properties</button></div>';
     html += '</div>';
 
     // Column headers
