@@ -2885,6 +2885,8 @@
     var fh2Mobile = window.innerWidth <= 700;
     var fh2ExpandCols = fh2Mobile ? '120px 110px 110px 110px 110px 120px' : '1fr 110px 110px 110px 110px 120px';
     var fh2PrevCols = fh2Mobile ? '120px 150px 150px 150px' : '1fr 150px 150px 150px';
+    var fh2SumCols = fh2Mobile ? '20px 1fr 200px 30px' : '20px 1fr 1fr 30px';
+    var fh2BehindCols = fh2Mobile ? '20px 1fr 170px 30px' : '20px 1fr 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
@@ -3159,10 +3161,10 @@
     html += '<span></span></div>';
 
     // Rent/Insurance split rows
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 30px;padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
+    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandRentDue-grandRentPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandRentDue-grandRentPaid) > 0 ? fmt(grandRentDue-grandRentPaid) : '✓ All clear') + '</span><span></span></div>';
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 30px;padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
+    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Insurance Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandInsDue-grandInsPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandInsDue-grandInsPaid) > 0 ? fmt(grandInsDue-grandInsPaid) : '✓ All clear') + '</span><span></span></div>';
 
