@@ -3147,7 +3147,7 @@
         rentArrearsAll.concat(insArrearsAll).sort(function(a,b){ return a.date > b.date ? 1 : -1; }).forEach(function(p) {
           html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);align-items:start;">';
           html += '<span></span>';
-          html += '<span style="font-size:0.82rem;color:var(--mid);">' + fmtDate(p.date) + '</span>';
+          html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">' + fmtDate(p.date) + ' <span style="font-size:0.7rem;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;">Arrears</span>' + (p.notes ? '<span style="color:var(--mid);"> — ' + p.notes + '</span>' : '') + '</span>';
           html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
           html += '<span style="padding-left:12px;font-size:0.78rem;color:#8a7a65;font-style:italic;">' + (p.category || 'Arrears') + '</span>';
           html += '</div>';
