@@ -406,6 +406,7 @@
     #farmhouse-inner > * { min-width: 520px; }
     #panel-farmhouse { overflow-x: auto !important; overflow-y: hidden; }
     #farmhouse2-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
+    #farmhouse2-inner > *,
     #farmhouse2-inner .tracker-col-heads,
     #farmhouse2-inner .prop-header,
     #farmhouse2-inner .prop-row,
@@ -3156,29 +3157,30 @@
     var grandPrevOut = prevRentOut + prevInsOut;
 
     // Grand total bar
+    var brownHtml = '';
     if (fh2Mobile) {
-      html += '<div style="padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
-      html += '<div style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Grand Total</div>';
-      html += '<div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">' + currentYear + ' outstanding</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</span></div>';
-      html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">Previous years</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</span></div>';
-      html += '<div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;text-align:right;">net after all payments</div>';
-      html += '</div>';
+      brownHtml += '<div style="padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+      brownHtml += '<div style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Grand Total</div>';
+      brownHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">' + currentYear + ' outstanding</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</span></div>';
+      brownHtml += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">Previous years</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</span></div>';
+      brownHtml += '<div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;text-align:right;">net after all payments</div>';
+      brownHtml += '</div>';
     } else {
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
-      html += '<span></span>';
-      html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
-      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
-      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
-      html += '<span></span></div>';
+      brownHtml += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+      brownHtml += '<span></span>';
+      brownHtml += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
+      brownHtml += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
+      brownHtml += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
+      brownHtml += '<span></span></div>';
     }
 
     // Rent/Insurance split rows
-    html += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
-    html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Rent outstanding</span>';
-    html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandRentDue-grandRentPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandRentDue-grandRentPaid) > 0 ? fmt(grandRentDue-grandRentPaid) : '✓ All clear') + '</span><span></span></div>';
-    html += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
-    html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Insurance Rent outstanding</span>';
-    html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandInsDue-grandInsPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandInsDue-grandInsPaid) > 0 ? fmt(grandInsDue-grandInsPaid) : '✓ All clear') + '</span><span></span></div>';
+    brownHtml += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
+    brownHtml += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Rent outstanding</span>';
+    brownHtml += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandRentDue-grandRentPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandRentDue-grandRentPaid) > 0 ? fmt(grandRentDue-grandRentPaid) : '✓ All clear') + '</span><span></span></div>';
+    brownHtml += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
+    brownHtml += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Insurance Rent outstanding</span>';
+    brownHtml += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandInsDue-grandInsPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandInsDue-grandInsPaid) > 0 ? fmt(grandInsDue-grandInsPaid) : '✓ All clear') + '</span><span></span></div>';
 
     // Properties behind — current year
     var curBehind = [];
@@ -3200,44 +3202,44 @@
       }
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (curBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curBehind.length > 0 ? 'id="fh2grandrow-cur" onclick="toggleFH2GrandSection(\'cur\')"' : '') + '>';
-    html += '<span></span>';
-    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">' + currentYear + ' charge · properties behind on payments</span>';
-    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (curBehind.length > 0 ? curBehind.length + ' propert' + (curBehind.length === 1 ? 'y' : 'ies') : '✓ All on track') + '</span>';
-    html += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (curBehind.length > 0 ? '<span class="prop-chevron" id="fh2chev-grandcur" style="border-color:#c8b89a;"></span>' : '') + '</span>';
-    html += '</div>';
+    brownHtml += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (curBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (curBehind.length > 0 ? 'id="fh2grandrow-cur" onclick="toggleFH2GrandSection(\'cur\')"' : '') + '>';
+    brownHtml += '<span></span>';
+    brownHtml += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">' + currentYear + ' charge · properties behind on payments</span>';
+    brownHtml += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (curBehind.length > 0 ? curBehind.length + ' propert' + (curBehind.length === 1 ? 'y' : 'ies') : '✓ All on track') + '</span>';
+    brownHtml += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (curBehind.length > 0 ? '<span class="prop-chevron" id="fh2chev-grandcur" style="border-color:#c8b89a;"></span>' : '') + '</span>';
+    brownHtml += '</div>';
 
     if (curBehind.length > 0) {
-      html += '<div class="month-panel" id="fh2panel-grandcur" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
-      html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Paid</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Owed</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Paid</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Owed</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Owed</span>';
-      html += '</div>';
+      brownHtml += '<div class="month-panel" id="fh2panel-grandcur" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
+      brownHtml += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Paid</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Owed</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Paid</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Owed</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Owed</span>';
+      brownHtml += '</div>';
       var totRPaid=0,totROut=0,totIPaid=0,totIOut=0;
       curBehind.forEach(function(p) {
         totRPaid+=p.rentPaid; totROut+=p.rentOut; totIPaid+=p.insPaid; totIOut+=p.insOut;
         var totOwed = p.rentOut + p.insOut;
-        html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
-        html += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.rentPaid) + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + (p.insPaid > 0 ? fmt(p.insPaid) : '—') + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.insOut > 0 ? fmt(p.insOut) : '—') + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (totOwed > 0 ? fmt(totOwed) : '—') + '</span>';
-        html += '</div>';
+        brownHtml += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
+        brownHtml += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(p.rentPaid) + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + (p.insPaid > 0 ? fmt(p.insPaid) : '—') + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.insOut > 0 ? fmt(p.insOut) : '—') + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (totOwed > 0 ? fmt(totOwed) : '—') + '</span>';
+        brownHtml += '</div>';
       });
-      html += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
-      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totRPaid) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totROut) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totIPaid) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totIOut) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totROut+totIOut) + '</span>';
-      html += '</div></div>';
+      brownHtml += '<div style="display:grid;grid-template-columns:' + fh2ExpandCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      brownHtml += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totRPaid) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totROut) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#2e7d32;font-weight:700;">' + fmt(totIPaid) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totIOut) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totROut+totIOut) + '</span>';
+      brownHtml += '</div></div>';
     }
 
     // Properties behind — previous years
@@ -3254,43 +3256,43 @@
       if (pROut > 0 || pIOut > 0) prevBehind.push({ addr: addr, rentOut: pROut, insOut: pIOut, rentPaid: allRPaid - curRMcPaid, insPaid: allIPaid - curIMcPaid });
     });
 
-    html += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (prevBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (prevBehind.length > 0 ? 'id="fh2grandrow-prev" onclick="toggleFH2GrandSection(\'prev\')"' : '') + '>';
-    html += '<span></span>';
-    html += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">Previous years · properties with outstanding balances</span>';
-    html += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (prevBehind.length > 0 ? prevBehind.length + ' propert' + (prevBehind.length === 1 ? 'y' : 'ies') : '✓ All clear') + '</span>';
-    html += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (prevBehind.length > 0 ? '<span class="prop-chevron" id="fh2chev-grandprev" style="border-color:#c8b89a;"></span>' : '') + '</span>';
-    html += '</div>';
+    brownHtml += '<div style="display:grid;grid-template-columns:20px 1fr 170px 30px;padding:0.5rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.2);cursor:' + (prevBehind.length > 0 ? 'pointer' : 'default') + ';" ' + (prevBehind.length > 0 ? 'id="fh2grandrow-prev" onclick="toggleFH2GrandSection(\'prev\')"' : '') + '>';
+    brownHtml += '<span></span>';
+    brownHtml += '<span style="font-size:0.88rem;font-weight:600;color:#f5f0e8;">Previous years · properties with outstanding balances</span>';
+    brownHtml += '<span style="text-align:right;font-size:0.88rem;font-weight:600;color:#c8b89a;">' + (prevBehind.length > 0 ? prevBehind.length + ' propert' + (prevBehind.length === 1 ? 'y' : 'ies') : '✓ All clear') + '</span>';
+    brownHtml += '<span style="display:flex;align-items:center;justify-content:flex-end;">' + (prevBehind.length > 0 ? '<span class="prop-chevron" id="fh2chev-grandprev" style="border-color:#c8b89a;"></span>' : '') + '</span>';
+    brownHtml += '</div>';
 
     if (prevBehind.length > 0) {
-      html += '<div class="month-panel" id="fh2panel-grandprev" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
-      html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Outstanding</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Outstanding</span>';
-      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Outstanding</span>';
-      html += '</div>';
+      brownHtml += '<div class="month-panel" id="fh2panel-grandprev" style="background:rgba(46,35,24,0.04);border-left:2px solid #2e2318;border-right:2px solid #2e2318;border-bottom:2px solid #2e2318;">';
+      brownHtml += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.3rem 1.5rem;background:rgba(46,35,24,0.08);border-bottom:1px solid var(--border);">';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Property</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Rent Outstanding</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Ins Outstanding</span>';
+      brownHtml += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Total Outstanding</span>';
+      brownHtml += '</div>';
       var totPROut=0,totPIOut=0;
       prevBehind.forEach(function(p) {
         totPROut+=p.rentOut; totPIOut+=p.insOut;
         var totPOwed = p.rentOut + p.insOut;
-        html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
-        html += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.insOut > 0 ? fmt(p.insOut) : '—') + '</span>';
-        html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPOwed) + '</span>';
-        html += '</div>';
+        brownHtml += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);">';
+        brownHtml += '<span style="font-size:0.85rem;font-weight:500;">' + p.addr + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.rentOut > 0 ? fmt(p.rentOut) : '—') + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + (p.insOut > 0 ? fmt(p.insOut) : '—') + '</span>';
+        brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPOwed) + '</span>';
+        brownHtml += '</div>';
       });
-      html += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
-      html += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPROut) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPIOut) + '</span>';
-      html += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPROut+totPIOut) + '</span>';
-      html += '</div></div>';
+      brownHtml += '<div style="display:grid;grid-template-columns:' + fh2PrevCols + ';padding:0.45rem 1.5rem;background:rgba(46,35,24,0.12);border-top:1px solid rgba(200,184,154,0.2);">';
+      brownHtml += '<span style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--mid);">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPROut) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPIOut) + '</span>';
+      brownHtml += '<span style="text-align:right;font-size:0.88rem;color:#c62828;font-weight:700;">' + fmt(totPROut+totPIOut) + '</span>';
+      brownHtml += '</div></div>';
     }
 
     var fh2Wrap = window.screen.width < 768 ? '<div style="min-width:520px;">' : '';
     var fh2WrapEnd = window.screen.width < 768 ? '</div>' : '';
-    document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
+    document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd + brownHtml;
   }
 
   function toggleFH2Prop(key) {
