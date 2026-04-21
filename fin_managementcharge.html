@@ -289,12 +289,19 @@
       color: var(--accent2); border-color: var(--dark);
     }
   }
-  .btn-expand-all {
+  .btn-expand-all, .btn-collapse-all {
     padding: 0.3rem 0.9rem; border-radius: 5px; border: 1px solid var(--border);
     background: var(--cream); color: var(--mid); font-family: Arial, sans-serif;
-    font-size: 0.78rem; cursor: pointer; transition: all 0.15s; margin-left: auto;
+    font-size: 0.78rem; cursor: pointer; transition: all 0.15s; min-width: 0;
   }
-  .btn-expand-all:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-expand-all:hover, .btn-collapse-all:hover { border-color: var(--accent2); color: var(--accent2); }
+  .expand-collapse-btns {
+    display: inline-flex; gap: 0.5rem;
+  }
+  .expand-collapse-btns .btn-expand-all,
+  .expand-collapse-btns .btn-collapse-all {
+    flex: 1;
+  }
   .tracker-col-heads {
     display: grid; grid-template-columns: 20px 1fr 150px 150px 170px 30px;
     padding: 0.6rem 1.5rem; background: rgba(122,92,62,0.07);
@@ -1237,7 +1244,7 @@
     years.forEach(function(y) {
       html += '<button class="yr-btn' + (activeYear === y ? ' active' : '') + '" id="yrbtn-' + y + '" onclick="setYear(' + y + ')">' + y + '</button>';
     });
-    html += '<button class="btn-expand-all" onclick="toggleExpandAll()">Expand all</button>';
+    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="mc-expand-btn" onclick="mcExpandAll()">Expand All</button><button class="btn-collapse-all" id="mc-collapse-btn" onclick="mcCollapseAll()" style="display:none;">Collapse All</button></div>';
     html += '</div>';
 
     /* Column headers */
@@ -1342,6 +1349,15 @@
     return html;
   }
 
+  function mcUpdateCollapseBtn() {
+    var anyOpen = PROPERTIES.some(function(addr) {
+      var panel = document.getElementById('months-' + addr.replace(/ /g,'_'));
+      return panel && panel.classList.contains('open');
+    });
+    var colBtn = document.getElementById('mc-collapse-btn');
+    if (colBtn) colBtn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
   function toggleProp(key) {
     var panel = document.getElementById('months-' + key);
     var chev  = document.getElementById('chev-' + key);
@@ -1356,31 +1372,40 @@
       }
       panel.classList.add('open'); chev.classList.add('open'); hdr.classList.add('expanded');
     }
+    mcUpdateCollapseBtn();
   }
 
-  function toggleExpandAll() {
-    allExpandedState = !allExpandedState;
-    var btn = document.querySelector('.btn-expand-all');
-    if (btn) btn.textContent = allExpandedState ? 'Collapse all' : 'Expand all';
+  function mcExpandAll() {
     PROPERTIES.forEach(function(addr) {
       var key = addr.replace(/ /g,'_');
       var panel = document.getElementById('months-' + key);
       var chev  = document.getElementById('chev-' + key);
       if (!panel || !chev) return;
       var hdr = chev.closest('.prop-header');
-      if (allExpandedState) {
-        if (panel.getAttribute('data-built') === 'false') {
-          panel.innerHTML = buildMonthRows(addr);
-          panel.setAttribute('data-built','true');
-        }
-        panel.classList.add('open'); chev.classList.add('open');
-        if (hdr) hdr.classList.add('expanded');
-      } else {
-        panel.classList.remove('open'); chev.classList.remove('open');
-        if (hdr) hdr.classList.remove('expanded');
+      if (panel.getAttribute('data-built') === 'false') {
+        panel.innerHTML = buildMonthRows(addr);
+        panel.setAttribute('data-built','true');
       }
+      panel.classList.add('open'); chev.classList.add('open');
+      if (hdr) hdr.classList.add('expanded');
     });
+    mcUpdateCollapseBtn();
   }
+
+  function mcCollapseAll() {
+    PROPERTIES.forEach(function(addr) {
+      var key = addr.replace(/ /g,'_');
+      var panel = document.getElementById('months-' + key);
+      var chev  = document.getElementById('chev-' + key);
+      if (!panel || !chev) return;
+      var hdr = chev.closest('.prop-header');
+      panel.classList.remove('open'); chev.classList.remove('open');
+      if (hdr) hdr.classList.remove('expanded');
+    });
+    mcUpdateCollapseBtn();
+  }
+
+  function toggleExpandAll() { mcExpandAll(); }
 
   function setYear(year) {
     activeYear = year;
@@ -1404,7 +1429,7 @@
     var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
-    html += '<button class="btn-expand-all" id="annual-expand-btn" onclick="toggleAnnualExpandAll()">Expand all properties</button>';
+    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="annual-expand-btn" onclick="annualExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="annual-collapse-btn" onclick="annualCollapseAll()" style="display:none;">Collapse All Properties</button></div>';
     html += '</div>';
 
     html += '<div class="tracker-col-heads">';
@@ -1777,6 +1802,15 @@
     return html;
   }
 
+  function annualUpdateCollapseBtn() {
+    var anyOpen = PROPERTIES.some(function(addr) {
+      var panel = document.getElementById('months-an_' + addr.replace(/ /g,'_'));
+      return panel && panel.classList.contains('open');
+    });
+    var colBtn = document.getElementById('annual-collapse-btn');
+    if (colBtn) colBtn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
   function toggleAnnualProp(key) {
     var panel = document.getElementById('months-' + key);
     var chev  = document.getElementById('chev-' + key);
@@ -1793,6 +1827,7 @@
       if (row) row.classList.add('prop-expanded');
       if (hint) hint.style.display = 'inline';
     }
+    annualUpdateCollapseBtn();
   }
 
   function toggleAnnualTotal(totalKey) {
@@ -1818,10 +1853,7 @@
     }
   }
 
-  function toggleAnnualExpandAll() {
-    annualAllExpanded = !annualAllExpanded;
-    var btn = document.getElementById('annual-expand-btn');
-    if (btn) btn.textContent = annualAllExpanded ? 'Collapse all properties' : 'Expand all properties';
+  function annualExpandAll() {
     PROPERTIES.forEach(function(addr) {
       var key   = 'an_' + addr.replace(/ /g,'_');
       var panel = document.getElementById('months-' + key);
@@ -1830,19 +1862,32 @@
       var hint  = document.getElementById('hint-' + key);
       if (!panel || !chev) return;
       var hdr = chev.closest('.prop-header');
-      if (annualAllExpanded) {
-        panel.classList.add('open'); chev.classList.add('open');
-        if (hdr) hdr.classList.add('expanded');
-        if (row) row.classList.add('prop-expanded');
-        if (hint) hint.style.display = 'inline';
-      } else {
-        panel.classList.remove('open'); chev.classList.remove('open');
-        if (hdr) hdr.classList.remove('expanded');
-        if (row) row.classList.remove('prop-expanded');
-        if (hint) hint.style.display = 'none';
-      }
+      panel.classList.add('open'); chev.classList.add('open');
+      if (hdr) hdr.classList.add('expanded');
+      if (row) row.classList.add('prop-expanded');
+      if (hint) hint.style.display = 'inline';
     });
+    annualUpdateCollapseBtn();
   }
+
+  function annualCollapseAll() {
+    PROPERTIES.forEach(function(addr) {
+      var key   = 'an_' + addr.replace(/ /g,'_');
+      var panel = document.getElementById('months-' + key);
+      var chev  = document.getElementById('chev-' + key);
+      var row   = document.getElementById('proprow-' + key);
+      var hint  = document.getElementById('hint-' + key);
+      if (!panel || !chev) return;
+      var hdr = chev.closest('.prop-header');
+      panel.classList.remove('open'); chev.classList.remove('open');
+      if (hdr) hdr.classList.remove('expanded');
+      if (row) row.classList.remove('prop-expanded');
+      if (hint) hint.style.display = 'none';
+    });
+    annualUpdateCollapseBtn();
+  }
+
+  function toggleAnnualExpandAll() { annualExpandAll(); }
 
   /* ── Income & Expenditure Tracker ── */
 
@@ -2888,7 +2933,7 @@
 
     // Controls
     html += '<div class="tracker-controls">';
-    html += '<button class="btn-expand-all" id="fh2-expand-btn" onclick="toggleFH2ExpandAll()">Expand all properties</button>';
+    html += '<div class="expand-collapse-btns"><button class="btn-expand-all" id="fh2-expand-btn" onclick="fh2ExpandAll()">Expand All Properties</button><button class="btn-collapse-all" id="fh2-collapse-btn" onclick="fh2CollapseAll()" style="display:none;">Collapse All Properties</button></div>';
     html += '</div>';
 
     // Column headers
@@ -3295,6 +3340,7 @@
       if(row) row.classList.add('prop-expanded');
       if(hint) hint.style.display = 'inline';
     }
+    fh2UpdateCollapseBtn();
   }
 
   function toggleFH2Year(yrKey) {
@@ -3358,10 +3404,16 @@
     }
   }
 
-  function toggleFH2ExpandAll() {
-    fh2AllExpanded = !fh2AllExpanded;
-    var btn = document.getElementById('fh2-expand-btn');
-    if (btn) btn.textContent = fh2AllExpanded ? 'Collapse all properties' : 'Expand all properties';
+  function fh2UpdateCollapseBtn() {
+    var anyOpen = FH_PROPERTIES.some(function(addr) {
+      var panel = document.getElementById('fh2months-fh2_' + addr.replace(/ /g,'_'));
+      return panel && panel.classList.contains('open');
+    });
+    var colBtn = document.getElementById('fh2-collapse-btn');
+    if (colBtn) colBtn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
+  function fh2ExpandAll() {
     var years = getFH2AvailableYears();
     FH_PROPERTIES.forEach(function(addr) {
       var key   = 'fh2_' + addr.replace(/ /g,'_');
@@ -3371,38 +3423,51 @@
       var hint  = document.getElementById('fh2hint-' + key);
       if (!panel) return;
       var hdr = chev ? chev.closest('.prop-header') : null;
-      if (fh2AllExpanded) {
-        panel.classList.add('open'); if(chev) chev.classList.add('open');
-        if(hdr) hdr.classList.add('expanded');
-        if(row) row.classList.add('prop-expanded');
-        if(hint) hint.style.display = 'inline';
-        // Also expand year rows and reveal rent/ins lines
-        years.forEach(function(yr) {
-          var yrKey   = key + '_' + yr;
-          var yrPanel = document.getElementById('fh2yr-' + yrKey);
-          var yrChev  = document.getElementById('fh2yrchev-' + yrKey);
-          if (yrPanel) yrPanel.classList.add('open');
-          if (yrChev)  yrChev.classList.add('open');
-        });
-        var expBtn = document.getElementById('fh2expbtn-' + key);
-        if (expBtn) { expBtn.setAttribute('data-expanded','true'); expBtn.textContent = 'Collapse property history'; }
-      } else {
-        panel.classList.remove('open'); if(chev) chev.classList.remove('open');
-        if(hdr) hdr.classList.remove('expanded');
-        if(row) row.classList.remove('prop-expanded');
-        if(hint) hint.style.display = 'none';
-        years.forEach(function(yr) {
-          var yrKey   = key + '_' + yr;
-          var yrPanel = document.getElementById('fh2yr-' + yrKey);
-          var yrChev  = document.getElementById('fh2yrchev-' + yrKey);
-          if (yrPanel) yrPanel.classList.remove('open');
-          if (yrChev)  yrChev.classList.remove('open');
-        });
-        var expBtn = document.getElementById('fh2expbtn-' + key);
-        if (expBtn) { expBtn.setAttribute('data-expanded','false'); expBtn.textContent = 'Expand property history'; }
-      }
+      panel.classList.add('open'); if(chev) chev.classList.add('open');
+      if(hdr) hdr.classList.add('expanded');
+      if(row) row.classList.add('prop-expanded');
+      if(hint) hint.style.display = 'inline';
+      years.forEach(function(yr) {
+        var yrKey   = key + '_' + yr;
+        var yrPanel = document.getElementById('fh2yr-' + yrKey);
+        var yrChev  = document.getElementById('fh2yrchev-' + yrKey);
+        if (yrPanel) yrPanel.classList.add('open');
+        if (yrChev)  yrChev.classList.add('open');
+      });
+      var expBtn = document.getElementById('fh2expbtn-' + key);
+      if (expBtn) { expBtn.setAttribute('data-expanded','true'); expBtn.textContent = 'Collapse property history'; }
     });
+    fh2UpdateCollapseBtn();
   }
+
+  function fh2CollapseAll() {
+    var years = getFH2AvailableYears();
+    FH_PROPERTIES.forEach(function(addr) {
+      var key   = 'fh2_' + addr.replace(/ /g,'_');
+      var panel = document.getElementById('fh2months-' + key);
+      var chev  = document.getElementById('fh2chev-' + key);
+      var row   = document.getElementById('fh2proprow-' + key);
+      var hint  = document.getElementById('fh2hint-' + key);
+      if (!panel) return;
+      var hdr = chev ? chev.closest('.prop-header') : null;
+      panel.classList.remove('open'); if(chev) chev.classList.remove('open');
+      if(hdr) hdr.classList.remove('expanded');
+      if(row) row.classList.remove('prop-expanded');
+      if(hint) hint.style.display = 'none';
+      years.forEach(function(yr) {
+        var yrKey   = key + '_' + yr;
+        var yrPanel = document.getElementById('fh2yr-' + yrKey);
+        var yrChev  = document.getElementById('fh2yrchev-' + yrKey);
+        if (yrPanel) yrPanel.classList.remove('open');
+        if (yrChev)  yrChev.classList.remove('open');
+      });
+      var expBtn = document.getElementById('fh2expbtn-' + key);
+      if (expBtn) { expBtn.setAttribute('data-expanded','false'); expBtn.textContent = 'Expand property history'; }
+    });
+    fh2UpdateCollapseBtn();
+  }
+
+  function toggleFH2ExpandAll() { fh2ExpandAll(); }
 
     // ── Budget vs Actual Report ─────────────────────────────────────────────────
 
