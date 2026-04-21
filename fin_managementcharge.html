@@ -45,6 +45,7 @@
   .page-header p { color: var(--mid); line-height: 1.6; font-size: 0.88rem; }
 
   .finance-section { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+  #farmhouse2-brown { display: none; }
   .section-heading {
     font-size: 0.72rem; font-weight: 700; color: var(--accent);
     letter-spacing: 0.1em; text-transform: uppercase;
@@ -968,8 +969,8 @@
       <div id="farmhouse2-inner">
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
       </div>
-      <div id="farmhouse2-brown"></div>
     </div>
+    <div id="farmhouse2-brown"></div>
   </div>
 
 </main>
@@ -1062,6 +1063,10 @@
     var open = panel.classList.toggle('open');
     btn.classList.toggle('open', open);
     btn.setAttribute('aria-expanded', open);
+    if (key === 'farmhouse2') {
+      var brown = document.getElementById('farmhouse2-brown');
+      if (brown) brown.style.display = open ? '' : 'none';
+    }
     if (open) {
       setTimeout(function() {
         btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
