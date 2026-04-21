@@ -45,7 +45,6 @@
   .page-header p { color: var(--mid); line-height: 1.6; font-size: 0.88rem; }
 
   .finance-section { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
-  #farmhouse2-brown { display: none; }
   .section-heading {
     font-size: 0.72rem; font-weight: 700; color: var(--accent);
     letter-spacing: 0.1em; text-transform: uppercase;
@@ -3305,7 +3304,11 @@
     var fh2WrapEnd = window.innerWidth < 700 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
     var fh2Brown = document.getElementById('farmhouse2-brown');
-    if (fh2Brown) fh2Brown.innerHTML = brownHtml;
+    if (fh2Brown) {
+      fh2Brown.innerHTML = brownHtml;
+      var fh2Panel = document.getElementById('panel-farmhouse2');
+      fh2Brown.style.display = (fh2Panel && fh2Panel.classList.contains('open')) ? '' : 'none';
+    }
   }
 
   function toggleFH2Prop(key) {
