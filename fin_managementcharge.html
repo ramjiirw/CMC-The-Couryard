@@ -1401,7 +1401,7 @@
   function renderAnnual() {
     var years = getAvailableYears();
     var html = '';
-    var isMobile = window.innerWidth <= 700;
+    var isMobile = window.screen.width < 768;
     var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
@@ -2643,7 +2643,7 @@
     var rentDue = getFHRentDue(fhYear);
     var insDue  = getFHInsuranceDue(fhYear);
     var html    = '';
-    var fhCols = window.innerWidth <= 700 ? '150px 130px 130px 160px 30px' : '1fr 130px 130px 160px 30px';
+    var fhCols = window.screen.width < 768 ? '150px 130px 130px 160px 30px' : '1fr 130px 130px 160px 30px';
 
     // Controls
     html += '<div class="tracker-controls" style="flex-wrap:wrap;gap:0.5rem;">';
@@ -2772,8 +2772,8 @@
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:700;" class="' + cumOutC + '">' + (summDue > 0 ? cumOutT : '—') + '</span>';
     html += '<span></span></div>';
 
-    var fhWrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
-    var fhWrapEnd = window.innerWidth <= 700 ? '</div>' : '';
+    var fhWrap = window.screen.width < 768 ? '<div style="min-width:520px;">' : '';
+    var fhWrapEnd = window.screen.width < 768 ? '</div>' : '';
     document.getElementById('farmhouse-inner').innerHTML = fhWrap + html + fhWrapEnd;
   }
 
@@ -2883,7 +2883,7 @@
     if (!farmhouseData) return;
     var years = getFH2AvailableYears();
     var html  = '';
-    var fh2Mobile = window.innerWidth <= 700;
+    var fh2Mobile = window.screen.width < 768;
     var fh2ExpandCols = fh2Mobile ? '120px 110px 110px 110px 110px 120px' : '1fr 110px 110px 110px 110px 120px';
     var fh2PrevCols = fh2Mobile ? '120px 150px 150px 150px' : '1fr 150px 150px 150px';
     var fh2SumCols = fh2Mobile ? '20px 1fr 200px 30px' : '20px 1fr 1fr 30px';
@@ -3286,8 +3286,8 @@
       html += '</div></div>';
     }
 
-    var fh2Wrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
-    var fh2WrapEnd = window.innerWidth <= 700 ? '</div>' : '';
+    var fh2Wrap = window.screen.width < 768 ? '<div style="min-width:520px;">' : '';
+    var fh2WrapEnd = window.screen.width < 768 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
   }
 
