@@ -411,6 +411,9 @@
     #farmhouse2-inner .prop-header,
     #farmhouse2-inner .prop-row,
     #farmhouse2-inner .month-panel { min-width: 800px; }
+    #farmhouse2-inner .fh2-brown-row,
+    #farmhouse2-inner #fh2grandrow-cur,
+    #farmhouse2-inner #fh2grandrow-prev { min-width: 0; width: 100%; box-sizing: border-box; }
     #panel-farmhouse2 { overflow-x: auto !important; overflow-y: hidden; }
     #section-farmhouse2 { overflow-x: auto; }
   }
@@ -3171,10 +3174,10 @@
     }
 
     // Rent/Insurance split rows
-    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
+    html += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandRentDue-grandRentPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandRentDue-grandRentPaid) > 0 ? fmt(grandRentDue-grandRentPaid) : '✓ All clear') + '</span><span></span></div>';
-    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
+    html += '<div class="fh2-brown-row" style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Insurance Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandInsDue-grandInsPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandInsDue-grandInsPaid) > 0 ? fmt(grandInsDue-grandInsPaid) : '✓ All clear') + '</span><span></span></div>';
 
