@@ -409,8 +409,7 @@
     #farmhouse2-inner > *,
     #farmhouse2-inner .tracker-col-heads,
     #farmhouse2-inner .prop-header,
-    #farmhouse2-inner .prop-row,
-    #farmhouse2-inner .month-panel { min-width: 800px; }
+    #farmhouse2-inner .prop-row { min-width: 520px; }
     #panel-farmhouse2 { overflow-x: auto !important; overflow-y: hidden; }
     #section-farmhouse2 { overflow-x: auto; }
   }
@@ -1401,7 +1400,7 @@
   function renderAnnual() {
     var years = getAvailableYears();
     var html = '';
-    var isMobile = window.screen.width < 768;
+    var isMobile = window.innerWidth <= 700;
     var annualCols = isMobile ? '20px 1fr 90px 90px 170px 24px' : '20px 1fr 150px 150px 170px 30px';
 
     html += '<div class="tracker-controls">';
@@ -2643,7 +2642,7 @@
     var rentDue = getFHRentDue(fhYear);
     var insDue  = getFHInsuranceDue(fhYear);
     var html    = '';
-    var fhCols = window.screen.width < 768 ? '150px 130px 130px 160px 30px' : '1fr 130px 130px 160px 30px';
+    var fhCols = window.innerWidth <= 700 ? '150px 130px 130px 160px 30px' : '1fr 130px 130px 160px 30px';
 
     // Controls
     html += '<div class="tracker-controls" style="flex-wrap:wrap;gap:0.5rem;">';
@@ -2772,8 +2771,8 @@
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:700;" class="' + cumOutC + '">' + (summDue > 0 ? cumOutT : '—') + '</span>';
     html += '<span></span></div>';
 
-    var fhWrap = window.screen.width < 768 ? '<div style="min-width:520px;">' : '';
-    var fhWrapEnd = window.screen.width < 768 ? '</div>' : '';
+    var fhWrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
+    var fhWrapEnd = window.innerWidth <= 700 ? '</div>' : '';
     document.getElementById('farmhouse-inner').innerHTML = fhWrap + html + fhWrapEnd;
   }
 
@@ -2883,11 +2882,9 @@
     if (!farmhouseData) return;
     var years = getFH2AvailableYears();
     var html  = '';
-    var fh2Mobile = window.screen.width < 768;
+    var fh2Mobile = window.innerWidth <= 700;
     var fh2ExpandCols = fh2Mobile ? '120px 110px 110px 110px 110px 120px' : '1fr 110px 110px 110px 110px 120px';
     var fh2PrevCols = fh2Mobile ? '120px 150px 150px 150px' : '1fr 150px 150px 150px';
-    var fh2SumCols = fh2Mobile ? '20px 1fr 200px 30px' : '20px 1fr 1fr 30px';
-    var fh2BehindCols = fh2Mobile ? '20px 1fr 170px 30px' : '20px 1fr 170px 30px';
 
     // Controls
     html += '<div class="tracker-controls">';
@@ -3154,27 +3151,18 @@
     var grandPrevOut = prevRentOut + prevInsOut;
 
     // Grand total bar
-    if (fh2Mobile) {
-      html += '<div style="padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
-      html += '<div style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Grand Total</div>';
-      html += '<div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">' + currentYear + ' outstanding</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</span></div>';
-      html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;">Previous years</span><span style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</span></div>';
-      html += '<div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;text-align:right;">net after all payments</div>';
-      html += '</div>';
-    } else {
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
-      html += '<span></span>';
-      html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
-      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
-      html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
-      html += '<span></span></div>';
-    }
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.7rem 1.5rem;background:#2e2318;border-top:3px solid #1a140f;margin-top:4px;">';
+    html += '<span></span>';
+    html += '<span style="font-size:0.9rem;font-weight:700;color:#f5f0e8;text-transform:uppercase;letter-spacing:0.06em;">Grand Total</span>';
+    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">' + currentYear + ' outstanding</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandCurOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandCurOut > 0 ? fmt(grandCurOut) : '✓ All clear') + '</div></div>';
+    html += '<div style="text-align:right;"><div style="font-size:0.72rem;color:#c8b89a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Previous years</div><div style="font-size:0.95rem;font-weight:700;color:' + (grandPrevOut > 0 ? '#ef5350' : '#66bb6a') + ';">' + (grandPrevOut > 0 ? fmt(grandPrevOut) : '✓ All clear') + '</div><div style="font-size:0.75rem;color:#9a8a75;font-style:italic;margin-top:2px;">net after all payments</div></div>';
+    html += '<span></span></div>';
 
     // Rent/Insurance split rows
-    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 30px;padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.15);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandRentDue-grandRentPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandRentDue-grandRentPaid) > 0 ? fmt(grandRentDue-grandRentPaid) : '✓ All clear') + '</span><span></span></div>';
-    html += '<div style="display:grid;grid-template-columns:' + fh2SumCols + ';padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
+    html += '<div style="display:grid;grid-template-columns:20px 1fr 1fr 30px;padding:0.45rem 1.5rem;background:#2e2318;border-top:1px solid rgba(200,184,154,0.1);">';
     html += '<span></span><span style="font-size:0.82rem;color:#c8b89a;">Farmhouse Insurance Rent outstanding</span>';
     html += '<span style="text-align:right;font-size:0.85rem;font-weight:600;color:' + ((grandInsDue-grandInsPaid) > 0 ? '#ef5350' : '#66bb6a') + ';">' + ((grandInsDue-grandInsPaid) > 0 ? fmt(grandInsDue-grandInsPaid) : '✓ All clear') + '</span><span></span></div>';
 
@@ -3286,8 +3274,8 @@
       html += '</div></div>';
     }
 
-    var fh2Wrap = window.screen.width < 768 ? '<div style="min-width:520px;">' : '';
-    var fh2WrapEnd = window.screen.width < 768 ? '</div>' : '';
+    var fh2Wrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
+    var fh2WrapEnd = window.innerWidth <= 700 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
   }
 
