@@ -529,6 +529,7 @@
   .btn-toggle.btn-minutes-off { pointer-events: none; cursor: default; background: #4a4540; }
   .btn-toggle.btn-minutes-off:hover { background: #4a4540; transform: none; }
   .btn-toggle.btn-minutes-off #agm-toggle-label { color: #9e8e7e; }
+  .btn-toggle.btn-minutes-off .cbs { color: #f5f0e8; }
   .btn-toggle.btn-minutes-off .hint-open { display: none !important; }
   @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
   .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
@@ -1955,9 +1956,11 @@
       // Check Live Minutes Visible switch (A13 checkbox in sheet)
       if (data.liveMinutesVisible === false) {
         // Switched OFF — show disabled state
-        document.getElementById('agm-toggle-label').textContent = 'AGM MINUTES · LIVE · CHECK BACK SOON';
+        document.getElementById('agm-toggle-label').innerHTML = 'AGM MINUTES · LIVE · <span class="cbs">CHECK BACK SOON</span>';
         var countElOff = document.getElementById('agm-toggle-counts');
         if (countElOff) countElOff.textContent = '';
+        var hintOpen = toggleBtn ? toggleBtn.querySelector('.hint-open') : null;
+        if (hintOpen) { hintOpen.textContent = 'Minutes are being updated — please check back later'; hintOpen.style.display = 'inline'; hintOpen.style.opacity = '0.45'; }
         if (toggleBtn) { toggleBtn.classList.remove('btn-loading'); toggleBtn.classList.add('btn-minutes-off'); toggleBtn.removeAttribute('onclick'); }
       } else {
         // Switched ON — normal state
