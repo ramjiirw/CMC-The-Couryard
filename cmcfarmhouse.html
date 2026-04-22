@@ -137,6 +137,8 @@
   .btn-loading .hint-close { display: none !important; }
   @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
   .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes shiver { 0%,100%{transform:translateX(0);} 15%{transform:translateX(-3px) rotate(-0.5deg);} 30%{transform:translateX(3px) rotate(0.5deg);} 45%{transform:translateX(-2px);} 60%{transform:translateX(2px);} 75%{transform:translateX(-1px);} }
+  .btn-shiver { animation: shiver 2.8s ease-in-out infinite; }
 
   @media (max-width: 640px) {
     header { padding: 1rem; }
@@ -597,6 +599,30 @@ function renderSmokeCheckers(checkers) {
   }).join('');
 }
 
+// Returns number of days since a dd/MM/yyyy date string
+function smokeDaysAgo(str) {
+  if (!str) return 0;
+  var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!parts) return 0;
+  var then = new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
+  var now  = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((today - then) / (1000 * 60 * 60 * 24));
+}
+
+// Determine which state we are in for a given check
+// State 1: all pass AND under 30 days
+// State 2: any fail AND under 30 days
+// State 3: overdue (30+ days), pass or fail
+function smokeGetState(lastCheck) {
+  if (!lastCheck) return 'none';
+  var days    = smokeDaysAgo(lastCheck.date);
+  var hasFail = lastCheck.entrance === 'Fail' || lastCheck.landing === 'Fail';
+  if (days >= 30) return 'overdue';
+  if (hasFail)    return 'fail';
+  return 'ok';
+}
+
 function renderSmokeTable(checks) {
   var tbody = document.getElementById('smoke-table-body');
   if (!tbody) return;
@@ -604,35 +630,142 @@ function renderSmokeTable(checks) {
     tbody.innerHTML = '<tr><td colspan="4" class="doc-state-empty">No checks recorded yet.</td></tr>';
     return;
   }
-  tbody.innerHTML = checks.map(function(c, i) {
-    var passStyle = 'color:var(--green);font-weight:700;font-size:0.82rem;';
-    var failStyle = 'color:var(--red);font-weight:700;font-size:0.82rem;';
-    var entranceHtml = c.entrance === 'Fail'
-      ? '<span style="' + failStyle + '">&#10008; Fail</span>'
-      : '<span style="' + passStyle + '">&#10004; Pass</span>';
-    var landingHtml = c.landing === 'Fail'
-      ? '<span style="' + failStyle + '">&#10008; Fail</span>'
-      : '<span style="' + passStyle + '">&#10004; Pass</span>';
-    var latestTag = i === 0 ? ' <span style="display:inline-block;background:var(--green-light);color:var(--green);border-radius:4px;font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;margin-left:0.4rem;text-transform:uppercase;vertical-align:middle;">Latest</span>' : '';
-    var badgeWho = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (c.checkedBy || '') + '</span>';
-    return '<tr>' +
-      '<td style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) + latestTag + '</td>' +
-      '<td style="text-align:center;">' + entranceHtml + '</td>' +
-      '<td style="text-align:center;">' + landingHtml + '</td>' +
-      '<td>' + badgeWho + '</td>' +
+
+  // Only show the latest row here — history is in the toggle below
+  var c    = checks[0];
+  var days = smokeDaysAgo(c.date);
+  var hasFail = c.entrance === 'Fail' || c.landing === 'Fail';
+  var isOverdue = days >= 30;
+  var isBad = hasFail || isOverdue;
+
+  var passStyle = 'color:var(--green);font-weight:700;font-size:0.82rem;';
+  var failStyle = 'color:var(--red);font-weight:700;font-size:0.82rem;';
+
+  var entranceHtml = c.entrance === 'Fail'
+    ? '<span style="' + failStyle + '">&#10008; Fail</span>'
+    : '<span style="' + passStyle + '">&#10004; Pass</span>';
+  var landingHtml = c.landing === 'Fail'
+    ? '<span style="' + failStyle + '">&#10008; Fail</span>'
+    : '<span style="' + passStyle + '">&#10004; Pass</span>';
+
+  // Days ago badge
+  var daysLabel = days === 0 ? 'Today' : days === 1 ? '1 day ago' : days + ' days ago';
+  if (isOverdue) daysLabel += ' \u2014 overdue';
+  var daysBadgeStyle = isBad
+    ? 'display:inline-block;background:#fdecea;color:var(--red);border-radius:4px;font-size:0.7rem;font-weight:700;padding:0.12rem 0.5rem;margin-left:0.5rem;vertical-align:middle;'
+    : 'display:inline-block;background:var(--green-light);color:var(--green);border-radius:4px;font-size:0.7rem;font-weight:700;padding:0.12rem 0.5rem;margin-left:0.5rem;vertical-align:middle;';
+
+  var rowBg = isBad ? 'background:#fdecea;' : '';
+  var badgeWho = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (c.checkedBy || '') + '</span>';
+
+  var latestRow = '<tr style="' + rowBg + '">' +
+    '<td style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) +
+    '<span style="' + daysBadgeStyle + '">' + daysLabel + '</span></td>' +
+    '<td style="text-align:center;">' + entranceHtml + '</td>' +
+    '<td style="text-align:center;">' + landingHtml + '</td>' +
+    '<td>' + badgeWho + '</td>' +
+    '</tr>';
+
+  // History rows (all except first)
+  var historyCount = checks.length - 1;
+  var historyRows = checks.slice(1).map(function(h) {
+    var hEntrance = h.entrance === 'Fail' ? '<span style="' + failStyle + '">&#10008; Fail</span>' : '<span style="' + passStyle + '">&#10004; Pass</span>';
+    var hLanding  = h.landing  === 'Fail' ? '<span style="' + failStyle + '">&#10008; Fail</span>' : '<span style="' + passStyle + '">&#10004; Pass</span>';
+    var hBadge    = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (h.checkedBy || '') + '</span>';
+    return '<tr style="background:rgba(122,92,62,0.02);">' +
+      '<td style="font-weight:400;color:var(--mid);white-space:nowrap;">' + smokeFormatDate(h.date) + '</td>' +
+      '<td style="text-align:center;">' + hEntrance + '</td>' +
+      '<td style="text-align:center;">' + hLanding + '</td>' +
+      '<td>' + hBadge + '</td>' +
       '</tr>';
   }).join('');
+
+  var historyToggleId = 'smoke-history-panel';
+  var historyBtnId    = 'smoke-history-btn';
+  var historyLabel    = historyCount > 0
+    ? '&#128337; Previous checks <span style="background:rgba(122,92,62,0.12);color:var(--accent);border-radius:10px;font-size:0.7rem;font-weight:700;padding:0.12rem 0.5rem;margin-left:0.4rem;">' + historyCount + '</span>'
+    : '&#128337; No previous checks';
+
+  tbody.innerHTML = latestRow;
+
+  // Inject history toggle after table — find the table-wrap div
+  var wrap = tbody.closest('div');
+  if (wrap) {
+    // Remove any existing history section
+    var existing = document.getElementById(historyToggleId);
+    if (existing) existing.parentNode.removeChild(existing);
+    var existingBtn = document.getElementById(historyBtnId);
+    if (existingBtn) existingBtn.parentNode.removeChild(existingBtn);
+
+    if (historyCount > 0) {
+      var histBtn = document.createElement('button');
+      histBtn.id = historyBtnId;
+      histBtn.innerHTML = '<span style="display:flex;align-items:center;gap:0.4rem;">' + historyLabel + '</span><span id="smoke-hist-chevron" style="opacity:0.5;font-size:0.7rem;">&#9658; Show</span>';
+      histBtn.style.cssText = 'display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:var(--warm);border:none;border-top:1px solid var(--border);font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;color:var(--mid);cursor:pointer;border-radius:0 0 10px 10px;';
+      histBtn.onclick = function() { toggleSmokeHistory(); };
+      wrap.appendChild(histBtn);
+
+      var histPanel = document.createElement('div');
+      histPanel.id = historyToggleId;
+      histPanel.style.cssText = 'overflow:hidden;max-height:0;transition:max-height 0.35s ease;border-top:0px solid var(--border);';
+      histPanel.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr>' +
+        '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Date Checked</th>' +
+        '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Entrance Hall</th>' +
+        '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Landing</th>' +
+        '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Checked By</th>' +
+        '</tr></thead>' +
+        '<tbody>' + historyRows + '</tbody></table>';
+      wrap.appendChild(histPanel);
+    }
+  }
+}
+
+function toggleSmokeHistory() {
+  var panel   = document.getElementById('smoke-history-panel');
+  var btn     = document.getElementById('smoke-history-btn');
+  var chevron = document.getElementById('smoke-hist-chevron');
+  if (!panel) return;
+  var isOpen = panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '';
+  if (isOpen) {
+    panel.style.maxHeight = '0';
+    panel.style.borderTop = '0px solid var(--border)';
+    if (chevron) chevron.innerHTML = '&#9658; Show';
+    if (btn) btn.style.borderRadius = '0 0 10px 10px';
+  } else {
+    panel.style.maxHeight = '3000px';
+    panel.style.borderTop = '1px solid var(--border)';
+    if (chevron) chevron.innerHTML = '&#9660; Hide';
+    if (btn) btn.style.borderRadius = '0';
+  }
 }
 
 function updateSmokePill(lastCheck) {
   var pill = document.getElementById('smoke-last-pill');
+  var btn  = document.getElementById('toggle-smokechecks');
   if (!pill) return;
-  if (lastCheck) {
-    var hasFail = lastCheck.entrance === 'Fail' || lastCheck.landing === 'Fail';
-    var icon = hasFail ? '\u00b7 \u26a0\ufe0f' : '\u00b7 \u2705';
-    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' ' + icon;
-  } else {
+
+  if (!lastCheck) {
     pill.textContent = '\u00b7 NO CHECKS RECORDED YET';
+    pill.style.display = 'inline';
+    return;
+  }
+
+  var state = smokeGetState(lastCheck);
+  var days  = smokeDaysAgo(lastCheck.date);
+
+  if (state === 'ok') {
+    // State 1 — burgundy, green tick
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' \u00b7 \u2705';
+    if (btn) { btn.style.background = '#5a1a1a'; btn.classList.remove('btn-shiver'); }
+  } else if (state === 'fail') {
+    // State 2 — orange + shiver, warning triangle, no days overdue
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' \u00b7 \u26a0\ufe0f';
+    if (btn) { btn.style.background = '#b84a00'; btn.classList.add('btn-shiver'); }
+  } else {
+    // State 3 — orange + shiver, warning triangle + days overdue
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' \u00b7 \u26a0\ufe0f \u00b7 ' + days + ' days overdue';
+    if (btn) { btn.style.background = '#b84a00'; btn.classList.add('btn-shiver'); }
   }
   pill.style.display = 'inline';
 }
