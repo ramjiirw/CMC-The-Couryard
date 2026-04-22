@@ -588,7 +588,7 @@
       <div class="sidebar-label">AGM</div>
       <div class="sidebar-link" data-panel="agmagenda" id="nav-agmagenda">&#128196; Agenda</div>
       <div class="sidebar-link" data-panel="agmsubmissions" id="nav-agmsubmissions">&#128203; Submissions</div>
-      <a class="sidebar-link" href="agmminutes.html" target="_blank" style="text-decoration:none;display:block;">&#128196; Minutes (Preview)</a>
+      <div class="sidebar-link" data-panel="agmminutes" id="nav-agmminutes">&#8645; Minutes (Preview)</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Settings</div>
@@ -878,6 +878,20 @@
         </div>
         <div id="agmSubmissionsBody">
           <div class="loading">Loading submissions…</div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-agmminutes">
+        <div class="panel-title">AGM Minutes (Preview)</div>
+        <div class="panel-desc">Preview the live AGM minutes exactly as residents will see them. The Live Minutes Visible switch is ignored here — admin only.</div>
+        <div class="agm-min-section">
+          <button class="btn-toggle" id="toggle-agm-admin" onclick="adminOpenAGMOverlay()">
+            <span class="toggle-left">
+              <span>&#8645;</span>
+              <span id="agm-admin-toggle-label" style="color:#c4956a;">AGM MINUTES · LIVE</span><span id="agm-admin-toggle-counts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;"></span>
+            </span>
+            <span class="toggle-hint"><span id="agm-admin-hint">⧗ Loading minutes…</span></span>
+          </button>
         </div>
       </div>
 
@@ -1712,6 +1726,7 @@ function showPanel(id) {
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
   if (id === 'agmsubmissions') loadAgmSubmissions();
+  if (id === 'agmminutes') adminLoadAGMMinutes();
   if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
   if (id === 'maintenance') {
     if (!mntLoaded) {
@@ -6141,5 +6156,666 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 
 
 
+<!-- AGM Minutes Preview Overlay (Admin) -->
+<div id="agm-admin-minutes-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+  <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <span style="color:rgba(255,255,255,0.75);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:0.18rem 0.55rem;">ADMIN PREVIEW</span>
+    <button onclick="adminAgmExpandGroups()" style="width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All</button>
+    <button id="agm-admin-collapse-btn" onclick="adminAgmCollapseAll()" style="display:none;width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse All</button>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+      <button onclick="adminAgmPrint()" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+      <button onclick="adminCloseAGMOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
+    </div>
+  </div>
+  <div id="agm-admin-overlay-content" style="padding:2rem clamp(0.75rem,4vw,3rem);max-width:1000px;margin:0 auto;"></div>
+</div>
+<div id="agm-admin-modal-overlay" onclick="adminAgmModalClickOutside(event)" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(30,26,22,0.55);z-index:10001;align-items:center;justify-content:center;">
+  <div id="agm-admin-modal-box" style="background:white;border-radius:10px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(30,26,22,0.28);">
+    <div id="agm-admin-modal-header" style="background:#4a5e3a;color:white;padding:0.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-radius:10px 10px 0 0;">
+      <div><div id="agm-admin-modal-title" style="font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:white;"></div></div>
+      <button id="agm-admin-modal-close" onclick="adminCloseAgmModal()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:5px;padding:0.3rem 0.75rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">✕ Close</button>
+    </div>
+    <div id="agm-admin-modal-body" style="padding:1rem 1.25rem;"></div>
+  </div>
+</div>
+
+<script>
+
+  function adminLoadAGMMinutes() {
+    var hintEl = document.getElementById('agm-admin-hint');
+    var btn    = document.getElementById('toggle-agm-admin');
+    if (hintEl) hintEl.textContent = '⧗ Loading minutes…';
+    if (btn)    btn.style.pointerEvents = 'none';
+    fetch(SCRIPT_URL + '?action=readAGMMinutes')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        adminAgmData = data;
+        var m = data.meta || {};
+        var label = 'AGM MINUTES · LIVE' + (m.date ? ' · ' + adminFormatAGMDate(m.date).toUpperCase() : '');
+        var totC = 0, totO = 0;
+        ['dirItems','resItems','aobItems'].forEach(function(k) {
+          (data[k] || []).forEach(function(item) {
+            (item.actions || []).forEach(function(a) { if (a.complete) totC++; else totO++; });
+          });
+        });
+        var countStr = '';
+        if (totC + totO > 0) {
+          countStr = totO === 0 ? ' · ACTIONS · ✓ ALL COMPLETE' : ' · ACTIONS · ' + totC + ' COMPLETE · ' + totO + ' OUTSTANDING';
+        }
+        var labelEl = document.getElementById('agm-admin-toggle-label');
+        var countEl = document.getElementById('agm-admin-toggle-counts');
+        if (labelEl) labelEl.textContent = label;
+        if (countEl) countEl.textContent = countStr;
+        if (hintEl)  hintEl.textContent  = 'Tap to view live minutes';
+        if (btn)     btn.style.pointerEvents = '';
+      })
+      .catch(function(err) {
+        if (hintEl) hintEl.textContent = 'Error loading — try refreshing';
+        if (btn)    btn.style.pointerEvents = '';
+        console.error('Admin AGM minutes error:', err);
+      });
+  }
+
+  var adminAgmData = null;
+  var isMobile = window.innerWidth <= 600;
+  var adminAgmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
+  var agmActionCounter = 0;
+  var adminAgmItemCounter = 0;
+  var adminAgmActionNumberMap = {};
+  var agmActionsSortByStatus = false;
+  var agmAllActionCards = [];
+
+  function adminEsc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function adminFormatAGMDate(raw) {
+    if (!raw) return '';
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).replace(',', '');
+  }
+
+  
+
+  /* ── Open / close overlay ── */
+  function adminOpenAGMOverlay() {
+    if (!adminAgmData) return;
+    adminRenderAGMOverlay();
+    document.getElementById('agm-admin-minutes-overlay').style.display = '';
+    document.getElementById('agm-admin-minutes-overlay').scrollTop = 0;
+    document.documentElement.style.overflowY = 'hidden';
+
+  }
+
+  function adminCloseAGMOverlay() {
+    document.getElementById('agm-admin-minutes-overlay').style.display = 'none';
+    document.documentElement.style.overflowY = 'scroll';
+  }
+
+  function adminAgmPrint() {
+    var origTitle = document.title;
+    var m = adminAgmData && adminAgmData.meta;
+    document.title = 'CMC The Courtyard — AGM Minutes' + (m && m.date ? ' ' + adminFormatAGMDate(m.date) : '');
+    window.print();
+    document.title = origTitle;
+  }
+
+  /* ── Expand / collapse ── */
+  function agmUpdateCollapseBtn() {
+    var anyOpen = Object.keys(adminAgmOpenGroups).some(function(k){ return adminAgmOpenGroups[k]; });
+    var cb = document.getElementById('agm-admin-collapse-btn');
+    if (cb) cb.style.display = anyOpen ? '' : 'none';
+  }
+
+  function adminAgmExpandGroups() {
+    Object.keys(adminAgmOpenGroups).forEach(function(k){ adminAgmOpenGroups[k] = true; });
+    adminRenderAGMOverlay();
+    agmUpdateCollapseBtn();
+  }
+
+  function adminAgmCollapseAll() {
+    Object.keys(adminAgmOpenGroups).forEach(function(k){ adminAgmOpenGroups[k] = false; });
+    adminRenderAGMOverlay();
+    agmUpdateCollapseBtn();
+  }
+
+  function agmApplySort() {
+    var btn = document.getElementById('agm-sort-btn');
+    var list = document.getElementById('agm-actions-list');
+    if (!list) return;
+    var cards = Array.from(list.querySelectorAll('.agm-action-card'));
+    if (agmActionsSortByStatus) {
+      // Outstanding first, then complete — preserve order within each group
+      cards.sort(function(a, b) {
+        var aOut = a.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        var bOut = b.querySelector('.agm-badge-outstanding') ? 0 : 1;
+        return aOut - bOut;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by number';
+    } else {
+      // Restore Action 1-100 order
+      cards.sort(function(a, b) {
+        var aNum = parseInt(((a.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
+        var bNum = parseInt(((b.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
+        return aNum - bNum;
+      });
+      if (btn) btn.textContent = '\u21C5 Sort by status';
+    }
+    cards.forEach(function(card) { list.appendChild(card); });
+  }
+
+  function adminAgmToggleActionSort() {
+    agmActionsSortByStatus = !agmActionsSortByStatus;
+    agmApplySort();
+  }
+
+  function adminAgmToggle(key) {
+    var overlay = document.getElementById('agm-admin-minutes-overlay');
+    var scrollTop = overlay ? overlay.scrollTop : 0;
+    adminAgmOpenGroups[key] = !adminAgmOpenGroups[key];
+    adminRenderAGMOverlay();
+    if (overlay) overlay.scrollTop = scrollTop;
+    agmUpdateCollapseBtn();
+  }
+
+
+
+  /* ── Render a single agenda item — Option 3 style ── */
+  // section: 'dir' | 'res' | 'aob' | '' (modal)
+  function adminRenderAgendaItemHTML(item, inModal, section, highlightAction) {
+    if (!inModal) adminAgmItemCounter++;
+    var itemNum = inModal ? (adminAgmActionNumberMap[highlightAction] ? adminAgmActionNumberMap[highlightAction].replace('Action ','') : '') : adminAgmItemCounter;
+    var h = '<div class="agm-agenda-item">';
+    if (!isMobile) h += '<div class="agm-agenda-numcol">' + itemNum + '</div>';
+    h += '<div class="agm-agenda-content">';
+    if (item.item) {
+      var titleHtml = '';
+      if (section === 'aob') {
+        // AOB: strip AOB prefix from title, show raised by to the right
+        var aobCleanTitle = (item.item || '').replace(/^AOB\d+\s*/i, '');
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + adminEsc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(aobCleanTitle) + raisedBy + '</div>';
+      } else if (section === 'res') {
+        // Resident: show title + raised by to the right
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + adminEsc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(item.item) + raisedBy + '</div>';
+      } else {
+        // Director or modal: title only
+        titleHtml = '<div class="agm-agenda-title">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(item.item) + '</div>';
+      }
+      h += titleHtml;
+    }
+    if (item.note) {
+      h += '<div class="agm-agenda-note">' + adminEsc(item.note) + '</div>';
+    }
+    if (item.actions && item.actions.length) {
+      h += '<div class="agm-agenda-actions">';
+      item.actions.forEach(function(a) {
+        // Look up this action's sequential number from the actionNumberMap
+        var actionNum = adminAgmActionNumberMap[a.text] || '';
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+        var isHighlighted = inModal && highlightAction && (a.text === highlightAction);
+        var highlightStyle = isHighlighted ? ' style="background:#fdf8f0;border-radius:4px;margin:2px 0;padding:6px 6px;"' : '';
+        h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
+        if (isMobile) {
+          if (actionNum) h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-agenda-action-label">' + adminEsc(actionNum) + '</span>' + badge + '</div>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + adminEsc(a.text) + '</strong>' : adminEsc(a.text)) + '</span>';
+        } else {
+          if (actionNum) h += '<span class="agm-agenda-action-label">' + adminEsc(actionNum) + '</span>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + adminEsc(a.text) + '</strong>' : adminEsc(a.text)) + '</span>';
+          h += badge;
+        }
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  /* ── Filter items to only those with content ── */
+  function hasContent(item) {
+    return (item.item && item.item.trim()) || (item.note && item.note.trim());
+  }
+
+  /* ── Build action rows for Voting & Actions section ── */
+  function buildActionRows(items, sectionKey, sectionLabel) {
+    var filtered = (items || []).filter(function(item) {
+      return hasContent(item) && item.actions && item.actions.length;
+    });
+    if (!filtered.length) return '';
+
+    var h = '<div class="agm-section-subhead">' + adminEsc(sectionLabel) + '</div>';
+    filtered.forEach(function(item) {
+      item.actions.forEach(function(a) {
+        var actionText = adminEsc(a.text);
+        var itemRef = item.item ? adminEsc(item.item) : (item.number ? adminEsc(item.number) : '');
+        var dataKey = JSON.stringify({ sectionKey: sectionKey, itemItem: item.item || '', itemNumber: item.number || '', itemRaisedBy: item.raisedBy || '', itemNote: item.note || '', actions: item.actions });
+
+        h += '<div class="agm-action-row" onclick="agmShowModal(' + adminEsc(JSON.stringify({ sectionKey: sectionKey, item: item })).replace(/"/g, '&quot;') + ')">';
+        if (a.complete) {
+          h += '<span class="agm-action-indicator agm-chip-complete" style="font-size:14px;font-weight:700;">✓</span>';
+        } else {
+          h += '<span class="agm-action-indicator agm-chip-outstanding" style="font-size:18px;font-weight:700;line-height:1;">·</span>';
+        }
+        h += '<div class="agm-action-text">';
+        h += '<div>' + actionText + '</div>';
+        if (itemRef) h += '<div class="agm-action-item-ref">' + itemRef + '</div>';
+        h += '</div></div>';
+      });
+    });
+    return h;
+  }
+
+  /* ── Store items for modal lookup ── */
+  var agmItemStore = {};
+
+  function storeItems(items, prefix) {
+    (items || []).forEach(function(item, idx) {
+      agmItemStore[prefix + '_' + idx] = item;
+    });
+  }
+
+  /* ── Show quick-view modal ── */
+  function agmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
+    var item = agmItemStore[storeKey];
+    if (!item) return;
+    // Build subtitle: section label + item number
+    var itemNum = parseInt((storeKey.split('_')[1] || '0')) + 1;
+    var subtitle = sectionLabel + ' — Item ' + itemNum;
+    document.getElementById('agm-admin-modal-title').textContent = subtitle;
+    document.getElementById('agm-admin-modal-body').innerHTML = adminRenderAgendaItemHTML(item, true, section);
+    // Highlight the specific action row
+    if (actionIdx !== undefined) {
+      var rows = document.getElementById('agm-admin-modal-body').querySelectorAll('.agm-agenda-action-row');
+      if (rows[actionIdx]) {
+        rows[actionIdx].style.background = '#fdf0e4';
+        rows[actionIdx].style.borderRadius = '4px';
+        rows[actionIdx].style.padding = '6px 4px';
+      }
+    }
+    document.getElementById('agm-admin-modal-overlay').classList.add('open');
+  }
+
+  function adminCloseAgmModal() {
+    document.getElementById('agm-admin-modal-overlay').classList.remove('open');
+  }
+
+  function adminAgmModalClickOutside(e) {
+    if (e.target === document.getElementById('agm-admin-modal-overlay')) adminCloseAgmModal();
+  }
+
+  /* ── Build action cards with sequential numbering ── */
+  function buildActionRowsKeyed(items, prefix, sectionLabel) {
+    var filtered = (items || []).filter(function(item) {
+      return hasContent(item) && item.actions && item.actions.length;
+    });
+    if (!filtered.length) return '';
+
+    var h = '';
+
+    (items || []).forEach(function(item, idx) {
+      if (!hasContent(item) || !item.actions || !item.actions.length) return;
+      var storeKey = prefix + '_' + idx;
+      var itemRef = item.item ? item.item : (item.number ? item.number : '');
+      itemRef = itemRef.replace(/AOB0+(\d)/g, 'AOB$1');
+
+      item.actions.forEach(function(a, aIdx) {
+        agmActionCounter++;
+        var num = 'Action ' + agmActionCounter;
+        adminAgmActionNumberMap[a.text] = num;
+        var badge = a.complete
+          ? '<span class="agm-badge-complete">Complete</span>'
+          : '<span class="agm-badge-outstanding">Outstanding</span>';
+
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + adminEsc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
+        h += '<div class="agm-action-card-top">';
+        if (isMobile) {
+          h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + adminEsc(num) + '</span>' + badge + '</div>';
+          h += '<span class="agm-action-card-text">' + adminEsc(a.text) + '</span>';
+        } else {
+          h += '<span class="agm-action-card-num">' + adminEsc(num) + '</span>';
+          h += '<span class="agm-action-card-text">' + adminEsc(a.text) + '</span>';
+          h += badge;
+        }
+        h += '</div>';
+
+        h += '</div>';
+      });
+    });
+    return h;
+  }
+
+    /* ── Group attendance by address, combine names smartly ── */
+  function renderAttendanceGroups(people, dotClass) {
+    // Extract property number for sorting (e.g. "3 The Courtyard" -> 3)
+    function propNum(addr) {
+      var m = String(addr || '').match(/^(\d+)/);
+      return m ? parseInt(m[1], 10) : 999;
+    }
+    // Group by address
+    var groups = {};
+    var order = [];
+    people.forEach(function(p) {
+      var addr = p.address || 'Unknown';
+      if (!groups[addr]) { groups[addr] = []; order.push(addr); }
+      groups[addr].push(p.name || '');
+    });
+    // Sort addresses by property number
+    order.sort(function(a, b) { return propNum(a) - propNum(b); });
+    var h = '';
+    order.forEach(function(addr) {
+      var names = groups[addr].slice().sort(function(a, b) {
+        var sA = a.trim().split(' ').pop(), sB = b.trim().split(' ').pop();
+        return sA.localeCompare(sB);
+      });
+      var surnames = names.map(function(n) { return n.trim().split(' ').pop(); });
+      var allSameSurname = surnames.length > 1 && surnames.every(function(s) { return s === surnames[0]; });
+      var combined;
+      if (allSameSurname) {
+        var firstNames = names.map(function(n) { return n.trim().split(' ').slice(0, -1).join(' '); });
+        combined = firstNames.join(' & ') + ' ' + surnames[0];
+      } else {
+        combined = names.join(' & ');
+      }
+      h += '<div class="agm-attend-row">';
+      h += '<span class="agm-attend-addr-col"><span class="agm-dot ' + dotClass + '"></span><span class="agm-attend-addr-label">' + adminEsc(addr) + '</span></span>';
+      h += '<span class="agm-attend-name-col">' + adminEsc(combined) + '</span>';
+      h += '</div>';
+    });
+    return h;
+  }
+
+  /* ── Main render ── */
+  function adminRenderAGMOverlay() {
+    if (!adminAgmData) return;
+    var d = adminAgmData;
+    var m = d.meta || {};
+
+    // Store items for modal lookup
+    agmItemStore = {};
+    storeItems(d.dirItems, 'dir');
+    storeItems(d.resItems, 'res');
+    storeItems(d.aobItems, 'aob');
+
+    var h = '';
+
+    // ── HEADER (identical to BVA) ──
+    var generated = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}) + ' at ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+    h += '<div style="display:flex;align-items:center;">';
+    h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+    h += '<div style="margin-left:1rem;">';
+    h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+    h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">AGM Minutes</div>';
+    h += '</div></div>';
+    h += '<div style="text-align:right;">';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + adminEsc(adminFormatAGMDate(m.date)) + '</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+    h += '</div></div>';
+
+    // ── 1. MEETING DETAILS (always visible) ──
+    h += '<div style="margin-bottom:1.5rem;">';
+
+    h += '<div class="agm-details-grid">';
+
+    // Card 1: Meeting Information
+    h += '<div class="agm-details-card">';
+    h += '<div class="agm-details-card-title">Meeting Information</div>';
+    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + adminEsc(adminFormatAGMDate(m.date)) + '</span></div>';
+    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time</span><span class="agm-details-val">' + adminEsc(m.time) + '</span></div>';
+    if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + adminEsc(m.venue) + '</span></div>';
+    if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + adminEsc(m.chair) + '</span></div>';
+    if (m.minutesTaker) h += '<div class="agm-details-row"><span class="agm-details-key">Minutes</span><span class="agm-details-val">' + adminEsc(m.minutesTaker) + '</span></div>';
+    h += '</div>';
+
+    // Card 2: Company Officers
+    h += '<div class="agm-details-card">';
+    h += '<div class="agm-details-card-title">CMC Company Officers</div>';
+    if (m.officers && m.officers.length) {
+      m.officers.forEach(function(o) {
+        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:145px;">' + adminEsc(o.role) + '</span><span class="agm-details-val">' + adminEsc(o.name) + '</span></div>';
+      });
+    } else {
+      h += '<div style="font-size:16px;color:#b8ad9e;font-style:italic;">No officers recorded.</div>';
+    }
+    h += '</div>';
+
+    h += '</div>'; // end details-grid
+    h += '</div>'; // end section 1
+
+    // ── 2. ATTENDANCE (collapsible) ──
+    var attPresent = (d.present || []).length;
+    var attApologies = (d.apologies || []).length;
+    var attProps = (d.present || []).reduce(function(acc, p) {
+      if (p.address && acc.indexOf(p.address) === -1) acc.push(p.address);
+      return acc;
+    }, []).length;
+    var attSummary = '';
+    if (attPresent > 0 || attApologies > 0) {
+      var propStr = attProps > 0 ? ' (' + attProps + ' propert' + (attProps === 1 ? 'y' : 'ies') + ')' : '';
+      attSummary = '<span style="font-size:12px;color:#9e8e7e;">' + attPresent + ' attended' + propStr + ' &nbsp;·&nbsp; ' + attApologies + ' apolog' + (attApologies === 1 ? 'y' : 'ies') + '</span>';
+    }
+
+    var attOpen = adminAgmOpenGroups.attendance;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'attendance\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (attOpen ? ' open' : '') + '"></span>Attendance</span>';
+    if (attSummary) h += attSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (attOpen ? ' open' : '') + '" id="agm-admin-grp-attendance">';
+
+    // Present
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Present</div>';
+    if (d.present && d.present.length) {
+      h += renderAttendanceGroups(d.present, 'agm-dot-green');
+    } else {
+      h += '<div class="agm-attend-none">None recorded.</div>';
+    }
+    h += '</div>';
+    // Apologies
+    h += '<div class="agm-attend-section">';
+    h += '<div class="agm-attend-section-head">Apologies</div>';
+    if (d.apologies && d.apologies.length) {
+      h += renderAttendanceGroups(d.apologies, 'agm-dot-amber');
+    } else {
+      h += '<div class="agm-attend-none">None recorded.</div>';
+    }
+    h += '</div>';
+    h += '</div>'; // end attendance items
+
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 3. VOTING (collapsible) ──
+    var votingPassed = (d.votes || []).filter(function(v){ return v.passed; }).length;
+    var votingPending = (d.votes || []).filter(function(v){ return !v.passed; }).length;
+    var votingSummary = '';
+    if (d.votes && d.votes.length) {
+      var vParts = [];
+      if (votingPassed > 0) vParts.push(votingPassed + ' passed');
+      if (votingPending > 0) vParts.push(votingPending + ' pending');
+      if (vParts.length) votingSummary = '<span style="font-size:12px;color:#9e8e7e;">' + vParts.join(' &nbsp;·&nbsp; ') + '</span>';
+    }
+
+    var votingOpen = adminAgmOpenGroups.voting;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'voting\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (votingOpen ? ' open' : '') + '"></span>Voting</span>';
+    if (votingSummary) h += votingSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (votingOpen ? ' open' : '') + '" id="agm-admin-grp-voting">';
+    if (d.votes && d.votes.length) {
+      d.votes.forEach(function(v) {
+        h += '<div class="agm-vote-row">';
+        if (isMobile) {
+          h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-vote-num">' + adminEsc(v.number) + '</span>';
+        } else {
+          h += '<span class="agm-vote-num">' + adminEsc(v.number) + '</span>';
+          h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>';
+        }
+        if (v.passed) {
+          h += '<span class="agm-vote-result agm-vote-passed">✓ Passed</span>';
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>'; }
+        } else {
+          h += '<span class="agm-vote-result agm-vote-pending">● Pending</span>';
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>'; }
+        }
+        h += '</div>';
+      });
+    } else {
+      h += '<div style="padding:10px 8px;font-size:16px;color:#b8ad9e;font-style:italic;">No votes recorded.</div>';
+    }
+    h += '</div>'; // end voting items
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 4. ACTIONS (collapsible) ──
+    agmActionCounter = 0;
+    adminAgmItemCounter = 0;
+    adminAgmActionNumberMap = {};
+    var dirActions  = buildActionRowsKeyed(d.dirItems,  'dir',  'Director - Agenda Items');
+    var resActions  = buildActionRowsKeyed(d.resItems,  'res',  'Resident - Agenda Items');
+    var aobActions  = buildActionRowsKeyed(d.aobItems,  'aob',  'Any Other Business');
+    var hasActions  = dirActions || resActions || aobActions;
+
+    // Count complete and outstanding across all action groups
+    var totalComplete = 0, totalOutstanding = 0;
+    [d.dirItems, d.resItems, d.aobItems].forEach(function(section) {
+      (section || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) {
+          if (a.complete) totalComplete++; else totalOutstanding++;
+        });
+      });
+    });
+    var actionsSummary = '';
+    if (totalOutstanding === 0 && totalComplete > 0) {
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">✓ All complete</span>';
+    } else if (totalComplete > 0 || totalOutstanding > 0) {
+      actionsSummary = '<span style="font-size:12px;color:#9e8e7e;">' + totalComplete + ' complete &nbsp;·&nbsp; ' + totalOutstanding + ' outstanding</span>';
+    }
+
+    var actionsOpen = adminAgmOpenGroups.actions;
+    h += '<div class="bva-group-row" onclick="agmToggle(\'actions\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (actionsOpen ? ' open' : '') + '"></span>Actions</span>';
+    if (actionsSummary) h += actionsSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-admin-grp-actions">';
+    if (hasActions) {
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:6px;padding:0 8px;">';
+      h += '<span class="agm-actions-hint" style="margin-bottom:0;">Click any action to view the full agenda item detail</span>';
+      h += '<button onclick="adminAgmToggleActionSort()" id="agm-sort-btn" style="padding:0.35rem 0.8rem;width:130px;background:rgba(74,94,58,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#8645; Sort by status</button>';
+      h += '</div>';
+      h += '<div id="agm-actions-list">';
+      h += dirActions;
+      if (resActions) h += resActions;
+      if (aobActions) h += aobActions;
+      h += '</div>';
+    } else {
+      h += '<div style="padding:10px 8px;font-size:16px;color:#b8ad9e;font-style:italic;">No actions recorded.</div>';
+    }
+    h += '</div>'; // end actions items
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 4. DIRECTOR AGENDA ITEMS (collapsible) ──
+    var dirItems = (d.dirItems || []).filter(hasContent);
+    var dirOpen = adminAgmOpenGroups.director;
+    var dirSummary = (function() {
+      var c = 0, o = 0;
+      (d.dirItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'director\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (dirOpen ? ' open' : '') + '"></span>Director Agenda Items</span>';
+    if (dirSummary) h += dirSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (dirOpen ? ' open' : '') + '" id="agm-admin-grp-director">';
+    adminAgmItemCounter = 0;
+    if (dirItems.length) {
+      dirItems.forEach(function(item) { h += adminRenderAgendaItemHTML(item, false, 'dir'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 5. RESIDENT AGENDA ITEMS (collapsible) ──
+    var resItems = (d.resItems || []).filter(hasContent);
+    var resOpen = adminAgmOpenGroups.resident;
+    var resSummary = (function() {
+      var c = 0, o = 0;
+      (d.resItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'resident\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (resOpen ? ' open' : '') + '"></span>Resident Agenda Items</span>';
+    if (resSummary) h += resSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (resOpen ? ' open' : '') + '" id="agm-admin-grp-resident">';
+    adminAgmItemCounter = 0;
+    if (resItems.length) {
+      resItems.forEach(function(item) { h += adminRenderAgendaItemHTML(item, false, 'res'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    h += '<div style="height:1.5rem;"></div>';
+
+    // ── 6. AOB (collapsible) ──
+    var aobItems = (d.aobItems || []).filter(hasContent);
+    var aobOpen = adminAgmOpenGroups.aob;
+    var aobSummary = (function() {
+      var c = 0, o = 0;
+      (d.aobItems || []).forEach(function(item) {
+        (item.actions || []).forEach(function(a) { if (a.complete) c++; else o++; });
+      });
+      if (c === 0 && o === 0) return '';
+      if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
+      return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
+    })();
+    h += '<div class="bva-group-row" onclick="agmToggle(\'aob\')">';
+    h += '<span class="bva-group-name"><span class="bva-chev' + (aobOpen ? ' open' : '') + '"></span>Any Other Business</span>';
+    if (aobSummary) h += aobSummary;
+    h += '</div>';
+    h += '<div class="bva-items' + (aobOpen ? ' open' : '') + '" id="agm-admin-grp-aob">';
+    adminAgmItemCounter = 0;
+    if (aobItems.length) {
+      aobItems.forEach(function(item) { h += adminRenderAgendaItemHTML(item, false, 'aob'); });
+    } else {
+      h += '<div style="padding:14px 24px;font-size:16px;color:#b8ad9e;font-style:italic;">No items recorded.</div>';
+    }
+    h += '</div>';
+    // ── 7. MEETING CLOSE (always visible) ──
+    h += '<div style="border-top:2px solid #b8ad9e;padding-top:1rem;margin-top:0;">';
+    if (m.meetingEnd) {
+      h += '<div class="agm-close-block">';
+      h += '<span class="agm-close-label">Meeting closed</span>';
+      h += '<span class="agm-close-val">' + adminEsc(m.meetingEnd) + '</span>';
+      h += '</div>';
+    }
+    if (m.nextAGM) {
+      h += '<div class="agm-close-block">';
+      h += '<span class="agm-close-label">Next AGM</span>';
+      h += '<span class="agm-close-val">' + adminEsc(adminFormatAGMDate(m.nextAGM)) + '</span>';
+      h += '</div>';
+    }
+    h += '<div style="margin-top:1rem;border:1px solid #ddd5c8;border-radius:6px;background:#ddd5c8;padding:0.75rem 1.25rem;">';
+    h += '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">CMC AGMs take place on the second Sunday of December each year.</p>';
+    h += '</div>';
+    h += '</div>';
+
+    document.getElementById('agm-admin-overlay-content').innerHTML = h;
+  }
+
+
+</script>
 </body>
 </html>
