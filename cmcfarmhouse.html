@@ -626,7 +626,9 @@ function updateSmokePill(lastCheck) {
   var pill = document.getElementById('smoke-last-pill');
   if (!pill) return;
   if (lastCheck) {
-    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
+    var hasFail = lastCheck.entrance === 'Fail' || lastCheck.landing === 'Fail';
+    var icon = hasFail ? '\u00b7 \u26a0\ufe0f' : '\u00b7 \u2705';
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' ' + icon;
   } else {
     pill.textContent = '\u00b7 NO CHECKS RECORDED YET';
   }
