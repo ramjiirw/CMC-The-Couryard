@@ -540,6 +540,13 @@
     #mntTableWrap .mnt-det-label { font-size:0.62rem !important; }
   }
 
+
+  /* ── AGM Minutes Preview button (admin, scoped) ── */
+  #panel-agmminutes .finance-section { border: 1px solid #ddd5c8; border-radius: 10px; box-shadow: 0 4px 24px rgba(30,26,22,0.10); overflow: hidden; margin-bottom: 1.5rem; }
+  #panel-agmminutes .btn-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1.25rem; background: #1e1a16; color: #f5f0e8; border: none; border-radius: 0; font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; margin-bottom: 0; box-sizing: border-box; }
+  #panel-agmminutes .btn-toggle:hover { background: #2a2520; transform: translateY(-2px); transition: background 0.2s, transform 0.2s; }
+  #panel-agmminutes .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
+  #panel-agmminutes .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
 </style>
 </head>
 <body>
@@ -6159,6 +6166,96 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 
 <!-- AGM Minutes Preview Overlay (Admin) -->
 <div id="agm-admin-minutes-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+<style>
+#agm-admin-minutes-overlay { font-family: Arial, sans-serif; font-size: 14px; color: #1e1a16; }
+#agm-admin-minutes-overlay .bva-col-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #6b5f52; padding-bottom: 6px; border-bottom: 2px solid #ddd5c8; margin-bottom: 0; }
+#agm-admin-minutes-overlay .bva-group-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 8px; cursor: pointer; border-bottom: 1px solid #ede8e0; }
+#agm-admin-minutes-overlay .bva-group-row:hover { background: #faf7f2; }
+#agm-admin-minutes-overlay .bva-group-name { font-size: 17px; font-weight: 700; color: #7a5c3e; display: flex; align-items: center; gap: 7px; flex: 1; }
+#agm-admin-minutes-overlay .bva-chev { display: inline-block; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid #b8ad9e; transition: transform 0.2s; flex-shrink: 0; }
+#agm-admin-minutes-overlay .bva-chev.open { transform: rotate(90deg); }
+#agm-admin-minutes-overlay .bva-items { display: none; }
+#agm-admin-minutes-overlay .bva-items.open { display: block; }
+#agm-admin-minutes-overlay .bva-item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 8px 24px; border-bottom: 1px solid #f0ebe0; font-size: 16px; }
+#agm-admin-minutes-overlay .bva-item-name { color: #333; flex: 1; }
+#agm-admin-minutes-overlay .bva-budget-val { color: #9e8e7e; }
+#agm-admin-minutes-overlay .bva-actual-val { color: #1e1a16; font-weight: 600; }
+#agm-admin-minutes-overlay .bva-summary-block { border: 2px solid #b8ad9e; border-radius: 7px; overflow: hidden; margin-bottom: 1.5rem; }
+#agm-admin-minutes-overlay .bva-sum-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #ddd5c8; font-family: Arial, sans-serif; }
+#agm-admin-minutes-overlay .bva-sum-row:last-child { border-bottom: none; }
+#agm-admin-minutes-overlay .bva-sum-head { background: #ddd5c8; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b5f52; }
+#agm-admin-minutes-overlay .bva-sum-label { font-size: 17px; font-weight: 700; color: #4a3f35; }
+#agm-admin-minutes-overlay .agm-section-subhead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #6b5f52; padding: 10px 8px 6px; border-bottom: 2px solid #ddd5c8; margin-top: 8px; }
+#agm-admin-minutes-overlay .agm-attend-section { margin-bottom: 0; border-top: 1px solid #ede8e0; padding-top: 10px; margin-top: 16px; }
+#agm-admin-minutes-overlay .agm-attend-section:first-child { margin-top: 0; }
+#agm-admin-minutes-overlay .agm-attend-section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9e8e7e; margin-bottom: 8px; }
+#agm-admin-minutes-overlay .agm-attend-row { display: flex; align-items: baseline; padding: 5px 0; gap: 1rem; }
+#agm-admin-minutes-overlay .agm-attend-addr-col { display: flex; align-items: center; gap: 7px; min-width: 160px; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-attend-addr-label { font-size: 14px; font-weight: 700; color: #4a3f35; }
+#agm-admin-minutes-overlay .agm-attend-name-col { font-size: 16px; color: #1e1a16; }
+#agm-admin-minutes-overlay .agm-attend-none { font-size: 16px; color: #b8ad9e; font-style: italic; }
+#agm-admin-minutes-overlay .agm-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-dot-green { background: #2e7d32; }
+#agm-admin-minutes-overlay .agm-dot-amber { background: #c4956a; }
+#agm-admin-minutes-overlay .agm-vote-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-bottom: 1px solid #f0ebe0; font-size: 16px; }
+#agm-admin-minutes-overlay .agm-vote-row:last-child { border-bottom: none; }
+#agm-admin-minutes-overlay .agm-vote-num { color: #7a5c3e; min-width: 60px; flex-shrink: 0; font-size: 14px; font-weight: 500; }
+#agm-admin-minutes-overlay .agm-vote-motion { flex: 1; color: #1e1a16; font-size: 16px; }
+#agm-admin-minutes-overlay .agm-vote-result { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+#agm-admin-minutes-overlay .agm-vote-passed { background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; }
+#agm-admin-minutes-overlay .agm-vote-pending { background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; }
+#agm-admin-minutes-overlay .agm-action-card { border: 1px solid #ddd5c8; border-radius: 6px; margin: 6px 0; overflow: hidden; cursor: pointer; }
+#agm-admin-minutes-overlay .agm-action-card:hover .agm-action-card-top { background: #f0ebe0; }
+#agm-admin-minutes-overlay .agm-action-card-top { background: #faf7f2; padding: 9px 14px; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+#agm-admin-minutes-overlay .agm-action-card-num { font-size: 13px; font-weight: 500; color: #9e8e7e; min-width: 68px; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-action-card-text { font-size: 16px; color: #1e1a16; flex: 1; line-height: 1.4; }
+#agm-admin-minutes-overlay .agm-action-card-bottom { padding: 6px 14px 8px; border-top: 1px solid #ede8e0; display: flex; gap: 8px; align-items: baseline; }
+#agm-admin-minutes-overlay .agm-action-card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-action-card-ref { font-size: 13px; color: #6b5f52; line-height: 1.4; }
+#agm-admin-minutes-overlay .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
+#agm-admin-minutes-overlay .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; margin-bottom: 4px; }
+#agm-admin-minutes-overlay .agm-action-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 8px 9px 24px; border-bottom: 1px solid #f0ebe0; font-size: 16px; cursor: pointer; transition: background 0.15s; }
+#agm-admin-minutes-overlay .agm-action-row:last-child { border-bottom: none; }
+#agm-admin-minutes-overlay .agm-action-row:hover { background: #faf7f2; }
+#agm-admin-minutes-overlay .agm-action-indicator { flex-shrink: 0; margin-top: 3px; }
+#agm-admin-minutes-overlay .agm-action-text { flex: 1; color: #333; line-height: 1.4; }
+#agm-admin-minutes-overlay .agm-action-item-ref { font-size: 13px; color: #9e8e7e; margin-top: 2px; }
+#agm-admin-minutes-overlay .agm-agenda-item { display: flex; gap: 16px; padding: 14px 8px; border-bottom: 1px solid #f0ebe0; }
+#agm-admin-minutes-overlay .agm-agenda-item:last-child { border-bottom: none; }
+#agm-admin-minutes-overlay .agm-agenda-numcol { font-size: 22px; font-weight: 500; color: #b8ad9e; min-width: 28px; flex-shrink: 0; line-height: 1.2; padding-top: 2px; }
+#agm-admin-minutes-overlay .agm-agenda-content { flex: 1; }
+#agm-admin-minutes-overlay .agm-agenda-title { font-size: 16px; font-weight: 500; color: #1e1a16; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ddd5c8; }
+#agm-admin-minutes-overlay .agm-agenda-note { font-size: 16px; color: #6b5f52; line-height: 1.7; background: rgba(122,92,62,0.04); border-left: 3px solid #ddd5c8; padding: 8px 12px; border-radius: 0 4px 4px 0; white-space: pre-wrap; margin-bottom: 8px; }
+#agm-admin-minutes-overlay .agm-agenda-actions { margin-top: 4px; border-top: 1px solid #ddd5c8; padding-top: 6px; }
+#agm-admin-minutes-overlay .agm-agenda-action-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-top: 0.5px solid #f0ebe0; }
+#agm-admin-minutes-overlay .agm-agenda-action-row:first-child { border-top: none; }
+#agm-admin-minutes-overlay .agm-agenda-action-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: #b8ad9e; white-space: nowrap; flex-shrink: 0; min-width: 65px; }
+#agm-admin-minutes-overlay .agm-agenda-action-text { font-size: 16px; color: #1e1a16; flex: 1; }
+#agm-admin-minutes-overlay .agm-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem 8px; }
+#agm-admin-minutes-overlay .agm-details-card { background: rgba(122,92,62,0.04); border: 1px solid #ddd5c8; border-radius: 8px; padding: 12px 14px; }
+#agm-admin-minutes-overlay .agm-details-card-title { font-size: 11px; font-weight: 700; color: #c4956a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+#agm-admin-minutes-overlay .agm-details-row { display: flex; align-items: baseline; padding: 4px 0; border-bottom: 0.5px solid #ddd5c8; font-size: 16px; gap: 1rem; }
+#agm-admin-minutes-overlay .agm-details-row:last-child { border-bottom: none; }
+#agm-admin-minutes-overlay .agm-details-key { color: #6b5f52; min-width: 90px; flex-shrink: 0; }
+#agm-admin-minutes-overlay .agm-details-val { color: #1e1a16; font-weight: 500; }
+#agm-admin-minutes-overlay .agm-close-block { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 16px; }
+#agm-admin-minutes-overlay .agm-close-label { font-weight: 400; color: #6b5f52; }
+#agm-admin-minutes-overlay .agm-close-val { color: #6b5f52; font-weight: 600; }
+#agm-admin-minutes-overlay .agm-summary-block { border: 2px solid #b8ad9e; border-radius: 7px; overflow: hidden; margin-bottom: 1.5rem; }
+@media (max-width: 600px) {
+  #agm-admin-minutes-overlay .agm-action-card-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  #agm-admin-minutes-overlay .agm-vote-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  #agm-admin-minutes-overlay .agm-agenda-numcol { display: none; }
+  #agm-admin-minutes-overlay .agm-agenda-action-row { flex-direction: column !important; align-items: flex-start !important; gap: 4px; }
+  #agm-admin-minutes-overlay .agm-agenda-action-text { width: 100%; }
+}
+#agm-admin-modal-box { background: white; border-radius: 10px; max-width: 640px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(30,26,22,0.28); font-family: Arial, sans-serif; font-size: 14px; color: #1e1a16; }
+#agm-admin-modal-header { background: #4a5e3a; color: white; padding: 0.65rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-radius: 10px 10px 0 0; }
+#agm-admin-modal-close { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; padding: 0.3rem 0.75rem; font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+#agm-admin-modal-body { padding: 1rem 1.25rem; }
+</style>
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
     <span style="color:rgba(255,255,255,0.75);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:0.18rem 0.55rem;">ADMIN PREVIEW</span>
     <button onclick="adminAgmExpandGroups()" style="width:140px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All</button>
