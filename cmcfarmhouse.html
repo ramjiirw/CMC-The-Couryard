@@ -177,11 +177,11 @@
     <button class="btn-toggle btn-loading" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false">
       <span class="toggle-left">
         <span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span>
-        <span id="smoke-last-pill" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;display:none;"></span>
+        <span id="smoke-last-pill" style="font-weight:400;opacity:0.8;font-size:0.72rem;letter-spacing:0.03em;display:none;"></span>
       </span>
       <span class="toggle-hint">
         <span class="hint-loading">&#9203; Loading checks&#8230;</span>
-        <span class="hint-open">Tap to expand &amp; add check</span>
+        <span class="hint-open">Tap to add check</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">&#9658;</span>
       </span>
@@ -666,17 +666,14 @@ async function saveSmokeCheck() {
   updateSmokePill(smokeState.checks[0]);
 
   try {
-    var res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action:     'addFarmhouseSmokeCheck',
-        date:       todayVal,
-        entrance:   smokeState.entrance,
-        landing:    smokeState.landing,
-        checkedBy:  smokeState.checkedBy
-      })
+    var params = new URLSearchParams({
+      action:    'addFarmhouseSmokeCheck',
+      date:      todayVal,
+      entrance:  smokeState.entrance,
+      landing:   smokeState.landing,
+      checkedBy: smokeState.checkedBy
     });
+    var res = await fetch(SCRIPT_URL + '?' + params.toString());
     var data = await res.json();
     if (data.status === 'ok') {
       if (saveMsg) {
