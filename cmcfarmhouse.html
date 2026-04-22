@@ -128,6 +128,8 @@
   .pinned-doc-btn:hover { background: #d4ecda; }
 
   /* ── Smoke checks button loading states ── */
+  #toggle-smokechecks { background: #5a1a1a; }
+  #toggle-smokechecks:hover { background: #6e2020; }
   .btn-loading { pointer-events: none; opacity: 0.8; }
   .hint-loading { display: none; }
   .btn-loading .hint-loading { display: inline; }
@@ -174,7 +176,7 @@
 
   <!-- ── FARMHOUSE FIRE SAFETY · SMOKE ALARM CHECKS ── -->
   <div class="doc-card-wrapper" id="wrap-smokechecks" style="margin-bottom:1.5rem;">
-    <button class="btn-toggle btn-loading" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false">
+    <button class="btn-toggle btn-loading" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false" style="background:#5a1a1a;">
       <span class="toggle-left">
         <span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span>
         <span id="smoke-last-pill" style="font-weight:400;opacity:0.8;font-size:0.72rem;letter-spacing:0.03em;display:none;"></span>
