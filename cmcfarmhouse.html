@@ -626,9 +626,9 @@ function updateSmokePill(lastCheck) {
   var pill = document.getElementById('smoke-last-pill');
   if (!pill) return;
   if (lastCheck) {
-    pill.textContent = '\u00b7 Last check ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
   } else {
-    pill.textContent = '\u00b7 No checks recorded yet';
+    pill.textContent = '\u00b7 NO CHECKS RECORDED YET';
   }
   pill.style.display = 'inline';
 }
