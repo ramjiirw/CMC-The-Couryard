@@ -67,6 +67,17 @@
     padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border);
   }
   .noticeboard-item:last-child { border-bottom: none; }
+  .noticeboard-item-pinned {
+    background: #fffdf5;
+    border-left: 3px solid #c4956a;
+    padding-left: calc(1.25rem - 3px);
+  }
+  .nb-pin-pill {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    background: #fff3cd; color: #7a5c00; border: 1px solid rgba(196,149,0,0.35);
+    border-radius: 10px; padding: 0.1rem 0.5rem;
+    letter-spacing: 0.03em; margin-right: 0.4rem; vertical-align: middle;
+  }
   .noticeboard-item-title {
     font-size: 0.88rem; font-weight: 600; color: var(--accent);
     margin-bottom: 0.25rem;
@@ -1563,10 +1574,12 @@
           return line;
         }).join('\n');
       }
-      document.getElementById('noticeboardBody').innerHTML = messages.map(m => {
+      document.getElementById('noticeboardBody').innerHTML = messages
+        .slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0))
+        .map(m => {
         var msg = m.message ? filterPastDates(m.title, m.message) : m.message;
-        return '<div class="noticeboard-item">' +
-          (m.title ? '<div class="noticeboard-item-title">' + m.title + '</div>' : '') +
+        return '<div class="noticeboard-item' + (m.pinned ? ' noticeboard-item-pinned' : '') + '">' +
+          (m.title ? '<div class="noticeboard-item-title">' + (m.pinned ? '<span class="nb-pin-pill">📌 Pinned</span>' : '') + m.title + '</div>' : '') +
           (msg ? '<div class="noticeboard-item-msg">' + msg.replace(/\n/g, '<br>') + '</div>' : '') +
           '</div>';
       }).join('');
@@ -2559,6 +2572,12 @@
     _offlineShown = true;
     document.getElementById('offlineNotice').classList.add('show');
   }
+
+  window.addEventListener('offline', function() { showOfflineNotice(); });
+  window.addEventListener('online', function() {
+    _offlineShown = false;
+    document.getElementById('offlineNotice').classList.remove('show');
+  });
 
   var WARNING_MS = 2 * 60 * 1000;
   var IDLE_MS_W = 30 * 60 * 1000;
