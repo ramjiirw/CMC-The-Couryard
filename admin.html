@@ -156,7 +156,7 @@
   .nb-row.nb-hidden-row { opacity:0.65; }
   .nb-row.nb-hidden-row input,
   .nb-row.nb-hidden-row textarea { background:#f0ebe3; text-decoration:line-through; color:#aaa; }
-  .nb-toggle-btn, .nb-notify-btn, .nb-delete-btn {
+  .nb-toggle-btn, .nb-notify-btn, .nb-delete-btn, .nb-pin-btn {
     display:block; width:86px; padding:0.32rem 0; border-radius:4px;
     font-size:0.72rem; font-weight:600; cursor:pointer; letter-spacing:0.04em;
     text-align:center; transition:all 0.15s; white-space:nowrap; box-sizing:border-box;
@@ -166,6 +166,10 @@
   .nb-toggle-btn:hover { opacity:0.85; }
   .nb-toggle-btn.is-hidden { background:var(--stone); color:var(--dark); }
   .nb-toggle-btn.is-hidden:hover { opacity:0.85; }
+  .nb-pin-btn { background:var(--warm); color:var(--mid); border:1px solid rgba(122,92,62,0.25); }
+  .nb-pin-btn:hover { background:rgba(122,92,62,0.18); color:var(--accent); }
+  .nb-pin-btn.is-pinned { background:#fff3cd; color:#7a5c00; border-color:rgba(196,149,0,0.4); }
+  .nb-pin-btn.is-pinned:hover { background:#ffe89a; }
   .nb-notify-btn { background:var(--warm); color:var(--mid); border:1px solid rgba(122,92,62,0.25); }
   .nb-notify-btn:hover { background:rgba(122,92,62,0.18); color:var(--accent); }
   .nb-notify-btn.nb-notify-disabled { opacity:0.3; cursor:not-allowed; }
@@ -3822,7 +3826,7 @@ async function nbLoad() {
     const res = await fetch(SCRIPT_URL + '?action=readNoticeboardAdmin');
     const data = await res.json();
     nbMessages = (data.messages || []).map(function(m) {
-      return { title: m.title || '', message: m.message || '', hidden: !!m.hidden };
+      return { title: m.title || '', message: m.message || '', hidden: !!m.hidden, pinned: !!m.pinned };
     });
     nbClearDirty();
     nbRender();
@@ -3840,6 +3844,7 @@ function nbRender() {
   wrap.innerHTML = '<div class="nb-header-row"><span style="flex:0 0 20px;"></span><span class="nb-ht">Title</span><span class="nb-hm">Message</span><span style="flex:0 0 80px;"></span></div>' +
     nbMessages.map(function(m, i) {
       var isHidden  = !!m.hidden;
+      var isPinned  = !!m.pinned;
       var titlePreview = m.title || '(no title)';
       var msgPreview   = m.message || '(no message)';
       return '<div class="nb-row' + (isHidden ? ' nb-hidden-row' : '') + '" id="nb-row-' + i + '" draggable="true" data-idx="' + i + '">' +
@@ -3847,11 +3852,12 @@ function nbRender() {
         '<textarea class="nb-title" placeholder="Title" oninput="nbMessages[' + i + '].title=this.value;nbSetDirty()">' + escHtml(m.title) + '</textarea>' +
         '<textarea placeholder="Message text" oninput="nbMessages[' + i + '].message=this.value;nbSetDirty()">' + escHtml(m.message) + '</textarea>' +
         '<button class="nb-mobile-edit-btn" onclick="nbMobileOpen(' + i + ')">' +
-          '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
+          '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + (isPinned ? '📌 ' : '') + escHtml(titlePreview) + '</strong>' +
           escHtml(msgPreview) +
         '</button>' +
         '<div class="nb-row-actions">' +
           '<button class="nb-toggle-btn' + (isHidden ? ' is-hidden' : '') + '" onclick="nbToggleHidden(' + i + ')" title="' + (isHidden ? 'Hidden from portal — click to show' : 'Visible on portal — click to hide') + '">' + (isHidden ? '&#128065; Hidden' : '&#10003; Visible') + '</button>' +
+          '<button class="nb-pin-btn' + (isPinned ? ' is-pinned' : '') + '" onclick="nbTogglePinned(' + i + ')" title="' + (isPinned ? 'Pinned — click to unpin' : 'Not pinned — click to pin to top') + '">&#128204; ' + (isPinned ? 'Pinned' : 'Pin') + '</button>' +
           '<button class="nb-notify-btn' + (isHidden ? ' nb-notify-disabled' : '') + '" ' + (isHidden ? 'disabled title="Notice is hidden — make it visible before notifying"' : 'onclick="nbNotify(' + i + ')" title="Email this notice to all residents"') + '>&#128231; Notify</button>' +
           '<button class="nb-delete-btn" onclick="nbRemove(' + i + ')" title="Delete">&#10005;</button>' +
         '</div>' +
@@ -3890,7 +3896,7 @@ function nbRender() {
 }
 
 function nbAddRow() {
-  nbMessages.push({title:'', message:'', hidden:false});
+  nbMessages.push({title:'', message:'', hidden:false, pinned:false});
   nbSetDirty();
   nbRender();
   var inputs = document.querySelectorAll('#nbRows .nb-row:last-child input');
@@ -3905,6 +3911,12 @@ function nbRemove(i) {
 
 function nbToggleHidden(i) {
   nbMessages[i].hidden = !nbMessages[i].hidden;
+  nbSetDirty();
+  nbRender();
+}
+
+function nbTogglePinned(i) {
+  nbMessages[i].pinned = !nbMessages[i].pinned;
   nbSetDirty();
   nbRender();
 }
