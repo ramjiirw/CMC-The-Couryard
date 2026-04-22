@@ -547,6 +547,21 @@
   #panel-agmminutes .btn-toggle:hover { background: #2a2520; transform: translateY(-2px); transition: background 0.2s, transform 0.2s; }
   #panel-agmminutes .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
   #panel-agmminutes .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
+
+  /* ── Live Minutes Visible toggle (admin) ── */
+  .lmv-row { display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; padding:0.75rem 1rem; background:#f5f0e8; border:1px solid #ddd5c8; border-radius:8px; }
+  .lmv-label { font-size:0.82rem; font-weight:600; color:#1e1a16; flex:1; }
+  .lmv-sublabel { font-size:0.72rem; color:#6b5f52; margin-top:0.15rem; }
+  .lmv-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+  .lmv-switch input { opacity:0; width:0; height:0; }
+  .lmv-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#b8ad9e; border-radius:24px; transition:0.3s; }
+  .lmv-slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.3s; }
+  .lmv-switch input:checked + .lmv-slider { background:#3d6b4a; }
+  .lmv-switch input:checked + .lmv-slider:before { transform:translateX(20px); }
+  .lmv-status { font-size:0.75rem; font-weight:700; color:#6b5f52; min-width:80px; }
+  .lmv-status.on { color:#3d6b4a; }
+  .lmv-status.off { color:#8b3a3a; }
+  .lmv-saving { font-size:0.72rem; color:#c4956a; font-style:italic; display:none; }
 </style>
 </head>
 <body>
@@ -891,6 +906,20 @@
       <div class="admin-panel" id="panel-agmminutes">
         <div class="panel-title">AGM Minutes (Preview)</div>
         <div class="panel-desc">Preview the live AGM minutes exactly as residents will see them. The Live Minutes Visible switch is ignored here — admin only.</div>
+        <!-- Live Minutes Visible switch -->
+        <div class="lmv-row" id="lmv-row">
+          <div>
+            <div class="lmv-label">Live Minutes Visible</div>
+            <div class="lmv-sublabel">Controls whether residents can see the minutes button on the portal</div>
+          </div>
+          <span class="lmv-saving" id="lmv-saving">Saving…</span>
+          <span class="lmv-status" id="lmv-status">Loading…</span>
+          <label class="lmv-switch">
+            <input type="checkbox" id="lmv-checkbox" onchange="lmvToggle(this.checked)" disabled>
+            <span class="lmv-slider"></span>
+          </label>
+        </div>
+
         <div class="finance-section" style="margin-bottom:1.5rem;">
           <button class="btn-toggle" id="toggle-agm-admin" onclick="adminOpenAGMOverlay()">
             <span class="toggle-left">
@@ -6299,6 +6328,44 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 
 <script>
 
+
+  // ── Live Minutes Visible switch ──────────────────────────────────────────
+  function lmvSetUI(visible) {
+    var cb  = document.getElementById('lmv-checkbox');
+    var st  = document.getElementById('lmv-status');
+    if (cb) { cb.checked = visible; cb.disabled = false; }
+    if (st) { st.textContent = visible ? 'Visible to residents' : 'Hidden from residents'; st.className = 'lmv-status ' + (visible ? 'on' : 'off'); }
+  }
+
+  function lmvToggle(checked) {
+    var cb   = document.getElementById('lmv-checkbox');
+    var sav  = document.getElementById('lmv-saving');
+    var st   = document.getElementById('lmv-status');
+    if (cb)  cb.disabled = true;
+    if (sav) sav.style.display = 'inline';
+    if (st)  st.textContent = '';
+    fetch(SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'writeLiveMinutesVisible', visible: checked })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (sav) sav.style.display = 'none';
+      if (data.status === 'ok') {
+        lmvSetUI(data.visible);
+      } else {
+        if (st) { st.textContent = 'Error saving'; st.className = 'lmv-status off'; }
+        if (cb) { cb.checked = !checked; cb.disabled = false; }
+      }
+    })
+    .catch(function() {
+      if (sav) sav.style.display = 'none';
+      if (st) { st.textContent = 'Error saving'; st.className = 'lmv-status off'; }
+      if (cb) { cb.checked = !checked; cb.disabled = false; }
+    });
+  }
+
   function adminLoadAGMMinutes() {
     var hintEl = document.getElementById('agm-admin-hint');
     var btn    = document.getElementById('toggle-agm-admin');
@@ -6308,6 +6375,8 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       .then(function(r) { return r.json(); })
       .then(function(data) {
         adminAgmData = data;
+        // Also update the Live Minutes Visible switch
+        lmvSetUI(data.liveMinutesVisible !== false);
         var m = data.meta || {};
         var label = 'AGM MINUTES · LIVE' + (m.date ? ' · ' + adminFormatAGMDate(m.date).toUpperCase() : '');
         var totC = 0, totO = 0;
