@@ -6699,7 +6699,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     }
 
     var attOpen = adminAgmOpenGroups.attendance;
-    h += '<div class="bva-group-row" onclick="agmToggle(\'attendance\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'attendance\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (attOpen ? ' open' : '') + '"></span>Attendance</span>';
     if (attSummary) h += attSummary;
     h += '</div>';
@@ -6739,7 +6739,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     }
 
     var votingOpen = adminAgmOpenGroups.voting;
-    h += '<div class="bva-group-row" onclick="agmToggle(\'voting\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'voting\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (votingOpen ? ' open' : '') + '"></span>Voting</span>';
     if (votingSummary) h += votingSummary;
     h += '</div>';
@@ -6794,7 +6794,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     }
 
     var actionsOpen = adminAgmOpenGroups.actions;
-    h += '<div class="bva-group-row" onclick="agmToggle(\'actions\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'actions\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (actionsOpen ? ' open' : '') + '"></span>Actions</span>';
     if (actionsSummary) h += actionsSummary;
     h += '</div>';
@@ -6827,7 +6827,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
       return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
     })();
-    h += '<div class="bva-group-row" onclick="agmToggle(\'director\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'director\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (dirOpen ? ' open' : '') + '"></span>Director Agenda Items</span>';
     if (dirSummary) h += dirSummary;
     h += '</div>';
@@ -6853,7 +6853,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
       return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
     })();
-    h += '<div class="bva-group-row" onclick="agmToggle(\'resident\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'resident\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (resOpen ? ' open' : '') + '"></span>Resident Agenda Items</span>';
     if (resSummary) h += resSummary;
     h += '</div>';
@@ -6879,7 +6879,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       if (o === 0) return '<span style="font-size:12px;color:#9e8e7e;">actions · ✓ all complete</span>';
       return '<span style="font-size:12px;color:#9e8e7e;">actions · ' + c + ' complete &nbsp;·&nbsp; ' + o + ' outstanding</span>';
     })();
-    h += '<div class="bva-group-row" onclick="agmToggle(\'aob\')">';
+    h += '<div class="bva-group-row" onclick="adminAgmToggle(\'aob\')">';
     h += '<span class="bva-group-name"><span class="bva-chev' + (aobOpen ? ' open' : '') + '"></span>Any Other Business</span>';
     if (aobSummary) h += aobSummary;
     h += '</div>';
