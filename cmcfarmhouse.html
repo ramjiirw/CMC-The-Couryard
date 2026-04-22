@@ -11,7 +11,7 @@
     --dark: #1e1a16; --mid: #6b5f52; --accent: #7a5c3e;
     --accent2: #c4956a; --green: #3d6b4a; --green-light: #e8f2eb;
     --border: #ddd5c8; --shadow: 0 4px 24px rgba(30,26,22,0.10);
-    --blue: #3d6b4a;
+    --blue: #3d6b4a; --red: #c0392b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 14px; background: var(--cream); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; align-items: stretch; }
@@ -163,7 +163,77 @@
     <p>Insurance, legal, finances and other documents for The Farmhouse. Tap any section below to expand and view documents.</p>
   </div>
 
-  <!-- Section 1: Insurance Documents -->
+  <!-- ── FARMHOUSE FIRE SAFETY · SMOKE ALARM CHECKS ── -->
+  <div class="doc-card-wrapper" id="wrap-smokechecks" style="margin-bottom:1.5rem;">
+    <button class="btn-toggle" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false" disabled style="opacity:0.5;cursor:not-allowed;">
+      <span class="toggle-left"><span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span></span>
+      <span class="toggle-hint">
+        <span id="smoke-pill" style="background:rgba(196,149,106,0.18);color:var(--accent2);border-radius:20px;font-size:0.7rem;font-weight:600;padding:0.18rem 0.65rem;letter-spacing:0.02em;white-space:nowrap;">Loading&#8230;</span>
+        <span class="hint-open">Tap to expand</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9658;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-smokechecks">
+      <div id="smoke-form-area" style="background:var(--green-light);border-bottom:1px solid #c8e2ce;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:1rem;">
+        <!-- Date row -->
+        <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;">
+          <span style="font-size:0.7rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;">Check Date</span>
+          <span id="smoke-date-display" style="font-size:0.88rem;font-weight:600;color:var(--mid);background:rgba(255,255,255,0.5);border:1px solid #c8e2ce;border-radius:6px;padding:0.35rem 0.75rem;opacity:0.7;letter-spacing:0.02em;"></span>
+          <span style="font-size:0.7rem;color:var(--green);opacity:0.7;font-style:italic;">Today&#39;s date &mdash; set automatically</span>
+        </div>
+        <!-- Detector cards -->
+        <div>
+          <div style="font-size:0.7rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Detector Results</div>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+            <div id="card-entrance" style="background:var(--green-light);border:2px solid var(--green);border-radius:10px;padding:0.7rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem;min-width:140px;flex:1;transition:all 0.15s;">
+              <span style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;text-align:center;">Entrance Hall</span>
+              <div style="display:flex;gap:0.4rem;">
+                <button id="btn-entrance-pass" onclick="setSmokeResult('entrance','Pass')" style="padding:0.35rem 0.85rem;font-size:0.82rem;font-weight:700;font-family:Arial,sans-serif;border-radius:6px;cursor:pointer;border:2px solid var(--green);background:var(--green);color:white;transition:all 0.15s;">&#10004; Pass</button>
+                <button id="btn-entrance-fail" onclick="setSmokeResult('entrance','Fail')" style="padding:0.35rem 0.85rem;font-size:0.82rem;font-weight:700;font-family:Arial,sans-serif;border-radius:6px;cursor:pointer;border:2px solid var(--red);color:var(--red);background:white;transition:all 0.15s;">&#10008; Fail</button>
+              </div>
+            </div>
+            <div id="card-landing" style="background:var(--green-light);border:2px solid var(--green);border-radius:10px;padding:0.7rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem;min-width:140px;flex:1;transition:all 0.15s;">
+              <span style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;text-align:center;">Landing</span>
+              <div style="display:flex;gap:0.4rem;">
+                <button id="btn-landing-pass" onclick="setSmokeResult('landing','Pass')" style="padding:0.35rem 0.85rem;font-size:0.82rem;font-weight:700;font-family:Arial,sans-serif;border-radius:6px;cursor:pointer;border:2px solid var(--green);background:var(--green);color:white;transition:all 0.15s;">&#10004; Pass</button>
+                <button id="btn-landing-fail" onclick="setSmokeResult('landing','Fail')" style="padding:0.35rem 0.85rem;font-size:0.82rem;font-weight:700;font-family:Arial,sans-serif;border-radius:6px;cursor:pointer;border:2px solid var(--red);color:var(--red);background:white;transition:all 0.15s;">&#10008; Fail</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Address buttons -->
+        <div>
+          <div style="font-size:0.7rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Who are you? Tap your property</div>
+          <div id="smoke-checkers" style="display:flex;gap:0.5rem;flex-wrap:wrap;"></div>
+        </div>
+        <!-- Save -->
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <button id="btn-smoke-save" onclick="saveSmokeCheck()" disabled style="padding:0.55rem 1.5rem;background:var(--green);color:white;border:none;border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;font-weight:700;cursor:not-allowed;opacity:0.4;transition:all 0.2s;">Save Check</button>
+          <span id="smoke-save-hint" style="font-size:0.75rem;color:var(--green);opacity:0.7;font-style:italic;">Select your property above to save</span>
+        </div>
+        <div id="smoke-save-msg" style="display:none;font-size:0.82rem;font-weight:600;padding:0.5rem 0.75rem;border-radius:6px;"></div>
+      </div>
+      <!-- Table -->
+      <div style="background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">
+        <table class="doc-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Date Checked</th>
+              <th style="text-align:center;">Entrance Hall</th>
+              <th style="text-align:center;">Landing</th>
+              <th style="text-align:left;">Checked By</th>
+            </tr>
+          </thead>
+          <tbody id="smoke-table-body">
+            <tr><td colspan="4" class="doc-state-empty">Loading&#8230;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider">
   <div class="doc-card-wrapper" id="wrap-insurance">
     <button class="btn-toggle" id="toggle-insurance" onclick="toggleSection('insurance')" aria-expanded="false">
       <span class="toggle-left"><span>&#128196; Farmhouse Insurance Documents</span></span>
@@ -420,6 +490,262 @@ function renderSection(key) {
       document.getElementById('docs-' + key).innerHTML =
         '<div class="doc-state-error">&#9888; Could not load documents. Make sure the index has been generated.<br><small>' + err.message + '</small></div>';
     });
+  }
+})();
+
+// ── FARMHOUSE SMOKE ALARM CHECKS ─────────────────────────────────────────────
+
+var SCRIPT_URL = typeof GAS_URL !== 'undefined' ? GAS_URL : (window.GAS_URL || '');
+
+var smokeState = {
+  entrance:   'Pass',
+  landing:    'Pass',
+  checkedBy:  '',
+  checks:     [],
+  checkers:   [],
+  saving:     false
+};
+
+// Format today's date as "Wednesday 22 April 2026"
+function smokeTodayDisplay() {
+  var d = new Date();
+  var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// Format today as dd/MM/yyyy to send to GAS
+function smokeTodayValue() {
+  var d = new Date();
+  var dd = String(d.getDate()).padStart(2,'0');
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var yyyy = d.getFullYear();
+  return dd + '/' + mm + '/' + yyyy;
+}
+
+// Format a stored dd/MM/yyyy date for display in table — "22 April 2026"
+function smokeFormatDate(str) {
+  if (!str) return '';
+  var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!parts) return str;
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1] + ' ' + parts[3];
+}
+
+// Short format for the pill: "22 April"
+function smokeFormatDateShort(str) {
+  if (!str) return '';
+  var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!parts) return str;
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1];
+}
+
+function setSmokeResult(detector, result) {
+  smokeState[detector] = result;
+  var passBtn = document.getElementById('btn-' + detector + '-pass');
+  var failBtn = document.getElementById('btn-' + detector + '-fail');
+  var card    = document.getElementById('card-' + detector);
+  if (result === 'Pass') {
+    passBtn.style.background = 'var(--green)'; passBtn.style.color = 'white'; passBtn.style.borderColor = 'var(--green)';
+    failBtn.style.background = 'white'; failBtn.style.color = 'var(--red)'; failBtn.style.borderColor = 'var(--red)';
+    card.style.borderColor = 'var(--green)'; card.style.background = 'var(--green-light)';
+  } else {
+    failBtn.style.background = 'var(--red)'; failBtn.style.color = 'white'; failBtn.style.borderColor = 'var(--red)';
+    passBtn.style.background = 'white'; passBtn.style.color = 'var(--green)'; passBtn.style.borderColor = 'var(--green)';
+    card.style.borderColor = 'var(--red)'; card.style.background = '#fdecea';
+  }
+}
+
+function selectSmokeChecker(address) {
+  smokeState.checkedBy = address;
+  document.querySelectorAll('.smoke-addr-btn').forEach(function(btn) {
+    if (btn.dataset.addr === address) {
+      btn.style.background = 'var(--dark)'; btn.style.borderColor = 'var(--dark)'; btn.style.color = 'var(--cream)';
+    } else {
+      btn.style.background = 'white'; btn.style.borderColor = '#c8e2ce'; btn.style.color = 'var(--mid)';
+    }
+  });
+  var saveBtn  = document.getElementById('btn-smoke-save');
+  var saveHint = document.getElementById('smoke-save-hint');
+  saveBtn.disabled = false;
+  saveBtn.style.opacity = '1'; saveBtn.style.cursor = 'pointer';
+  if (saveHint) saveHint.style.display = 'none';
+}
+
+function renderSmokeCheckers(checkers) {
+  var container = document.getElementById('smoke-checkers');
+  if (!container) return;
+  container.innerHTML = checkers.map(function(addr) {
+    return '<button class="smoke-addr-btn" data-addr="' + addr + '" onclick="selectSmokeChecker(\'' + addr.replace(/'/g,"\\'") + '\')" ' +
+      'style="padding:0.42rem 0.9rem;font-size:0.82rem;font-weight:600;font-family:Arial,sans-serif;border-radius:20px;cursor:pointer;border:2px solid #c8e2ce;background:white;color:var(--mid);transition:all 0.15s;">' +
+      addr + '</button>';
+  }).join('');
+}
+
+function renderSmokeTable(checks) {
+  var tbody = document.getElementById('smoke-table-body');
+  if (!tbody) return;
+  if (!checks || checks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="doc-state-empty">No checks recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = checks.map(function(c, i) {
+    var passStyle = 'color:var(--green);font-weight:700;font-size:0.82rem;';
+    var failStyle = 'color:var(--red);font-weight:700;font-size:0.82rem;';
+    var entranceHtml = c.entrance === 'Fail'
+      ? '<span style="' + failStyle + '">&#10008; Fail</span>'
+      : '<span style="' + passStyle + '">&#10004; Pass</span>';
+    var landingHtml = c.landing === 'Fail'
+      ? '<span style="' + failStyle + '">&#10008; Fail</span>'
+      : '<span style="' + passStyle + '">&#10004; Pass</span>';
+    var latestTag = i === 0 ? ' <span style="display:inline-block;background:var(--green-light);color:var(--green);border-radius:4px;font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;margin-left:0.4rem;text-transform:uppercase;vertical-align:middle;">Latest</span>' : '';
+    var badgeWho = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (c.checkedBy || '') + '</span>';
+    return '<tr>' +
+      '<td style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) + latestTag + '</td>' +
+      '<td style="text-align:center;">' + entranceHtml + '</td>' +
+      '<td style="text-align:center;">' + landingHtml + '</td>' +
+      '<td>' + badgeWho + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function updateSmokePill(lastCheck) {
+  var pill = document.getElementById('smoke-pill');
+  if (!pill) return;
+  if (lastCheck) {
+    pill.textContent = 'Last check \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
+  } else {
+    pill.textContent = 'No checks recorded yet';
+  }
+}
+
+function toggleSmokeChecks() {
+  var btn   = document.getElementById('toggle-smokechecks');
+  var panel = document.getElementById('panel-smokechecks');
+  if (btn.disabled) return;
+  var open = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    setTimeout(function() { btn.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  }
+}
+
+async function saveSmokeCheck() {
+  if (smokeState.saving) return;
+  if (!smokeState.checkedBy) return;
+  smokeState.saving = true;
+
+  var saveBtn = document.getElementById('btn-smoke-save');
+  var saveMsg = document.getElementById('smoke-save-msg');
+  saveBtn.textContent = 'Saving\u2026';
+  saveBtn.disabled = true;
+  saveBtn.style.opacity = '0.6';
+  if (saveMsg) { saveMsg.style.display = 'none'; }
+
+  var todayVal = smokeTodayValue();
+
+  // Optimistic UI update — prepend new row immediately
+  var newCheck = { date: todayVal, entrance: smokeState.entrance, landing: smokeState.landing, checkedBy: smokeState.checkedBy };
+  smokeState.checks.unshift(newCheck);
+  renderSmokeTable(smokeState.checks);
+  updateSmokePill(smokeState.checks[0]);
+
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action:     'addFarmhouseSmokeCheck',
+        date:       todayVal,
+        entrance:   smokeState.entrance,
+        landing:    smokeState.landing,
+        checkedBy:  smokeState.checkedBy
+      })
+    });
+    var data = await res.json();
+    if (data.status === 'ok') {
+      if (saveMsg) {
+        saveMsg.style.display = 'block';
+        saveMsg.style.background = 'var(--green-light)';
+        saveMsg.style.color = 'var(--green)';
+        saveMsg.style.border = '1px solid #c8e2ce';
+        saveMsg.textContent = '&#10004; Check saved successfully.';
+        saveMsg.innerHTML = '&#10004; Check saved successfully.';
+        setTimeout(function() { if (saveMsg) saveMsg.style.display = 'none'; }, 4000);
+      }
+      // Reset form
+      smokeState.checkedBy = '';
+      smokeState.entrance  = 'Pass';
+      smokeState.landing   = 'Pass';
+      setSmokeResult('entrance','Pass');
+      setSmokeResult('landing','Pass');
+      document.querySelectorAll('.smoke-addr-btn').forEach(function(btn) {
+        btn.style.background = 'white'; btn.style.borderColor = '#c8e2ce'; btn.style.color = 'var(--mid)';
+      });
+      var saveHint = document.getElementById('smoke-save-hint');
+      if (saveHint) saveHint.style.display = '';
+    } else {
+      throw new Error(data.message || 'Unknown error');
+    }
+  } catch(err) {
+    // Roll back optimistic update
+    smokeState.checks.shift();
+    renderSmokeTable(smokeState.checks);
+    updateSmokePill(smokeState.checks[0] || null);
+    if (saveMsg) {
+      saveMsg.style.display = 'block';
+      saveMsg.style.background = '#fdecea';
+      saveMsg.style.color = 'var(--red)';
+      saveMsg.style.border = '1px solid #f5c6cb';
+      saveMsg.textContent = '&#9888; Could not save. Please try again.';
+      saveMsg.innerHTML = '&#9888; Could not save. Please try again.';
+    }
+  }
+
+  saveBtn.textContent = 'Save Check';
+  saveBtn.disabled = false;
+  saveBtn.style.opacity = '1';
+  smokeState.saving = false;
+}
+
+// Load smoke checks data on page load
+(async function loadSmokeChecks() {
+  // Set today's date display
+  var dateDisplay = document.getElementById('smoke-date-display');
+  if (dateDisplay) dateDisplay.textContent = smokeTodayDisplay();
+
+  if (!SCRIPT_URL) {
+    document.getElementById('smoke-pill').textContent = 'Not configured';
+    return;
+  }
+
+  try {
+    var res = await fetch(SCRIPT_URL + '?action=readFarmhouseSmokeChecks&v=' + Date.now());
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Error');
+
+    smokeState.checks  = data.checks  || [];
+    smokeState.checkers = data.checkers || [];
+
+    renderSmokeCheckers(smokeState.checkers);
+    renderSmokeTable(smokeState.checks);
+    updateSmokePill(data.lastCheck);
+
+    // Enable the toggle button
+    var btn = document.getElementById('toggle-smokechecks');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor  = 'pointer';
+
+  } catch(err) {
+    document.getElementById('smoke-pill').textContent = 'Could not load';
+    var tbody = document.getElementById('smoke-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="doc-state-error">&#9888; Could not load checks. ' + err.message + '</td></tr>';
+    // Still enable button so they can at least try to expand
+    var btn = document.getElementById('toggle-smokechecks');
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
   }
 })();
 </script>
