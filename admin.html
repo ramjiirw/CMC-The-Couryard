@@ -6509,17 +6509,17 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
   }
 
   /* ── Store items for modal lookup ── */
-  var agmItemStore = {};
+  var adminAgmItemStore = {};
 
   function storeItems(items, prefix) {
     (items || []).forEach(function(item, idx) {
-      agmItemStore[prefix + '_' + idx] = item;
+      adminAgmItemStore[prefix + '_' + idx] = item;
     });
   }
 
   /* ── Show quick-view modal ── */
-  function agmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
-    var item = agmItemStore[storeKey];
+  function adminAgmShowModalByKey(storeKey, sectionLabel, section, actionIdx) {
+    var item = adminAgmItemStore[storeKey];
     if (!item) return;
     // Build subtitle: section label + item number
     var itemNum = parseInt((storeKey.split('_')[1] || '0')) + 1;
@@ -6569,7 +6569,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
 
-        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
+        h += '<div class="agm-action-card" onclick="adminAgmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
         h += '<div class="agm-action-card-top">';
         if (isMobile) {
           h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + esc(num) + '</span>' + badge + '</div>';
@@ -6634,7 +6634,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     var m = d.meta || {};
 
     // Store items for modal lookup
-    agmItemStore = {};
+    adminAgmItemStore = {};
     storeItems(d.dirItems, 'dir');
     storeItems(d.resItems, 'res');
     storeItems(d.aobItems, 'aob');
