@@ -127,6 +127,15 @@
   }
   .pinned-doc-btn:hover { background: #d4ecda; }
 
+  /* ── Smoke checks button loading states ── */
+  .btn-loading { pointer-events: none; opacity: 0.8; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
+
   @media (max-width: 640px) {
     header { padding: 1rem; }
   }
@@ -165,11 +174,14 @@
 
   <!-- ── FARMHOUSE FIRE SAFETY · SMOKE ALARM CHECKS ── -->
   <div class="doc-card-wrapper" id="wrap-smokechecks" style="margin-bottom:1.5rem;">
-    <button class="btn-toggle" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false" disabled style="opacity:0.5;cursor:not-allowed;">
-      <span class="toggle-left"><span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span></span>
+    <button class="btn-toggle btn-loading" id="toggle-smokechecks" onclick="toggleSmokeChecks()" aria-expanded="false">
+      <span class="toggle-left">
+        <span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span>
+        <span id="smoke-last-pill" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;display:none;"></span>
+      </span>
       <span class="toggle-hint">
-        <span id="smoke-pill" style="background:rgba(196,149,106,0.18);color:var(--accent2);border-radius:20px;font-size:0.7rem;font-weight:600;padding:0.18rem 0.65rem;letter-spacing:0.02em;white-space:nowrap;">Loading&#8230;</span>
-        <span class="hint-open">Tap to expand</span>
+        <span class="hint-loading">&#9203; Loading checks&#8230;</span>
+        <span class="hint-open">Tap to expand &amp; add check</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">&#9658;</span>
       </span>
@@ -611,19 +623,20 @@ function renderSmokeTable(checks) {
 }
 
 function updateSmokePill(lastCheck) {
-  var pill = document.getElementById('smoke-pill');
+  var pill = document.getElementById('smoke-last-pill');
   if (!pill) return;
   if (lastCheck) {
-    pill.textContent = 'Last check \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
+    pill.textContent = '\u00b7 Last check ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy;
   } else {
-    pill.textContent = 'No checks recorded yet';
+    pill.textContent = '\u00b7 No checks recorded yet';
   }
+  pill.style.display = 'inline';
 }
 
 function toggleSmokeChecks() {
   var btn   = document.getElementById('toggle-smokechecks');
   var panel = document.getElementById('panel-smokechecks');
-  if (btn.disabled) return;
+  if (btn.classList.contains('btn-loading')) return;
   var open = panel.classList.toggle('open');
   btn.classList.toggle('open', open);
   btn.setAttribute('aria-expanded', open);
@@ -716,36 +729,30 @@ async function saveSmokeCheck() {
   var dateDisplay = document.getElementById('smoke-date-display');
   if (dateDisplay) dateDisplay.textContent = smokeTodayDisplay();
 
-  if (!SCRIPT_URL) {
-    document.getElementById('smoke-pill').textContent = 'Not configured';
-    return;
-  }
+  var btn = document.getElementById('toggle-smokechecks');
 
   try {
     var res = await fetch(SCRIPT_URL + '?action=readFarmhouseSmokeChecks&v=' + Date.now());
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message || 'Error');
 
-    smokeState.checks  = data.checks  || [];
+    smokeState.checks   = data.checks  || [];
     smokeState.checkers = data.checkers || [];
 
     renderSmokeCheckers(smokeState.checkers);
     renderSmokeTable(smokeState.checks);
     updateSmokePill(data.lastCheck);
 
-    // Enable the toggle button
-    var btn = document.getElementById('toggle-smokechecks');
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor  = 'pointer';
+    // Remove loading state — button becomes clickable
+    btn.classList.remove('btn-loading');
 
   } catch(err) {
-    document.getElementById('smoke-pill').textContent = 'Could not load';
+    // Still remove loading so they can at least try
+    btn.classList.remove('btn-loading');
+    var pill = document.getElementById('smoke-last-pill');
+    if (pill) { pill.textContent = 'Could not load data'; pill.style.display = 'inline'; }
     var tbody = document.getElementById('smoke-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="doc-state-error">&#9888; Could not load checks. ' + err.message + '</td></tr>';
-    // Still enable button so they can at least try to expand
-    var btn = document.getElementById('toggle-smokechecks');
-    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
   }
 })();
 </script>
