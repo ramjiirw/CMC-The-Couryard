@@ -884,7 +884,7 @@
       <div class="admin-panel" id="panel-agmminutes">
         <div class="panel-title">AGM Minutes (Preview)</div>
         <div class="panel-desc">Preview the live AGM minutes exactly as residents will see them. The Live Minutes Visible switch is ignored here — admin only.</div>
-        <div class="agm-min-section">
+        <div class="finance-section" style="margin-bottom:1.5rem;">
           <button class="btn-toggle" id="toggle-agm-admin" onclick="adminOpenAGMOverlay()">
             <span class="toggle-left">
               <span>&#8645;</span>
@@ -6156,6 +6156,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 
 
 
+
 <!-- AGM Minutes Preview Overlay (Admin) -->
 <div id="agm-admin-minutes-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -6169,13 +6170,13 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
   </div>
   <div id="agm-admin-overlay-content" style="padding:2rem clamp(0.75rem,4vw,3rem);max-width:1000px;margin:0 auto;"></div>
 </div>
-<div id="agm-admin-modal-overlay" onclick="adminAgmModalClickOutside(event)" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(30,26,22,0.55);z-index:10001;align-items:center;justify-content:center;">
-  <div id="agm-admin-modal-box" style="background:white;border-radius:10px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(30,26,22,0.28);">
-    <div id="agm-admin-modal-header" style="background:#4a5e3a;color:white;padding:0.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-radius:10px 10px 0 0;">
+<div id="agm-admin-modal-overlay" onclick="adminAgmModalClickOutside(event)">
+  <div id="agm-admin-modal-box">
+    <div id="agm-admin-modal-header">
       <div><div id="agm-admin-modal-title" style="font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:white;"></div></div>
-      <button id="agm-admin-modal-close" onclick="adminCloseAgmModal()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:5px;padding:0.3rem 0.75rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">✕ Close</button>
+      <button id="agm-admin-modal-close" onclick="adminCloseAgmModal()">✕ Close</button>
     </div>
-    <div id="agm-admin-modal-body" style="padding:1rem 1.25rem;"></div>
+    <div id="agm-admin-modal-body"></div>
   </div>
 </div>
 
@@ -6225,7 +6226,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
   var agmActionsSortByStatus = false;
   var agmAllActionCards = [];
 
-  function adminEsc(s) {
+  function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
@@ -6334,20 +6335,20 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       if (section === 'aob') {
         // AOB: strip AOB prefix from title, show raised by to the right
         var aobCleanTitle = (item.item || '').replace(/^AOB\d+\s*/i, '');
-        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + adminEsc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(aobCleanTitle) + raisedBy + '</div>';
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(aobCleanTitle) + raisedBy + '</div>';
       } else if (section === 'res') {
         // Resident: show title + raised by to the right
-        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + adminEsc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(item.item) + raisedBy + '</div>';
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(item.item) + raisedBy + '</div>';
       } else {
         // Director or modal: title only
-        titleHtml = '<div class="agm-agenda-title">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + adminEsc(item.item) + '</div>';
+        titleHtml = '<div class="agm-agenda-title">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(item.item) + '</div>';
       }
       h += titleHtml;
     }
     if (item.note) {
-      h += '<div class="agm-agenda-note">' + adminEsc(item.note) + '</div>';
+      h += '<div class="agm-agenda-note">' + esc(item.note) + '</div>';
     }
     if (item.actions && item.actions.length) {
       h += '<div class="agm-agenda-actions">';
@@ -6361,11 +6362,11 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
         var highlightStyle = isHighlighted ? ' style="background:#fdf8f0;border-radius:4px;margin:2px 0;padding:6px 6px;"' : '';
         h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
         if (isMobile) {
-          if (actionNum) h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-agenda-action-label">' + adminEsc(actionNum) + '</span>' + badge + '</div>';
-          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + adminEsc(a.text) + '</strong>' : adminEsc(a.text)) + '</span>';
+          if (actionNum) h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>' + badge + '</div>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
         } else {
-          if (actionNum) h += '<span class="agm-agenda-action-label">' + adminEsc(actionNum) + '</span>';
-          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + adminEsc(a.text) + '</strong>' : adminEsc(a.text)) + '</span>';
+          if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
+          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
           h += badge;
         }
         h += '</div>';
@@ -6388,14 +6389,14 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     });
     if (!filtered.length) return '';
 
-    var h = '<div class="agm-section-subhead">' + adminEsc(sectionLabel) + '</div>';
+    var h = '<div class="agm-section-subhead">' + esc(sectionLabel) + '</div>';
     filtered.forEach(function(item) {
       item.actions.forEach(function(a) {
-        var actionText = adminEsc(a.text);
-        var itemRef = item.item ? adminEsc(item.item) : (item.number ? adminEsc(item.number) : '');
+        var actionText = esc(a.text);
+        var itemRef = item.item ? esc(item.item) : (item.number ? esc(item.number) : '');
         var dataKey = JSON.stringify({ sectionKey: sectionKey, itemItem: item.item || '', itemNumber: item.number || '', itemRaisedBy: item.raisedBy || '', itemNote: item.note || '', actions: item.actions });
 
-        h += '<div class="agm-action-row" onclick="agmShowModal(' + adminEsc(JSON.stringify({ sectionKey: sectionKey, item: item })).replace(/"/g, '&quot;') + ')">';
+        h += '<div class="agm-action-row" onclick="agmShowModal(' + esc(JSON.stringify({ sectionKey: sectionKey, item: item })).replace(/"/g, '&quot;') + ')">';
         if (a.complete) {
           h += '<span class="agm-action-indicator agm-chip-complete" style="font-size:14px;font-weight:700;">✓</span>';
         } else {
@@ -6471,14 +6472,14 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
           ? '<span class="agm-badge-complete">Complete</span>'
           : '<span class="agm-badge-outstanding">Outstanding</span>';
 
-        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + adminEsc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
+        h += '<div class="agm-action-card" onclick="agmShowModalByKey(\'' + storeKey + '\', \'' + esc(sectionLabel) + '\', \'' + prefix + '\', ' + aIdx + ')">';
         h += '<div class="agm-action-card-top">';
         if (isMobile) {
-          h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + adminEsc(num) + '</span>' + badge + '</div>';
-          h += '<span class="agm-action-card-text">' + adminEsc(a.text) + '</span>';
+          h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + esc(num) + '</span>' + badge + '</div>';
+          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
         } else {
-          h += '<span class="agm-action-card-num">' + adminEsc(num) + '</span>';
-          h += '<span class="agm-action-card-text">' + adminEsc(a.text) + '</span>';
+          h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
+          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
           h += badge;
         }
         h += '</div>';
@@ -6522,8 +6523,8 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
         combined = names.join(' & ');
       }
       h += '<div class="agm-attend-row">';
-      h += '<span class="agm-attend-addr-col"><span class="agm-dot ' + dotClass + '"></span><span class="agm-attend-addr-label">' + adminEsc(addr) + '</span></span>';
-      h += '<span class="agm-attend-name-col">' + adminEsc(combined) + '</span>';
+      h += '<span class="agm-attend-addr-col"><span class="agm-dot ' + dotClass + '"></span><span class="agm-attend-addr-label">' + esc(addr) + '</span></span>';
+      h += '<span class="agm-attend-name-col">' + esc(combined) + '</span>';
       h += '</div>';
     });
     return h;
@@ -6553,7 +6554,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">AGM Minutes</div>';
     h += '</div></div>';
     h += '<div style="text-align:right;">';
-    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + adminEsc(adminFormatAGMDate(m.date)) + '</div>';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + esc(adminFormatAGMDate(m.date)) + '</div>';
     h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
     h += '</div></div>';
 
@@ -6565,11 +6566,11 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     // Card 1: Meeting Information
     h += '<div class="agm-details-card">';
     h += '<div class="agm-details-card-title">Meeting Information</div>';
-    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + adminEsc(adminFormatAGMDate(m.date)) + '</span></div>';
-    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time</span><span class="agm-details-val">' + adminEsc(m.time) + '</span></div>';
-    if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + adminEsc(m.venue) + '</span></div>';
-    if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + adminEsc(m.chair) + '</span></div>';
-    if (m.minutesTaker) h += '<div class="agm-details-row"><span class="agm-details-key">Minutes</span><span class="agm-details-val">' + adminEsc(m.minutesTaker) + '</span></div>';
+    if (m.date)         h += '<div class="agm-details-row"><span class="agm-details-key">Date</span><span class="agm-details-val">' + esc(adminFormatAGMDate(m.date)) + '</span></div>';
+    if (m.time)         h += '<div class="agm-details-row"><span class="agm-details-key">Time</span><span class="agm-details-val">' + esc(m.time) + '</span></div>';
+    if (m.venue)        h += '<div class="agm-details-row"><span class="agm-details-key">Venue</span><span class="agm-details-val">' + esc(m.venue) + '</span></div>';
+    if (m.chair)        h += '<div class="agm-details-row"><span class="agm-details-key">Chair</span><span class="agm-details-val">' + esc(m.chair) + '</span></div>';
+    if (m.minutesTaker) h += '<div class="agm-details-row"><span class="agm-details-key">Minutes</span><span class="agm-details-val">' + esc(m.minutesTaker) + '</span></div>';
     h += '</div>';
 
     // Card 2: Company Officers
@@ -6577,7 +6578,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     h += '<div class="agm-details-card-title">CMC Company Officers</div>';
     if (m.officers && m.officers.length) {
       m.officers.forEach(function(o) {
-        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:145px;">' + adminEsc(o.role) + '</span><span class="agm-details-val">' + adminEsc(o.name) + '</span></div>';
+        h += '<div class="agm-details-row"><span class="agm-details-key" style="min-width:145px;">' + esc(o.role) + '</span><span class="agm-details-val">' + esc(o.name) + '</span></div>';
       });
     } else {
       h += '<div style="font-size:16px;color:#b8ad9e;font-style:italic;">No officers recorded.</div>';
@@ -6650,17 +6651,17 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       d.votes.forEach(function(v) {
         h += '<div class="agm-vote-row">';
         if (isMobile) {
-          h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-vote-num">' + adminEsc(v.number) + '</span>';
+          h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-vote-num">' + esc(v.number) + '</span>';
         } else {
-          h += '<span class="agm-vote-num">' + adminEsc(v.number) + '</span>';
-          h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>';
+          h += '<span class="agm-vote-num">' + esc(v.number) + '</span>';
+          h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>';
         }
         if (v.passed) {
           h += '<span class="agm-vote-result agm-vote-passed">✓ Passed</span>';
-          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>'; }
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>'; }
         } else {
           h += '<span class="agm-vote-result agm-vote-pending">● Pending</span>';
-          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + adminEsc(v.item) + '</span>'; }
+          if (isMobile) { h += '</div>'; h += '<span class="agm-vote-motion">' + esc(v.item) + '</span>'; }
         }
         h += '</div>';
       });
@@ -6798,13 +6799,13 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     if (m.meetingEnd) {
       h += '<div class="agm-close-block">';
       h += '<span class="agm-close-label">Meeting closed</span>';
-      h += '<span class="agm-close-val">' + adminEsc(m.meetingEnd) + '</span>';
+      h += '<span class="agm-close-val">' + esc(m.meetingEnd) + '</span>';
       h += '</div>';
     }
     if (m.nextAGM) {
       h += '<div class="agm-close-block">';
       h += '<span class="agm-close-label">Next AGM</span>';
-      h += '<span class="agm-close-val">' + adminEsc(adminFormatAGMDate(m.nextAGM)) + '</span>';
+      h += '<span class="agm-close-val">' + esc(adminFormatAGMDate(m.nextAGM)) + '</span>';
       h += '</div>';
     }
     h += '<div style="margin-top:1rem;border:1px solid #ddd5c8;border-radius:6px;background:#ddd5c8;padding:0.75rem 1.25rem;">';
