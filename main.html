@@ -872,6 +872,7 @@
       <span class="toggle-hint">
         <span class="hint-loading">⏳ Loading minutes…</span>
         <span class="hint-open">Tap to view live minutes</span>
+        <span id="hint-minutes-off" style="display:none;">Minutes are being updated — please check back later</span>
       </span>
     </button>
   </div>
@@ -1959,8 +1960,8 @@
         document.getElementById('agm-toggle-label').innerHTML = 'AGM MINUTES · LIVE · <span class="cbs">CHECK BACK SOON</span>';
         var countElOff = document.getElementById('agm-toggle-counts');
         if (countElOff) countElOff.textContent = '';
-        var hintOpen = toggleBtn ? toggleBtn.querySelector('.hint-open') : null;
-        if (hintOpen) { hintOpen.textContent = 'Minutes are being updated — please check back later'; hintOpen.style.display = 'inline'; hintOpen.style.opacity = '0.45'; }
+        var hintOff = document.getElementById('hint-minutes-off');
+        if (hintOff) hintOff.style.display = 'inline';
         if (toggleBtn) { toggleBtn.classList.remove('btn-loading'); toggleBtn.classList.add('btn-minutes-off'); toggleBtn.removeAttribute('onclick'); }
       } else {
         // Switched ON — normal state
