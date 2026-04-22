@@ -526,6 +526,10 @@
   .btn-loading .hint-loading { display: inline; }
   .btn-loading .hint-open { display: none !important; }
   .btn-loading .hint-close { display: none !important; }
+  .btn-toggle.btn-minutes-off { pointer-events: none; cursor: default; background: #4a4540; }
+  .btn-toggle.btn-minutes-off:hover { background: #4a4540; transform: none; }
+  .btn-toggle.btn-minutes-off #agm-toggle-label { color: #9e8e7e; }
+  .btn-toggle.btn-minutes-off .hint-open { display: none !important; }
   @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
   .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
 
@@ -1947,14 +1951,24 @@
           countStr = ' · ACTIONS · ' + totComplete + ' COMPLETE · ' + totOutstanding + ' OUTSTANDING';
         }
       }
-      document.getElementById('agm-toggle-label').textContent = label;
-      var countEl = document.getElementById('agm-toggle-counts');
-      if (countEl) countEl.textContent = countStr;
+      var toggleBtn = document.getElementById('toggle-agm');
+      // Check Live Minutes Visible switch (A13 checkbox in sheet)
+      if (data.liveMinutesVisible === false) {
+        // Switched OFF — show disabled state
+        document.getElementById('agm-toggle-label').textContent = 'AGM MINUTES · LIVE · CHECK BACK SOON';
+        var countElOff = document.getElementById('agm-toggle-counts');
+        if (countElOff) countElOff.textContent = '';
+        if (toggleBtn) { toggleBtn.classList.remove('btn-loading'); toggleBtn.classList.add('btn-minutes-off'); toggleBtn.removeAttribute('onclick'); }
+      } else {
+        // Switched ON — normal state
+        document.getElementById('agm-toggle-label').textContent = label;
+        var countEl = document.getElementById('agm-toggle-counts');
+        if (countEl) countEl.textContent = countStr;
+        if (toggleBtn) toggleBtn.classList.remove('btn-loading');
+      }
 
       document.getElementById('mainLoadingState').style.display = 'none';
       document.getElementById('mainContent').style.display = '';
-      var toggleBtn = document.getElementById('toggle-agm');
-      if (toggleBtn) toggleBtn.classList.remove('btn-loading');
 
     } catch(err) {
       var errEl = document.getElementById('mainErrorState');
