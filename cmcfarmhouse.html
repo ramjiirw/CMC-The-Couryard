@@ -232,7 +232,13 @@
       </div>
       <!-- Table -->
       <div style="background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">
-        <table class="doc-table" style="width:100%;">
+        <table class="doc-table" style="width:100%;table-layout:fixed;">
+          <colgroup>
+            <col style="width:35%;">
+            <col style="width:20%;">
+            <col style="width:20%;">
+            <col style="width:25%;">
+          </colgroup>
           <thead>
             <tr>
               <th style="text-align:left;">Date Checked</th>
@@ -708,7 +714,8 @@ function renderSmokeTable(checks) {
       var histPanel = document.createElement('div');
       histPanel.id = historyToggleId;
       histPanel.style.cssText = 'overflow:hidden;max-height:0;transition:max-height 0.35s ease;border-top:0px solid var(--border);';
-      histPanel.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+      histPanel.innerHTML = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' +
+        '<colgroup><col style="width:35%;"><col style="width:20%;"><col style="width:20%;"><col style="width:25%;"></colgroup>' +
         '<thead><tr>' +
         '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:left;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Date Checked</th>' +
         '<th style="background:rgba(122,92,62,0.04);padding:0.5rem 1.25rem;text-align:center;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);border-bottom:1px solid var(--border);border-top:1px solid var(--border);">Entrance Hall</th>' +
