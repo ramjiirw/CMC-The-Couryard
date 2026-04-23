@@ -2594,13 +2594,52 @@
     return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1] + ' ' + parts[3];
   }
 
-  function fhDaysAgo(str) {
-    if (!str) return 0;
+  function fhParseDate(str) {
+    if (!str) return null;
     var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!parts) return 0;
-    var then  = new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
+    if (!parts) return null;
+    return new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
+  }
+
+  function fhDaysAgo(str) {
+    var d = fhParseDate(str);
+    if (!d) return 0;
     var today = new Date(); today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return Math.floor((today - then) / (1000 * 60 * 60 * 24));
+    return Math.floor((today - d) / (1000 * 60 * 60 * 24));
+  }
+
+  function fhAvgDays(checks) {
+    // checks is already sorted newest first — need oldest first for gap calculation
+    if (!checks || checks.length < 2) return null;
+    var today = new Date(); today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var sixMonthsAgo = new Date(today); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    // Filter to last 6 months
+    var recent = checks.filter(function(c) {
+      var d = fhParseDate(c.date);
+      return d && d >= sixMonthsAgo;
+    });
+
+    // Fall back to all checks if fewer than 3 in last 6 months
+    var pool = recent.length >= 3 ? recent : checks;
+    if (pool.length < 2) return null;
+
+    // Sort oldest first to calculate gaps
+    var sorted = pool.slice().sort(function(a, b) {
+      return fhParseDate(a.date) - fhParseDate(b.date);
+    });
+
+    var totalDays = 0;
+    var gaps      = 0;
+    for (var i = 1; i < sorted.length; i++) {
+      var prev = fhParseDate(sorted[i-1].date);
+      var curr = fhParseDate(sorted[i].date);
+      if (prev && curr) {
+        totalDays += Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+        gaps++;
+      }
+    }
+    return gaps > 0 ? Math.round(totalDays / gaps) : null;
   }
 
   try {
@@ -2608,7 +2647,9 @@
     var data = await res.json();
     if (data.status !== 'ok') throw new Error(data.message);
 
-    var last = data.lastCheck;
+    var last   = data.lastCheck;
+    var checks = data.checks || [];
+
     if (!last) {
       elLastCheck.textContent = 'No checks recorded';
       elStatus.textContent    = '—';
@@ -2620,23 +2661,27 @@
     var hasFail = last.entrance === 'Fail' || last.landing === 'Fail';
     var isAlert = hasFail || days >= 30;
 
-    elLastCheck.textContent = fhFormatDate(last.date);
+    // Average days between checks
+    var avg    = fhAvgDays(checks);
+    var avgHtml = '';
+    if (avg !== null) {
+      var avgColour = isAlert ? (avg <= 35 ? '#ffe0aa' : '#ffaa99') : (avg <= 35 ? '#3d6b4a' : '#c0392b');
+      avgHtml = ' <span style="font-size:0.72rem;font-weight:600;color:' + avgColour + ';">avg every ' + avg + ' days</span>';
+    }
+
+    elLastCheck.innerHTML = fhFormatDate(last.date) + avgHtml;
     elCheckedBy.textContent = last.checkedBy || '—';
 
     if (!isAlert) {
-      // State 1 — all good
       elStatus.innerHTML = '<span style="color:#3d6b4a;">\u2714 All Pass</span>';
     } else if (hasFail && days < 30) {
-      // State 2 — fail
       var faults = [];
       if (last.entrance === 'Fail') faults.push('Entrance Hall');
       if (last.landing  === 'Fail') faults.push('Landing');
       elStatus.innerHTML = '<span class="fh-val-fail">\u26a0\ufe0f ' + faults.join(' &amp; ') + ' \u2014 Fail</span>';
       card.classList.add('fh-smoke-alert');
     } else {
-      // State 3 — overdue (with or without fail)
-      var overdueTxt = days + ' days ago \u2014 overdue';
-      elStatus.innerHTML = '<span class="fh-val-warn">\u26a0\ufe0f ' + overdueTxt + '</span>';
+      elStatus.innerHTML = '<span class="fh-val-warn">\u26a0\ufe0f ' + days + ' days ago \u2014 overdue</span>';
       card.classList.add('fh-smoke-alert');
     }
 
