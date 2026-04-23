@@ -327,6 +327,21 @@
   .link-card.agm-urgent .agm-detail-label { color: #8a7060 !important; }
   .link-card.agm-urgent .agm-detail-val { color: #c4956a !important; }
 
+  /* ── Farmhouse smoke alert state ── */
+  .fh-smoke-alert {
+    background: #b84a00 !important;
+    border-color: #b84a00 !important;
+  }
+  .fh-smoke-alert h3 { color: #ffffff !important; }
+  .fh-smoke-alert .agm-detail-label { color: rgba(255,255,255,0.6) !important; }
+  .fh-smoke-alert .agm-detail-val { color: #ffffff !important; }
+  .fh-smoke-alert .agm-detail-val.fh-val-warn { color: #ffe0aa !important; }
+  .fh-smoke-alert .agm-detail-val.fh-val-fail { color: #ffaa99 !important; }
+  .fh-smoke-alert .agm-cta { color: rgba(255,255,255,0.6) !important; }
+  .fh-smoke-alert .agm-details { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.15) !important; }
+  @keyframes fh-shiver { 0%,100%{transform:translateX(0);} 15%{transform:translateX(-3px) rotate(-0.5deg);} 30%{transform:translateX(3px) rotate(0.5deg);} 45%{transform:translateX(-2px);} 60%{transform:translateX(2px);} 75%{transform:translateX(-1px);} }
+  .fh-smoke-alert { animation: fh-shiver 2.8s ease-in-out infinite; }
+
   /* ── Maintenance all-clear ── */
   .mnt-all-clear {
     display: inline-flex; align-items: center; gap: 6px;
@@ -980,15 +995,17 @@
     </a>
 
 
-    <a class="link-card agm-card" href="cmcfarmhouse.html">
+    <a class="link-card agm-card" id="fhCard" href="cmcfarmhouse.html">
       <div class="agm-card-top">
         <span class="icon" style="margin:0">&#127968;</span>
         <h3 style="margin:0">The Farmhouse</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Insurance &amp; other documents</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Smoke check</span><span class="agm-detail-val" id="fhLastCheck"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Smoke status</span><span class="agm-detail-val" id="fhStatus"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Checked by</span><span class="agm-detail-val" id="fhCheckedBy"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
-      <p class="agm-cta">View Farmhouse insurance and other documents &#x2192;</p>
+      <p class="agm-cta">View fire safety checks &amp; documents &#x2192;</p>
     </a>
 
     <!-- Document Search Card -->
@@ -2559,6 +2576,76 @@
 
     document.getElementById('agm-overlay-content').innerHTML = h;
   }
+
+// ── Farmhouse Smoke Check Card ────────────────────────────────────────────────
+(async function loadFarmhouseSmokeCard() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+  const card        = document.getElementById('fhCard');
+  const elLastCheck = document.getElementById('fhLastCheck');
+  const elStatus    = document.getElementById('fhStatus');
+  const elCheckedBy = document.getElementById('fhCheckedBy');
+  if (!card || !elLastCheck) return;
+
+  function fhFormatDate(str) {
+    if (!str) return '—';
+    var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!parts) return str;
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1] + ' ' + parts[3];
+  }
+
+  function fhDaysAgo(str) {
+    if (!str) return 0;
+    var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!parts) return 0;
+    var then  = new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
+    var today = new Date(); today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return Math.floor((today - then) / (1000 * 60 * 60 * 24));
+  }
+
+  try {
+    var res  = await fetch(SCRIPT_URL + '?action=readFarmhouseSmokeChecks&v=' + Date.now());
+    var data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message);
+
+    var last = data.lastCheck;
+    if (!last) {
+      elLastCheck.textContent = 'No checks recorded';
+      elStatus.textContent    = '—';
+      elCheckedBy.textContent = '—';
+      return;
+    }
+
+    var days    = fhDaysAgo(last.date);
+    var hasFail = last.entrance === 'Fail' || last.landing === 'Fail';
+    var isAlert = hasFail || days >= 30;
+
+    elLastCheck.textContent = fhFormatDate(last.date);
+    elCheckedBy.textContent = last.checkedBy || '—';
+
+    if (!isAlert) {
+      // State 1 — all good
+      elStatus.innerHTML = '<span style="color:#3d6b4a;">\u2714 All Pass</span>';
+    } else if (hasFail && days < 30) {
+      // State 2 — fail
+      var faults = [];
+      if (last.entrance === 'Fail') faults.push('Entrance Hall');
+      if (last.landing  === 'Fail') faults.push('Landing');
+      elStatus.innerHTML = '<span class="fh-val-fail">\u26a0\ufe0f ' + faults.join(' &amp; ') + ' \u2014 Fail</span>';
+      card.classList.add('fh-smoke-alert');
+    } else {
+      // State 3 — overdue (with or without fail)
+      var overdueTxt = days + ' days ago \u2014 overdue';
+      elStatus.innerHTML = '<span class="fh-val-warn">\u26a0\ufe0f ' + overdueTxt + '</span>';
+      card.classList.add('fh-smoke-alert');
+    }
+
+  } catch(e) {
+    elLastCheck.textContent = '—';
+    elStatus.textContent    = '—';
+    elCheckedBy.textContent = '—';
+  }
+})();
 
 </script>
 <footer>
