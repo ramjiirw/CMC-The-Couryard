@@ -1160,6 +1160,9 @@
             <option>Noticeboard Notify</option>
             <option>Farmhouse Rent Invoice - January</option>
             <option>Farmhouse Rent Invoice - July</option>
+            <option>Farmhouse Smoke Check — Reminder</option>
+            <option>Farmhouse Smoke Check — Completed</option>
+            <option>Farmhouse Smoke Check — Fault</option>
             <option>Scheduled</option>
           </select>
           <input id="bhFilterText" type="text" placeholder="Search subject / message…"
@@ -1373,6 +1376,24 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
             </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Reminder</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">30 days since last Farmhouse smoke alarm check<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Eligible checkers (non-tenanted 10–14 The Courtyard) + directors</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Completed</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A smoke alarm check is saved via the Farmhouse page</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Eligible checkers (non-tenanted 10–14 The Courtyard) + directors</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(192,57,43,0.12);color:#9a2a1a;border:1px solid rgba(192,57,43,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Fault</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A Fail result is recorded on a smoke alarm check</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
           </tbody>
         </table>
 
@@ -1549,6 +1570,69 @@ Visit the portal to read the full notice and any updates.</pre>
           </div>
 
           <p style="margin:1rem 0 0;font-size:0.72rem;color:var(--mid);">When new email types are added to the system, add a row to the table above and an entry here, and add a matching chip to <code>typeChipMap</code> in admin.html.</p>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);">Farmhouse Smoke Check — Reminder</span>
+              <span class="eref-label">Sent automatically 30 days after the last check</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To all eligible checkers + directors (BCC):</div>
+              <pre class="eref-pre">Dear Resident,
+
+The monthly smoke alarm check for The Farmhouse is now due. The last check was carried out [N] days ago — please log in to the portal to record a new check at your earliest convenience.
+
+Last Check: [date]
+Entrance Hall: [Pass/Fail]
+Landing: [Pass/Fail]
+Checked By: [address]
+Days Since: [N] days
+
+To record the check, visit the Farmhouse page on the portal, expand the Smoke Alarm Checks section, tap your property and tap Save Check.</pre>
+              <div class="eref-sub" style="margin-top:0.75rem;">Trigger:</div>
+              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>. Fires on exactly day 30 since last check. To add further reminders (day 60, 90 etc.) update the <code>REMINDER_DAYS</code> array in code.gs.</p>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);">Farmhouse Smoke Check — Completed</span>
+              <span class="eref-label">Sent automatically when a check is saved</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To all eligible checkers + directors (BCC):</div>
+              <pre class="eref-pre">Dear Resident,
+
+The monthly smoke alarm check for The Farmhouse has been completed by [checker]. No further action is required from any other resident — the next check is not due for another 30 days.
+
+Date Checked: [date]
+Entrance Hall: [Pass/Fail]
+Landing: [Pass/Fail]
+Checked By: [address]
+Next Check Due: [date + 30 days]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(192,57,43,0.12);color:#9a2a1a;border:1px solid rgba(192,57,43,0.25);">Farmhouse Smoke Check — Fault</span>
+              <span class="eref-label">Sent immediately when a Fail is recorded</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To directors only (TO):</div>
+              <pre class="eref-pre">Dear Director,
+
+A fault has been recorded during the latest smoke alarm check at The Farmhouse. Please arrange for the affected detector to be inspected and replaced as necessary.
+
+Date Checked: [date]
+Entrance Hall: [Pass / ✘ FAIL]
+Landing: [Pass / ✘ FAIL]
+Checked By: [address]</pre>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -4625,7 +4709,10 @@ var BH_TYPE_CHIP_MAP = {
   'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' },
   'AGM Reminder':           { bg:'rgba(180,100,20,0.12)',  color:'#8a4a10',      border:'rgba(180,100,20,0.25)' },
   'Farmhouse Rent Invoice - January': { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
-  'Farmhouse Rent Invoice - July':    { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' }
+  'Farmhouse Rent Invoice - July':    { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
+  'Farmhouse Smoke Check \u2014 Reminder':  { bg:'rgba(90,26,26,0.12)',  color:'#5a1a1a', border:'rgba(90,26,26,0.25)' },
+  'Farmhouse Smoke Check \u2014 Completed': { bg:'rgba(61,107,74,0.12)',  color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
+  'Farmhouse Smoke Check \u2014 Fault':     { bg:'rgba(192,57,43,0.12)',  color:'#9a2a1a', border:'rgba(192,57,43,0.25)' }
 };
 
 function bhTypeChip(type) {
