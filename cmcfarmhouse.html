@@ -629,6 +629,26 @@ function smokeGetState(lastCheck) {
   return 'ok';
 }
 
+function smokeAvgDays(checks) {
+  if (!checks || checks.length < 2) return null;
+  var today  = new Date(); today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  var cutoff = new Date(today); cutoff.setMonth(cutoff.getMonth() - 4);
+  function parseD(str) {
+    var p = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    return p ? new Date(parseInt(p[3]), parseInt(p[2])-1, parseInt(p[1])) : null;
+  }
+  var recent = checks.filter(function(c) { var d = parseD(c.date); return d && d >= cutoff; });
+  var pool   = recent.length >= 3 ? recent : checks;
+  if (pool.length < 2) return null;
+  var sorted = pool.slice().sort(function(a,b) { return parseD(a.date) - parseD(b.date); });
+  var total = 0, gaps = 0;
+  for (var i = 1; i < sorted.length; i++) {
+    var prev = parseD(sorted[i-1].date), curr = parseD(sorted[i].date);
+    if (prev && curr) { total += Math.floor((curr - prev) / 86400000); gaps++; }
+  }
+  return gaps > 0 ? Math.round(total / gaps) : null;
+}
+
 function renderSmokeTable(checks) {
   var tbody = document.getElementById('smoke-table-body');
   if (!tbody) return;
@@ -706,7 +726,13 @@ function renderSmokeTable(checks) {
     if (historyCount > 0) {
       var histBtn = document.createElement('button');
       histBtn.id = historyBtnId;
-      histBtn.innerHTML = '<span style="display:flex;align-items:center;gap:0.4rem;">' + historyLabel + '</span><span id="smoke-hist-chevron" style="opacity:0.5;font-size:0.72rem;">&#9658; Show</span>';
+      var avg    = smokeAvgDays(checks);
+      var avgHtml = '';
+      if (avg !== null) {
+        var avgColour = avg <= 35 ? 'var(--green)' : 'var(--red)';
+        avgHtml = '<span style="font-size:0.72rem;font-weight:600;color:' + avgColour + ';margin-left:0.5rem;">&middot; avg every ' + avg + ' days</span>';
+      }
+      histBtn.innerHTML = '<span style="display:flex;align-items:center;gap:0.4rem;">' + historyLabel + avgHtml + '</span><span id="smoke-hist-chevron" style="opacity:0.5;font-size:0.72rem;">&#9658; Show</span>';
       histBtn.style.cssText = 'display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:var(--warm);border:none;border-top:1px solid var(--border);font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;color:var(--mid);cursor:pointer;border-radius:0 0 10px 10px;';
       histBtn.onclick = function() { toggleSmokeHistory(); };
       wrap.appendChild(histBtn);
