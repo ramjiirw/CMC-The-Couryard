@@ -2666,7 +2666,7 @@
     var avgHtml = '';
     if (avg !== null) {
       var avgColour = isAlert ? (avg <= 35 ? '#ffe0aa' : '#ffaa99') : (avg <= 35 ? '#3d6b4a' : '#c0392b');
-      avgHtml = ' <span style="font-size:0.72rem;font-weight:600;color:' + avgColour + ';">avg every ' + avg + ' days</span>';
+      avgHtml = ' <span style="font-size:0.72rem;font-weight:600;color:' + avgColour + ';">&middot; avg every ' + avg + ' days</span>';
     }
 
     elLastCheck.innerHTML = fhFormatDate(last.date) + avgHtml;
