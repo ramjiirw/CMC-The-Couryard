@@ -2612,7 +2612,7 @@
     // checks is already sorted newest first — need oldest first for gap calculation
     if (!checks || checks.length < 2) return null;
     var today = new Date(); today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    var sixMonthsAgo = new Date(today); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    var sixMonthsAgo = new Date(today); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 4);
 
     // Filter to last 6 months
     var recent = checks.filter(function(c) {
