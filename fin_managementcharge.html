@@ -366,6 +366,86 @@
   .month-val.clear { color: #2e7d32; }
   .month-val.muted { color: var(--stone); }
 
+  /* ── Outstanding Balances section ── */
+  .ob-col-heads {
+    display: grid; grid-template-columns: 20px 1fr 140px 30px;
+    padding: 0.5rem 1.5rem; background: var(--dark); color: var(--cream);
+  }
+  .ob-col-heads span {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .ob-col-heads span:nth-child(3) { text-align: right; }
+  .ob-prop-row {
+    display: grid; grid-template-columns: 20px 1fr 140px 30px;
+    padding: 0.75rem 1.5rem; background: #fff;
+    border-bottom: 1px solid var(--border); align-items: center; cursor: pointer;
+  }
+  .ob-prop-row:hover { background: rgba(122,92,62,0.04); }
+  .ob-prop-row.alt { background: rgba(122,92,62,0.03); }
+  .ob-prop-row.alt:hover { background: rgba(122,92,62,0.06); }
+  .ob-prop-name { font-weight: 600; color: #2e2318; }
+  .ob-prop-amt { text-align: right; color: #c62828; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-prop-chev { display: flex; justify-content: center; }
+  .ob-prop-chev::after {
+    content:""; display:block; width:0; height:0;
+    border-top:4px solid transparent; border-bottom:4px solid transparent;
+    border-left:6px solid var(--stone); transition: transform 0.25s; transform-origin:center;
+  }
+  .ob-prop-chev.open::after { transform: rotate(90deg); }
+  .ob-detail { display: none; background: rgba(245,240,232,0.6); border-bottom: 1px solid var(--border); }
+  .ob-detail.open { display: block; }
+  .ob-detail-head {
+    display: grid; grid-template-columns: 1fr 80px 140px 140px;
+    padding: 0.5rem 1.5rem 0.4rem 3rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--mid);
+    border-bottom: 1px solid rgba(122,92,62,0.15);
+  }
+  .ob-detail-head span:nth-child(2) { text-align: center; }
+  .ob-detail-head span:nth-child(3) { text-align: left; }
+  .ob-detail-head span:nth-child(4) { text-align: right; }
+  .ob-detail-line {
+    display: grid; grid-template-columns: 1fr 80px 140px 140px;
+    padding: 0.5rem 1.5rem 0.5rem 3rem;
+    font-size: 0.875rem; color: #4a3f35;
+    border-bottom: 1px solid rgba(221,213,200,0.5);
+  }
+  .ob-detail-line:last-child { border-bottom: none; }
+  .ob-detail-line .ob-d-year { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-detail-line .ob-d-due { color: var(--mid); font-variant-numeric: tabular-nums; }
+  .ob-detail-line .ob-d-amt { text-align: right; color: #c62828; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-total-row {
+    display: grid; grid-template-columns: 1fr 140px 30px;
+    padding: 0.85rem 1.5rem; background: #6b5f52; color: var(--cream);
+    font-weight: 600; align-items: center;
+  }
+  .ob-total-row .ob-total-label {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .ob-total-row .ob-total-amt { text-align: right; font-size: 1rem; font-variant-numeric: tabular-nums; }
+  .ob-empty {
+    padding: 1.5rem; text-align: center; background: #fff;
+    color: #2e7d32; font-weight: 600;
+  }
+
+  /* Mobile: stack the outstanding breakdown */
+  @media (max-width: 700px) {
+    .ob-col-heads, .ob-prop-row { grid-template-columns: 20px 1fr 110px 24px; padding-left: 1rem; padding-right: 1rem; }
+    .ob-total-row { grid-template-columns: 1fr 110px 24px; padding-left: 1rem; padding-right: 1rem; }
+    .ob-detail-head { display: none; }
+    .ob-detail-line {
+      grid-template-columns: 1fr auto;
+      padding: 0.6rem 1rem 0.6rem 2rem; row-gap: 4px;
+    }
+    .ob-detail-line .ob-d-charge { grid-column: 1; grid-row: 1; font-weight: 600; }
+    .ob-detail-line .ob-d-amt { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+    .ob-detail-line .ob-d-year, .ob-detail-line .ob-d-due {
+      grid-column: 1; grid-row: 2; text-align: left;
+      font-size: 0.78rem; color: var(--mid);
+      display: inline-block; margin-right: 0.5rem;
+    }
+  }
+
   .txn-row {
     display: grid; grid-template-columns: 20px 1fr 150px 150px 170px 30px;
     padding: 0.3rem 1.5rem 0.3rem 2.5rem;
@@ -978,6 +1058,28 @@
   </div>
 
   <div class="finance-section">
+    <h3 class="section-heading">Outstanding Resident Account Balances</h3>
+
+    <div style="height:4px;background:var(--cream);"></div>
+
+    <button class="btn-toggle btn-loading" id="toggle-outstanding" onclick="togglePanel('outstanding')" aria-expanded="false">
+      <span class="toggle-left"><span>⚠ Outstanding Balances</span><span id="outstanding-subtitle" style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">· Calculating…</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">▶</span>
+      </span>
+    </button>
+
+    <div class="collapsible-panel" id="panel-outstanding">
+      <div id="outstanding-inner">
+        <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="finance-section">
     <h3 class="section-heading">Management Charge Tracker</h3>
 
     <div style="height:4px;background:var(--cream);"></div>
@@ -1190,13 +1292,18 @@
       document.getElementById('toggle-annual').classList.remove('btn-loading');
       renderTracker();
       renderAnnual();
+      // Outstanding Balances needs both MC + farmhouse; render if both ready
+      tryRenderOutstanding();
     } catch(err) {
       document.getElementById('tracker-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data. Check the Apps Script is deployed.<br><small>' + err.message + '</small></div>';
       document.getElementById('annual-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
+      document.getElementById('outstanding-inner').innerHTML =
+        '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
       document.getElementById('toggle-annual').classList.remove('btn-loading');
+      document.getElementById('toggle-outstanding').classList.remove('btn-loading');
     }
 
     // Process finance summary (year-specific, separate fetch)
@@ -1228,13 +1335,17 @@
       document.getElementById('toggle-farmhouse2').classList.remove('btn-loading');
       renderFarmhouse();
       renderFarmhouse2();
+      tryRenderOutstanding();
     } catch(err) {
       document.getElementById('farmhouse-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('farmhouse2-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
+      document.getElementById('outstanding-inner').innerHTML =
+        '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
       document.getElementById('toggle-farmhouse').classList.remove('btn-loading');
       document.getElementById('toggle-farmhouse2').classList.remove('btn-loading');
+      document.getElementById('toggle-outstanding').classList.remove('btn-loading');
     }
 
     // Process budget data (from bundle)
@@ -1323,6 +1434,199 @@
     if (paidAmt >= dueAmt) return 'green';
     if (paidAmt > 0) return 'amber';
     return 'red';
+  }
+
+  /* ── Outstanding Resident Account Balances ──
+     Pulls together every current debt across management charge, farmhouse rent,
+     and farmhouse insurance rent into a single view. Only shows properties that
+     owe money right now. Current-year MC uses monthly proration (matches isOnTrack);
+     past-year MC uses full annual amount. Farmhouse rent uses Jan 1 / Jul 1
+     milestones. Insurance rent becomes due in full as soon as it's raised. */
+  function renderOutstandingBalances() {
+    if (!chargeData || !farmhouseData) return; // wait until both loaded
+    var host = document.getElementById('outstanding-inner');
+    if (!host) return;
+
+    var today = new Date();
+    var asOfMonth = MONTHS[currentMonth] + ' ' + currentYear;
+    var asOfDateLabel = '1 ' + MONTHS[currentMonth] + ' ' + currentYear;
+
+    // ── Build list of "what's owed" rows for every property ──
+    var allYears = getAvailableYears();
+    var propertyData = []; // {address, lines: [{charge, year, dueLabel, amount}], total, hasHistorical}
+
+    PROPERTIES.forEach(function(addr) {
+      var lines = [];
+
+      // --- Management charge: walk every available year ---
+      allYears.forEach(function(yr) {
+        var due = getDue(yr); if (!due || due <= 0) return;
+        var paid = getPayments(addr, yr).filter(function(p){ return !p.isArrears && !p.isRefund; })
+                                        .reduce(function(s,p){ return s + p.amount; }, 0);
+        var expected;
+        var dueLabel;
+        if (yr < currentYear) {
+          // Past year — full annual amount expected
+          expected = due;
+          dueLabel = String(yr);
+        } else if (yr === currentYear) {
+          // Current year — monthly proration matching isOnTrack
+          expected = (due / 12) * (currentMonth + 1);
+          dueLabel = 'As of ' + asOfMonth;
+        } else {
+          return;
+        }
+        var shortfall = Math.round((expected - paid) * 100) / 100;
+        if (shortfall > 0) {
+          lines.push({ charge: 'Management charge', year: yr, dueLabel: dueLabel, amount: shortfall, isHistorical: yr < currentYear });
+        }
+      });
+
+      // --- Farmhouse rent + insurance rent (properties 10, 12, 13, 14 only) ---
+      if (FH_PROPERTIES.indexOf(addr) !== -1) {
+        var fhYears = getFH2AvailableYears();
+        fhYears.forEach(function(yr) {
+          // Rent
+          var rentDue = getFH2RentDuePerProp(yr);
+          if (rentDue > 0) {
+            var rentPaid = getFH2RentPayments(addr, yr).filter(function(p){ return !p.isArrears; })
+                                                      .reduce(function(s,p){ return s + p.amount; }, 0);
+            var rentExpected, rentDueLabel;
+            if (yr < currentYear) {
+              rentExpected = rentDue;
+              rentDueLabel = String(yr);
+            } else {
+              // Current year — Jan 1 = half, Jul 1 = full
+              if (currentMonth >= 6) {
+                rentExpected = rentDue;
+                rentDueLabel = '1 Jul ' + yr;
+              } else {
+                rentExpected = rentDue / 2;
+                rentDueLabel = '1 Jan ' + yr;
+              }
+            }
+            var rentShort = Math.round((rentExpected - rentPaid) * 100) / 100;
+            if (rentShort > 0) {
+              lines.push({ charge: 'Farmhouse rent', year: yr, dueLabel: rentDueLabel, amount: rentShort, isHistorical: yr < currentYear });
+            }
+          }
+          // Insurance rent
+          var insDue = getFH2InsDuePerProp(yr);
+          if (insDue > 0) {
+            var insPaid = getFH2InsPayments(addr, yr).filter(function(p){ return !p.isArrears; })
+                                                    .reduce(function(s,p){ return s + p.amount; }, 0);
+            var insShort = Math.round((insDue - insPaid) * 100) / 100;
+            if (insShort > 0) {
+              var insDueLabel = yr < currentYear ? String(yr) : '1 Jan ' + yr;
+              lines.push({ charge: 'Insurance rent', year: yr, dueLabel: insDueLabel, amount: insShort, isHistorical: yr < currentYear });
+            }
+          }
+        });
+      }
+
+      if (lines.length > 0) {
+        // Sort lines: oldest year first, then charge type
+        lines.sort(function(a, b) {
+          if (a.year !== b.year) return a.year - b.year;
+          return a.charge.localeCompare(b.charge);
+        });
+        var total = lines.reduce(function(s, l){ return s + l.amount; }, 0);
+        var hasHistorical = lines.some(function(l){ return l.isHistorical; });
+        propertyData.push({
+          address: addr,
+          lines: lines,
+          total: Math.round(total * 100) / 100,
+          hasHistorical: hasHistorical
+        });
+      }
+    });
+
+    // Sort properties numerically (1, 2, ... 14)
+    propertyData.sort(function(a, b) {
+      var na = parseInt(a.address, 10), nb = parseInt(b.address, 10);
+      return na - nb;
+    });
+
+    // ── Update the section subtitle ──
+    var subtitle = document.getElementById('outstanding-subtitle');
+    if (subtitle) {
+      if (propertyData.length === 0) {
+        subtitle.textContent = '· All properties up to date · as of ' + asOfDateLabel;
+      } else {
+        var propWord = propertyData.length === 1 ? 'property' : 'properties';
+        subtitle.textContent = '· ' + propertyData.length + ' ' + propWord + ' · as of ' + asOfDateLabel;
+      }
+    }
+
+    // ── Render the panel ──
+    if (propertyData.length === 0) {
+      host.innerHTML = '<div class="ob-empty">✓ All properties are up to date.</div>';
+      return;
+    }
+
+    var html = '';
+    html += '<div class="ob-col-heads">';
+    html += '<span></span><span>Property</span><span>Outstanding</span><span></span>';
+    html += '</div>';
+
+    var grandTotal = 0;
+    propertyData.forEach(function(prop, idx) {
+      grandTotal += prop.total;
+      var rowClass = idx % 2 === 1 ? 'ob-prop-row alt' : 'ob-prop-row';
+      var dotClass = prop.hasHistorical ? 'dot-red' : 'dot-amber';
+      var safeKey = 'ob_' + prop.address.replace(/ /g, '_');
+
+      // Property summary row (clickable)
+      html += '<div class="' + rowClass + '" onclick="toggleOBDetail(\'' + safeKey + '\')">';
+      html += '<span class="prop-status-dot ' + dotClass + '"></span>';
+      html += '<span class="ob-prop-name">' + prop.address + '</span>';
+      html += '<span class="ob-prop-amt">' + fmt(prop.total) + '</span>';
+      html += '<span class="ob-prop-chev" id="' + safeKey + '-chev"></span>';
+      html += '</div>';
+
+      // Detail panel
+      html += '<div class="ob-detail" id="' + safeKey + '-detail">';
+      html += '<div class="ob-detail-head">';
+      html += '<span>Charge</span><span>Year</span><span>Due</span><span>Amount</span>';
+      html += '</div>';
+      prop.lines.forEach(function(line) {
+        html += '<div class="ob-detail-line">';
+        html += '<span class="ob-d-charge">' + line.charge + '</span>';
+        html += '<span class="ob-d-year">' + line.year + '</span>';
+        html += '<span class="ob-d-due">' + line.dueLabel + '</span>';
+        html += '<span class="ob-d-amt">' + fmt(line.amount) + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+
+    // Grand total
+    grandTotal = Math.round(grandTotal * 100) / 100;
+    html += '<div class="ob-total-row">';
+    html += '<span class="ob-total-label">Total outstanding</span>';
+    html += '<span class="ob-total-amt">' + fmt(grandTotal) + '</span>';
+    html += '<span></span>';
+    html += '</div>';
+
+    host.innerHTML = html;
+  }
+
+  function toggleOBDetail(key) {
+    var detail = document.getElementById(key + '-detail');
+    var chev = document.getElementById(key + '-chev');
+    if (!detail || !chev) return;
+    var opening = !detail.classList.contains('open');
+    detail.classList.toggle('open', opening);
+    chev.classList.toggle('open', opening);
+  }
+
+  // Helper: render outstanding balances only when both MC + farmhouse data are loaded.
+  // Clears the btn-loading state on the toggle when it actually renders.
+  function tryRenderOutstanding() {
+    if (!chargeData || !farmhouseData) return;
+    var btn = document.getElementById('toggle-outstanding');
+    if (btn) btn.classList.remove('btn-loading');
+    renderOutstandingBalances();
   }
 
   function renderTracker() {
