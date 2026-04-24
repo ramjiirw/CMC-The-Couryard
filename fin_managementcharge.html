@@ -368,7 +368,7 @@
 
   /* ── Outstanding Balances section ── */
   .ob-col-heads {
-    display: grid; grid-template-columns: 20px 1fr 140px 30px;
+    display: grid; grid-template-columns: 20px 1fr 160px 30px;
     padding: 0.5rem 1.5rem; background: var(--dark); color: var(--cream);
   }
   .ob-col-heads span {
@@ -376,7 +376,7 @@
   }
   .ob-col-heads span:nth-child(3) { text-align: right; }
   .ob-prop-row {
-    display: grid; grid-template-columns: 20px 1fr 140px 30px;
+    display: grid; grid-template-columns: 20px 1fr 160px 30px;
     padding: 0.75rem 1.5rem; background: #fff;
     border-bottom: 1px solid var(--border); align-items: center; cursor: pointer;
   }
@@ -395,7 +395,7 @@
   .ob-detail { display: none; background: rgba(245,240,232,0.6); border-bottom: 1px solid var(--border); }
   .ob-detail.open { display: block; }
   .ob-detail-head {
-    display: grid; grid-template-columns: 1fr 80px 140px 140px;
+    display: grid; grid-template-columns: 220px 80px 1fr 160px 30px;
     padding: 0.5rem 1.5rem 0.4rem 3rem;
     font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.07em; color: var(--mid);
@@ -405,7 +405,7 @@
   .ob-detail-head span:nth-child(3) { text-align: left; }
   .ob-detail-head span:nth-child(4) { text-align: right; }
   .ob-detail-line {
-    display: grid; grid-template-columns: 1fr 80px 140px 140px;
+    display: grid; grid-template-columns: 220px 80px 1fr 160px 30px;
     padding: 0.5rem 1.5rem 0.5rem 3rem;
     font-size: 0.875rem; color: #4a3f35;
     border-bottom: 1px solid rgba(221,213,200,0.5);
@@ -415,7 +415,7 @@
   .ob-detail-line .ob-d-due { color: var(--mid); font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-amt { text-align: right; color: #c62828; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-total-row {
-    display: grid; grid-template-columns: 1fr 140px 30px;
+    display: grid; grid-template-columns: 1fr 160px 30px;
     padding: 0.85rem 1.5rem; background: #6b5f52; color: var(--cream);
     font-weight: 600; align-items: center;
   }
@@ -1645,7 +1645,7 @@
       // Detail panel
       html += '<div class="ob-detail" id="' + safeKey + '-detail">';
       html += '<div class="ob-detail-head">';
-      html += '<span>Charge</span><span>Year</span><span>Due</span><span>Amount</span>';
+      html += '<span>Charge</span><span>Year</span><span>Due</span><span>Amount</span><span></span>';
       html += '</div>';
       prop.lines.forEach(function(line) {
         html += '<div class="ob-detail-line">';
@@ -1653,6 +1653,7 @@
         html += '<span class="ob-d-year">' + (line.year === null ? '—' : line.year) + '</span>';
         html += '<span class="ob-d-due">' + line.dueLabel + '</span>';
         html += '<span class="ob-d-amt">' + fmt(line.amount) + '</span>';
+        html += '<span></span>';
         html += '</div>';
       });
       html += '</div>';
