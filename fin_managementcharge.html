@@ -367,6 +367,7 @@
   .month-val.muted { color: var(--stone); }
 
   /* ── Outstanding Balances section ── */
+  .ob-dot { width: 12px; height: 12px; border-radius: 50%; background: #5a1a1a; }
   .ob-col-heads {
     display: grid; grid-template-columns: 20px 1fr 160px 30px;
     padding: 0.5rem 1.5rem; background: var(--dark); color: var(--cream);
@@ -383,8 +384,8 @@
   .ob-prop-row:hover { background: rgba(122,92,62,0.04); }
   .ob-prop-row.alt { background: rgba(122,92,62,0.03); }
   .ob-prop-row.alt:hover { background: rgba(122,92,62,0.06); }
-  .ob-prop-name { font-weight: 600; color: #2e2318; }
-  .ob-prop-amt { text-align: right; color: #c62828; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-prop-name { font-weight: 600; color: var(--accent); }
+  .ob-prop-amt { text-align: right; color: #5a1a1a; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-prop-chev { display: flex; justify-content: center; }
   .ob-prop-chev::after {
     content:""; display:block; width:0; height:0;
@@ -413,7 +414,7 @@
   .ob-detail-line:last-child { border-bottom: none; }
   .ob-detail-line .ob-d-year { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-due { color: var(--mid); font-variant-numeric: tabular-nums; }
-  .ob-detail-line .ob-d-amt { text-align: right; color: #c62828; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-detail-line .ob-d-amt { text-align: right; color: #5a1a1a; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-total-row {
     display: grid; grid-template-columns: 1fr 160px 30px;
     padding: 0.85rem 1.5rem; background: #6b5f52; color: var(--cream);
@@ -1623,6 +1624,12 @@
     }
 
     var html = '';
+    html += '<div style="padding:0.75rem 1.5rem 0;">';
+    html += '<div class="expand-collapse-btns btns-sm">';
+    html += '<button class="btn-expand-all" id="ob-expand-btn" onclick="obExpandAll()">Expand All</button>';
+    html += '<button class="btn-collapse-all" id="ob-collapse-btn" onclick="obCollapseAll()" style="display:none;">Collapse All</button>';
+    html += '</div>';
+    html += '</div>';
     html += '<div class="ob-col-heads">';
     html += '<span></span><span>Property</span><span>Outstanding</span><span></span>';
     html += '</div>';
@@ -1631,12 +1638,11 @@
     propertyData.forEach(function(prop, idx) {
       grandTotal += prop.total;
       var rowClass = idx % 2 === 1 ? 'ob-prop-row alt' : 'ob-prop-row';
-      var dotClass = prop.hasHistorical ? 'dot-red' : 'dot-amber';
       var safeKey = 'ob_' + prop.address.replace(/ /g, '_');
 
       // Property summary row (clickable)
       html += '<div class="' + rowClass + '" onclick="toggleOBDetail(\'' + safeKey + '\')">';
-      html += '<span class="prop-status-dot ' + dotClass + '"></span>';
+      html += '<span class="ob-dot"></span>';
       html += '<span class="ob-prop-name">' + prop.address + '</span>';
       html += '<span class="ob-prop-amt">' + fmt(prop.total) + '</span>';
       html += '<span class="ob-prop-chev" id="' + safeKey + '-chev"></span>';
@@ -1677,6 +1683,36 @@
     var opening = !detail.classList.contains('open');
     detail.classList.toggle('open', opening);
     chev.classList.toggle('open', opening);
+    obUpdateCollapseBtn();
+  }
+
+  function obUpdateCollapseBtn() {
+    // "Collapse All" is visible only when at least one property detail row is open.
+    var host = document.getElementById('outstanding-inner');
+    if (!host) return;
+    var anyOpen = !!host.querySelector('.ob-detail.open');
+    var colBtn = document.getElementById('ob-collapse-btn');
+    if (colBtn) colBtn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
+  function obExpandAll() {
+    var host = document.getElementById('outstanding-inner');
+    if (!host) return;
+    var details = host.querySelectorAll('.ob-detail');
+    var chevs   = host.querySelectorAll('.ob-prop-chev');
+    details.forEach(function(d){ d.classList.add('open'); });
+    chevs.forEach(function(c){ c.classList.add('open'); });
+    obUpdateCollapseBtn();
+  }
+
+  function obCollapseAll() {
+    var host = document.getElementById('outstanding-inner');
+    if (!host) return;
+    var details = host.querySelectorAll('.ob-detail');
+    var chevs   = host.querySelectorAll('.ob-prop-chev');
+    details.forEach(function(d){ d.classList.remove('open'); });
+    chevs.forEach(function(c){ c.classList.remove('open'); });
+    obUpdateCollapseBtn();
   }
 
   // Helper: render outstanding balances only when both MC + farmhouse data are loaded.
