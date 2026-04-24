@@ -113,11 +113,14 @@ const CONFIG = {
 
 var portalPassword = null;
 
-// Fetch password from sheet on load
-(function fetchPassword() {
+// Fetch password from sheet on load, AND prefetch dashboard data in parallel
+// so main.html loads instantly after login.
+(function fetchPasswordAndPrefetch() {
   const inp = document.getElementById('pwInput');
   inp.placeholder = 'Loading…';
   inp.disabled = true;
+
+  // Request 1: settings (for password check)
   fetch(SCRIPT_URL + '?action=readSettings')
     .then(r => r.json())
     .then(d => {
@@ -130,6 +133,22 @@ var portalPassword = null;
       inp.placeholder = 'Enter password to access';
       inp.disabled = false;
     });
+
+  // Request 2: prefetch dashboard data while the user is typing their password.
+  // Fire-and-forget — if this fails, main.html will fall back to its own fetch.
+  fetch(SCRIPT_URL + '?action=readDashboard')
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.status === 'ok') {
+        try {
+          localStorage.setItem('cyard_dashboard', JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+          }));
+        } catch(e) {}
+      }
+    })
+    .catch(() => {});
 })();
 
 function checkPassword() {
