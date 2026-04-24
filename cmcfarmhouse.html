@@ -146,10 +146,16 @@
     .smoke-table thead th { padding: 0.5rem 0.75rem; }
   }
 
+  /* Date cell — show full date by default, hide the compact form */
+  .smoke-date-cell .smoke-date-short { display: none; }
+
   /* iPhone portrait only — allow the date cell to wrap so the "X days ago" pill
-     sits on its own line beneath the date instead of pushing the other columns. */
+     sits on its own line beneath the date instead of pushing the other columns.
+     Also swap to the compact "23 Apr 2026" format so the date fits on one line. */
   @media (max-width: 480px) {
     .smoke-date-cell { white-space: normal !important; }
+    .smoke-date-cell .smoke-date-long { display: none; }
+    .smoke-date-cell .smoke-date-short { display: inline; }
     .smoke-date-cell .smoke-age-pill {
       display: block !important; margin-left: 0 !important; margin-top: 0.3rem;
       width: fit-content;
@@ -576,6 +582,15 @@ function smokeFormatDateShort(str) {
   return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1];
 }
 
+// Tight format for narrow iPhone portrait: "23 Apr 2026"
+function smokeFormatDateTight(str) {
+  if (!str) return '';
+  var parts = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!parts) return str;
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return parseInt(parts[1]) + ' ' + months[parseInt(parts[2])-1] + ' ' + parts[3];
+}
+
 function setSmokeResult(detector, result) {
   smokeState[detector] = result;
   var passBtn = document.getElementById('btn-' + detector + '-pass');
@@ -698,8 +713,10 @@ function renderSmokeTable(checks) {
   var badgeWho = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (c.checkedBy || '') + '</span>';
 
   var latestRow = '<tr style="' + rowBg + '">' +
-    '<td class="smoke-date-cell" style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) +
-    '<span class="smoke-age-pill" style="' + daysBadgeStyle + '">' + daysLabel + '</span></td>' +
+    '<td class="smoke-date-cell" style="font-weight:600;color:var(--dark);white-space:nowrap;">' +
+      '<span class="smoke-date-long">' + smokeFormatDate(c.date) + '</span>' +
+      '<span class="smoke-date-short">' + smokeFormatDateTight(c.date) + '</span>' +
+      '<span class="smoke-age-pill" style="' + daysBadgeStyle + '">' + daysLabel + '</span></td>' +
     '<td style="text-align:center;">' + entranceHtml + '</td>' +
     '<td style="text-align:center;">' + landingHtml + '</td>' +
     '<td>' + badgeWho + '</td>' +
