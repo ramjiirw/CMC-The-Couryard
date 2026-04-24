@@ -145,6 +145,16 @@
     .doc-table thead th { padding: 0.5rem 0.75rem; letter-spacing: 0.03em; }
     .smoke-table thead th { padding: 0.5rem 0.75rem; }
   }
+
+  /* iPhone portrait only — allow the date cell to wrap so the "X days ago" pill
+     sits on its own line beneath the date instead of pushing the other columns. */
+  @media (max-width: 480px) {
+    .smoke-date-cell { white-space: normal !important; }
+    .smoke-date-cell .smoke-age-pill {
+      display: block !important; margin-left: 0 !important; margin-top: 0.3rem;
+      width: fit-content;
+    }
+  }
   footer {
     background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
     padding: 0.9rem 2.5rem; display: flex; align-items: center; justify-content: center;
@@ -688,8 +698,8 @@ function renderSmokeTable(checks) {
   var badgeWho = '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:var(--accent);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;">' + (c.checkedBy || '') + '</span>';
 
   var latestRow = '<tr style="' + rowBg + '">' +
-    '<td style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) +
-    '<span style="' + daysBadgeStyle + '">' + daysLabel + '</span></td>' +
+    '<td class="smoke-date-cell" style="font-weight:600;color:var(--dark);white-space:nowrap;">' + smokeFormatDate(c.date) +
+    '<span class="smoke-age-pill" style="' + daysBadgeStyle + '">' + daysLabel + '</span></td>' +
     '<td style="text-align:center;">' + entranceHtml + '</td>' +
     '<td style="text-align:center;">' + landingHtml + '</td>' +
     '<td>' + badgeWho + '</td>' +
