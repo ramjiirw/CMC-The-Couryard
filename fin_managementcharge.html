@@ -410,7 +410,7 @@
     border-bottom: 1px solid rgba(221,213,200,0.5);
   }
   .ob-detail-line:last-child { border-bottom: none; }
-  .ob-detail-line .ob-d-year { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-detail-line .ob-d-year { text-align: center; font-weight: 600; color: var(--mid); font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-due { color: var(--mid); font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-amt { text-align: right; color: #5a1a1a; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-prop-subtotal {
@@ -1495,7 +1495,7 @@
         var curShortfall = Math.round((curExpected - curMcPaid) * 100) / 100;
         if (curShortfall > 0) {
           lines.push({
-            charge: 'Management charge',
+            charge: 'Management Charge',
             year: currentYear,
             dueLabel: 'As of ' + asOfMonth,
             amount: curShortfall,
@@ -1514,7 +1514,7 @@
         var mcPrevShort = Math.round((mcPrevDue - mcPrevEffPaid) * 100) / 100;
         if (mcPrevShort > 0) {
           lines.push({
-            charge: 'Management charge',
+            charge: 'Management Charge',
             year: null,
             dueLabel: 'Previous years',
             amount: mcPrevShort,
@@ -1542,7 +1542,7 @@
           var rentShort = Math.round((rentExpected - curRentPaid) * 100) / 100;
           if (rentShort > 0) {
             lines.push({
-              charge: 'Farmhouse rent',
+              charge: 'Farmhouse Rent',
               year: currentYear,
               dueLabel: rentDueLabel,
               amount: rentShort,
@@ -1556,7 +1556,7 @@
           var insShort = Math.round((curInsDue - curInsPaid) * 100) / 100;
           if (insShort > 0) {
             lines.push({
-              charge: 'Insurance rent',
+              charge: 'Farmhouse Insurance Rent',
               year: currentYear,
               dueLabel: '1 Jan ' + currentYear,
               amount: insShort,
@@ -1576,7 +1576,7 @@
           var prevRentShort = Math.round((fhPrevRentDue - (allRentPaid - curRentPaid)) * 100) / 100;
           if (prevRentShort > 0) {
             lines.push({
-              charge: 'Farmhouse rent',
+              charge: 'Farmhouse Rent',
               year: null,
               dueLabel: 'Previous years',
               amount: prevRentShort,
@@ -1589,7 +1589,7 @@
           var prevInsShort = Math.round((fhPrevInsDue - (allInsPaid - curInsPaid)) * 100) / 100;
           if (prevInsShort > 0) {
             lines.push({
-              charge: 'Insurance rent',
+              charge: 'Farmhouse Insurance Rent',
               year: null,
               dueLabel: 'Previous years',
               amount: prevInsShort,
@@ -1601,7 +1601,7 @@
 
       if (lines.length > 0) {
         // Sort: current year first, historical below; then by charge type within each bucket
-        var chargeOrder = { 'Management charge': 0, 'Farmhouse rent': 1, 'Insurance rent': 2 };
+        var chargeOrder = { 'Management Charge': 0, 'Farmhouse Rent': 1, 'Farmhouse Insurance Rent': 2 };
         lines.sort(function(a, b) {
           if (a.isHistorical !== b.isHistorical) return a.isHistorical ? 1 : -1;
           return (chargeOrder[a.charge] || 9) - (chargeOrder[b.charge] || 9);
