@@ -447,6 +447,13 @@
      before the DUE column. Scoped strictly to iPhone portrait; desktop, iPad,
      and iPhone landscape are unaffected. */
   @media (max-width: 500px) and (orientation: portrait) {
+    /* Wrapper sizes to its widest content (the behind-tables) so the dark
+       brown bars stretch to match. Only on iPhone portrait — on iPhone
+       landscape (after rotation) the wrapper falls back to filling its parent
+       normally, which the rest of the layout expects. */
+    #farmhouse2-inner .fh2-mobile-wrap {
+      width: max-content;
+    }
     #farmhouse2-inner .tracker-col-heads,
     #farmhouse2-inner .prop-header,
     #farmhouse2-inner .annual-yr-head,
@@ -3353,7 +3360,7 @@
       html += '</div></div>';
     }
 
-    var fh2Wrap = window.innerWidth <= 700 ? '<div style="min-width:520px;width:max-content;">' : '';
+    var fh2Wrap = window.innerWidth <= 700 ? '<div class="fh2-mobile-wrap" style="min-width:520px;">' : '';
     var fh2WrapEnd = window.innerWidth <= 700 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
   }
