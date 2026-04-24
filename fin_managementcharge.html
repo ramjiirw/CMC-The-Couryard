@@ -1452,83 +1452,141 @@
     var asOfDateLabel = '1 ' + MONTHS[currentMonth] + ' ' + currentYear;
 
     // ── Build list of "what's owed" rows for every property ──
-    var allYears = getAvailableYears();
-    var propertyData = []; // {address, lines: [{charge, year, dueLabel, amount}], total, hasHistorical}
+    // Uses the same pooled-payment model as Annual Overview:
+    //   • Current year outstanding = prorated due − normal (non-arrears/non-refund) payments this year
+    //   • Previous years outstanding = total historical due − (ALL payments ever − current-year normal payments)
+    // This correctly reflects arrears payments bringing down historical balances.
+    var mcYears     = getAvailableYears();
+    var mcPrevYears = mcYears.filter(function(yr){ return yr < currentYear; });
+    var fhYears     = getFH2AvailableYears();
+    var fhPrevYears = fhYears.filter(function(yr){ return yr < currentYear; });
+
+    var propertyData = []; // {address, lines, total, hasHistorical}
 
     PROPERTIES.forEach(function(addr) {
       var lines = [];
 
-      // --- Management charge: walk every available year ---
-      allYears.forEach(function(yr) {
-        var due = getDue(yr); if (!due || due <= 0) return;
-        var paid = getPayments(addr, yr).filter(function(p){ return !p.isArrears && !p.isRefund; })
-                                        .reduce(function(s,p){ return s + p.amount; }, 0);
-        var expected;
-        var dueLabel;
-        if (yr < currentYear) {
-          // Past year — full annual amount expected
-          expected = due;
-          dueLabel = String(yr);
-        } else if (yr === currentYear) {
-          // Current year — monthly proration matching isOnTrack
-          expected = (due / 12) * (currentMonth + 1);
-          dueLabel = 'As of ' + asOfMonth;
-        } else {
-          return;
+      // ── Management charge ──
+      var curDue = getDue(currentYear) || 0;
+      var curMcPaid = getPayments(addr, currentYear)
+                        .filter(function(p){ return !p.isArrears && !p.isRefund; })
+                        .reduce(function(s,p){ return s + p.amount; }, 0);
+      // Current-year shortfall (monthly proration)
+      if (curDue > 0) {
+        var curExpected = (curDue / 12) * (currentMonth + 1);
+        var curShortfall = Math.round((curExpected - curMcPaid) * 100) / 100;
+        if (curShortfall > 0) {
+          lines.push({
+            charge: 'Management charge',
+            year: currentYear,
+            dueLabel: 'As of ' + asOfMonth,
+            amount: curShortfall,
+            isHistorical: false
+          });
         }
-        var shortfall = Math.round((expected - paid) * 100) / 100;
-        if (shortfall > 0) {
-          lines.push({ charge: 'Management charge', year: yr, dueLabel: dueLabel, amount: shortfall, isHistorical: yr < currentYear });
+      }
+      // Previous years net outstanding (pooled — matches Annual Overview lines 1977–1989)
+      var mcPrevDue = 0;
+      mcPrevYears.forEach(function(yr){ mcPrevDue += (getDue(yr) || 0); });
+      if (mcPrevDue > 0) {
+        var mcAllPaid = mcYears.reduce(function(s, yr) {
+          return s + getPayments(addr, yr).reduce(function(s2,p){ return s2 + p.amount; }, 0);
+        }, 0);
+        var mcPrevEffPaid = mcAllPaid - curMcPaid;
+        var mcPrevShort = Math.round((mcPrevDue - mcPrevEffPaid) * 100) / 100;
+        if (mcPrevShort > 0) {
+          lines.push({
+            charge: 'Management charge',
+            year: null,
+            dueLabel: 'Previous years',
+            amount: mcPrevShort,
+            isHistorical: true
+          });
         }
-      });
+      }
 
-      // --- Farmhouse rent + insurance rent (properties 10, 12, 13, 14 only) ---
+      // ── Farmhouse rent + insurance rent (properties 10, 12, 13, 14 only) ──
       if (FH_PROPERTIES.indexOf(addr) !== -1) {
-        var fhYears = getFH2AvailableYears();
-        fhYears.forEach(function(yr) {
-          // Rent
-          var rentDue = getFH2RentDuePerProp(yr);
-          if (rentDue > 0) {
-            var rentPaid = getFH2RentPayments(addr, yr).filter(function(p){ return !p.isArrears; })
-                                                      .reduce(function(s,p){ return s + p.amount; }, 0);
-            var rentExpected, rentDueLabel;
-            if (yr < currentYear) {
-              rentExpected = rentDue;
-              rentDueLabel = String(yr);
-            } else {
-              // Current year — Jan 1 = half, Jul 1 = full
-              if (currentMonth >= 6) {
-                rentExpected = rentDue;
-                rentDueLabel = '1 Jul ' + yr;
-              } else {
-                rentExpected = rentDue / 2;
-                rentDueLabel = '1 Jan ' + yr;
-              }
-            }
-            var rentShort = Math.round((rentExpected - rentPaid) * 100) / 100;
-            if (rentShort > 0) {
-              lines.push({ charge: 'Farmhouse rent', year: yr, dueLabel: rentDueLabel, amount: rentShort, isHistorical: yr < currentYear });
-            }
+        var curRentDue = getFH2RentDuePerProp(currentYear);
+        var curInsDue  = getFH2InsDuePerProp(currentYear);
+        var curRentPaid = getFH2RentPayments(addr, currentYear)
+                            .filter(function(p){ return !p.isArrears; })
+                            .reduce(function(s,p){ return s + p.amount; }, 0);
+        var curInsPaid  = getFH2InsPayments(addr, currentYear)
+                            .filter(function(p){ return !p.isArrears; })
+                            .reduce(function(s,p){ return s + p.amount; }, 0);
+
+        // Current-year rent shortfall (Jan 1 = half, Jul 1 = full)
+        if (curRentDue > 0) {
+          var rentExpected, rentDueLabel;
+          if (currentMonth >= 6) { rentExpected = curRentDue; rentDueLabel = '1 Jul ' + currentYear; }
+          else                   { rentExpected = curRentDue / 2; rentDueLabel = '1 Jan ' + currentYear; }
+          var rentShort = Math.round((rentExpected - curRentPaid) * 100) / 100;
+          if (rentShort > 0) {
+            lines.push({
+              charge: 'Farmhouse rent',
+              year: currentYear,
+              dueLabel: rentDueLabel,
+              amount: rentShort,
+              isHistorical: false
+            });
           }
-          // Insurance rent
-          var insDue = getFH2InsDuePerProp(yr);
-          if (insDue > 0) {
-            var insPaid = getFH2InsPayments(addr, yr).filter(function(p){ return !p.isArrears; })
-                                                    .reduce(function(s,p){ return s + p.amount; }, 0);
-            var insShort = Math.round((insDue - insPaid) * 100) / 100;
-            if (insShort > 0) {
-              var insDueLabel = yr < currentYear ? String(yr) : '1 Jan ' + yr;
-              lines.push({ charge: 'Insurance rent', year: yr, dueLabel: insDueLabel, amount: insShort, isHistorical: yr < currentYear });
-            }
+        }
+
+        // Current-year insurance rent shortfall (full amount as soon as raised)
+        if (curInsDue > 0) {
+          var insShort = Math.round((curInsDue - curInsPaid) * 100) / 100;
+          if (insShort > 0) {
+            lines.push({
+              charge: 'Insurance rent',
+              year: currentYear,
+              dueLabel: '1 Jan ' + currentYear,
+              amount: insShort,
+              isHistorical: false
+            });
           }
+        }
+
+        // Previous years — pooled, matching farmhouse report (lines 3582–3587)
+        var fhPrevRentDue = 0, fhPrevInsDue = 0;
+        fhPrevYears.forEach(function(yr) {
+          fhPrevRentDue += getFH2RentDuePerProp(yr);
+          fhPrevInsDue  += getFH2InsDuePerProp(yr);
         });
+        if (fhPrevRentDue > 0) {
+          var allRentPaid = getFH2RentAllYears(addr).reduce(function(s,p){ return s + p.amount; }, 0);
+          var prevRentShort = Math.round((fhPrevRentDue - (allRentPaid - curRentPaid)) * 100) / 100;
+          if (prevRentShort > 0) {
+            lines.push({
+              charge: 'Farmhouse rent',
+              year: null,
+              dueLabel: 'Previous years',
+              amount: prevRentShort,
+              isHistorical: true
+            });
+          }
+        }
+        if (fhPrevInsDue > 0) {
+          var allInsPaid = getFH2InsAllYears(addr).reduce(function(s,p){ return s + p.amount; }, 0);
+          var prevInsShort = Math.round((fhPrevInsDue - (allInsPaid - curInsPaid)) * 100) / 100;
+          if (prevInsShort > 0) {
+            lines.push({
+              charge: 'Insurance rent',
+              year: null,
+              dueLabel: 'Previous years',
+              amount: prevInsShort,
+              isHistorical: true
+            });
+          }
+        }
       }
 
       if (lines.length > 0) {
-        // Sort lines: oldest year first, then charge type
+        // Sort: historical first, then by charge type
+        var chargeOrder = { 'Management charge': 0, 'Farmhouse rent': 1, 'Insurance rent': 2 };
         lines.sort(function(a, b) {
-          if (a.year !== b.year) return a.year - b.year;
-          return a.charge.localeCompare(b.charge);
+          if (a.isHistorical !== b.isHistorical) return a.isHistorical ? -1 : 1;
+          return (chargeOrder[a.charge] || 9) - (chargeOrder[b.charge] || 9);
         });
         var total = lines.reduce(function(s, l){ return s + l.amount; }, 0);
         var hasHistorical = lines.some(function(l){ return l.isHistorical; });
@@ -1592,7 +1650,7 @@
       prop.lines.forEach(function(line) {
         html += '<div class="ob-detail-line">';
         html += '<span class="ob-d-charge">' + line.charge + '</span>';
-        html += '<span class="ob-d-year">' + line.year + '</span>';
+        html += '<span class="ob-d-year">' + (line.year === null ? '—' : line.year) + '</span>';
         html += '<span class="ob-d-due">' + line.dueLabel + '</span>';
         html += '<span class="ob-d-amt">' + fmt(line.amount) + '</span>';
         html += '</div>';
