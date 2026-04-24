@@ -3325,7 +3325,7 @@
       html += '</div></div>';
     }
 
-    var fh2Wrap = window.innerWidth <= 700 ? '<div style="min-width:520px;">' : '';
+    var fh2Wrap = window.innerWidth <= 700 ? '<div style="min-width:520px;width:max-content;">' : '';
     var fh2WrapEnd = window.innerWidth <= 700 ? '</div>' : '';
     document.getElementById('farmhouse2-inner').innerHTML = fh2Wrap + html + fh2WrapEnd;
   }
