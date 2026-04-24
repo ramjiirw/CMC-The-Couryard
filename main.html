@@ -1102,17 +1102,59 @@
     document.getElementById('welcomeMsg').textContent = `${greeting} — ${day}${seasonal}`;
   })();
 
-  (async function() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+  // ─── Shared Apps Script URL (used by all data fetches below) ───────────
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
+  // ─── Batched dashboard data loader ─────────────────────────────────────
+  // One fetch to readDashboard replaces 8 separate calls. Also uses
+  // localStorage so repeat visits (and post-login loads from index.html's
+  // prefetch) render instantly without waiting for the network.
+  const DASHBOARD_CACHE_KEY = 'cyard_dashboard';
+  const DASHBOARD_TTL_MS    = 5 * 60 * 1000; // 5 minutes
+
+  const dashboardData = (function() {
+    // Try to get fresh-enough data from localStorage for instant render
+    let cached = null;
     try {
-      // Fire both requests simultaneously
-      const [agendaRes, availRes] = await Promise.all([
-        fetch(SCRIPT_URL + '?action=readAgenda'),
-        fetch(SCRIPT_URL + '?action=readAvailability')
-      ]);
-      const data = await agendaRes.json();
-      const avail = await availRes.json();
-      if (data.status !== 'ok') throw new Error();
+      const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.timestamp && (Date.now() - parsed.timestamp) < DASHBOARD_TTL_MS) {
+          cached = parsed.data;
+        }
+      }
+    } catch(e) {}
+
+    // Always fire a network fetch too — either to satisfy the UI (cache miss)
+    // or to quietly refresh the cache in the background (cache hit).
+    const freshPromise = fetch(SCRIPT_URL + '?action=readDashboard')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.status === 'ok') {
+          try {
+            localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+              timestamp: Date.now(),
+              data: data
+            }));
+          } catch(e) {}
+        }
+        return data;
+      })
+      .catch(() => null);
+
+    // If we had a valid cached copy, resolve immediately with it.
+    // freshPromise still runs in the background to refresh the cache
+    // for the next page load.
+    return cached ? Promise.resolve(cached) : freshPromise;
+  })();
+
+  (async function() {
+    try {
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error();
+      const data  = bundle.agenda;
+      const avail = bundle.availability;
+      if (!data || data.status !== 'ok') throw new Error();
       const rows = data.agenda;
       rows.forEach(row => {
         const key = (row[0]||'').toString().trim();
@@ -1246,12 +1288,11 @@
 
   // Load total cash held (all accounts) for Finances card
   (async function() {
-    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
-      var res = await fetch(SCRIPT_URL + '?action=readAccountBalances');
-      if (!res.ok) throw new Error();
-      var json = await res.json();
-      if (json.status !== 'ok') throw new Error();
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error();
+      var json = bundle.accountBalances;
+      if (!json || json.status !== 'ok') throw new Error();
       var total = ['current','sinking','contingency'].reduce(function(s, k) {
         return s + (json[k] ? Number(json[k].balance) : 0);
       }, 0);
@@ -1310,11 +1351,11 @@
     } catch(e) {}
   })();
   (async function() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
-      const res = await fetch(SCRIPT_URL + '?action=read');
-      const data = await res.json();
-      if (data.status !== 'ok') throw new Error();
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error();
+      const data = bundle.residents;
+      if (!data || data.status !== 'ok') throw new Error();
       const residents = (data.residents || data.rows || data.data || [])
         .filter(r => r.firstName || r.lastName || r.email || r.mobile);
       const noMobile = residents.filter(r => !r.mobile || !r.mobile.toString().trim()).length;
@@ -1330,12 +1371,11 @@
 
   // Maintenance counts
   (async function() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
     try {
-      const res  = await fetch(SCRIPT_URL + '?action=readMaintenance');
-      if (!res.ok) throw new Error('offline');
-      const data = await res.json();
-      if (data.status !== 'ok') throw new Error('error');
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error('offline');
+      const data = bundle.maintenance;
+      if (!data || data.status !== 'ok') throw new Error('error');
       const issues = data.issues || [];
       const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
       const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
@@ -1521,10 +1561,10 @@
 
   (async function loadUsefulInfo() {
     try {
-      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
-      const res  = await fetch(SCRIPT_URL + '?action=readUsefulInfo');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error();
+      const data = bundle.usefulInfo;
+      if (!data || data.status !== 'ok') throw new Error();
       const items = (data.items || []).filter(r => r.title || r.value);
       if (!items.length) return;
       _usefulInfoData = items;
@@ -1568,10 +1608,10 @@
   // ── Courtyard Noticeboard ────────────────────────────────────────────────
   (async function loadNoticeboard() {
     try {
-      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
-      const res = await fetch(SCRIPT_URL + '?action=readNoticeboard');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const bundle = await dashboardData;
+      if (!bundle) throw new Error();
+      const data = bundle.noticeboard;
+      if (!data || data.status !== 'ok') throw new Error();
       const messages = (data.messages || []).filter(m => m.title || m.message);
       if (!messages.length) return;
       checkBinTomorrow(messages);
@@ -1922,7 +1962,6 @@
   });
 
   /* ── AGM Minutes ── */
-  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
   var agmData = null;
   var isMobile = window.innerWidth <= 600;
   var agmOpenGroups = { attendance: false, voting: false, actions: false, director: false, resident: false, aob: false };
@@ -1946,10 +1985,10 @@
   /* ── Load data on page load ── */
   (async function() {
     try {
-      var res = await fetch(SCRIPT_URL + '?action=readAGMMinutes');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var data = await res.json();
-      if (data.status !== 'ok') throw new Error(data.message || 'Error from script');
+      var bundle = await dashboardData;
+      if (!bundle) throw new Error('offline');
+      var data = bundle.agmMinutes;
+      if (!data || data.status !== 'ok') throw new Error(data && data.message || 'Error from script');
       agmData = data;
 
       var m = data.meta;
@@ -2580,7 +2619,6 @@
 
 // ── Farmhouse Smoke Check Card ────────────────────────────────────────────────
 (async function loadFarmhouseSmokeCard() {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
   const card        = document.getElementById('fhCard');
   const elLastCheck = document.getElementById('fhLastCheck');
   const elStatus    = document.getElementById('fhStatus');
@@ -2644,9 +2682,10 @@
   }
 
   try {
-    var res  = await fetch(SCRIPT_URL + '?action=readFarmhouseSmokeChecks&v=' + Date.now());
-    var data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
+    var bundle = await dashboardData;
+    if (!bundle) throw new Error('offline');
+    var data = bundle.farmhouseSmoke;
+    if (!data || data.status !== 'ok') throw new Error(data && data.message);
 
     var last   = data.lastCheck;
     var checks = (data.checks || []).filter(function(c) { return c.date && c.date.trim() !== ''; });
