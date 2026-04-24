@@ -729,7 +729,6 @@
     </div>
   </div>
   <div>
-    <button class="btn-back" onclick="window.cmcFinanceRefresh()" style="margin-right:0.5rem;background:transparent;border:1px solid var(--accent2);color:var(--accent2);cursor:pointer;" title="Force refresh — use this after adding payments or budget edits">↻ Refresh</button>
     <a class="btn-back" href="main.html">⬅ Back to Home</a>
   </div>
 </header>
@@ -1265,14 +1264,7 @@
     }
   }
 
-  /* ── Manual refresh — forces a fresh fetch by clearing localStorage cache.
-   * Treasurer should hit this after adding payments or budget edits. */
-  window.cmcFinanceRefresh = function() {
-    try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
-    // Re-fetch and reload
-    window.financeBundlePromise = window.loadFinanceBundle(true);
-    location.reload();
-  };
+
 
   /* ── Format currency ── */
   function fmt(n) {
