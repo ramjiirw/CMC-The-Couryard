@@ -415,6 +415,25 @@
   .ob-detail-line .ob-d-year { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-due { color: var(--mid); font-variant-numeric: tabular-nums; }
   .ob-detail-line .ob-d-amt { text-align: right; color: #5a1a1a; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ob-prop-subtotal {
+    display: grid; grid-template-columns: 220px 80px 1fr 160px 30px;
+    padding: 0.5rem 1.5rem 0.5rem 3rem;
+    background: rgba(122,92,62,0.12);
+    border-top: 2px solid var(--border);
+    align-items: center;
+  }
+  .ob-prop-subtotal-label {
+    grid-column: 1 / span 3;
+    font-size: 0.8rem; font-weight: 700; color: var(--mid);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .ob-prop-subtotal-sub {
+    font-size: 0.75rem; font-weight: 400; font-style: italic; text-transform: none;
+  }
+  .ob-prop-subtotal-amt {
+    text-align: right; font-size: 0.9rem; font-weight: 600; color: #5a1a1a;
+    font-variant-numeric: tabular-nums;
+  }
   .ob-total-row {
     display: grid; grid-template-columns: 1fr 160px 30px;
     padding: 0.85rem 1.5rem; background: #6b5f52; color: var(--cream);
@@ -1583,10 +1602,10 @@
       }
 
       if (lines.length > 0) {
-        // Sort: historical first, then by charge type
+        // Sort: current year first, historical below; then by charge type within each bucket
         var chargeOrder = { 'Management charge': 0, 'Farmhouse rent': 1, 'Insurance rent': 2 };
         lines.sort(function(a, b) {
-          if (a.isHistorical !== b.isHistorical) return a.isHistorical ? -1 : 1;
+          if (a.isHistorical !== b.isHistorical) return a.isHistorical ? 1 : -1;
           return (chargeOrder[a.charge] || 9) - (chargeOrder[b.charge] || 9);
         });
         var total = lines.reduce(function(s, l){ return s + l.amount; }, 0);
@@ -1656,12 +1675,19 @@
       prop.lines.forEach(function(line) {
         html += '<div class="ob-detail-line">';
         html += '<span class="ob-d-charge">' + line.charge + '</span>';
-        html += '<span class="ob-d-year">' + (line.year === null ? '—' : line.year) + '</span>';
+        html += '<span class="ob-d-year">' + (line.year === null ? '' : line.year) + '</span>';
         html += '<span class="ob-d-due">' + line.dueLabel + '</span>';
         html += '<span class="ob-d-amt">' + fmt(line.amount) + '</span>';
         html += '<span></span>';
         html += '</div>';
       });
+      // Per-property "Total net outstanding" bar — matches Annual Overview pattern
+      html += '<div class="ob-prop-subtotal">';
+      html += '<span></span>';
+      html += '<span class="ob-prop-subtotal-label">Total <span class="ob-prop-subtotal-sub">net outstanding</span></span>';
+      html += '<span class="ob-prop-subtotal-amt">' + fmt(prop.total) + '</span>';
+      html += '<span></span>';
+      html += '</div>';
       html += '</div>';
     });
 
