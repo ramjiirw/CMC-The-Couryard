@@ -113,14 +113,14 @@ const CONFIG = {
 
 var portalPassword = null;
 
-// Fetch password from sheet on load, AND prefetch dashboard data in parallel
-// so main.html loads instantly after login.
-(function fetchPasswordAndPrefetch() {
+// Fetch password from sheet on load. Once that returns, the password field
+// unlocks and we kick off a background prefetch of the dashboard data so
+// main.html loads instantly after login.
+(function fetchPasswordThenPrefetch() {
   const inp = document.getElementById('pwInput');
   inp.placeholder = 'Loading…';
   inp.disabled = true;
 
-  // Request 1: settings (for password check)
   fetch(SCRIPT_URL + '?action=readSettings')
     .then(r => r.json())
     .then(d => {
@@ -128,27 +128,30 @@ var portalPassword = null;
       inp.placeholder = 'Enter password to access';
       inp.disabled = false;
       inp.focus();
+
+      // ONLY start the prefetch after the password field is unlocked.
+      // This way the user is never waiting on us — the prefetch happens
+      // silently while they type their password.
+      setTimeout(function() {
+        fetch(SCRIPT_URL + '?action=readDashboard')
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.status === 'ok') {
+              try {
+                localStorage.setItem('cyard_dashboard', JSON.stringify({
+                  timestamp: Date.now(),
+                  data: data
+                }));
+              } catch(e) {}
+            }
+          })
+          .catch(() => {});
+      }, 100);
     })
     .catch(() => {
       inp.placeholder = 'Enter password to access';
       inp.disabled = false;
     });
-
-  // Request 2: prefetch dashboard data while the user is typing their password.
-  // Fire-and-forget — if this fails, main.html will fall back to its own fetch.
-  fetch(SCRIPT_URL + '?action=readDashboard')
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.status === 'ok') {
-        try {
-          localStorage.setItem('cyard_dashboard', JSON.stringify({
-            timestamp: Date.now(),
-            data: data
-          }));
-        } catch(e) {}
-      }
-    })
-    .catch(() => {});
 })();
 
 function checkPassword() {
