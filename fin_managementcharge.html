@@ -382,8 +382,6 @@
     border-bottom: 1px solid var(--border); align-items: center; cursor: pointer;
   }
   .ob-prop-row:hover { background: rgba(122,92,62,0.04); }
-  .ob-prop-row.alt { background: rgba(122,92,62,0.03); }
-  .ob-prop-row.alt:hover { background: rgba(122,92,62,0.06); }
   .ob-prop-name { font-weight: 600; color: var(--accent); }
   .ob-prop-amt { text-align: right; color: #5a1a1a; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob-prop-chev { display: flex; justify-content: center; }
@@ -1656,11 +1654,10 @@
     var grandTotal = 0;
     propertyData.forEach(function(prop, idx) {
       grandTotal += prop.total;
-      var rowClass = idx % 2 === 1 ? 'ob-prop-row alt' : 'ob-prop-row';
       var safeKey = 'ob_' + prop.address.replace(/ /g, '_');
 
       // Property summary row (clickable)
-      html += '<div class="' + rowClass + '" onclick="toggleOBDetail(\'' + safeKey + '\')">';
+      html += '<div class="ob-prop-row" onclick="toggleOBDetail(\'' + safeKey + '\')">';
       html += '<span class="ob-dot"></span>';
       html += '<span class="ob-prop-name">' + prop.address + '</span>';
       html += '<span class="ob-prop-amt">' + fmt(prop.total) + '</span>';
