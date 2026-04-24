@@ -428,6 +428,34 @@
     #panel-farmhouse2 { overflow-x: auto !important; overflow-y: hidden; }
     #section-farmhouse2 { overflow-x: auto; }
   }
+
+  /* ── Mobile: align rent/insurance/total sub-rows with the year header row.
+     Their inline styles use desktop widths (150/150/170/30); on mobile we want
+     them to match .month-row / .annual-yr-head (90/90/170/24) so the DUE / PAID /
+     OUTSTANDING columns line up. Inline-style override requires !important. */
+  @media (max-width: 700px) {
+    #farmhouse2-inner .fh2-row-6col {
+      grid-template-columns: 20px 1fr 90px 90px 170px 24px !important;
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+  }
+
+  /* ── iPhone portrait: cap the name / YEAR column so it doesn't balloon when
+     the wrapper is widened by the behind-tables below. Without this, `1fr`
+     grows to fill leftover space and the YEAR label ends up with a huge gap
+     before the DUE column. Scoped strictly to iPhone portrait; desktop, iPad,
+     and iPhone landscape are unaffected. */
+  @media (max-width: 500px) and (orientation: portrait) {
+    #farmhouse2-inner .tracker-col-heads,
+    #farmhouse2-inner .prop-header,
+    #farmhouse2-inner .annual-yr-head,
+    #farmhouse2-inner .month-row,
+    #farmhouse2-inner .fh2-row-6col {
+      grid-template-columns: 20px minmax(90px, 180px) 90px 90px 170px 24px !important;
+    }
+  }
+
   /* ── IET ── */
   .iet-section-head {
     display: grid; grid-template-columns: minmax(0,1fr) 170px 50px; width:100%;
@@ -3058,7 +3086,7 @@
         var rOutC   = rOut > 0 ? 'val-owed' : rOut < 0 ? 'val-over' : 'val-clear';
         var rOutT   = rOut > 0 ? fmt(rOut) : rOut < 0 ? '+'+fmt(Math.abs(rOut))+' overpaid' : '✓ Paid in full';
         var rStatus = getFH2RentStatus(addr, yr);
-        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + rentLineKey + '\')">';
+        html += '<div class="fh2-row-6col" style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + rentLineKey + '\')">';
         html += '<span></span>';
         html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.4rem;"><span class="month-dot ' + fh2DotClass(rStatus) + '" style="width:8px;height:8px;flex-shrink:0;"></span>Farmhouse Rent</span>';
         html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (rDue > 0 ? fmt(rDue) : '—') + '</span>';
@@ -3090,7 +3118,7 @@
         var iOutC   = iOut > 0 ? 'val-owed' : iOut < 0 ? 'val-over' : 'val-clear';
         var iOutT   = iOut > 0 ? fmt(iOut) : iOut < 0 ? '+'+fmt(Math.abs(iOut))+' overpaid' : '✓ Paid in full';
         var iStatus = getFH2InsStatus(addr, yr);
-        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + insLineKey + '\')">';
+        html += '<div class="fh2-row-6col" style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.45rem 1.5rem;border-bottom:1px solid var(--border);cursor:pointer;background:rgba(122,92,62,0.04);" onclick="toggleFH2Line(\'' + insLineKey + '\')">';
         html += '<span></span>';
         html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.4rem;"><span class="month-dot ' + fh2DotClass(iStatus) + '" style="width:8px;height:8px;flex-shrink:0;"></span>Farmhouse Insurance Rent</span>';
         html += '<span style="text-align:right;font-size:0.82rem;color:var(--mid);">' + (iDue > 0 ? fmt(iDue) : '—') + '</span>';
@@ -3127,7 +3155,7 @@
       hasArrears = rentArrearsAll.length > 0 || insArrearsAll.length > 0;
       var totalKey = key + '_total';
 
-      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total(\'' + totalKey + '\')"' : '') + '>';
+      html += '<div class="fh2-row-6col" style="display:grid;grid-template-columns:20px 1fr 150px 150px 170px 30px;padding:0.5rem 1.5rem;background:rgba(122,92,62,0.12);border-top:2px solid var(--border);cursor:' + (hasArrears ? 'pointer' : 'default') + ';" ' + (hasArrears ? 'onclick="toggleFH2Total(\'' + totalKey + '\')"' : '') + '>';
       html += '<span></span>';
       html += '<span style="font-size:0.8rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:0.75rem;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
       html += '<span style="text-align:right;font-size:0.9rem;font-weight:600;color:var(--mid);">' + fmt(propTotalDue) + '</span>';
