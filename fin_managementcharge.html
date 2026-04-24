@@ -1604,7 +1604,9 @@
         var chargeOrder = { 'Management Charge': 0, 'Farmhouse Rent': 1, 'Farmhouse Insurance Rent': 2 };
         lines.sort(function(a, b) {
           if (a.isHistorical !== b.isHistorical) return a.isHistorical ? 1 : -1;
-          return (chargeOrder[a.charge] || 9) - (chargeOrder[b.charge] || 9);
+          var oa = chargeOrder[a.charge]; if (oa === undefined) oa = 9;
+          var ob = chargeOrder[b.charge]; if (ob === undefined) ob = 9;
+          return oa - ob;
         });
         var total = lines.reduce(function(s, l){ return s + l.amount; }, 0);
         var hasHistorical = lines.some(function(l){ return l.isHistorical; });
