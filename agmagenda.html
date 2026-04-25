@@ -718,7 +718,7 @@ function renderAgenda(rows, submissions) {
   details.innerHTML = detailsHtml || '<div style="grid-column:1/-1;color:var(--stone)">No meeting details found.</div>';
 
   // ── Agenda items ──
-  let agendaHtml = '<table><thead><tr><th class="col-num">#</th><th>Agenda Item</th><th class="col-raised">Raised By</th></tr></thead><tbody>';
+  let agendaHtml = '<table><tbody>';
 
   let itemNum = 1;
   let inVoting = false;
@@ -766,7 +766,7 @@ function renderAgenda(rows, submissions) {
 
   // Render director items
   agendaItems.forEach(r => {
-    agendaHtml += '<tr><td class="col-num">' + r.num + '.</td><td>' + r.item + '</td><td class="col-raised">' + r.raisedBy + '</td></tr>';
+    agendaHtml += '<tr><td class="col-num">' + r.num + '.</td><td>' + r.item + '</td><td class="col-raised"></td></tr>';
   });
 
   // Resident submissions in green zone
