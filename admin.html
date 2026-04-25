@@ -2492,7 +2492,14 @@ function mntPopulateDropdowns() {
   var addrSel = document.getElementById('mntFilterAddr');
   var curAddr = addrSel.value;
   addrSel.innerHTML = '<option value="">All Addresses</option>';
-  Object.keys(addrs).sort().forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
+  Object.keys(addrs).sort(function(a, b) {
+    // Sort numbered addresses (1 The Courtyard … 14 The Courtyard) numerically.
+    // Anything without a leading number (e.g. "Director") falls to the bottom.
+    var am = a.match(/\d+/), bm = b.match(/\d+/);
+    var na = am ? parseInt(am[0], 10) : Infinity;
+    var nb = bm ? parseInt(bm[0], 10) : Infinity;
+    return na - nb || a.localeCompare(b);
+  }).forEach(function(a){ addrSel.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + '</option>'; });
   if (curAddr) addrSel.value = curAddr;
 
   var catSel = document.getElementById('mntFilterCat');
