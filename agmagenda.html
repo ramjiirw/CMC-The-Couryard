@@ -342,6 +342,10 @@
       box-sizing: border-box;
       padding: 0.5rem 1rem;
     }
+
+    /* AOB divider line — paint on the tr (continuous) instead of per-td (broken across grid gap) */
+    #agendaBody tbody tr.row-section-divider { border-top: 3px solid #c8e2ce; }
+    #agendaBody tbody tr.row-section-divider td { border-top: none !important; }
   }
 
   /* ── AGM Countdown pill ── */
