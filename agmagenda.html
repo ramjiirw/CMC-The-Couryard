@@ -303,10 +303,8 @@
 
     /* Issue 3: Agenda table — Raised By above item text on mobile portrait */
     #agendaBody table { display: block; width: 100%; }
-    #agendaBody thead { display: block; width: 100%; }
-    #agendaBody thead tr { display: block; }
+    #agendaBody thead { display: none; }
     #agendaBody tbody { display: block; width: 100%; }
-    #agendaBody thead th.col-raised { display: none; }
     #agendaBody tbody tr {
       display: grid;
       grid-template-columns: 32px 1fr;
@@ -320,11 +318,30 @@
     #agendaBody tbody tr td.col-num { grid-column: 1; grid-row: 1 / span 2; padding-top: 0.2rem; width: auto; }
     #agendaBody tbody tr td.col-raised { grid-column: 2; grid-row: 1; width: auto; padding-top: 0.2rem; }
     #agendaBody tbody tr td:not(.col-num):not(.col-raised) { grid-column: 2; grid-row: 2; }
-    /* keep full-width rows (section headers, AOB, end-of-meeting) as block rows spanning full width */
-    #agendaBody tbody tr.row-section,
+
+    /* Section / AOB / End-of-meeting rows — single-column-of-content with number on the left */
+    #agendaBody tbody tr.row-section {
+      background: var(--warm);
+      border-bottom: 1px solid var(--border);
+    }
+    #agendaBody tbody tr.row-section td {
+      background: transparent;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--mid);
+      letter-spacing: 0.04em;
+    }
+    #agendaBody tbody tr.row-section td.col-num { grid-column: 1; grid-row: 1; padding-top: 0.2rem; }
+    #agendaBody tbody tr.row-section td:not(.col-num) { grid-column: 2; grid-row: 1; }
+
+    /* Resident section header — restore horizontal padding so the count pill sits inside */
     #agendaBody tbody tr.section-resident-header { display: block; padding: 0; }
-    #agendaBody tbody tr.row-section td,
-    #agendaBody tbody tr.section-resident-header td { display: block; width: 100%; box-sizing: border-box; }
+    #agendaBody tbody tr.section-resident-header td {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.5rem 1rem;
+    }
   }
 
   /* ── AGM Countdown pill ── */
