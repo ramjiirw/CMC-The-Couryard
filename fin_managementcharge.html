@@ -446,22 +446,11 @@
     color: #2e7d32; font-weight: 600;
   }
 
-  /* Mobile: stack the outstanding breakdown */
+  /* Mobile: horizontal-scroll the outstanding breakdown (matches MC/Annual/Farmhouse trackers) */
   @media (max-width: 700px) {
-    .ob-col-heads, .ob-prop-row { grid-template-columns: 20px 1fr 110px 24px; padding-left: 1rem; padding-right: 1rem; }
-    .ob-total-row { grid-template-columns: 1fr 110px 24px; padding-left: 1rem; padding-right: 1rem; }
-    .ob-detail-head { display: none; }
-    .ob-detail-line {
-      grid-template-columns: 1fr auto;
-      padding: 0.6rem 1rem 0.6rem 2rem; row-gap: 4px;
-    }
-    .ob-detail-line .ob-d-charge { grid-column: 1; grid-row: 1; font-weight: 600; }
-    .ob-detail-line .ob-d-amt { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-    .ob-detail-line .ob-d-year, .ob-detail-line .ob-d-due {
-      grid-column: 1; grid-row: 2; text-align: left;
-      font-size: 0.78rem; color: var(--mid);
-      display: inline-block; margin-right: 0.5rem;
-    }
+    #outstanding-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
+    #outstanding-inner > * { min-width: 640px; }
+    #panel-outstanding { overflow-x: auto; }
   }
 
   .txn-row {
