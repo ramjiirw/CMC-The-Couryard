@@ -387,7 +387,7 @@
   </div>
 
   <div class="card" style="min-height:120px;">
-    <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span></div>
+    <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;"></span><span class="count-pill" style="letter-spacing:0.04em;background:rgba(255,255,255,0.12);color:var(--cream);">SHOWING · <span id="issueCount">-</span></span></div>
     <div class="filter-bar">
       <label>Filter:</label>
       <select id="filterAddr" onchange="renderIssues();updateFilterBtn()">
@@ -425,7 +425,6 @@
         <option value="address">Sort: Address</option>
       </select>
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
-      <span class="count-pill" style="margin-left:auto;letter-spacing:0.04em;">SHOWING · <span id="issueCount">-</span></span>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
