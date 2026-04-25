@@ -244,8 +244,10 @@
   @media (max-width: 600px) {
     #bva-report-overlay { overflow-x: auto; }
     #bva-report-overlay-content { min-width: 700px; }
+    #bva-report-overlay > div:first-child { min-width: 700px; }
     #iet-report-overlay { overflow-x: auto; }
     #iet-report-overlay-content { min-width: 700px; }
+    #iet-report-overlay > div:first-child { min-width: 700px; }
   }
 
   @media print {
@@ -4253,7 +4255,7 @@
     h += '</div></div>';
 
     // INCOME header row
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:0;">';
     h += '<div class="bva-col-head" style="flex:1;">Income</div>';
     h += '<div style="display:flex;">';
     h += '<div style="width:130px;text-align:right;" class="bva-col-head">Budget</div>';
@@ -4276,7 +4278,7 @@
     h += '<div style="height:24px;"></div>';
 
     // EXPENDITURE header row
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:0;">';
     h += '<div class="bva-col-head" style="flex:1;">Expenditure</div>';
     h += '<div style="display:flex;">';
     h += '<div style="width:130px;text-align:right;" class="bva-col-head">Budget</div>';
