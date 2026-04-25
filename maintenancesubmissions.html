@@ -54,6 +54,7 @@
      spaced-out white card surfaces, each with a coloured priority stripe down
      the left edge. */
   .cards-area {
+    background: var(--cream);
     padding: 1rem 1rem 1.25rem;
     display: flex;
     flex-direction: column;
@@ -424,7 +425,7 @@
         <option value="address">Sort: Address</option>
       </select>
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
-      <span class="count-pill" id="issueCount" style="margin-left:auto;">-</span>
+      <span class="count-pill" style="margin-left:auto;letter-spacing:0.04em;">SHOWING · <span id="issueCount">-</span></span>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -697,8 +698,9 @@ async function loadAddresses() {
     const sel = document.getElementById('addressSelect');
     while (sel.options.length > 1) sel.remove(1);
     const addresses = [...new Set((data.rows||[]).map(r => r.address).filter(Boolean))].sort((a,b) => {
-      const na = parseInt((a.match(/\d+/)||[0])[0]);
-      const nb = parseInt((b.match(/\d+/)||[0])[0]);
+      const am = a.match(/\d+/), bm = b.match(/\d+/);
+      const na = am ? parseInt(am[0], 10) : Infinity;
+      const nb = bm ? parseInt(bm[0], 10) : Infinity;
       return na - nb || a.localeCompare(b);
     });
     addresses.forEach(a => {
@@ -722,8 +724,9 @@ async function loadIssues() {
     const addrSel = document.getElementById('filterAddr');
     while (addrSel.options.length > 1) addrSel.remove(1);
     const addrs = [...new Set(allIssues.map(r => r.address).filter(Boolean))].sort((a,b) => {
-      const na = parseInt((a.match(/\d+/)||[0])[0]);
-      const nb = parseInt((b.match(/\d+/)||[0])[0]);
+      const am = a.match(/\d+/), bm = b.match(/\d+/);
+      const na = am ? parseInt(am[0], 10) : Infinity;
+      const nb = bm ? parseInt(bm[0], 10) : Infinity;
       return na - nb || a.localeCompare(b);
     });
     addrs.forEach(a => {
@@ -830,8 +833,11 @@ function applySort(list) {
       break;
     case 'address':
       sorted.sort((a, b) => {
-        const na = parseInt(((a.address || '').match(/\d+/) || [0])[0], 10);
-        const nb = parseInt(((b.address || '').match(/\d+/) || [0])[0], 10);
+        // Addresses without a leading number (e.g. "Director") sort to the end.
+        const am = (a.address || '').match(/\d+/);
+        const bm = (b.address || '').match(/\d+/);
+        const na = am ? parseInt(am[0], 10) : Infinity;
+        const nb = bm ? parseInt(bm[0], 10) : Infinity;
         if (na !== nb) return na - nb;
         return (a.address || '').localeCompare(b.address || '');
       });
