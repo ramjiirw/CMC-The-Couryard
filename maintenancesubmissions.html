@@ -45,27 +45,60 @@
   .card-header-blue { background: var(--blue); padding: 0.75rem 1.25rem; color: white; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
   .count-pill { background: rgba(196,149,106,0.25); color: var(--accent2); border-radius: 10px; font-size: 0.7rem; padding: 0.1rem 0.5rem; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: var(--warm); padding: 0.6rem 1rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mid); text-align: left; border-bottom: 1px solid var(--border); }
   .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; padding: 0.6rem 1.25rem; background: var(--warm); border-bottom: 1px solid var(--border); }
   .filter-bar label { font-size: 0.72rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
   .filter-bar select { padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.82rem; background: white; color: var(--dark); cursor: pointer; }
   .filter-bar select:focus { outline: none; border-color: var(--accent2); }
-  th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-  th.sortable:hover { color: var(--accent); }
-  th.sortable .sort-icon { margin-left: 0.3rem; font-size: 0.65rem; opacity: 0.4; }
-  th.sortable.asc .sort-icon::after { content: ' ▲'; opacity: 1; color: var(--accent2); }
-  th.sortable.desc .sort-icon::after { content: ' ▼'; opacity: 1; color: var(--accent2); }
-  th.sortable:not(.asc):not(.desc) .sort-icon::after { content: ' ▲▼'; }
-  td { padding: 0.65rem 1rem; font-size: 0.84rem; border-bottom: 1px solid #f0ebe3; vertical-align: top; color: var(--dark); }
-  tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--warm); }
-  tbody tr.row-resolved td { color: #999590; }
-  tbody tr.row-resolved:hover td { background: var(--warm); }
-  .col-num  { width: 36px; font-weight: 600; }
-  .col-addr { width: 130px; }
-  .col-date { width: 100px; }
-  .col-status { width: 110px; }
-  .col-update { }
+  /* ── Issue card layout ── */
+  .issue-card {
+    padding: 0.85rem 1.25rem 1rem;
+    border-bottom: 1px solid #ebe4d6;
+    background: white;
+    transition: background 0.15s, opacity 0.2s;
+  }
+  .issue-card:last-of-type { border-bottom: none; }
+  .issue-card.is-resolved { opacity: 0.65; background: var(--warm); }
+  .issue-card.admin-clickable { cursor: pointer; }
+  .issue-card.admin-clickable:hover { background: rgba(196,149,106,0.06); }
+  .issue-card.is-resolved.admin-clickable:hover { background: rgba(196,149,106,0.12); }
+  .issue-meta {
+    display: grid;
+    grid-template-columns: 36px 1.4fr 1fr 1fr 1fr 1fr;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px dashed #ebe4d6;
+    margin-bottom: 0.7rem;
+  }
+  .meta-cell { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+  .meta-cell .label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stone); }
+  .meta-cell .value { font-size: 0.82rem; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta-cell .value-empty { color: var(--stone); }
+  .issue-num { font-size: 1rem; font-weight: 700; color: var(--accent); padding-top: 0.7rem; }
+  .address-tag {
+    display: inline-block; background: var(--warm); color: var(--mid);
+    border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.74rem; padding: 0.1rem 0.45rem;
+  }
+  .issue-content {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    padding-left: 36px; padding-right: 0.4rem;
+  }
+  .content-col { min-width: 0; }
+  .content-label-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+  .content-col .label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stone); }
+  .category-tag {
+    display: inline-block;
+    background: rgba(122,92,62,0.08); color: var(--accent);
+    border: 1px solid rgba(122,92,62,0.2); border-radius: 4px;
+    font-size: 0.72rem; padding: 0.1rem 0.5rem;
+    font-weight: 500; letter-spacing: 0.01em;
+  }
+  .content-col .body { font-size: 0.85rem; line-height: 1.5; color: var(--dark); white-space: pre-wrap; }
+  .content-col .body.no-updates { color: var(--stone); font-style: italic; }
+  /* Admin expand panel as sibling of card */
+  .issue-edit-panel { display: none; }
+  .issue-edit-panel.open { display: block; border-bottom: 1px solid #ebe4d6; }
   .submit-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
   .form-row { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
   .form-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 160px; }
@@ -118,9 +151,6 @@
   .admin-bar button:hover { background: var(--accent); }
   .admin-pill { background: rgba(196,149,106,0.2); color: var(--accent2); border-radius: 8px; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.5rem; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.5rem; }
   /* admin expand panel */
-  tr.admin-clickable { cursor: pointer; }
-  tr.admin-clickable:hover td { background: rgba(196,149,106,0.06); }
-  tr.admin-expand-row td { padding: 0; }
   .expand-panel {
     background: #2a2520; border-top: 2px solid var(--accent2);
     padding: 1rem 1.25rem; display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
@@ -145,13 +175,10 @@
     .fab { bottom: 4rem; right: 1rem; padding: 0.65rem 1.1rem; font-size: 0.82rem; }
   }
 
-  /* ── Mobile/tablet: horizontal scroll on issue log table ── */
+  /* ── Mobile/tablet: horizontal scroll on issue card layout ── */
   @media (max-width: 1024px) {
     #issuesBody { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    #issuesBody table { min-width: 1100px; }
-    #issuesBody .col-update { min-width: 380px; }
-    #issuesBody td:nth-child(4),
-    #issuesBody th:nth-child(4) { min-width: 360px; } /* Description column */
+    #issuesBody > .issue-cards-wrap { min-width: 900px; }
   }
   footer {
     background: var(--dark); border-top: 1px solid rgba(196,149,106,0.2);
@@ -361,6 +388,15 @@
         <option>Other</option>
       </select>
       <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:white;color:var(--dark);width:160px;">
+      <select id="sortSelect" onchange="renderIssues()" title="Sort order">
+        <option value="dateAdded-desc">Sort: Date Added (newest)</option>
+        <option value="dateAdded-asc">Sort: Date Added (oldest)</option>
+        <option value="dateResolved-desc">Sort: Date Resolved (newest)</option>
+        <option value="dateResolved-asc">Sort: Date Resolved (oldest)</option>
+        <option value="priority">Sort: Priority (High → Low)</option>
+        <option value="status">Sort: Status (New → Resolved)</option>
+        <option value="address">Sort: Address</option>
+      </select>
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
       <span class="count-pill" id="issueCount" style="margin-left:auto;">-</span>
     </div>
@@ -503,12 +539,12 @@ function toggleRow(i) {
   if (openRow !== null) collapseRow(openRow);
   openRow = i;
   const ep = document.getElementById('ep_' + i);
-  if (ep) ep.style.display = '';
+  if (ep) ep.classList.add('open');
 }
 
 function collapseRow(i) {
   const ep = document.getElementById('ep_' + i);
-  if (ep) ep.style.display = 'none';
+  if (ep) ep.classList.remove('open');
   if (openRow === i) openRow = null;
   isDirty = false;
 }
@@ -633,6 +669,7 @@ async function loadAddresses() {
     const data = await res.json();
     if (data.status !== 'ok') throw new Error();
     const sel = document.getElementById('addressSelect');
+    while (sel.options.length > 1) sel.remove(1);
     const addresses = [...new Set((data.rows||[]).map(r => r.address).filter(Boolean))].sort((a,b) => {
       const na = parseInt((a.match(/\d+/)||[0])[0]);
       const nb = parseInt((b.match(/\d+/)||[0])[0]);
@@ -653,8 +690,11 @@ async function loadIssues() {
     if (data.status !== 'ok') throw new Error(data.message || '');
     allIssues = data.issues || [];
     await syncResolveDates(allIssues);
-    // Populate address filter
+    // Populate address filter — clear existing options first (except the
+    // hardcoded "All Addresses" placeholder), since loadIssues runs on a
+    // 60-second timer and would otherwise keep appending duplicates.
     const addrSel = document.getElementById('filterAddr');
+    while (addrSel.options.length > 1) addrSel.remove(1);
     const addrs = [...new Set(allIssues.map(r => r.address).filter(Boolean))].sort((a,b) => {
       const na = parseInt((a.match(/\d+/)||[0])[0]);
       const nb = parseInt((b.match(/\d+/)||[0])[0]);
@@ -722,16 +762,60 @@ function fmtDate(v) {
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
-let dateDir = 'desc';
-
-function toggleDateSort() {
-  dateDir = dateDir === 'desc' ? 'asc' : 'desc';
-  const th = document.querySelector('th.sortable');
-  if (th) {
-    th.classList.toggle('asc', dateDir === 'asc');
-    th.classList.toggle('desc', dateDir === 'desc');
+// Sort handling — driven by #sortSelect dropdown in the filter bar.
+// Default is dateAdded-desc (newest first).
+function applySort(list) {
+  const sortKey = (document.getElementById('sortSelect') || {}).value || 'dateAdded-desc';
+  const parseD = v => {
+    if (!v) return new Date(0);
+    const p = String(v).split('/');
+    if (p.length === 3) {
+      let yr = parseInt(p[2], 10);
+      if (yr < 100) yr += 2000;
+      return new Date(yr, parseInt(p[1], 10) - 1, parseInt(p[0], 10));
+    }
+    const d = new Date(v);
+    return isNaN(d) ? new Date(0) : d;
+  };
+  const priorityRank = p => ({ 'High': 0, 'Medium': 1, 'Low': 2 }[p] !== undefined ? ({ 'High': 0, 'Medium': 1, 'Low': 2 }[p]) : 3);
+  const statusRank = s => {
+    const sv = (s || '').toLowerCase();
+    if (sv.includes('new')) return 0;
+    if (sv.includes('progress')) return 1;
+    if (sv.includes('resolv')) return 2;
+    return 3;
+  };
+  const sorted = list.slice();
+  switch (sortKey) {
+    case 'dateAdded-asc':
+      sorted.sort((a, b) => parseD(a.dateAdded) - parseD(b.dateAdded));
+      break;
+    case 'dateResolved-desc':
+      sorted.sort((a, b) => parseD(b.dateResolved) - parseD(a.dateResolved));
+      break;
+    case 'dateResolved-asc':
+      sorted.sort((a, b) => parseD(a.dateResolved) - parseD(b.dateResolved));
+      break;
+    case 'priority':
+      sorted.sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+      break;
+    case 'status':
+      sorted.sort((a, b) => statusRank(a.status) - statusRank(b.status));
+      break;
+    case 'address':
+      sorted.sort((a, b) => {
+        const na = parseInt(((a.address || '').match(/\d+/) || [0])[0], 10);
+        const nb = parseInt(((b.address || '').match(/\d+/) || [0])[0], 10);
+        if (na !== nb) return na - nb;
+        return (a.address || '').localeCompare(b.address || '');
+      });
+      break;
+    case 'dateAdded-desc':
+    default:
+      sorted.sort((a, b) => parseD(b.dateAdded) - parseD(a.dateAdded));
+      break;
   }
-  renderIssues();
+  return sorted;
 }
 
 function reportFormIsDirty() {
@@ -826,12 +910,8 @@ function renderIssues() {
     const matchA = !af || (r.address||'').toLowerCase() === af;
     const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq);
     return matchS && matchP && matchC && matchA && matchQ;
-  }).slice().sort((a, b) => {
-    const parseD = v => { if (!v) return new Date(0); const p = v.split('/'); if (p.length===3) { let yr=parseInt(p[2],10); if(yr<100)yr+=2000; return new Date(yr, parseInt(p[1],10)-1, parseInt(p[0],10)); } return new Date(v); };
-    const av = parseD(a.dateAdded);
-    const bv = parseD(b.dateAdded);
-    return dateDir === 'asc' ? av - bv : bv - av;
   });
+  list = applySort(list);
   document.getElementById('issueCount').textContent = list.length;
   const newCount      = allIssues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
   const progressCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
@@ -844,35 +924,43 @@ function renderIssues() {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
   }
-  const colspan = isAdmin ? 10 : 9;
-  let html = '<table><thead><tr>';
-  html += '<th class="col-num">#</th>';
-  html += '<th class="col-addr">Address</th>';
-  html += '<th>Category</th>';
-  html += '<th>Description</th>';
-  html += '<th class="col-date sortable ' + dateDir + '" onclick="toggleDateSort()">Date Added<span class="sort-icon"></span></th>';
-  html += '<th class="col-status">Status</th>';
-  html += '<th class="col-update">Updates</th>';
-  html += '<th style="width:90px;">Priority</th>';
-  html += '<th class="col-date">Date Resolved</th>';
-  if (isAdmin) html += '<th style="width:40px;"></th>';
-  html += '</tr></thead><tbody>';
+
+  const escAttr = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  let html = '<div class="issue-cards-wrap">';
   list.forEach((r,i) => {
     const isResolved = (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved;
-    html += '<tr class="' + (isResolved ? 'row-resolved' : '') + (isAdmin ? ' admin-clickable' : '') + '" ' + (isAdmin ? 'onclick="toggleRow(' + i + ')"' : '') + '>';
-    html += '<td class="col-num">' + (r.issueNumber || (i+1)) + '.</td>';
-    html += '<td class="col-addr">' + (r.address||'') + '</td>';
-    html += '<td>' + (r.category||'') + '</td>';
-    html += '<td>' + (r.description||'') + '</td>';
-    html += '<td class="col-date">' + fmtDate(r.dateAdded) + '</td>';
-    html += '<td class="col-status">' + statusBadge(r.status, r.dateResolved) + '</td>';
-    html += '<td class="col-update">' + (r.updates||'') + '</td>';
-    html += '<td>' + priorityBadge(r.priority) + '</td>';
-    html += '<td class="col-date">' + fmtDate(r.dateResolved) + '</td>';
-    if (isAdmin) html += '<td style="text-align:center;color:var(--stone);font-size:0.85rem;cursor:pointer;">✏️</td>';
-    html += '</tr>';
+    const cardCls = 'issue-card' + (isResolved ? ' is-resolved' : '') + (isAdmin ? ' admin-clickable' : '');
+    const onclick = isAdmin ? ' onclick="onCardClick(event,' + i + ')"' : '';
+    html += '<div class="' + cardCls + '"' + onclick + '>';
+
+    // ── Metadata strip ──
+    html += '<div class="issue-meta">';
+    html += '<div class="issue-num">' + (r.issueNumber || (i+1)) + '.</div>';
+    html += '<div class="meta-cell"><span class="label">Address</span><span class="value">' + (r.address ? '<span class="address-tag">' + r.address + '</span>' : '<span class="value-empty">—</span>') + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Date Added</span><span class="value">' + (r.dateAdded ? fmtDate(r.dateAdded) : '<span class="value-empty">—</span>') + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Status</span><span class="value">' + statusBadge(r.status, r.dateResolved) + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Priority</span><span class="value">' + priorityBadge(r.priority) + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Date Resolved</span><span class="value">' + (r.dateResolved ? fmtDate(r.dateResolved) : '<span class="value-empty">—</span>') + '</span></div>';
+    html += '</div>';
+
+    // ── Content row: Description (with category pill) | Updates ──
+    html += '<div class="issue-content">';
+    html += '<div class="content-col">';
+    html += '<div class="content-label-row"><span class="label">Description</span>' + (r.category ? '<span class="category-tag">' + r.category + '</span>' : '') + '</div>';
+    html += '<div class="body">' + (r.description || '') + '</div>';
+    html += '</div>';
+    html += '<div class="content-col">';
+    html += '<div class="content-label-row"><span class="label">Updates</span></div>';
+    html += (r.updates ? '<div class="body">' + r.updates + '</div>' : '<div class="body no-updates">No updates yet</div>');
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>'; // /.issue-card
+
+    // ── Admin edit panel as sibling div ──
     if (isAdmin) {
-      html += '<tr class="admin-expand-row" id="ep_' + i + '" style="display:none;"><td colspan="' + colspan + '">';
+      html += '<div class="issue-edit-panel" id="ep_' + i + '">';
       html += '<div class="expand-panel">';
       html += '<div><label>Status</label><select id="s_' + i + '" onchange="onStatusChange()">';
       ['New','In Progress','Resolved'].forEach(s => {
@@ -889,11 +977,21 @@ function renderIssues() {
       html += '<div class="ep-actions">';
       html += '<button class="btn-cancel-edit" onclick="collapseRow(' + i + ')">Cancel</button>';
       html += '<button class="btn-save" id="b_' + i + '" onclick="saveRow(' + r.rowIndex + ',' + i + ')">Save</button>';
-      html += '</div></div></td></tr>';
+      html += '</div></div></div>';
     }
   });
-  html += '</tbody></table>';
+  html += '</div>';
   document.getElementById('issuesBody').innerHTML = html;
+}
+
+// Admin: clicking inside the edit panel should not trigger card toggle.
+// (The panel is a sibling, but we guard anyway in case of future nesting.)
+function onCardClick(e, i) {
+  if (!isAdmin) return;
+  // Ignore clicks inside the edit panel itself
+  const panel = document.getElementById('ep_' + i);
+  if (panel && panel.contains(e.target)) return;
+  toggleRow(i);
 }
 
 async function submitIssue() {
