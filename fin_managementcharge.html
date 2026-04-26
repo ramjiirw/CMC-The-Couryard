@@ -4367,6 +4367,24 @@
     h += '<p style="font-size:16px;color:#6b5f52;font-style:italic;margin:0;line-height:1.5;">Any surplus generated is intended to support future maintenance, with the majority allocated to the sinking fund.</p>';
     h += '</div>';
 
+    // Directors' Note dropdown — only render if a note exists for this year
+    var directorsNote = '';
+    if (bvaData && bvaData.notes && bvaData.notes[bvaReportYear]) {
+      directorsNote = String(bvaData.notes[bvaReportYear]).trim();
+    }
+    if (directorsNote) {
+      var dnOpen = !!bvaOpenGroups['__directorsNote'];
+      h += '<div style="height:16px;"></div>';
+      h += '<div class="bva-group-row" onclick="bvaTG(\'__directorsNote\')">';
+      h += '<span class="bva-group-name"><span class="bva-chev' + (dnOpen ? ' open' : '') + '"></span>Directors\' Note</span>';
+      h += '</div>';
+      h += '<div class="bva-items' + (dnOpen ? ' open' : '') + '">';
+      h += '<div class="bva-item-row" style="white-space:normal;">';
+      h += '<span class="bva-item-name" style="line-height:1.6;">' + directorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+      h += '</div>';
+      h += '</div>';
+    }
+
     document.getElementById('bva-report-overlay-content').innerHTML = h;
   }
 
@@ -4389,6 +4407,10 @@
   function bvaRptExpandGroups() {
     var allGroups = INCOME_GROUPS.concat(EXPENSE_GROUPS);
     allGroups.forEach(function(g) { bvaOpenGroups[g.key] = true; });
+    // Also open Directors' Note if one exists for the current year
+    if (bvaData && bvaData.notes && bvaData.notes[bvaReportYear] && String(bvaData.notes[bvaReportYear]).trim()) {
+      bvaOpenGroups['__directorsNote'] = true;
+    }
     var overlay = document.getElementById('bva-report-overlay');
     var scrollTop = overlay ? overlay.scrollTop : 0;
     renderBVAReport();
