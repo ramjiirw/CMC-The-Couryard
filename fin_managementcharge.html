@@ -4368,8 +4368,9 @@
     h += '</div>';
 
     // Directors' Note dropdown — only render if a note exists for this year
+    // AND actuals are visible (hide alongside figures in public view)
     var directorsNote = '';
-    if (bvaData && bvaData.notes && bvaData.notes[bvaReportYear]) {
+    if (!bvaHideActuals && bvaData && bvaData.notes && bvaData.notes[bvaReportYear]) {
       directorsNote = String(bvaData.notes[bvaReportYear]).trim();
     }
     if (directorsNote) {
@@ -4396,6 +4397,13 @@
     renderBVAReport();
     if (overlay) overlay.scrollTop = scrollTop;
     bvaUpdateCollapseBtn();
+    // If user just opened the Directors' Note, scroll the overlay to the bottom
+    // so the expanded note is visible without manual scrolling.
+    if (k === '__directorsNote' && bvaOpenGroups[k] && overlay) {
+      setTimeout(function() {
+        overlay.scrollTo({ top: overlay.scrollHeight, behavior: 'smooth' });
+      }, 50);
+    }
   }
 
   function bvaUpdateCollapseBtn() {
