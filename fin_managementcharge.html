@@ -370,6 +370,18 @@
   .month-val.owed { color: #c62828; font-weight: 600; }
   .month-val.clear { color: #2e7d32; }
   .month-val.muted { color: var(--stone); }
+  /* Credit note line — sits beneath a year row in the Annual Overview.
+     Sized one notch below .month-val (0.875 -> 0.78) so the muted/secondary
+     feel reads correctly, with a matching mobile step (0.82 -> 0.72). */
+  .credit-note {
+    padding: 0.25rem 1.5rem 0.5rem;
+    background: rgba(122,92,62,0.03);
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--mid);
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
 
   /* ── Outstanding Balances section ── */
   .ob-dot { width: 12px; height: 12px; border-radius: 50%; background: #c62828; }
@@ -499,6 +511,7 @@
     }
     .tracker-controls { padding: 0.6rem 0.75rem; }
     .month-name, .month-val { font-size: 0.82rem; }
+    .credit-note { font-size: 0.72rem; }
     .prop-name, .prop-val { font-size: 0.85rem; }
     #tracker-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     #tracker-inner .tracker-col-heads,
@@ -2099,7 +2112,7 @@
           var noteParts = targetYrs.map(function(t) {
             return fmt(targets[t]) + ' credited forward to ' + t;
           });
-          html += '<div style="padding:0.25rem 1.5rem 0.5rem;background:rgba(122,92,62,0.03);font-size:0.78rem;font-style:italic;color:var(--mid);text-align:right;border-bottom:1px solid var(--border);">' + noteParts.join(' \u00b7 ') + '</div>';
+          html += '<div class="credit-note">' + noteParts.join(' \u00b7 ') + '</div>';
         }
         if (creditsIn.length > 0) {
           var sources = {};
@@ -2110,7 +2123,7 @@
           var srcLabel = srcYrs.length === 1
             ? srcYrs[0]
             : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
-          html += '<div style="padding:0.25rem 1.5rem 0.5rem;background:rgba(122,92,62,0.03);font-size:0.78rem;font-style:italic;color:var(--mid);text-align:right;border-bottom:1px solid var(--border);">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+          html += '<div class="credit-note">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
         }
 
         html += '<div class="month-panel" id="yrmonths-' + yrKey + '" style="background:rgba(122,92,62,0.03);">';
