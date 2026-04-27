@@ -248,12 +248,15 @@
     #iet-report-overlay { overflow-x: auto; }
     #iet-report-overlay-content { min-width: 700px; }
     #iet-report-overlay > div:first-child { min-width: 700px; }
+    #statement-overlay { overflow-x: auto; }
+    #statement-overlay-content { min-width: 700px; }
+    #statement-overlay > div:first-child { min-width: 700px; }
   }
 
   @media print {
-    body > *:not(#iet-report-overlay):not(#bva-report-overlay) { display: none !important; }
-    #iet-report-overlay, #bva-report-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
-    #iet-report-overlay > div:first-child, #bva-report-overlay > div:first-child { display: none !important; }
+    body > *:not(#iet-report-overlay):not(#bva-report-overlay):not(#statement-overlay) { display: none !important; }
+    #iet-report-overlay, #bva-report-overlay, #statement-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
+    #iet-report-overlay > div:first-child, #bva-report-overlay > div:first-child, #statement-overlay > div:first-child { display: none !important; }
     .rpt-actions { display: none !important; }
     .rpt-net { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -1189,6 +1192,19 @@
   </div>
 </div>
 
+<!-- Property Statement Overlay -->
+<div id="statement-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+  <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <button id="stmt-rpt-expand-btn" onclick="stmtRptExpandAll()" style="width:170px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Expand All History</button>
+    <button id="stmt-rpt-collapse-btn" onclick="stmtRptCollapseAll()" style="display:none;width:170px;padding:0.35rem 0.8rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">&#8645; Collapse All History</button>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+      <button onclick="printReport('stmt')" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+      <button onclick="closeStatementOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#10005; Close</button>
+    </div>
+  </div>
+  <div id="statement-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+</div>
+
 <!-- I&E Report Overlay -->
 <div id="iet-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -1235,9 +1251,11 @@
   function printReport(type) {
     var origTitle = document.title;
     if (type === 'iet') {
-      document.title = 'CMC The Courtyard — Income & Expenditure ' + ietReportYear;
+      document.title = 'CMC The Courtyard \u2014 Income & Expenditure ' + ietReportYear;
+    } else if (type === 'stmt') {
+      document.title = 'CMC The Courtyard \u2014 Property Statement ' + (stmtAddr || '');
     } else {
-      document.title = 'CMC The Courtyard — Budget vs Actual ' + bvaReportYear;
+      document.title = 'CMC The Courtyard \u2014 Budget vs Actual ' + bvaReportYear;
     }
     window.print();
     document.title = origTitle;
@@ -2017,8 +2035,9 @@
       html += '</div>';
 
       html += '<div class="month-panel" id="months-' + key + '">';
-      html += '<div style="padding:0.5rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;">';
+      html += '<div style="padding:0.5rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;">';
       html += '<button id="expbtn-' + key + '" class="expand-prop-btn" style="font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:50px;border:1px solid #2e2318;background:#4a3f35;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 6px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);transition:transform 0.15s ease,box-shadow 0.15s ease;" onclick="expandAnnualProperty(\'' + key + '\', event)">Expand property history</button>';
+      html += '<button class="expand-prop-btn" style="margin-left:auto;font-size:0.82rem;font-weight:600;padding:0.45rem 1.4rem;border-radius:50px;border:1px solid #2e2318;background:#4a5e3a;color:#f5f0e8;cursor:pointer;letter-spacing:0.03em;box-shadow:0 4px 6px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);transition:transform 0.15s ease,box-shadow 0.15s ease;" onclick="event.stopPropagation();openStatementOverlay(\'' + addr + '\')">&#128196; Statement</button>';
       html += '</div>';
       html += '<div class="annual-yr-head" style="display:grid;grid-template-columns:' + annualCols + ';padding:0.4rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
       html += '<span></span>';
@@ -4561,6 +4580,291 @@
         setTimeout(function(){ m.classList.remove('rpt-meta-pulse'); }, 650);
       }
     }, 30);
+  }
+
+  /* ── PROPERTY STATEMENT OVERLAY ───────────────────────────────────────────
+   * Mirrors the BvA overlay pattern exactly:
+   *   - Full-screen overlay, sticky green top-bar, native print-to-PDF
+   *   - Expand All History / Collapse All History buttons (matching BvA's
+   *     Expand Groups / Collapse Groups behaviour)
+   *   - Each year row independently expandable/collapsible
+   *   - Whatever is expanded at print time = what appears in the PDF
+   *   - Always opens with everything collapsed (BvA pattern)
+   *   - Independent of the main Annual Overview's expand state
+   *
+   * No backend changes — uses chargeData and creditsData already in memory.
+   * Arrears/refunds and credit notes both surfaced for full transparency. */
+
+  var stmtAddr = null;       // Property currently shown in the statement overlay
+  var stmtOpenYears = {};    // { '2026': true, '2025': false, ... } — per-year expanded state
+
+  function openStatementOverlay(addr) {
+    stmtAddr = addr;
+    stmtOpenYears = {}; // Always open collapsed — matches BvA pattern
+    renderStatement();
+    var overlay = document.getElementById('statement-overlay');
+    if (overlay) {
+      overlay.style.display = 'block';
+      overlay.scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+    stmtUpdateCollapseBtn();
+  }
+
+  function closeStatementOverlay() {
+    var overlay = document.getElementById('statement-overlay');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  }
+
+  function stmtToggleYear(yr) {
+    stmtOpenYears[yr] = !stmtOpenYears[yr];
+    var overlay = document.getElementById('statement-overlay');
+    var scrollTop = overlay ? overlay.scrollTop : 0;
+    renderStatement();
+    if (overlay) overlay.scrollTop = scrollTop;
+    stmtUpdateCollapseBtn();
+  }
+
+  function stmtRptExpandAll() {
+    var years = getAvailableYears();
+    years.forEach(function(yr) {
+      if (getDue(yr)) stmtOpenYears[yr] = true;
+    });
+    var overlay = document.getElementById('statement-overlay');
+    var scrollTop = overlay ? overlay.scrollTop : 0;
+    renderStatement();
+    if (overlay) overlay.scrollTop = scrollTop;
+    stmtUpdateCollapseBtn();
+  }
+
+  function stmtRptCollapseAll() {
+    stmtOpenYears = {};
+    var overlay = document.getElementById('statement-overlay');
+    var scrollTop = overlay ? overlay.scrollTop : 0;
+    renderStatement();
+    if (overlay) overlay.scrollTop = scrollTop;
+    stmtUpdateCollapseBtn();
+  }
+
+  function stmtUpdateCollapseBtn() {
+    var anyOpen = Object.keys(stmtOpenYears).some(function(k){ return stmtOpenYears[k]; });
+    var collapseBtn = document.getElementById('stmt-rpt-collapse-btn');
+    if (collapseBtn) collapseBtn.style.display = anyOpen ? 'inline-block' : 'none';
+  }
+
+  function renderStatement() {
+    if (!stmtAddr) return;
+    var addr = stmtAddr;
+    var years = getAvailableYears(); // Most-recent-first
+    var now = new Date();
+    var generated = now.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}) +
+                    ' at ' + now.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+
+    /* Period label: from earliest year with due to most recent — shown in header */
+    var yearsWithDue = years.filter(function(yr){ return getDue(yr) > 0; }).sort();
+    var periodLabel = yearsWithDue.length === 0 ? '—'
+      : yearsWithDue.length === 1 ? String(yearsWithDue[0])
+      : yearsWithDue[0] + ' \u2013 ' + yearsWithDue[yearsWithDue.length - 1];
+
+    /* Property totals — same calculation as Annual Overview header row */
+    var propTotalDue = 0, propTotalPaid = 0;
+    years.forEach(function(yr) {
+      var due = getDue(yr); if (!due) return;
+      propTotalDue  += due;
+      propTotalPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
+    });
+    var propOut = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
+    var propOutCol = propOut > 0 ? '#c62828' : propOut < 0 ? '#7b1fa2' : '#2e7d32';
+    var propOutTxt = propOut > 0 ? fmt(propOut) :
+                     propOut < 0 ? '+' + fmt(Math.abs(propOut)) + ' overpaid' :
+                     '\u2713 Paid in full';
+
+    var h = '';
+
+    /* ── HEADER (matches BvA exactly) ── */
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #1e1a16;">';
+    h += '<div style="display:flex;align-items:center;">';
+    h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+    h += '<div style="margin-left:1rem;">';
+    h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+    h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Property Statement</div>';
+    h += '</div></div>';
+    h += '<div style="text-align:right;">';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + addr + '</div>';
+    h += '<div style="font-size:13px;color:#6b5f52;margin-top:4px;">' + periodLabel + '</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:2px;">Generated ' + generated + '</div>';
+    h += '</div></div>';
+
+    /* ── PROPERTY SUMMARY BLOCK ── */
+    h += '<div style="background:#faf7f2;border:1px solid #ede8e0;border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">';
+    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Total Due</div><div style="font-size:18px;font-weight:700;color:#1e1a16;margin-top:4px;">' + fmt(propTotalDue) + '</div></div>';
+    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Total Paid</div><div style="font-size:18px;font-weight:700;color:#2e7d32;margin-top:4px;">' + fmt(propTotalPaid) + '</div></div>';
+    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Net Outstanding</div><div style="font-size:18px;font-weight:700;color:' + propOutCol + ';margin-top:4px;">' + propOutTxt + '</div></div>';
+    h += '</div>';
+
+    /* ── ANNUAL BREAKDOWN HEADER ── */
+    h += '<div style="margin-bottom:0.5rem;font-size:14px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Annual Breakdown</div>';
+    h += '<div style="border:1px solid #ede8e0;border-radius:6px;overflow:hidden;margin-bottom:1.5rem;">';
+    h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.5rem 1rem;background:#f0ebe2;border-bottom:1px solid #ede8e0;">';
+    h += '<span></span>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;">Year</span>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Due</span>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Paid</span>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Outstanding</span>';
+    h += '<span></span></div>';
+
+    /* ── YEAR ROWS (clickable, expandable) ── */
+    years.forEach(function(yr) {
+      var due = getDue(yr); if (!due) return;
+      var payments = getPayments(addr, yr);
+      var mcPayments = payments.filter(function(p){ return !p.isArrears && !p.isRefund; });
+      var mcPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
+      var rawOutstanding = Math.round((due - mcPaid) * 100) / 100;
+
+      /* Credits — same logic as the on-screen tracker */
+      var creditsOut = getCreditsFromYear(addr, yr);
+      var creditsIn  = getCreditsToYear(addr, yr);
+      var creditsInAmt = sumCredits(creditsIn);
+      var displayOutstanding = Math.round((rawOutstanding - creditsInAmt) * 100) / 100;
+
+      var outCol = displayOutstanding > 0 ? '#c62828' :
+                   displayOutstanding < 0 ? '#7b1fa2' : '#2e7d32';
+      var outTxt = displayOutstanding > 0 ? fmt(displayOutstanding) :
+                   displayOutstanding < 0 ? '+' + fmt(Math.abs(displayOutstanding)) + ' overpaid' :
+                   '\u2713 Paid in full';
+
+      var isOpen = !!stmtOpenYears[yr];
+      var chevron = '<span style="display:inline-block;width:8px;height:8px;border-right:2px solid #6b5f52;border-bottom:2px solid #6b5f52;transform:rotate(' + (isOpen ? '45deg' : '-45deg') + ');transition:transform 0.15s;"></span>';
+
+      /* Year row — clickable */
+      h += '<div onclick="stmtToggleYear(' + yr + ')" style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.6rem 1rem;border-bottom:1px solid #ede8e0;cursor:pointer;align-items:center;background:' + (isOpen ? '#faf7f2' : '#fff') + ';">';
+      h += '<span></span>';
+      h += '<span style="font-size:14px;font-weight:600;color:#1e1a16;">' + yr + '</span>';
+      h += '<span style="text-align:right;font-size:14px;color:#6b5f52;">' + fmt(due) + '</span>';
+      h += '<span style="text-align:right;font-size:14px;color:#2e7d32;font-weight:600;">' + (mcPaid > 0 ? fmt(mcPaid) : '—') + '</span>';
+      h += '<span style="text-align:right;font-size:14px;color:' + outCol + ';font-weight:600;">' + outTxt + '</span>';
+      h += '<span style="display:flex;align-items:center;justify-content:center;">' + chevron + '</span>';
+      h += '</div>';
+
+      /* Credit notes — italic muted, same as on-screen tracker */
+      if (creditsOut.length > 0) {
+        var targets = {};
+        creditsOut.forEach(function(c) {
+          targets[c.targetYear] = (targets[c.targetYear] || 0) + c.amount;
+        });
+        var targetYrs = Object.keys(targets).sort();
+        var noteParts = targetYrs.map(function(t) {
+          return fmt(targets[t]) + ' credited forward to ' + t;
+        });
+        h += '<div style="padding:0.3rem 1rem 0.5rem;background:#faf7f2;font-size:12px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">' + noteParts.join(' \u00b7 ') + '</div>';
+      }
+      if (creditsIn.length > 0) {
+        var sources = {};
+        creditsIn.forEach(function(c) {
+          sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
+        });
+        var srcYrs = Object.keys(sources).sort();
+        var srcLabel = srcYrs.length === 1 ? srcYrs[0]
+                     : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
+        h += '<div style="padding:0.3rem 1rem 0.5rem;background:#faf7f2;font-size:12px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+      }
+
+      /* Monthly breakdown — only when this year is expanded */
+      if (isOpen) {
+        h += '<div style="background:#faf7f2;border-bottom:1px solid #ede8e0;padding:0.5rem 1rem 0.75rem;">';
+        h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;margin-bottom:0.4rem;padding-left:0.25rem;">Monthly Detail \u2014 ' + yr + '</div>';
+        h += '<div style="background:#fff;border:1px solid #ede8e0;border-radius:4px;overflow:hidden;">';
+
+        var dueMonthly = due / 12;
+        var isCurrentYear = (yr === currentYear);
+
+        MONTHS.forEach(function(mName, mi) {
+          if (isCurrentYear && mi > currentMonth) return;
+          var mPayments = payments.filter(function(p){ return p.month === mi + 1 && !p.isArrears && !p.isRefund; });
+          var mPaid = mPayments.reduce(function(s,p){ return s+p.amount; }, 0);
+
+          h += '<div style="display:grid;grid-template-columns:80px 1fr 130px;padding:0.35rem 0.75rem;border-bottom:1px solid #f0ebe2;align-items:center;">';
+          h += '<span style="font-size:13px;color:#6b5f52;font-weight:600;">' + mName + '</span>';
+          h += '<span></span>';
+          h += '<span style="text-align:right;font-size:13px;color:' + (mPaid > 0 ? '#2e7d32' : '#bcb09e') + ';font-weight:' + (mPaid > 0 ? '600' : '400') + ';">' + (mPaid > 0 ? fmt(mPaid) : '\u2014') + '</span>';
+          h += '</div>';
+
+          /* Show individual payment dates inline if more than one this month */
+          if (mPayments.length > 0) {
+            mPayments.forEach(function(p) {
+              h += '<div style="display:grid;grid-template-columns:80px 1fr 130px;padding:0.2rem 0.75rem 0.2rem 1.5rem;border-bottom:1px solid #f5f0e8;background:#faf7f2;align-items:center;">';
+              h += '<span></span>';
+              h += '<span style="font-size:11px;color:#9a8a75;font-style:italic;">' + fmtDate(p.date) + '</span>';
+              h += '<span style="text-align:right;font-size:11px;color:#9a8a75;">' + fmt(p.amount) + '</span>';
+              h += '</div>';
+            });
+          }
+        });
+
+        h += '</div></div>';
+      }
+    });
+
+    /* ── PROPERTY TOTAL ROW ── */
+    h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.7rem 1rem;background:#f0ebe2;border-top:2px solid #6b5f52;">';
+    h += '<span></span>';
+    h += '<span style="font-size:13px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:11px;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
+    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:#4a3f35;">' + fmt(propTotalDue) + '</span>';
+    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
+    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:' + propOutCol + ';">' + propOutTxt + '</span>';
+    h += '<span></span></div>';
+    h += '</div>'; /* close annual-breakdown wrapper */
+
+    /* ── ARREARS & REFUNDS SECTION (always shown if any exist) ── */
+    var allPayments = [];
+    years.forEach(function(yr){ allPayments = allPayments.concat(getPayments(addr, yr)); });
+    var arrearsAll = allPayments.filter(function(p){ return p.isArrears; });
+    var refundsAll = allPayments.filter(function(p){ return p.isRefund; });
+
+    if (arrearsAll.length > 0 || refundsAll.length > 0) {
+      h += '<div style="margin-bottom:0.5rem;font-size:14px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Arrears &amp; Adjustments</div>';
+      h += '<div style="border:1px solid #ede8e0;border-radius:6px;overflow:hidden;margin-bottom:1.5rem;">';
+      h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.5rem 1rem;background:#f0ebe2;border-bottom:1px solid #ede8e0;">';
+      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;">Date</span>';
+      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Amount</span>';
+      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;padding-left:12px;">Category</span>';
+      h += '</div>';
+
+      arrearsAll.forEach(function(p) {
+        h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.45rem 1rem;border-bottom:1px solid #ede8e0;align-items:start;">';
+        h += '<span style="font-size:13px;color:#6b5f52;">' + fmtDate(p.date) + ' <span style="font-size:11px;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;margin-left:4px;">Arrears</span>' + (p.notes ? '<span style="color:#8a7a65;"> \u2014 ' + p.notes + '</span>' : '') + '</span>';
+        h += '<span style="text-align:right;font-size:13px;font-weight:500;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
+        h += '<span style="padding-left:12px;font-size:12px;color:#8a7a65;font-style:italic;">Management Charge \u2013 Arrears</span>';
+        h += '</div>';
+      });
+
+      refundsAll.forEach(function(p) {
+        h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.45rem 1rem;border-bottom:1px solid #ede8e0;align-items:start;background:rgba(229,57,53,0.03);">';
+        h += '<span style="font-size:13px;color:#6b5f52;">' + fmtDate(p.date) + '</span>';
+        h += '<span style="text-align:right;font-size:13px;font-weight:500;color:#c62828;">' + fmt(p.amount) + '</span>';
+        h += '<span style="padding-left:12px;"><span style="font-size:12px;color:#8a7a65;font-style:italic;">Management Charge Refund Overpayment</span>' + (p.notes ? '<br><span style="font-size:11px;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
+        h += '</div>';
+      });
+
+      var netArrears = arrearsAll.reduce(function(s,p){ return s+p.amount; }, 0) +
+                       refundsAll.reduce(function(s,p){ return s+p.amount; }, 0);
+      var netCol = netArrears >= 0 ? '#2e7d32' : '#c62828';
+      h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.5rem 1rem;background:#f0ebe2;">';
+      h += '<span style="font-size:13px;font-weight:600;color:#4a3f35;">Net arrears &amp; adjustments</span>';
+      h += '<span style="text-align:right;font-size:13px;font-weight:600;color:' + netCol + ';">' + (netArrears >= 0 ? '+' : '') + fmt(netArrears) + '</span>';
+      h += '<span></span></div>';
+      h += '</div>';
+    }
+
+    /* ── FOOTER ── */
+    h += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #ede8e0;text-align:center;font-size:11px;color:#9e8e7e;letter-spacing:0.04em;">';
+    h += 'Generated ' + generated + ' \u00b7 CMC The Courtyard Resident Portal';
+    h += '</div>';
+
+    document.getElementById('statement-overlay-content').innerHTML = h;
   }
 
   loadData();
