@@ -4685,7 +4685,7 @@
     var h = '';
 
     /* ── HEADER (matches BvA exactly) ── */
-    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #1e1a16;">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
     h += '<div style="display:flex;align-items:center;">';
     h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
     h += '<div style="margin-left:1rem;">';
@@ -4694,29 +4694,21 @@
     h += '</div></div>';
     h += '<div style="text-align:right;">';
     h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + addr + '</div>';
-    h += '<div style="font-size:13px;color:#6b5f52;margin-top:4px;">' + periodLabel + '</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">' + periodLabel + '</div>';
     h += '<div style="font-size:12px;color:#9e8e7e;margin-top:2px;">Generated ' + generated + '</div>';
     h += '</div></div>';
 
-    /* ── PROPERTY SUMMARY BLOCK ── */
+    /* ── PROPERTY SUMMARY BLOCK ── BVA col-head labels (12px / 0.12em) + 22px figures */
     h += '<div style="background:#faf7f2;border:1px solid #ede8e0;border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">';
-    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Total Due</div><div style="font-size:18px;font-weight:700;color:#1e1a16;margin-top:4px;">' + fmt(propTotalDue) + '</div></div>';
-    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Total Paid</div><div style="font-size:18px;font-weight:700;color:#2e7d32;margin-top:4px;">' + fmt(propTotalPaid) + '</div></div>';
-    h += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#6b5f52;font-weight:700;">Net Outstanding</div><div style="font-size:18px;font-weight:700;color:' + propOutCol + ';margin-top:4px;">' + propOutTxt + '</div></div>';
+    h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Total Due</div><div style="font-size:22px;font-weight:700;color:#1e1a16;margin-top:6px;">' + fmt(propTotalDue) + '</div></div>';
+    h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Total Paid</div><div style="font-size:22px;font-weight:700;color:#2e7d32;margin-top:6px;">' + fmt(propTotalPaid) + '</div></div>';
+    h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Net Outstanding</div><div style="font-size:22px;font-weight:700;color:' + propOutCol + ';margin-top:6px;">' + propOutTxt + '</div></div>';
     h += '</div>';
 
-    /* ── ANNUAL BREAKDOWN HEADER ── */
-    h += '<div style="margin-bottom:0.5rem;font-size:14px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Annual Breakdown</div>';
-    h += '<div style="border:1px solid #ede8e0;border-radius:6px;overflow:hidden;margin-bottom:1.5rem;">';
-    h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.5rem 1rem;background:#f0ebe2;border-bottom:1px solid #ede8e0;">';
-    h += '<span></span>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;">Year</span>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Due</span>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Paid</span>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Outstanding</span>';
-    h += '<span></span></div>';
+    /* ── ANNUAL BREAKDOWN ── card-per-year layout (no outer table wrapper) */
+    h += '<div style="margin-bottom:0.75rem;font-size:12px;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.12em;">Annual Breakdown</div>';
 
-    /* ── YEAR ROWS (clickable, expandable) ── */
+    /* ── YEAR CARDS ── each year is a self-contained card with its own column header */
     years.forEach(function(yr) {
       var due = getDue(yr); if (!due) return;
       var payments = getPayments(addr, yr);
@@ -4737,20 +4729,37 @@
                    '\u2713 Paid in full';
 
       var isOpen = !!stmtOpenYears[yr];
-      var chevron = '<span style="display:inline-block;width:8px;height:8px;border-right:2px solid #6b5f52;border-bottom:2px solid #6b5f52;transform:rotate(' + (isOpen ? '45deg' : '-45deg') + ');transition:transform 0.15s;"></span>';
+      /* BVA-style triangle chevron — solid left-facing triangle, rotates 90° on open */
+      var chevron = '<span style="display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #b8ad9e;transition:transform 0.2s;flex-shrink:0;' + (isOpen ? 'transform:rotate(90deg);' : '') + '"></span>';
 
-      /* Year row — clickable */
-      h += '<div onclick="stmtToggleYear(' + yr + ')" style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.6rem 1rem;border-bottom:1px solid #ede8e0;cursor:pointer;align-items:center;background:' + (isOpen ? '#faf7f2' : '#fff') + ';">';
+      /* Card wrapper — slim by default, lifted heavier border + bigger shadow when expanded */
+      var cardStyle = isOpen
+        ? 'background:#fff;border:1.5px solid #7a5c3e;border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 4px rgba(74,63,53,0.10),0 8px 18px rgba(74,63,53,0.18);'
+        : 'background:#fff;border:1px solid #d4c8b6;border-radius:8px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 2px rgba(74,63,53,0.08),0 4px 10px rgba(74,63,53,0.12);';
+      h += '<div style="' + cardStyle + '">';
+
+      /* Inner column header — every card carries its own */
+      h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px;padding:8px 1rem;background:#f5f0e8;border-bottom:1px solid #d4c8b6;">';
       h += '<span></span>';
-      h += '<span style="font-size:14px;font-weight:600;color:#1e1a16;">' + yr + '</span>';
-      h += '<span style="text-align:right;font-size:14px;color:#6b5f52;">' + fmt(due) + '</span>';
-      h += '<span style="text-align:right;font-size:14px;color:#2e7d32;font-weight:600;">' + (mcPaid > 0 ? fmt(mcPaid) : '—') + '</span>';
-      h += '<span style="text-align:right;font-size:14px;color:' + outCol + ';font-weight:600;">' + outTxt + '</span>';
-      h += '<span style="display:flex;align-items:center;justify-content:center;">' + chevron + '</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;">Year</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;text-align:right;">Due</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;text-align:right;">Paid</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;text-align:right;">Outstanding</span>';
       h += '</div>';
 
-      /* Credit notes — italic muted, same as on-screen tracker */
-      if (creditsOut.length > 0) {
+      /* Year row — clickable, chevron on LEFT */
+      var rowBg = isOpen ? '#faf7f2' : '#fff';
+      var rowBorder = isOpen ? 'border-bottom:1px solid #ede8e0;' : '';
+      h += '<div onclick="stmtToggleYear(' + yr + ')" style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px;padding:14px 1rem;cursor:pointer;align-items:center;background:' + rowBg + ';' + rowBorder + '">';
+      h += '<span style="display:flex;align-items:center;justify-content:flex-start;padding-left:4px;">' + chevron + '</span>';
+      h += '<span style="font-size:17px;font-weight:700;color:#7a5c3e;">' + yr + '</span>';
+      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#9e8e7e;">' + fmt(due) + '</span>';
+      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#2e7d32;">' + (mcPaid > 0 ? fmt(mcPaid) : '\u2014') + '</span>';
+      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:' + outCol + ';">' + outTxt + '</span>';
+      h += '</div>';
+
+      /* Credit notes — italic muted (only render inside an expanded card) */
+      if (isOpen && creditsOut.length > 0) {
         var targets = {};
         creditsOut.forEach(function(c) {
           targets[c.targetYear] = (targets[c.targetYear] || 0) + c.amount;
@@ -4759,9 +4768,9 @@
         var noteParts = targetYrs.map(function(t) {
           return fmt(targets[t]) + ' credited forward to ' + t;
         });
-        h += '<div style="padding:0.3rem 1rem 0.5rem;background:#faf7f2;font-size:12px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">' + noteParts.join(' \u00b7 ') + '</div>';
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">' + noteParts.join(' \u00b7 ') + '</div>';
       }
-      if (creditsIn.length > 0) {
+      if (isOpen && creditsIn.length > 0) {
         var sources = {};
         creditsIn.forEach(function(c) {
           sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
@@ -4769,36 +4778,65 @@
         var srcYrs = Object.keys(sources).sort();
         var srcLabel = srcYrs.length === 1 ? srcYrs[0]
                      : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
-        h += '<div style="padding:0.3rem 1rem 0.5rem;background:#faf7f2;font-size:12px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+      }
+      /* When collapsed, surface the credit notes more compactly so the slim card still tells the story */
+      if (!isOpen && (creditsOut.length > 0 || creditsIn.length > 0)) {
+        var compactParts = [];
+        if (creditsOut.length > 0) {
+          var t2 = {};
+          creditsOut.forEach(function(c){ t2[c.targetYear] = (t2[c.targetYear]||0) + c.amount; });
+          Object.keys(t2).sort().forEach(function(y){ compactParts.push(fmt(t2[y]) + ' credited forward to ' + y); });
+        }
+        if (creditsIn.length > 0) {
+          var s2 = {};
+          creditsIn.forEach(function(c){ s2[c.sourceYear] = (s2[c.sourceYear]||0) + c.amount; });
+          var sYrs = Object.keys(s2).sort();
+          var sLabel = sYrs.length === 1 ? sYrs[0] : sYrs[0] + '\u2013' + sYrs[sYrs.length-1];
+          compactParts.push('includes ' + fmt(creditsInAmt) + ' credit from ' + sLabel);
+        }
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-top:1px solid #f0ebe2;">' + compactParts.join(' \u00b7 ') + '</div>';
       }
 
       /* Monthly breakdown — only when this year is expanded */
       if (isOpen) {
-        h += '<div style="background:#faf7f2;border-bottom:1px solid #ede8e0;padding:0.5rem 1rem 0.75rem;">';
-        h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;margin-bottom:0.4rem;padding-left:0.25rem;">Monthly Detail \u2014 ' + yr + '</div>';
+        h += '<div style="background:#faf7f2;padding:12px 1rem 14px 2.5rem;">';
+        h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;margin-bottom:8px;">Monthly Detail \u2014 ' + yr + '</div>';
         h += '<div style="background:#fff;border:1px solid #ede8e0;border-radius:4px;overflow:hidden;">';
 
-        var dueMonthly = due / 12;
         var isCurrentYear = (yr === currentYear);
 
         MONTHS.forEach(function(mName, mi) {
           if (isCurrentYear && mi > currentMonth) return;
           var mPayments = payments.filter(function(p){ return p.month === mi + 1 && !p.isArrears && !p.isRefund; });
           var mPaid = mPayments.reduce(function(s,p){ return s+p.amount; }, 0);
+          var hasMultiple = mPayments.length > 1;
+          var hasSingle   = mPayments.length === 1;
 
-          h += '<div style="display:grid;grid-template-columns:80px 1fr 130px;padding:0.35rem 0.75rem;border-bottom:1px solid #f0ebe2;align-items:center;">';
-          h += '<span style="font-size:13px;color:#6b5f52;font-weight:600;">' + mName + '</span>';
-          h += '<span></span>';
-          h += '<span style="text-align:right;font-size:13px;color:' + (mPaid > 0 ? '#2e7d32' : '#bcb09e') + ';font-weight:' + (mPaid > 0 ? '600' : '400') + ';">' + (mPaid > 0 ? fmt(mPaid) : '\u2014') + '</span>';
+          /* Month row — Option A:
+             • 0 payments → name + em-dash
+             • 1 payment  → name + date + amount on a single line
+             • 2+         → name + (blank date) + total; sub-rows itemise below */
+          var dateCol = '';
+          if (hasSingle) dateCol = '<span style="font-size:14px;color:#9a8a75;font-style:italic;">' + fmtDate(mPayments[0].date) + '</span>';
+          else dateCol = '<span></span>';
+
+          /* If multi-payment, drop the bottom border on the month row so the sub-rows visually attach */
+          var monthRowBorder = hasMultiple ? '' : 'border-bottom:1px solid #f0ebe2;';
+          h += '<div style="display:grid;grid-template-columns:90px 1fr 130px;padding:8px 12px;' + monthRowBorder + 'align-items:center;">';
+          h += '<span style="font-size:16px;color:#333;font-weight:600;">' + mName + '</span>';
+          h += dateCol;
+          h += '<span style="text-align:right;font-size:16px;color:' + (mPaid > 0 ? '#2e7d32' : '#bcb09e') + ';font-weight:' + (mPaid > 0 ? '600' : '400') + ';">' + (mPaid > 0 ? fmt(mPaid) : '\u2014') + '</span>';
           h += '</div>';
 
-          /* Show individual payment dates inline if more than one this month */
-          if (mPayments.length > 0) {
-            mPayments.forEach(function(p) {
-              h += '<div style="display:grid;grid-template-columns:80px 1fr 130px;padding:0.2rem 0.75rem 0.2rem 1.5rem;border-bottom:1px solid #f5f0e8;background:#faf7f2;align-items:center;">';
+          /* Sub-rows — only when there are 2+ payments */
+          if (hasMultiple) {
+            mPayments.forEach(function(p, idx) {
+              var subBorder = (idx === mPayments.length - 1) ? 'border-bottom:1px solid #f0ebe2;' : 'border-bottom:1px solid #f5f0e8;';
+              h += '<div style="display:grid;grid-template-columns:90px 1fr 130px;padding:6px 12px 6px 28px;' + subBorder + 'align-items:center;">';
               h += '<span></span>';
-              h += '<span style="font-size:11px;color:#9a8a75;font-style:italic;">' + fmtDate(p.date) + '</span>';
-              h += '<span style="text-align:right;font-size:11px;color:#9a8a75;">' + fmt(p.amount) + '</span>';
+              h += '<span style="font-size:14px;color:#9a8a75;font-style:italic;">' + fmtDate(p.date) + '</span>';
+              h += '<span style="text-align:right;font-size:14px;color:#2e7d32;font-weight:500;">' + fmt(p.amount) + '</span>';
               h += '</div>';
             });
           }
@@ -4806,17 +4844,18 @@
 
         h += '</div></div>';
       }
+
+      h += '</div>'; /* close year-card */
     });
 
-    /* ── PROPERTY TOTAL ROW ── */
-    h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px 30px;padding:0.7rem 1rem;background:#f0ebe2;border-top:2px solid #6b5f52;">';
+    /* ── PROPERTY TOTAL CARD ── separate filled card sat below the stack */
+    h += '<div style="display:grid;grid-template-columns:30px 1fr 130px 130px 170px;padding:14px 1rem;background:#f0ebe2;border:1.5px solid #b8ad9e;border-radius:8px;align-items:center;margin-top:8px;margin-bottom:1.5rem;box-shadow:0 1px 2px rgba(74,63,53,0.08),0 4px 10px rgba(74,63,53,0.10);">';
     h += '<span></span>';
-    h += '<span style="font-size:13px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Total <span style="font-size:11px;font-weight:400;font-style:italic;text-transform:none;">net outstanding</span></span>';
-    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:#4a3f35;">' + fmt(propTotalDue) + '</span>';
-    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
-    h += '<span style="text-align:right;font-size:14px;font-weight:700;color:' + propOutCol + ';">' + propOutTxt + '</span>';
-    h += '<span></span></div>';
-    h += '</div>'; /* close annual-breakdown wrapper */
+    h += '<span style="font-size:17px;font-weight:700;color:#4a3f35;">Total <span style="font-size:13px;font-weight:400;font-style:italic;color:#6b5f52;">net outstanding</span></span>';
+    h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#9e8e7e;">' + fmt(propTotalDue) + '</span>';
+    h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
+    h += '<span style="text-align:right;font-size:17px;font-weight:700;color:' + propOutCol + ';">' + propOutTxt + '</span>';
+    h += '</div>';
 
     /* ── ARREARS & REFUNDS SECTION (always shown if any exist) ── */
     var allPayments = [];
@@ -4825,36 +4864,36 @@
     var refundsAll = allPayments.filter(function(p){ return p.isRefund; });
 
     if (arrearsAll.length > 0 || refundsAll.length > 0) {
-      h += '<div style="margin-bottom:0.5rem;font-size:14px;font-weight:700;color:#4a3f35;text-transform:uppercase;letter-spacing:0.05em;">Arrears &amp; Adjustments</div>';
+      h += '<div style="margin-bottom:0.5rem;font-size:12px;font-weight:700;color:#6b5f52;text-transform:uppercase;letter-spacing:0.12em;">Arrears &amp; Adjustments</div>';
       h += '<div style="border:1px solid #ede8e0;border-radius:6px;overflow:hidden;margin-bottom:1.5rem;">';
-      h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.5rem 1rem;background:#f0ebe2;border-bottom:1px solid #ede8e0;">';
-      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;">Date</span>';
-      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;text-align:right;">Amount</span>';
-      h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b5f52;padding-left:12px;">Category</span>';
+      h += '<div style="display:grid;grid-template-columns:1fr 130px 220px;padding:0.5rem 1rem;background:#f0ebe2;border-bottom:1px solid #ede8e0;">';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;">Date</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;text-align:right;">Amount</span>';
+      h += '<span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;padding-left:12px;">Category</span>';
       h += '</div>';
 
       arrearsAll.forEach(function(p) {
-        h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.45rem 1rem;border-bottom:1px solid #ede8e0;align-items:start;">';
-        h += '<span style="font-size:13px;color:#6b5f52;">' + fmtDate(p.date) + ' <span style="font-size:11px;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;margin-left:4px;">Arrears</span>' + (p.notes ? '<span style="color:#8a7a65;"> \u2014 ' + p.notes + '</span>' : '') + '</span>';
-        h += '<span style="text-align:right;font-size:13px;font-weight:500;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
-        h += '<span style="padding-left:12px;font-size:12px;color:#8a7a65;font-style:italic;">Management Charge \u2013 Arrears</span>';
+        h += '<div style="display:grid;grid-template-columns:1fr 130px 220px;padding:9px 1rem;border-bottom:1px solid #ede8e0;align-items:start;">';
+        h += '<span style="font-size:16px;color:#333;">' + fmtDate(p.date) + ' <span style="font-size:11px;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;margin-left:4px;">Arrears</span>' + (p.notes ? '<span style="color:#8a7a65;font-size:14px;"> \u2014 ' + p.notes + '</span>' : '') + '</span>';
+        h += '<span style="text-align:right;font-size:16px;font-weight:600;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
+        h += '<span style="padding-left:12px;font-size:14px;color:#8a7a65;font-style:italic;">Management Charge \u2013 Arrears</span>';
         h += '</div>';
       });
 
       refundsAll.forEach(function(p) {
-        h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.45rem 1rem;border-bottom:1px solid #ede8e0;align-items:start;background:rgba(229,57,53,0.03);">';
-        h += '<span style="font-size:13px;color:#6b5f52;">' + fmtDate(p.date) + '</span>';
-        h += '<span style="text-align:right;font-size:13px;font-weight:500;color:#c62828;">' + fmt(p.amount) + '</span>';
-        h += '<span style="padding-left:12px;"><span style="font-size:12px;color:#8a7a65;font-style:italic;">Management Charge Refund Overpayment</span>' + (p.notes ? '<br><span style="font-size:11px;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
+        h += '<div style="display:grid;grid-template-columns:1fr 130px 220px;padding:9px 1rem;border-bottom:1px solid #ede8e0;align-items:start;background:rgba(229,57,53,0.03);">';
+        h += '<span style="font-size:16px;color:#333;">' + fmtDate(p.date) + '</span>';
+        h += '<span style="text-align:right;font-size:16px;font-weight:600;color:#c62828;">' + fmt(p.amount) + '</span>';
+        h += '<span style="padding-left:12px;"><span style="font-size:14px;color:#8a7a65;font-style:italic;">Management Charge Refund Overpayment</span>' + (p.notes ? '<br><span style="font-size:13px;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
         h += '</div>';
       });
 
       var netArrears = arrearsAll.reduce(function(s,p){ return s+p.amount; }, 0) +
                        refundsAll.reduce(function(s,p){ return s+p.amount; }, 0);
       var netCol = netArrears >= 0 ? '#2e7d32' : '#c62828';
-      h += '<div style="display:grid;grid-template-columns:1fr 130px 200px;padding:0.5rem 1rem;background:#f0ebe2;">';
-      h += '<span style="font-size:13px;font-weight:600;color:#4a3f35;">Net arrears &amp; adjustments</span>';
-      h += '<span style="text-align:right;font-size:13px;font-weight:600;color:' + netCol + ';">' + (netArrears >= 0 ? '+' : '') + fmt(netArrears) + '</span>';
+      h += '<div style="display:grid;grid-template-columns:1fr 130px 220px;padding:10px 1rem;background:#f0ebe2;border-top:2px solid #b8ad9e;">';
+      h += '<span style="font-size:17px;font-weight:700;color:#4a3f35;">Net arrears &amp; adjustments</span>';
+      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:' + netCol + ';">' + (netArrears >= 0 ? '+' : '') + fmt(netArrears) + '</span>';
       h += '<span></span></div>';
       h += '</div>';
     }
