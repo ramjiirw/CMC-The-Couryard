@@ -1452,7 +1452,10 @@
     var expected = monthlyAmt * monthsElapsed;
     var mcPayments = getPayments(address, year).filter(function(p) { return !p.isArrears; });
     var mcPaid = mcPayments.reduce(function(s, p) { return s + p.amount; }, 0);
-    return mcPaid >= expected;
+    /* Credits forwarded INTO this year count toward proration — once credited,
+     * the property is paying for this year using last year's overpayment. */
+    var creditsIn = sumCredits(getCreditsToYear(address, year));
+    return (mcPaid + creditsIn) >= expected;
   }
 
   function getAvailableYears() {
@@ -1512,9 +1515,14 @@
                         .filter(function(p){ return !p.isArrears && !p.isRefund; })
                         .reduce(function(s,p){ return s + p.amount; }, 0);
       // Current-year shortfall (monthly proration)
+      // Credits forwarded into the current year count as paid for proration —
+      // they cover the shortfall just like cash would. Cash-truth (curMcPaid)
+      // is kept separate because the prev-years calc below relies on it.
+      var curCreditsIn = sumCredits(getCreditsToYear(addr, currentYear));
+      var curMcPaidWithCredits = curMcPaid + curCreditsIn;
       if (curDue > 0) {
         var curExpected = (curDue / 12) * (currentMonth + 1);
-        var curShortfall = Math.round((curExpected - curMcPaid) * 100) / 100;
+        var curShortfall = Math.round((curExpected - curMcPaidWithCredits) * 100) / 100;
         if (curShortfall > 0) {
           lines.push({
             charge: 'Management Charge',
@@ -2158,7 +2166,11 @@
       /* Current year outstanding — MC only */
       var curDue = getDue(currentYear) || 0;
       var curMcPaid = getPayments(addr, currentYear).filter(function(p){ return !p.isArrears && !p.isRefund; }).reduce(function(s,p){ return s+p.amount; }, 0);
-      grandCurOut += Math.max(0, curDue - curMcPaid);
+      /* Credits forwarded INTO the current year reduce its outstanding — they're
+       * already covered by overpayment from a prior year. Cash-truth curMcPaid
+       * stays separate for the prev-years calc below. */
+      var curCreditsIn = sumCredits(getCreditsToYear(addr, currentYear));
+      grandCurOut += Math.max(0, curDue - curMcPaid - curCreditsIn);
       /* Previous years outstanding — all payments vs prev due */
       var pDue = 0;
       prevYearsForGrand.forEach(function(yr) {
@@ -2202,11 +2214,16 @@
       if (!isOnTrack(addr, currentYear)) {
         var due = getDue(currentYear);
         var mcPaid = getPayments(addr, currentYear).filter(function(p){ return !p.isArrears && !p.isRefund; }).reduce(function(s,p){ return s+p.amount; }, 0);
+        /* Credits forwarded into current year count as paid — same rule as
+         * isOnTrack. The displayed "Paid to date" includes the credit, and
+         * the shortfall is calculated against that combined figure. */
+        var creditsIn = sumCredits(getCreditsToYear(addr, currentYear));
+        var paidWithCredits = mcPaid + creditsIn;
         var monthlyAmt = due / 12;
         var monthsElapsed = currentMonth + 1;
         var expected = monthlyAmt * monthsElapsed;
-        var shortfall = expected - mcPaid;
-        if (shortfall > 0) curYearBehind.push({ addr: addr, paid: mcPaid, expected: expected, shortfall: shortfall });
+        var shortfall = expected - paidWithCredits;
+        if (shortfall > 0) curYearBehind.push({ addr: addr, paid: paidWithCredits, expected: expected, shortfall: shortfall });
       }
     });
 
