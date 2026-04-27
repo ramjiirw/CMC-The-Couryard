@@ -1274,6 +1274,7 @@
   var activeYear = currentYear;
   var allExpandedState = false;
   var chargeData = null;
+  var creditsData = null;
 
   var finSummaryData = null;
 
@@ -1297,6 +1298,11 @@
       var json = bundle.managementCharges;
       if (!json || json.status !== 'ok') throw new Error(json && json.message || 'Error from script');
       chargeData = json;
+      // Credits sit alongside management charges — same bundle, same render pass.
+      // If the bundle didn't include credits (older code.gs), fall back to empty list.
+      creditsData = (bundle.credits && bundle.credits.status === 'ok' && bundle.credits.credits)
+        ? bundle.credits.credits
+        : [];
       document.getElementById('toggle-tracker').classList.remove('btn-loading');
       document.getElementById('toggle-annual').classList.remove('btn-loading');
       renderTracker();
@@ -1410,6 +1416,31 @@
     return chargeData.payments.filter(function(p) {
       return p.address === address && p.year === year;
     });
+  }
+
+  /* ── CREDITS HELPERS ──────────────────────────────────────────────────────
+   * cmccredits records overpayments that have been formally credited forward.
+   * cmcfinances stays the cash truth; credits only adjust per-year attribution.
+   * The property net total never changes — credits just shift outstanding from
+   * one year row to another. */
+  function getCreditsFromYear(address, sourceYear) {
+    // Credits this property pushed OUT of sourceYear (overpayment forwarded).
+    if (!creditsData || !creditsData.length) return [];
+    return creditsData.filter(function(c) {
+      return c.address === address && c.sourceYear === sourceYear;
+    });
+  }
+
+  function getCreditsToYear(address, targetYear) {
+    // Credits this property received INTO targetYear (reduces outstanding).
+    if (!creditsData || !creditsData.length) return [];
+    return creditsData.filter(function(c) {
+      return c.address === address && c.targetYear === targetYear;
+    });
+  }
+
+  function sumCredits(rows) {
+    return rows.reduce(function(s, c) { return s + (c.amount || 0); }, 0);
   }
 
   function isOnTrack(address, year) {
@@ -1994,7 +2025,20 @@
         var payments = getPayments(addr, yr);
         var mcPayments = payments.filter(function(p){ return !p.isArrears && !p.isRefund; });
         var mcPaid = mcPayments.reduce(function(s,p){ return s+p.amount; }, 0);
-        var outstanding = Math.round((due - mcPaid) * 100) / 100;
+        var rawOutstanding = Math.round((due - mcPaid) * 100) / 100;
+
+        /* ── Credits attribution (cmccredits) ──────────────────────────────
+         * - Credits OUT of this year (overpayment forwarded): show note,
+         *   leave the +£X overpaid figure unchanged (truth preserved).
+         * - Credits INTO this year (overpayment received from elsewhere):
+         *   reduce the displayed outstanding by the credit, show note.
+         * Net property total is unaffected — credits only shift attribution. */
+        var creditsOut = getCreditsFromYear(addr, yr);
+        var creditsIn  = getCreditsToYear(addr, yr);
+        var creditsInAmt  = sumCredits(creditsIn);
+        var displayOutstanding = Math.round((rawOutstanding - creditsInAmt) * 100) / 100;
+
+        var outstanding = displayOutstanding;
         var dotC  = (mcPaid === 0 && due > 0) ? 'dot-red' : outstanding > 0 ? 'dot-amber' : 'dot-green';
         var outC  = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
         var outT  = outstanding > 0 ? fmt(outstanding) : outstanding < 0 ? '+'+fmt(Math.abs(outstanding))+' overpaid' : '\u2713 Paid in full';
@@ -2013,6 +2057,34 @@
         html += '<span class="month-val ' + outC + '" style="text-align:right;">' + outT + yrPillHtml + '</span>';
         html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + yrKey + '"></span></span>';
         html += '</div>';
+
+        /* Credit note line — sits just below the year row, italic muted style.
+         * One row will only ever have credits-out OR credits-in (a year can't
+         * be both source and target in adjacent-pair model), but we handle
+         * both for safety. The note is a plain block (not a grid child) — it
+         * sits between the month-row above and the month-panel collapse below. */
+        if (creditsOut.length > 0) {
+          var targets = {};
+          creditsOut.forEach(function(c) {
+            targets[c.targetYear] = (targets[c.targetYear] || 0) + c.amount;
+          });
+          var targetYrs = Object.keys(targets).sort();
+          var noteParts = targetYrs.map(function(t) {
+            return fmt(targets[t]) + ' credited forward to ' + t;
+          });
+          html += '<div style="padding:0.25rem 1.5rem 0.5rem;background:rgba(122,92,62,0.03);font-size:0.78rem;font-style:italic;color:var(--mid);text-align:right;border-bottom:1px solid var(--border);">' + noteParts.join(' \u00b7 ') + '</div>';
+        }
+        if (creditsIn.length > 0) {
+          var sources = {};
+          creditsIn.forEach(function(c) {
+            sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
+          });
+          var srcYrs = Object.keys(sources).sort();
+          var srcLabel = srcYrs.length === 1
+            ? srcYrs[0]
+            : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
+          html += '<div style="padding:0.25rem 1.5rem 0.5rem;background:rgba(122,92,62,0.03);font-size:0.78rem;font-style:italic;color:var(--mid);text-align:right;border-bottom:1px solid var(--border);">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+        }
 
         html += '<div class="month-panel" id="yrmonths-' + yrKey + '" style="background:rgba(122,92,62,0.03);">';
         html += buildAnnualMonthRows(addr, yr);
