@@ -4701,7 +4701,7 @@
     /* ── PROPERTY SUMMARY BLOCK ── BVA col-head labels (12px / 0.12em) + 22px figures */
     h += '<div style="background:#faf7f2;border:1px solid #ede8e0;border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">';
     h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Total Due</div><div style="font-size:22px;font-weight:700;color:#1e1a16;margin-top:6px;">' + fmt(propTotalDue) + '</div></div>';
-    h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Total Paid</div><div style="font-size:22px;font-weight:700;color:#2e7d32;margin-top:6px;">' + fmt(propTotalPaid) + '</div></div>';
+    h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Total Paid</div><div style="font-size:22px;font-weight:700;color:#6b5f52;margin-top:6px;">' + fmt(propTotalPaid) + '</div></div>';
     h += '<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;font-weight:700;">Net Outstanding</div><div style="font-size:22px;font-weight:700;color:' + propOutCol + ';margin-top:6px;">' + propOutTxt + '</div></div>';
     h += '</div>';
 
@@ -4754,7 +4754,7 @@
       h += '<span style="display:flex;align-items:center;justify-content:flex-start;padding-left:4px;">' + chevron + '</span>';
       h += '<span style="font-size:17px;font-weight:700;color:#7a5c3e;">' + yr + '</span>';
       h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#9e8e7e;">' + fmt(due) + '</span>';
-      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#2e7d32;">' + (mcPaid > 0 ? fmt(mcPaid) : '\u2014') + '</span>';
+      h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#6b5f52;">' + (mcPaid > 0 ? fmt(mcPaid) : '\u2014') + '</span>';
       h += '<span style="text-align:right;font-size:17px;font-weight:700;color:' + outCol + ';">' + outTxt + '</span>';
       h += '</div>';
 
@@ -4826,17 +4826,18 @@
           h += '<div style="display:grid;grid-template-columns:90px 1fr 130px;padding:8px 12px;' + monthRowBorder + 'align-items:center;">';
           h += '<span style="font-size:16px;color:#333;font-weight:600;">' + mName + '</span>';
           h += dateCol;
-          h += '<span style="text-align:right;font-size:16px;color:' + (mPaid > 0 ? '#2e7d32' : '#bcb09e') + ';font-weight:' + (mPaid > 0 ? '600' : '400') + ';">' + (mPaid > 0 ? fmt(mPaid) : '\u2014') + '</span>';
+          h += '<span style="text-align:right;font-size:16px;color:' + (mPaid > 0 ? '#6b5f52' : '#bcb09e') + ';font-weight:' + (mPaid > 0 ? '600' : '400') + ';">' + (mPaid > 0 ? fmt(mPaid) : '\u2014') + '</span>';
           h += '</div>';
 
-          /* Sub-rows — only when there are 2+ payments */
+          /* Sub-rows — only when there are 2+ payments. Aligned with month rows (no indent),
+             differentiated by smaller font + lighter weight + italic dates. */
           if (hasMultiple) {
             mPayments.forEach(function(p, idx) {
               var subBorder = (idx === mPayments.length - 1) ? 'border-bottom:1px solid #f0ebe2;' : 'border-bottom:1px solid #f5f0e8;';
-              h += '<div style="display:grid;grid-template-columns:90px 1fr 130px;padding:6px 12px 6px 28px;' + subBorder + 'align-items:center;">';
+              h += '<div style="display:grid;grid-template-columns:90px 1fr 130px;padding:6px 12px;' + subBorder + 'align-items:center;">';
               h += '<span></span>';
               h += '<span style="font-size:14px;color:#9a8a75;font-style:italic;">' + fmtDate(p.date) + '</span>';
-              h += '<span style="text-align:right;font-size:14px;color:#2e7d32;font-weight:500;">' + fmt(p.amount) + '</span>';
+              h += '<span style="text-align:right;font-size:14px;color:#6b5f52;font-weight:500;">' + fmt(p.amount) + '</span>';
               h += '</div>';
             });
           }
@@ -4853,7 +4854,7 @@
     h += '<span></span>';
     h += '<span style="font-size:17px;font-weight:700;color:#4a3f35;">Total <span style="font-size:13px;font-weight:400;font-style:italic;color:#6b5f52;">net outstanding</span></span>';
     h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#9e8e7e;">' + fmt(propTotalDue) + '</span>';
-    h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#2e7d32;">' + fmt(propTotalPaid) + '</span>';
+    h += '<span style="text-align:right;font-size:17px;font-weight:700;color:#6b5f52;">' + fmt(propTotalPaid) + '</span>';
     h += '<span style="text-align:right;font-size:17px;font-weight:700;color:' + propOutCol + ';">' + propOutTxt + '</span>';
     h += '</div>';
 
