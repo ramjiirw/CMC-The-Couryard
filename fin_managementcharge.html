@@ -381,6 +381,8 @@
     color: var(--mid);
     text-align: right;
     border-bottom: 1px solid var(--border);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   /* ── Outstanding Balances section ── */
@@ -4781,7 +4783,7 @@
         var noteParts = targetYrs.map(function(t) {
           return fmt(targets[t]) + ' credited forward to ' + t;
         });
-        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">' + noteParts.join(' \u00b7 ') + '</div>';
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;-webkit-text-size-adjust:100%;text-size-adjust:100%;">' + noteParts.join(' \u00b7 ') + '</div>';
       }
       if (isOpen && creditsIn.length > 0) {
         var sources = {};
@@ -4791,7 +4793,7 @@
         var srcYrs = Object.keys(sources).sort();
         var srcLabel = srcYrs.length === 1 ? srcYrs[0]
                      : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
-        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;-webkit-text-size-adjust:100%;text-size-adjust:100%;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
       }
       /* When collapsed, surface the credit notes more compactly so the slim card still tells the story */
       if (!isOpen && (creditsOut.length > 0 || creditsIn.length > 0)) {
@@ -4808,7 +4810,7 @@
           var sLabel = sYrs.length === 1 ? sYrs[0] : sYrs[0] + '\u2013' + sYrs[sYrs.length-1];
           compactParts.push('includes ' + fmt(creditsInAmt) + ' credit from ' + sLabel);
         }
-        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-top:1px solid #f0ebe2;">' + compactParts.join(' \u00b7 ') + '</div>';
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-top:1px solid #f0ebe2;-webkit-text-size-adjust:100%;text-size-adjust:100%;">' + compactParts.join(' \u00b7 ') + '</div>';
       }
 
       /* Monthly breakdown — only when this year is expanded */
