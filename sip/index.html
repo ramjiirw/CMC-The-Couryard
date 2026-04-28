@@ -273,7 +273,7 @@
     <!-- SITE IMAGES PANEL -->
     <div class="doc-card-wrapper">
       <button class="btn-toggle" id="toggle-sipimages" onclick="togglePanel('toggle-sipimages','panel-sipimages')" aria-expanded="false">
-        <span>&#128444; Site Images</span>
+        <span>&#128247; Site Images <span class="count-pill" id="imgCount" style="margin-left:0.5rem;">0</span></span>
         <span class="toggle-hint">
           <span class="hint-open">Tap to expand &amp; view</span>
           <span class="hint-close">Tap to close</span>
@@ -282,7 +282,6 @@
       </button>
       <div class="collapsible-panel" id="panel-sipimages">
         <div style="background:white;">
-          <div class="doc-card-hdr all">&#128444; Site Images <span class="count-pill" id="imgCount">0</span></div>
           <div id="imgGrid" class="img-grid"></div>
         </div>
       </div>
