@@ -1286,6 +1286,7 @@
           </select>
           <input id="qaFilterSearch" type="text" placeholder="Search…" oninput="qaApplyFilter()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;width:150px;outline:none;" />
           <button id="qaBioFilterBtn" onclick="qaToggleBioFilter()" style="padding:0.3rem 0.8rem;border-radius:5px;border:1px solid #b8ad9e;background:#fff;color:#6b5f52;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Bio Filter</button>
+          <button id="qaReviewFilterBtn" onclick="qaToggleReviewFilter()" style="padding:0.3rem 0.8rem;border-radius:5px;border:1px solid #b8ad9e;background:#fff;color:#6b5f52;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Show Review Only</button>
           <button id="qaClearFilterBtn" onclick="qaClearFilter()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#c0622a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear</button>
         </div>
         <div id="qaTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
@@ -1645,6 +1646,12 @@ Checked By: [address]</pre>
             <label>Topic</label>
             <input type="text" id="qaMobileTopic" placeholder="e.g. Bio Filter Capacity" list="qaTopicSuggest">
             <datalist id="qaTopicSuggest"></datalist>
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;user-select:none;font-weight:400;color:#6b5f52;">
+              <input type="checkbox" id="qaMobileReview" style="width:18px;height:18px;cursor:pointer;accent-color:#c0622a;">
+              <span>&#9888; Flag for review</span>
+            </label>
           </div>
           <div>
             <label>Question</label>
@@ -5708,6 +5715,7 @@ var qaFiltered   = [];
 var qaEditIndex  = null;
 var _qaEditPanelOpen = false;
 var _qaBioFilterActive = false;
+var _qaReviewFilterActive = false;
 var _qaEditingRow = null; // { uiIndex, actualIndex } when an edit row is open
 var _qaSortCol   = 'topic'; // default sort by topic
 var _qaSortDir   = { topic: 'asc', question: 'asc', answer: 'asc' };
@@ -5754,12 +5762,13 @@ function qaApplyFilter() {
   var topic  = document.getElementById('qaFilterTopic').value.toLowerCase().trim();
   var search = document.getElementById('qaFilterSearch').value.toLowerCase().trim();
   var clearBtn = document.getElementById('qaClearFilterBtn');
-  clearBtn.style.display = (topic || search || _qaBioFilterActive) ? 'inline-block' : 'none';
+  clearBtn.style.display = (topic || search || _qaBioFilterActive || _qaReviewFilterActive) ? 'inline-block' : 'none';
   qaFiltered = qaAllRows.filter(function(r){
     var combined = (r.topic + ' ' + r.question + ' ' + r.answer).toLowerCase();
     return (!topic  || r.topic.toLowerCase() === topic)
         && (!search || combined.indexOf(search) !== -1)
-        && (!_qaBioFilterActive || combined.indexOf('bio filter') !== -1);
+        && (!_qaBioFilterActive || combined.indexOf('bio filter') !== -1)
+        && (!_qaReviewFilterActive || r.review === true);
   });
   qaSort();
 }
@@ -5796,6 +5805,9 @@ function qaClearFilter() {
   _qaBioFilterActive = false;
   var bioBtn = document.getElementById('qaBioFilterBtn');
   if (bioBtn) { bioBtn.style.background = ''; bioBtn.style.color = ''; bioBtn.style.borderColor = ''; }
+  _qaReviewFilterActive = false;
+  var revBtn = document.getElementById('qaReviewFilterBtn');
+  if (revBtn) { revBtn.style.background = ''; revBtn.style.color = ''; revBtn.style.borderColor = ''; }
   document.getElementById('qaClearFilterBtn').style.display = 'none';
   qaFiltered = qaAllRows.slice();
   qaSort();
@@ -5808,6 +5820,17 @@ function qaToggleBioFilter() {
     bioBtn.style.background   = _qaBioFilterActive ? '#3a5a70' : '';
     bioBtn.style.color        = _qaBioFilterActive ? 'white'   : '';
     bioBtn.style.borderColor  = _qaBioFilterActive ? '#3a5a70' : '';
+  }
+  qaApplyFilter();
+}
+
+function qaToggleReviewFilter() {
+  _qaReviewFilterActive = !_qaReviewFilterActive;
+  var revBtn = document.getElementById('qaReviewFilterBtn');
+  if (revBtn) {
+    revBtn.style.background   = _qaReviewFilterActive ? '#c0622a' : '';
+    revBtn.style.color        = _qaReviewFilterActive ? 'white'   : '';
+    revBtn.style.borderColor  = _qaReviewFilterActive ? '#c0622a' : '';
   }
   qaApplyFilter();
 }
@@ -5860,7 +5883,9 @@ function qaRenderTable() {
     html += '<td style="padding:0.75rem 1rem;font-size:0.78rem;vertical-align:top;border-right:1px solid #ede8e1;">';
     if (row.topic) html += '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.15rem 0.55rem;white-space:nowrap;">' + qaEsc(row.topic) + '</span>';
     html += '</td>';
-    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">' + qaEsc(row.question) + '</td>';
+    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">';
+    if (row.review) html += '<span style="display:inline-block;background:rgba(192,98,42,0.12);color:#c0622a;border:1px solid rgba(192,98,42,0.3);border-radius:10px;font-size:0.66rem;font-weight:700;padding:0.12rem 0.5rem;letter-spacing:0.04em;text-transform:uppercase;margin-right:0.5rem;vertical-align:middle;">&#9888; Review</span>';
+    html += qaEsc(row.question) + '</td>';
     html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;white-space:pre-wrap;border-right:1px solid #ede8e1;">' + qaEsc(row.answer) + '</td>';
     html += '<td style="padding:0.75rem 0.6rem;vertical-align:top;text-align:center;">';
     html += '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;white-space:nowrap;" onclick="qaOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button>';
@@ -5872,7 +5897,12 @@ function qaRenderTable() {
     html += '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">Edit Q&amp;A</div>';
     html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;">';
     html += '<div style="flex:0 0 220px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>';
-    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;" oninput="_qaEditingRow=_qaEditingRow||{}"></div>';
+    html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;" oninput="_qaEditingRow=_qaEditingRow||{}">';
+    html += '<label style="display:flex;align-items:center;gap:0.4rem;margin-top:0.6rem;font-size:0.78rem;color:#6b5f52;cursor:pointer;user-select:none;">';
+    html += '<input type="checkbox" id="qa-edit-review-' + i + '"' + (row.review ? ' checked' : '') + ' style="width:16px;height:16px;cursor:pointer;accent-color:#c0622a;" oninput="_qaEditingRow=_qaEditingRow||{}">';
+    html += '<span>&#9888; Flag for review</span>';
+    html += '</label>';
+    html += '</div>';
     html += '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>';
     html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.question) + '</textarea></div>';
     html += '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>';
@@ -5955,7 +5985,11 @@ function qaOpenDesktopAddForm() {
   div.innerHTML = '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">New Q&amp;A Entry</div>'
     + '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;">'
     + '<div style="flex:0 0 220px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>'
-    + '<input type="text" id="qa-add-topic" list="qaTopicSuggest" placeholder="e.g. Bio Filter Capacity" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>'
+    + '<input type="text" id="qa-add-topic" list="qaTopicSuggest" placeholder="e.g. Bio Filter Capacity" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;">'
+    + '<label style="display:flex;align-items:center;gap:0.4rem;margin-top:0.6rem;font-size:0.78rem;color:#6b5f52;cursor:pointer;user-select:none;">'
+    + '<input type="checkbox" id="qa-add-review" style="width:16px;height:16px;cursor:pointer;accent-color:#c0622a;">'
+    + '<span>&#9888; Flag for review</span></label>'
+    + '</div>'
     + '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>'
     + '<textarea id="qa-add-question" placeholder="Enter the question" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
     + '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>'
@@ -5976,6 +6010,8 @@ function qaSubmitAdd() {
   var topic    = (document.getElementById('qa-add-topic').value    || '').trim();
   var question = (document.getElementById('qa-add-question').value || '').trim();
   var answer   = (document.getElementById('qa-add-answer').value   || '').trim();
+  var reviewEl = document.getElementById('qa-add-review');
+  var review   = reviewEl ? reviewEl.checked : false;
   var errEl    = document.getElementById('qa-add-err');
   var saveBtn  = document.getElementById('qa-add-save-btn');
   if (!question) { errEl.textContent = 'Question is required.'; return; }
@@ -5983,7 +6019,7 @@ function qaSubmitAdd() {
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
-    body: JSON.stringify({ action:'addSIPQARow', question:question, answer:answer, topic:topic })
+    body: JSON.stringify({ action:'addSIPQARow', question:question, answer:answer, topic:topic, review:review })
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -6002,6 +6038,8 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   var topic    = (document.getElementById('qa-edit-topic-'    + uiIndex).value || '').trim();
   var question = (document.getElementById('qa-edit-question-' + uiIndex).value || '').trim();
   var answer   = (document.getElementById('qa-edit-answer-'   + uiIndex).value || '').trim();
+  var reviewEl = document.getElementById('qa-edit-review-' + uiIndex);
+  var review   = reviewEl ? reviewEl.checked : false;
   var errEl    = document.getElementById('qa-edit-err-' + uiIndex);
   var saveBtn  = document.getElementById('qa-save-' + uiIndex);
   if (!question) { errEl.textContent = 'Question is required.'; return; }
@@ -6009,7 +6047,7 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
-    body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, question:question, answer:answer, topic:topic })
+    body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, question:question, answer:answer, topic:topic, review:review })
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -6051,11 +6089,13 @@ function qaOpenMobileModal(actualIndex) {
     document.getElementById('qaMobileTopic').value    = '';
     document.getElementById('qaMobileQuestion').value = '';
     document.getElementById('qaMobileAnswer').value   = '';
+    document.getElementById('qaMobileReview').checked = false;
   } else {
     var row = qaAllRows[actualIndex];
     document.getElementById('qaMobileTopic').value    = row.topic    || '';
     document.getElementById('qaMobileQuestion').value = row.question || '';
     document.getElementById('qaMobileAnswer').value   = row.answer   || '';
+    document.getElementById('qaMobileReview').checked = row.review === true;
   }
   document.getElementById('qaMobileSaveBtn').disabled = false;
   document.getElementById('qaMobileSaveBtn').textContent = 'Save';
@@ -6076,6 +6116,7 @@ function qaMobileSave() {
   var topic    = (document.getElementById('qaMobileTopic').value    || '').trim();
   var question = (document.getElementById('qaMobileQuestion').value || '').trim();
   var answer   = (document.getElementById('qaMobileAnswer').value   || '').trim();
+  var review   = document.getElementById('qaMobileReview').checked === true;
   var errEl    = document.getElementById('qaMobileErr');
   var saveBtn  = document.getElementById('qaMobileSaveBtn');
   if (!question) { errEl.textContent = 'Question is required.'; return; }
@@ -6083,8 +6124,8 @@ function qaMobileSave() {
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   var payload = qaEditIndex === null
-    ? { action:'addSIPQARow',    question:question, answer:answer, topic:topic }
-    : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic };
+    ? { action:'addSIPQARow',    question:question, answer:answer, topic:topic, review:review }
+    : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic, review:review };
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) })
   .then(function(r){ return r.json(); })
   .then(function(d){
