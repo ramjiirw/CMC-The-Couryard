@@ -49,6 +49,72 @@
   .filter-bar label { font-size: 0.78rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
   .filter-bar select { padding: 0.35rem 0.7rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.85rem; background: white; color: var(--dark); cursor: pointer; }
   .filter-bar select:focus { outline: none; border-color: var(--accent2); }
+  /* Secondary filter row — slides down when "More filters" is toggled */
+  .filter-bar-secondary {
+    display: none;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0.5rem 1.25rem 0.6rem;
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    animation: slideDown 0.18s ease-out;
+  }
+  .filter-bar-secondary.open { display: flex; }
+  .filter-bar-secondary select,
+  .filter-bar-secondary input {
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: Arial,sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    color: var(--dark);
+    cursor: pointer;
+  }
+  .filter-bar-secondary label { font-size: 0.78rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .more-filters-btn {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: white;
+    color: var(--dark);
+    font-family: Arial,sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .more-filters-btn:hover { background: rgba(196,149,106,0.08); }
+  .more-filters-btn .chev { transition: transform 0.18s ease; font-size: 0.7rem; }
+  .more-filters-btn.open .chev { transform: rotate(180deg); }
+  .more-filters-btn .badge {
+    display: inline-block;
+    background: var(--accent2);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 0 0.4rem;
+    min-width: 1.1rem;
+    text-align: center;
+  }
+  .assigned-tag {
+    display: inline-block;
+    background: rgba(80, 100, 130, 0.08);
+    color: var(--dark);
+    border: 1px solid rgba(80, 100, 130, 0.18);
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
   /* ── Issue card layout ── */
   /* Cards area sits inside the existing .card wrapper. Cream background with
      spaced-out white card surfaces, each with a coloured priority stripe down
@@ -399,15 +465,6 @@
         <option value="progress">In Progress</option>
         <option value="resolv">Resolved</option>
       </select>
-      <select id="filterPriority" onchange="renderIssues();updateFilterBtn()">
-        <option value="">All Priorities</option>
-        <option value="High">🔴 High</option>
-        <option value="Medium">🟡 Medium</option>
-        <option value="Low">🟢 Low</option>
-      </select>
-      <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
-        <option value="">All Categories</option>
-      </select>
       <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.35rem 0.7rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:white;color:var(--dark);width:160px;">
       <select id="sortSelect" onchange="renderIssues()" title="Sort order">
         <option value="dateAdded-desc">Sort: Date Added (newest)</option>
@@ -418,7 +475,24 @@
         <option value="status">Sort: Status (New → Resolved)</option>
         <option value="address">Sort: Address</option>
       </select>
+      <button id="moreFiltersBtn" type="button" class="more-filters-btn" onclick="toggleMoreFilters()" title="Show more filters">
+        More filters <span id="moreFiltersBadge" class="badge" style="display:none;">0</span> <span class="chev">&#9662;</span>
+      </button>
       <button id="clearFiltersBtn" onclick="clearFilters()" class="btn-submit" style="padding:0.3rem 0.9rem;background:#c0622a;display:none;">&#x2715; Clear Filters <span id="filterCount"></span></button>
+    </div>
+    <div id="filterBarSecondary" class="filter-bar-secondary">
+      <select id="filterPriority" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All Priorities</option>
+        <option value="High">🔴 High</option>
+        <option value="Medium">🟡 Medium</option>
+        <option value="Low">🟢 Low</option>
+      </select>
+      <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All Categories</option>
+      </select>
+      <select id="filterAssigned" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All Assignees</option>
+      </select>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -747,6 +821,22 @@ async function loadIssues() {
       if (prev && sortedCats.includes(prev)) sel.value = prev;
     });
 
+    // Populate "Assigned to" filter dropdown from column M — alphabetical.
+    // Read-only on this page; admin sets the value in the admin panel.
+    const assignees = [...new Set(allIssues.map(r => (r.assignedTo||'').trim()).filter(Boolean))]
+      .sort((a,b) => a.localeCompare(b));
+    const assignedSel = document.getElementById('filterAssigned');
+    if (assignedSel) {
+      const prevA = assignedSel.value;
+      while (assignedSel.options.length > 1) assignedSel.remove(1);
+      assignees.forEach(name => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        assignedSel.appendChild(o);
+      });
+      if (prevA && assignees.includes(prevA)) assignedSel.value = prevA;
+    }
+
     renderIssues();
   } catch(e) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">Could not load issues - please refresh.</div>';
@@ -904,13 +994,18 @@ function closeReportModal() {
 }
 
 function updateFilterBtn() {
-  const count = [
+  const primary = [
     document.getElementById('filterStatus').value,
-    document.getElementById('filterPriority').value,
-    document.getElementById('filterCat').value,
     document.getElementById('filterAddr').value,
     document.getElementById('filterSearch').value.trim()
   ].filter(Boolean).length;
+  const secondary = [
+    document.getElementById('filterPriority').value,
+    document.getElementById('filterCat').value,
+    document.getElementById('filterAssigned').value
+  ].filter(Boolean).length;
+  const count = primary + secondary;
+
   const btn = document.getElementById('clearFiltersBtn');
   const pill = document.getElementById('filterCount');
   if (count > 0) {
@@ -920,12 +1015,33 @@ function updateFilterBtn() {
     btn.style.display = 'none';
     pill.textContent = '';
   }
+
+  // Update the "More filters" badge so the user can see at a glance
+  // how many filters are active in the collapsed secondary row.
+  const badge = document.getElementById('moreFiltersBadge');
+  if (badge) {
+    if (secondary > 0) {
+      badge.style.display = '';
+      badge.textContent = secondary;
+    } else {
+      badge.style.display = 'none';
+      badge.textContent = '';
+    }
+  }
+}
+
+function toggleMoreFilters() {
+  const panel = document.getElementById('filterBarSecondary');
+  const btn   = document.getElementById('moreFiltersBtn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
 }
 
 function clearFilters() {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterPriority').value = '';
   document.getElementById('filterCat').value = '';
+  document.getElementById('filterAssigned').value = '';
   document.getElementById('filterAddr').value = '';
   document.getElementById('filterSearch').value = '';
   updateFilterBtn();
@@ -946,6 +1062,7 @@ function renderIssues() {
   const pf = document.getElementById('filterPriority').value;
   const cf = document.getElementById('filterCat').value.toLowerCase();
   const af = document.getElementById('filterAddr').value.toLowerCase();
+  const tf = document.getElementById('filterAssigned').value.toLowerCase();
   const sq = document.getElementById('filterSearch').value.trim().toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
@@ -953,8 +1070,9 @@ function renderIssues() {
     const matchP = !pf || (r.priority||'') === pf;
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
-    const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq);
-    return matchS && matchP && matchC && matchA && matchQ;
+    const matchT = !tf || (r.assignedTo||'').toLowerCase() === tf;
+    const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq) || (r.assignedTo||'').toLowerCase().includes(sq);
+    return matchS && matchP && matchC && matchA && matchT && matchQ;
   });
   list = applySort(list);
   document.getElementById('issueCount').textContent = list.length;
@@ -991,6 +1109,7 @@ function renderIssues() {
     html += '<div class="meta-cell"><span class="label">Date Added</span><span class="value">' + (r.dateAdded ? fmtDate(r.dateAdded) : '<span class="value-empty">—</span>') + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Status</span><span class="value">' + statusBadge(r.status, r.dateResolved) + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Priority</span><span class="value">' + priorityBadge(r.priority) + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Assigned to</span><span class="value">' + (r.assignedTo ? '<span class="assigned-tag">' + r.assignedTo + '</span>' : '<span class="value-empty">—</span>') + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Date Resolved</span><span class="value">' + (r.dateResolved ? fmtDate(r.dateResolved) : '<span class="value-empty">—</span>') + '</span></div>';
     html += '</div>';
 
