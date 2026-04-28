@@ -309,6 +309,14 @@ var SESSION_KEY = 'cmc_sip_auth';
 var sipPassword = null;
 var allDocs = [], pinnedDocs = [], siteImages = [];
 var allSortDir = 'asc';
+/* Pre-fetch Q&A during the login screen so it's ready before the user logs in.
+ * `prefetchedQA` may hold:
+ *   - null  : prefetch hasn't started (shouldn't happen; init starts it)
+ *   - a Promise : prefetch is in-flight; loadQA awaits it
+ *   - an Object  : prefetch resolved successfully; loadQA uses it directly
+ *   - 'failed' : prefetch errored; loadQA falls back to fresh fetch
+ */
+var prefetchedQA = null;
 
 function init() {
   var inp = document.getElementById('pwInput');
@@ -324,6 +332,24 @@ function init() {
     .catch(function(){
       inp.placeholder = 'Enter access password';
       inp.disabled = false;
+    });
+
+  /* Q&A prefetch — runs in parallel with the password fetch so by the time
+   * the user logs in, the data is already in memory. Result is stashed in
+   * prefetchedQA; loadQA picks it up rather than fetching again. */
+  prefetchedQA = fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      prefetchedQA = d; // replace promise with resolved value
+      // Update toggle count proactively in case the SIP screen is already shown
+      // (auto-login flow) — harmless if it isn't.
+      var qaTotalEl = document.getElementById('qaToggleCount');
+      if (qaTotalEl && d.status === 'ok') qaTotalEl.textContent = (d.rows || []).length;
+      return d;
+    })
+    .catch(function(){
+      prefetchedQA = 'failed';
+      return null;
     });
 
   if (sessionStorage.getItem(SESSION_KEY) === 'true') {
@@ -537,19 +563,39 @@ var qaSortDir = 'asc';
 var biFilterActive = false;
 
 function loadQA() {
+  /* Prefer the prefetched data started during login. Three cases:
+   * 1. prefetchedQA is a resolved object  → use immediately, no network call
+   * 2. prefetchedQA is a Promise (in-flight) → await it
+   * 3. prefetchedQA is 'failed' or null    → start a fresh fetch (legacy path)
+   */
+  function applyQAData(d) {
+    if (d && d.status === 'ok') {
+      qaData = d.rows || [];
+      var qaTotalEl = document.getElementById('qaToggleCount');
+      if (qaTotalEl) qaTotalEl.textContent = qaData.length;
+      buildQaTopicFilter();
+      renderQA();
+    } else {
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+    }
+  }
+
+  // Case 1: already resolved (typical when user spends >1s on login screen)
+  if (prefetchedQA && typeof prefetchedQA === 'object' && typeof prefetchedQA.then !== 'function') {
+    applyQAData(prefetchedQA);
+    return;
+  }
+  // Case 2: still in-flight — await it
+  if (prefetchedQA && typeof prefetchedQA.then === 'function') {
+    prefetchedQA.then(applyQAData).catch(function(){
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+    });
+    return;
+  }
+  // Case 3: prefetch failed or never started — fall back to fresh fetch (original behaviour)
   fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
     .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (d.status === 'ok') {
-        qaData = d.rows || [];
-        var qaTotalEl = document.getElementById('qaToggleCount');
-        if (qaTotalEl) qaTotalEl.textContent = qaData.length;
-        buildQaTopicFilter();
-        renderQA();
-      } else {
-        document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
-      }
-    })
+    .then(applyQAData)
     .catch(function(){
       document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
     });
