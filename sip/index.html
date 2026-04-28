@@ -144,6 +144,26 @@
   .bio-filter-btn.active { background:linear-gradient(135deg,#6090b0,#3a5a70); opacity:1; }
   .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.1); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:10px; font-size:0.68rem; font-weight:700; padding:0.1rem 0.5rem; letter-spacing:0.03em; white-space:nowrap; }
   .qa-count-pill { background:rgba(255,255,255,0.2); color:white; border-radius:10px; font-size:0.68rem; padding:0.1rem 0.5rem; font-weight:700; }
+
+  /* ── Site Images Gallery ── */
+  .img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.85rem; padding:1rem 1.2rem 1.2rem; }
+  .img-card { cursor:pointer; border:1px solid var(--border); border-radius:6px; overflow:hidden; background:var(--warm); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .img-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(74,63,53,0.15); }
+  .img-card-thumb { aspect-ratio:4/3; width:100%; overflow:hidden; background:#ede8e0; display:flex; align-items:center; justify-content:center; }
+  .img-card-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .img-card-caption { padding:0.5rem 0.7rem; font-size:0.78rem; color:#4a3f35; border-top:1px solid var(--border); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .img-empty { padding:1.2rem; text-align:center; font-size:0.82rem; color:var(--accent); font-style:italic; }
+  @media (max-width:700px) { .img-grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:420px) { .img-grid { grid-template-columns:1fr; } }
+
+  /* Modal */
+  #imgModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+  #imgModal.open { display:flex; }
+  .img-modal-card { background:white; border-radius:8px; padding:12px; max-width:90vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .img-modal-img { max-width:100%; max-height:calc(90vh - 60px); object-fit:contain; border-radius:4px; }
+  .img-modal-caption { padding:0.7rem 0.4rem 0.2rem; font-size:0.85rem; color:#4a3f35; text-align:center; }
+  .img-modal-close { position:fixed; top:14px; right:18px; color:white; font-size:24px; cursor:pointer; background:rgba(255,255,255,0.18); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10000; user-select:none; line-height:1; }
+  .img-modal-close:hover { background:rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
@@ -249,10 +269,38 @@
         </div>
       </div>
     </div>
+
+    <!-- SITE IMAGES PANEL -->
+    <div class="doc-card-wrapper">
+      <button class="btn-toggle" id="toggle-sipimages" onclick="togglePanel('toggle-sipimages','panel-sipimages')" aria-expanded="false">
+        <span>&#128444; Site Images</span>
+        <span class="toggle-hint">
+          <span class="hint-open">Tap to expand &amp; view</span>
+          <span class="hint-close">Tap to close</span>
+          <span class="chevron">&#9658;</span>
+        </span>
+      </button>
+      <div class="collapsible-panel" id="panel-sipimages">
+        <div style="background:white;">
+          <div class="doc-card-hdr all">&#128444; Site Images <span class="count-pill" id="imgCount">0</span></div>
+          <div id="imgGrid" class="img-grid"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
   <footer>
     <p><span>CMC The Courtyard</span> &nbsp;&middot;&nbsp; SELLER'S INFORMATION PACK &nbsp;&middot;&nbsp; &copy; <span id="footerYear"></span></p>
   </footer>
+
+  <!-- Site Images Modal -->
+  <div id="imgModal" onclick="closeImageModal(event)">
+    <div class="img-modal-close" onclick="closeImageModal(event)">&#10005;</div>
+    <div class="img-modal-card" onclick="event.stopPropagation();">
+      <img class="img-modal-img" id="imgModalImg" alt="">
+      <div class="img-modal-caption" id="imgModalCaption"></div>
+    </div>
+  </div>
   <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
 </div>
 
@@ -260,7 +308,7 @@
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 var SESSION_KEY = 'cmc_sip_auth';
 var sipPassword = null;
-var allDocs = [], pinnedDocs = [];
+var allDocs = [], pinnedDocs = [], siteImages = [];
 var allSortDir = 'asc';
 
 function init() {
@@ -372,12 +420,15 @@ function showSip() {
 function loadDocuments() {
   document.getElementById('pinnedBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Loading…</td></tr>';
   document.getElementById('allBody').innerHTML = '<tr><td colspan="4" class="empty-msg">Loading…</td></tr>';
+  var imgGrid = document.getElementById('imgGrid');
+  if (imgGrid) imgGrid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">Loading\u2026</div>';
   fetch('/cmcdocuments/index.json?v=' + Date.now())
     .then(function(r){ return r.json(); })
-    .then(function(data){ processDocs(data); })
+    .then(function(data){ processDocs(data); processImages(data); })
     .catch(function(){
       document.getElementById('pinnedBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load documents.</td></tr>';
       document.getElementById('allBody').innerHTML = '<tr><td colspan="4" class="empty-msg">Could not load documents.</td></tr>';
+      if (imgGrid) imgGrid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">Could not load images.</div>';
     });
 }
 
@@ -386,6 +437,7 @@ function processDocs(data) {
   (data.folders || []).forEach(function(folder) {
     (folder.files || []).forEach(function(file) {
       if (file.path.indexOf('cmcsip') === -1) return;
+      if (file.path.indexOf('cmcsipimages') !== -1) return; // images go to gallery, not docs
       if (file.name.indexOf('HIDE_') === 0) return;
       var isPinned = file.name.indexOf('PIN_') === 0;
       var displayName = file.name.replace(/^PIN_/, '').replace(/\.pdf$/i, '');
@@ -397,6 +449,69 @@ function processDocs(data) {
   renderPinned();
   renderAll();
 }
+
+/* ── Site Images Gallery ──
+ * Reads cmcsipimages folder from the same index.json the docs use.
+ * Filters by image extension. Same HIDE_ rule as docs. Click thumbnail
+ * → opens modal with full-size image. */
+function processImages(data) {
+  siteImages = [];
+  var imageExts = /\.(jpe?g|png|webp|gif|svg)$/i;
+  (data.folders || []).forEach(function(folder) {
+    (folder.files || []).forEach(function(file) {
+      if (file.path.indexOf('cmcsipimages') === -1) return;
+      if (file.name.indexOf('HIDE_') === 0) return;
+      if (!imageExts.test(file.name)) return;
+      var displayName = file.name.replace(imageExts, '');
+      siteImages.push({ name: displayName, path: file.path });
+    });
+  });
+  // Sort alphabetically by display name
+  siteImages.sort(function(a, b){ return a.name.localeCompare(b.name); });
+  renderImages();
+}
+
+function renderImages() {
+  var grid = document.getElementById('imgGrid');
+  var countEl = document.getElementById('imgCount');
+  if (!grid) return;
+  if (countEl) countEl.textContent = siteImages.length;
+  if (!siteImages.length) {
+    grid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">No site images available.</div>';
+    return;
+  }
+  grid.innerHTML = siteImages.map(function(img, i){
+    return '<div class="img-card" onclick="openImageModal(' + i + ')">' +
+             '<div class="img-card-thumb"><img src="/' + esc(img.path) + '" alt="' + esc(img.name) + '" loading="lazy"></div>' +
+             '<div class="img-card-caption" title="' + esc(img.name) + '">' + esc(img.name) + '</div>' +
+           '</div>';
+  }).join('');
+}
+
+function openImageModal(idx) {
+  var img = siteImages[idx];
+  if (!img) return;
+  var modal = document.getElementById('imgModal');
+  document.getElementById('imgModalImg').src = '/' + img.path;
+  document.getElementById('imgModalImg').alt = img.name;
+  document.getElementById('imgModalCaption').textContent = img.name;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('imgModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Escape key closes the modal
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('imgModal');
+    if (modal && modal.classList.contains('open')) closeImageModal();
+  }
+});
 
 var pinnedSortDir = 'asc';
 function sortPinned() {
