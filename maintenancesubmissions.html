@@ -407,12 +407,6 @@
       </select>
       <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Categories</option>
-        <option>Waste &amp; Recycling</option>
-        <option>Lighting</option>
-        <option>Car Parks</option>
-        <option>Grounds &amp; Common Areas</option>
-        <option>Farmhouse</option>
-        <option>Other</option>
       </select>
       <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.35rem 0.7rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:white;color:var(--dark);width:160px;">
       <select id="sortSelect" onchange="renderIssues()" title="Sort order">
@@ -475,12 +469,6 @@
           <label>Category</label>
           <select id="categorySelect">
             <option value="">- Select category -</option>
-            <option>Waste &amp; Recycling</option>
-            <option>Lighting</option>
-            <option>Car Parks</option>
-            <option>Grounds &amp; Common Areas</option>
-            <option>Farmhouse</option>
-            <option>Other</option>
           </select>
         </div>
         <div class="form-group">
@@ -733,6 +721,32 @@ async function loadIssues() {
       o.value = a; o.textContent = a;
       addrSel.appendChild(o);
     });
+
+    // Populate category dropdowns (filter + submission form) from column B
+    // of the sheet — alphabetical, with "Other" pinned at the bottom. Preserve
+    // each <select>'s current value so the user's selection isn't lost on the
+    // 60-second refresh.
+    const cats = [...new Set(allIssues.map(r => (r.category||'').trim()).filter(Boolean))];
+    const otherCats = cats.filter(c => c.toLowerCase() === 'other');
+    const sortedCats = cats
+      .filter(c => c.toLowerCase() !== 'other')
+      .sort((a,b) => a.localeCompare(b))
+      .concat(otherCats);
+
+    ['filterCat','categorySelect'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const prev = sel.value;
+      while (sel.options.length > 1) sel.remove(1);
+      sortedCats.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c; o.textContent = c;
+        sel.appendChild(o);
+      });
+      // Restore previous selection if it still exists in the new list
+      if (prev && sortedCats.includes(prev)) sel.value = prev;
+    });
+
     renderIssues();
   } catch(e) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">Could not load issues - please refresh.</div>';
