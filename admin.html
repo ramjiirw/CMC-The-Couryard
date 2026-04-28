@@ -412,8 +412,10 @@
   .mnt-add-field { display:flex; flex-direction:column; gap:0.3rem; }
   .mnt-add-field label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--accent); font-weight:700; }
   .mnt-add-field select,
+  .mnt-add-field input,
   .mnt-add-field textarea { width:100%; padding:0.6rem 0.75rem; border:1px solid rgba(122,92,62,0.28); border-radius:7px; font-family:Arial,sans-serif; font-size:0.88rem; color:var(--dark); background:#fff; box-sizing:border-box; transition:border-color 0.2s; }
   .mnt-add-field select:focus,
+  .mnt-add-field input:focus,
   .mnt-add-field textarea:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
   .mnt-add-field textarea { resize:vertical; min-height:110px; }
   .mnt-add-row { display:flex; gap:0.75rem; flex-wrap:wrap; }
@@ -2312,9 +2314,9 @@ function renderMaintenanceTable() {
     if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
     if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
     if (priorityFilter && (r.priority || '').toLowerCase() !== priorityFilter) return false;
-    // Free-text search — description and updates only
+    // Free-text search — description, updates, and assigned-to
     if (searchText) {
-      var hay = [(r.description||''), (r.updates||'')].join(' ').toLowerCase();
+      var hay = [(r.description||''), (r.updates||''), (r.assignedTo||'')].join(' ').toLowerCase();
       if (hay.indexOf(searchText) < 0) return false;
     }
     // Date range — based on dateAdded
@@ -2373,6 +2375,7 @@ function renderMaintenanceTable() {
   html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'dateAdded\')">Date Added' + mntSortIcon('dateAdded') + '</th>';
   html += '<th style="' + TH  + 'width:115px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
   html += '<th style="' + TH  + 'width:90px;" onclick="mntToggleSort(\'priority\')">Priority' + mntSortIcon('priority') + '</th>';
+  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'assignedTo\')">Assigned to' + mntSortIcon('assignedTo') + '</th>';
   html += '<th style="' + TH  + 'width:105px;" onclick="mntToggleSort(\'dateResolved\')">Date Resolved' + mntSortIcon('dateResolved') + '</th>';
   html += '<th style="' + THx + 'width:70px;text-align:center;">Detail</th>';
   html += '</tr></thead><tbody>';
@@ -2394,6 +2397,7 @@ function renderMaintenanceTable() {
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntPriBadge(row.priority) + '</td>';
+    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + (row.assignedTo ? escHtml(row.assignedTo) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
     html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;text-align:center;">';
     html += '<button id="mnt-det-btn-' + i + '" onclick="mntToggleDetail(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;color:#c4a882;font-size:0.78rem;font-family:Arial,sans-serif;display:inline-flex;align-items:center;gap:3px;padding:2px 4px;"><span id="mnt-det-label-' + i + '">Detail</span> <span id="mnt-det-chev-' + i + '" style="font-size:0.65rem;display:inline-block;transition:transform 0.22s;">▼</span></button>';
@@ -2402,7 +2406,7 @@ function renderMaintenanceTable() {
 
     // ── Detail expand row (hidden by default) ─────────────────────────────────
     html += '<tr id="mnt-det-' + i + '" style="display:none;">';
-    html += '<td colspan="8" style="padding:0;">';
+    html += '<td colspan="9" style="padding:0;">';
 
     // Band 1: Issue description
     html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#faf7f2;border-left:3px solid #c4956a;border-bottom:1px solid #e0d8cc;">';
@@ -2420,7 +2424,7 @@ function renderMaintenanceTable() {
     html += '</div>';
 
     // Edit panel (mnt-edit-* — kept for compatibility with all existing JS)
-    html += '<tr id="mnt-edit-' + i + '" style="position:relative;z-index:10;"><td colspan="8" style="padding:0;position:relative;z-index:10;">'; 
+    html += '<tr id="mnt-edit-' + i + '" style="position:relative;z-index:10;"><td colspan="9" style="padding:0;position:relative;z-index:10;">'; 
     html += '<div id="mnt-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.28s ease;position:relative;z-index:10;">'; 
     html += '<div style="padding:0.75rem 1rem;background:#2a2520;border-top:2px solid var(--accent2);border-bottom:2px solid var(--accent2);">'; 
 
@@ -2444,10 +2448,11 @@ function renderMaintenanceTable() {
     html += '<option value="Low" style="color:#2e7d52;"' + (row.priority==='Low'?' selected':'') + '>🟢 Low</option>';
     html += '</select></div>';
     html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Category</label>';
-    html += '<select id="mnt-category-' + i + '" onchange="mntMarkDirty(' + i + ')" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;">';
-    var cats = ['Waste & Recycling','Lighting','Car Parks','Grounds & Common Areas','Farmhouse','Other'];
-    cats.forEach(function(c){ html += '<option value="' + c + '"' + ((row.category||'')===c?' selected':'') + '>' + c + '</option>'; });
-    html += '</select></div>';
+    html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
+    html += '</div>';
+    html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
+    html += '<input id="mnt-assigned-' + i + '" list="mntAssignedOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.assignedTo || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a name" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
+    html += '</div>';
     html += '</div>'; // end mnt-edit-left
 
     // Right column: description + update note
@@ -2491,10 +2496,11 @@ function renderMaintenanceTable() {
 }
 
 function mntPopulateDropdowns() {
-  var addrs = {}, cats = {};
+  var addrs = {}, cats = {}, assignees = {};
   mntAllIssues.forEach(function(r){
-    if (r.address)  addrs[r.address]  = 1;
-    if (r.category) cats[r.category]  = 1;
+    if (r.address)    addrs[r.address]       = 1;
+    if (r.category)   cats[r.category]       = 1;
+    if (r.assignedTo) assignees[r.assignedTo] = 1;
   });
   var addrSel = document.getElementById('mntFilterAddr');
   var curAddr = addrSel.value;
@@ -2523,6 +2529,34 @@ function mntPopulateDropdowns() {
     + '<option value="In Progress">In Progress</option>'
     + '<option value="Resolved">Resolved</option>';
   if (curStatus) statusSel.value = curStatus;
+
+  /* Datalists feeding the edit-panel comboboxes for Category and Assigned to.
+     These elements are created once and live outside the table so they survive
+     re-renders. Existing values appear as suggestions but free text is allowed,
+     so admins can introduce new categories or assignees by just typing. */
+  var catList = document.getElementById('mntCategoryOptions');
+  if (!catList) {
+    catList = document.createElement('datalist');
+    catList.id = 'mntCategoryOptions';
+    document.body.appendChild(catList);
+  }
+  // Sort with "Other" pinned at the bottom for consistency with resident view
+  var catKeys = Object.keys(cats);
+  var catOther = catKeys.filter(function(c){ return c.toLowerCase() === 'other'; });
+  var catSorted = catKeys
+    .filter(function(c){ return c.toLowerCase() !== 'other'; })
+    .sort(function(a,b){ return a.localeCompare(b); })
+    .concat(catOther);
+  catList.innerHTML = catSorted.map(function(c){ return '<option value="' + escHtml(c) + '"></option>'; }).join('');
+
+  var asgList = document.getElementById('mntAssignedOptions');
+  if (!asgList) {
+    asgList = document.createElement('datalist');
+    asgList.id = 'mntAssignedOptions';
+    document.body.appendChild(asgList);
+  }
+  var asgSorted = Object.keys(assignees).sort(function(a,b){ return a.localeCompare(b); });
+  asgList.innerHTML = asgSorted.map(function(a){ return '<option value="' + escHtml(a) + '"></option>'; }).join('');
 }
 
 function loadMaintenanceIssues(silent) {
@@ -2627,14 +2661,16 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   var priorityEl = document.getElementById('mnt-priority-' + uiIndex);
   var categoryEl = document.getElementById('mnt-category-' + uiIndex);
   var descEl     = document.getElementById('mnt-desc-'     + uiIndex);
+  var assignedEl = document.getElementById('mnt-assigned-' + uiIndex);
   var saveBtn    = document.getElementById('mnt-save-'     + uiIndex);
   if (!statusEl) return;
 
   var newStatus      = statusEl.value;
   var newNote        = noteEl     ? noteEl.value.trim()     : '';
   var newPriority    = priorityEl ? priorityEl.value        : '';
-  var newCategory    = categoryEl ? categoryEl.value        : '';
+  var newCategory    = categoryEl ? categoryEl.value.trim() : '';
   var newDescription = descEl     ? descEl.value.trim()     : '';
+  var newAssignedTo  = assignedEl ? assignedEl.value.trim() : '';
 
   if (newStatus === 'In Progress' && !newPriority) {
     if (priorityEl) {
@@ -2651,7 +2687,7 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: actualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription })
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: actualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription, assignedTo: newAssignedTo })
     });
     var data = await res.json();
     if (data.status === 'ok') {
@@ -3137,7 +3173,7 @@ function mntAddIssueDiscardConfirm() {
 }
 
 async function mntAddIssueSubmit() {
-  var category    = document.getElementById('mntAddCategory').value;
+  var category    = document.getElementById('mntAddCategory').value.trim();
   var status      = document.getElementById('mntAddStatus').value;
   var priority    = document.getElementById('mntAddPriority').value;
   var description = document.getElementById('mntAddDescription').value.trim();
@@ -5509,6 +5545,7 @@ function mntMobOpen(uiIndex, actualRowIndex) {
   document.getElementById('mntMob_status').value       = row.status      || 'New';
   document.getElementById('mntMob_note').value         = row.updates     || '';
   document.getElementById('mntMob_priority').value     = row.priority    || '';
+  document.getElementById('mntMob_assigned').value     = row.assignedTo  || '';
   // Restore any unsaved draft note for this issue
   var draftKey = 'mnt_draft_' + actualRowIndex;
   var draft = sessionStorage.getItem(draftKey);
@@ -5530,7 +5567,8 @@ function mntMobIsDirty() {
          document.getElementById('mntMob_description').value  !== (row.description || '') ||
          document.getElementById('mntMob_status').value       !== (row.status      || 'New') ||
          noteVal                                                                            ||
-         document.getElementById('mntMob_priority').value     !== (row.priority    || '');
+         document.getElementById('mntMob_priority').value     !== (row.priority    || '') ||
+         document.getElementById('mntMob_assigned').value     !== (row.assignedTo  || '');
 }
 
 function mntMobClose() {
@@ -5553,11 +5591,12 @@ function mntMobTryClose() {
 
 async function mntMobSave() {
   if (_mntMobActualRowIndex === null) return;
-  var newCategory    = document.getElementById('mntMob_category').value;
+  var newCategory    = document.getElementById('mntMob_category').value.trim();
   var newDescription = document.getElementById('mntMob_description').value.trim();
   var newStatus      = document.getElementById('mntMob_status').value;
   var newNote        = document.getElementById('mntMob_note').value.trim();
   var newPriority    = document.getElementById('mntMob_priority').value;
+  var newAssignedTo  = document.getElementById('mntMob_assigned').value.trim();
 
   if (newStatus === 'In Progress' && !newPriority) {
     var priSel = document.getElementById('mntMob_priority');
@@ -5576,7 +5615,7 @@ async function mntMobSave() {
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: _mntMobActualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription })
+      body: JSON.stringify({ action: 'updateMaintenanceRow', rowIndex: _mntMobActualRowIndex, status: newStatus, updates: newNote, priority: newPriority, category: newCategory, description: newDescription, assignedTo: newAssignedTo })
     });
     var data = await res.json();
     if (data.status === 'ok') {
@@ -5600,6 +5639,7 @@ async function mntMobSave() {
         rowObj.priority     = newPriority;
         rowObj.category     = newCategory;
         rowObj.description  = newDescription;
+        rowObj.assignedTo   = newAssignedTo;
       }
       mntMobClose();
       renderMaintenanceTable();
@@ -6214,15 +6254,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
       <div class="mnt-add-row">
         <div class="mnt-add-field">
           <label>Category</label>
-          <select id="mntAddCategory">
-            <option value="">— Select category —</option>
-            <option>Waste &amp; Recycling</option>
-            <option>Lighting</option>
-            <option>Car Parks</option>
-            <option>Grounds &amp; Common Areas</option>
-            <option>Farmhouse</option>
-            <option>Other</option>
-          </select>
+          <input id="mntAddCategory" list="mntCategoryOptions" placeholder="— Type or pick a category —" autocomplete="off" />
         </div>
         <div class="mnt-add-field">
           <label>Status</label>
@@ -6277,14 +6309,7 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     </div>
     <div>
       <label>Category</label>
-      <select id="mntMob_category">
-        <option value="Waste &amp; Recycling">Waste &amp; Recycling</option>
-        <option value="Lighting">Lighting</option>
-        <option value="Car Parks">Car Parks</option>
-        <option value="Grounds &amp; Common Areas">Grounds &amp; Common Areas</option>
-        <option value="Farmhouse">Farmhouse</option>
-        <option value="Other">Other</option>
-      </select>
+      <input id="mntMob_category" list="mntCategoryOptions" placeholder="Type or pick a category" autocomplete="off" />
     </div>
     <div>
       <label>Description</label>
@@ -6310,6 +6335,10 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
         <option value="Medium" style="color:#b8680a;font-weight:700;">🟡 Medium</option>
         <option value="Low" style="color:#2e7d52;font-weight:700;">🟢 Low</option>
       </select>
+    </div>
+    <div>
+      <label>Assigned to</label>
+      <input id="mntMob_assigned" list="mntAssignedOptions" placeholder="Type or pick a name" autocomplete="off" />
     </div>
     <div class="mnt-mob-btns">
       <button onclick="mntMobTryClose()" style="background:rgba(122,92,62,0.1);color:var(--mid);">Cancel</button>
