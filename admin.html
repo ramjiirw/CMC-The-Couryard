@@ -2370,14 +2370,14 @@ function renderMaintenanceTable() {
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr>';
   html += '<th style="' + TH  + 'width:36px;" onclick="mntToggleSort(\'num\')">#' + mntSortIcon('num') + '</th>';
-  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
-  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'category\')">Category' + mntSortIcon('category') + '</th>';
-  html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'dateAdded\')">Date Added' + mntSortIcon('dateAdded') + '</th>';
-  html += '<th style="' + TH  + 'width:115px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
-  html += '<th style="' + TH  + 'width:90px;" onclick="mntToggleSort(\'priority\')">Priority' + mntSortIcon('priority') + '</th>';
-  html += '<th style="' + TH  + 'width:120px;" onclick="mntToggleSort(\'assignedTo\')">Assigned to' + mntSortIcon('assignedTo') + '</th>';
-  html += '<th style="' + TH  + 'width:105px;" onclick="mntToggleSort(\'dateResolved\')">Date Resolved' + mntSortIcon('dateResolved') + '</th>';
-  html += '<th style="' + THx + 'width:70px;text-align:center;">Detail</th>';
+  html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
+  html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'category\')">Category' + mntSortIcon('category') + '</th>';
+  html += '<th style="' + TH  + 'width:90px;" onclick="mntToggleSort(\'dateAdded\')">Added' + mntSortIcon('dateAdded') + '</th>';
+  html += '<th style="' + TH  + 'width:105px;" onclick="mntToggleSort(\'status\')">Status' + mntSortIcon('status') + '</th>';
+  html += '<th style="' + TH  + 'width:80px;" onclick="mntToggleSort(\'priority\')">Priority' + mntSortIcon('priority') + '</th>';
+  html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'assignedTo\')">Assigned to' + mntSortIcon('assignedTo') + '</th>';
+  html += '<th style="' + TH  + 'width:80px;" onclick="mntToggleSort(\'dateResolved\')">Resolved' + mntSortIcon('dateResolved') + '</th>';
+  html += '<th style="' + THx + 'width:60px;text-align:center;">Detail</th>';
   html += '</tr></thead><tbody>';
 
   issues.forEach(function(row, i) {
