@@ -5882,10 +5882,9 @@ function qaRenderTable() {
     html += '<tr id="qa-row-' + i + '" style="background:' + rowBg + ';border-bottom:1px solid #ddd5c8;">';
     html += '<td style="padding:0.75rem 1rem;font-size:0.78rem;vertical-align:top;border-right:1px solid #ede8e1;">';
     if (row.topic) html += '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.15rem 0.55rem;white-space:nowrap;">' + qaEsc(row.topic) + '</span>';
+    if (row.review) html += '<div style="margin-top:0.4rem;"><span style="display:inline-block;background:rgba(192,98,42,0.12);color:#c0622a;border:1px solid rgba(192,98,42,0.3);border-radius:10px;font-size:0.66rem;font-weight:700;padding:0.12rem 0.5rem;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;">&#9888; Review</span></div>';
     html += '</td>';
-    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">';
-    if (row.review) html += '<span style="display:inline-block;background:rgba(192,98,42,0.12);color:#c0622a;border:1px solid rgba(192,98,42,0.3);border-radius:10px;font-size:0.66rem;font-weight:700;padding:0.12rem 0.5rem;letter-spacing:0.04em;text-transform:uppercase;margin-right:0.5rem;vertical-align:middle;">&#9888; Review</span>';
-    html += qaEsc(row.question) + '</td>';
+    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">' + qaEsc(row.question) + '</td>';
     html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;white-space:pre-wrap;border-right:1px solid #ede8e1;">' + qaEsc(row.answer) + '</td>';
     html += '<td style="padding:0.75rem 0.6rem;vertical-align:top;text-align:center;">';
     html += '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;white-space:nowrap;" onclick="qaOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button>';
