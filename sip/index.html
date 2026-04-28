@@ -12,7 +12,7 @@
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { height:100%; }
-  body { font-family:Arial,sans-serif; font-size:12px; background:var(--cream); min-height:100vh; min-height:-webkit-fill-available; overflow-x:hidden; display:flex; flex-direction:column; }
+  body { font-family:Arial,sans-serif; font-size:14px; background:var(--cream); min-height:100vh; min-height:-webkit-fill-available; overflow-x:hidden; display:flex; flex-direction:column; }
 
   /* ── LOGIN SCREEN ── */
   #loginScreen { min-height:100vh; min-height:-webkit-fill-available; display:flex; align-items:center; justify-content:center; background:#121820; position:relative; overflow:hidden; }
@@ -49,8 +49,8 @@
   @media(max-width:1024px) { header { position:static; } }
   @media(max-width:768px) { .sip-body { padding-left:1rem; padding-right:1rem; padding-bottom:4rem; } }
   .page-title { margin-bottom:1.4rem; }
-  .page-title h2 { font-size:1.3rem; font-weight:500; color:var(--accent); }
-  .page-title p { color:var(--mid); font-size:0.82rem; margin-top:0.3rem; }
+  .page-title h2 { font-size:1.4rem; font-weight:500; color:var(--accent); }
+  .page-title p { color:var(--mid); font-size:0.85rem; margin-top:0.3rem; }
   .doc-card { background:white; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:1.4rem; }
   .doc-card-hdr { padding:0.7rem 1.2rem; color:white; font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:0.6rem; }
   .doc-card-hdr.pinned { background:linear-gradient(135deg,#3a5a70,#6090b0); }
@@ -117,32 +117,32 @@
   .doc-filter-clear:hover { background:#a0501e; }
 
   /* ── Q&A PANEL ── */
-  .qa-filter-bar { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; padding:0.55rem 1.2rem; background:var(--warm); border-bottom:1px solid var(--border); }
-  .qa-filter-bar label { font-size:0.68rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; }
-  .qa-filter-bar input, .qa-filter-bar select { padding:0.28rem 0.55rem; border:1px solid var(--border); border-radius:5px; font-family:Arial,sans-serif; font-size:0.82rem; background:white; color:var(--dark); }
+  .qa-filter-bar { display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center; padding:0.6rem 1.25rem; background:var(--warm); border-bottom:1px solid var(--border); }
+  .qa-filter-bar label { font-size:0.78rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; }
+  .qa-filter-bar input, .qa-filter-bar select { padding:0.35rem 0.7rem; border:1px solid var(--border); border-radius:5px; font-family:Arial,sans-serif; font-size:0.85rem; background:white; color:var(--dark); }
   .qa-filter-bar input:focus, .qa-filter-bar select:focus { outline:none; border-color:var(--accent2); }
   .qa-table { width:100%; border-collapse:collapse; }
   .qa-table thead th { background:rgba(122,92,62,0.07); padding:0.7rem 1.2rem; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--mid); border-bottom:1px solid var(--border); white-space:nowrap; }
   .qa-table tbody tr { transition:background 0.15s; }
-  .qa-table tbody td { padding:0.75rem 1.2rem; font-size:0.82rem; vertical-align:top; border-bottom:1px solid rgba(184,173,158,0.4); }
+  .qa-table tbody td { padding:0.9rem 1.2rem; font-size:0.95rem; line-height:1.55; vertical-align:top; border-bottom:1px solid rgba(184,173,158,0.4); color:var(--dark); }
   .qa-table tbody tr:last-child td { border-bottom:none; }
   .qa-table tbody tr:hover td { background:rgba(196,149,106,0.06); }
-  .qa-table tbody td:first-child { width:16%; }
-  .qa-table tbody td:nth-child(2) { font-weight:600; color:var(--dark); width:38%; }
-  .qa-table tbody td:nth-child(3) { color:var(--mid); }
+  .qa-table tbody td:first-child { width:50%; border-right:1px solid var(--border); }
+  .qa-table tbody td:nth-child(2) { width:50%; color:var(--mid); }
   .qa-table tbody tr { border-bottom:1px solid rgba(184,173,158,0.35); }
+  .qa-q-topic { margin-bottom:0.45rem; }
+  .qa-q-text { display:block; }
   /* ── Q&A TABLE MOBILE/TABLET SCROLL ── */
   @media (max-width:1279px) {
     #panel-sipqa .qa-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
     #panel-sipqa .qa-table { min-width:700px; }
-    #panel-sipqa .qa-table tbody td:first-child { width:140px; min-width:140px; }
-    #panel-sipqa .qa-table tbody td:nth-child(2) { width:260px; min-width:260px; }
-    #panel-sipqa .qa-table tbody td:nth-child(3) { min-width:280px; white-space:normal; word-wrap:break-word; }
+    #panel-sipqa .qa-table tbody td:first-child { min-width:280px; white-space:normal; word-wrap:break-word; }
+    #panel-sipqa .qa-table tbody td:nth-child(2) { min-width:280px; white-space:normal; word-wrap:break-word; }
   }
   .bio-filter-btn { padding:0.3rem 0.8rem; border-radius:5px; border:none; background:linear-gradient(135deg,#3a5a70,#6090b0); color:white; font-family:Arial,sans-serif; font-size:0.75rem; font-weight:600; cursor:pointer; transition:opacity 0.15s; }
   .bio-filter-btn:hover { opacity:0.85; }
   .bio-filter-btn.active { background:linear-gradient(135deg,#6090b0,#3a5a70); opacity:1; }
-  .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.1); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:10px; font-size:0.68rem; font-weight:700; padding:0.1rem 0.5rem; letter-spacing:0.03em; white-space:nowrap; }
+  .qa-topic-pill { display:inline-block; background:rgba(122,92,62,0.08); color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:4px; font-size:0.85rem; font-weight:500; padding:0.15rem 0.55rem; letter-spacing:0.01em; white-space:nowrap; }
   .qa-count-pill { background:rgba(255,255,255,0.2); color:white; border-radius:10px; font-size:0.68rem; padding:0.1rem 0.5rem; font-weight:700; }
 
   /* ── Site Images Gallery ── */
@@ -218,12 +218,11 @@
         <div style="background:white;">
           <div class="doc-card-hdr all">&#128203; Questions &amp; Answers <span class="qa-count-pill" id="qaCount">0</span></div>
           <div class="qa-filter-bar">
-            <label>Search</label>
-            <input type="text" id="qaSearchInput" placeholder="Filter questions..." oninput="onQaSearch()" style="width:200px;">
-            <label style="margin-left:0.4rem;">Topic</label>
+            <label>Filter:</label>
             <select id="qaTopicFilter" onchange="onQaSearch()">
               <option value="">All topics</option>
             </select>
+            <input type="text" id="qaSearchInput" placeholder="Search..." oninput="onQaSearch()" style="width:200px;">
             <button class="bio-filter-btn" id="bioFilterBtn" onclick="toggleBioFilter()">Bio Filter</button>
             <button class="doc-filter-clear" id="qaClearBtn" onclick="clearAllQaFilters()" style="display:none;">&#x2715; Clear</button>
           </div>
@@ -231,9 +230,8 @@
           <table class="qa-table">
             <thead>
               <tr>
-                <th class="sortable sort-asc" id="qaSortT" onclick="sortQA('topic')">Topic<span class="sort-icon"></span></th>
-                <th class="sortable" id="qaSortQ" onclick="sortQA('question')">Question<span class="sort-icon"></span></th>
-                <th class="sortable" id="qaSortA" onclick="sortQA('answer')">Answer<span class="sort-icon"></span></th>
+                <th class="sortable sort-asc" id="qaSortQ" onclick="sortQA('topic')" title="Sort by topic">Question<span class="sort-icon"></span></th>
+                <th>Answer</th>
               </tr>
             </thead>
             <tbody id="qaBody"></tbody>
@@ -576,7 +574,7 @@ function loadQA() {
       buildQaTopicFilter();
       renderQA();
     } else {
-      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
     }
   }
 
@@ -588,7 +586,7 @@ function loadQA() {
   // Case 2: still in-flight — await it
   if (prefetchedQA && typeof prefetchedQA.then === 'function') {
     prefetchedQA.then(applyQAData).catch(function(){
-      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
     });
     return;
   }
@@ -597,7 +595,7 @@ function loadQA() {
     .then(function(r){ return r.json(); })
     .then(applyQAData)
     .catch(function(){
-      document.getElementById('qaBody').innerHTML = '<tr><td colspan="3" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+      document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
     });
 }
 
@@ -616,19 +614,11 @@ function buildQaTopicFilter() {
 }
 
 function sortQA(col) {
-  if (qaSortCol === col) {
-    qaSortDir = qaSortDir === 'asc' ? 'desc' : 'asc';
-  } else {
-    qaSortCol = col;
-    qaSortDir = 'asc';
-  }
-  ['Q','A','T'].forEach(function(x){
-    var el = document.getElementById('qaSort' + x);
-    el.className = 'sortable';
-  });
-  var colMap = { question:'Q', answer:'A', topic:'T' };
-  var active = document.getElementById('qaSort' + colMap[col]);
-  active.className = 'sortable ' + (qaSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  // Topic-only sort. Calls with the col param kept for compatibility but
+  // ignored — there's only one sortable column now.
+  qaSortDir = qaSortDir === 'asc' ? 'desc' : 'asc';
+  var hdr = document.getElementById('qaSortQ');
+  if (hdr) hdr.className = 'sortable ' + (qaSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
   renderQA();
 }
 
@@ -676,23 +666,24 @@ function renderQA() {
     return matchQ && matchT && matchBio;
   });
 
+  // Sort by topic only (single sortable column).
   filtered.sort(function(a, b){
-    var av = (a[qaSortCol] || '').toLowerCase();
-    var bv = (b[qaSortCol] || '').toLowerCase();
+    var av = (a.topic || '').toLowerCase();
+    var bv = (b.topic || '').toLowerCase();
     return qaSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
   });
 
   document.getElementById('qaCount').textContent = filtered.length;
 
   if (!filtered.length) {
-    body.innerHTML = '<tr><td colspan="3" class="empty-msg">No results found.</td></tr>';
+    body.innerHTML = '<tr><td colspan="2" class="empty-msg">No results found.</td></tr>';
     return;
   }
 
   body.innerHTML = filtered.map(function(r){
+    var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + esc(r.topic) + '</span></div>' : '';
     return '<tr>'
-      + '<td>' + (r.topic ? '<span class="qa-topic-pill">' + esc(r.topic) + '</span>' : '') + '</td>'
-      + '<td>' + esc(r.question) + '</td>'
+      + '<td>' + topicHtml + '<span class="qa-q-text">' + esc(r.question) + '</span></td>'
       + '<td>' + esc(r.answer).replace(/\n/g, '<br>') + '</td>'
       + '</tr>';
   }).join('');
