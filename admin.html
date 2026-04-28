@@ -2721,6 +2721,7 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
     }
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
+  } finally {
     if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
   }
   resetAutoLock();
@@ -5650,7 +5651,11 @@ async function mntMobSave() {
     }
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
-    if (btn) { btn.textContent = '💾 Save'; btn.disabled = false; }
+  } finally {
+    // Always reset the button so it can never be left stuck on "Saving…",
+    // regardless of which code path we exit through (success, error, or
+    // an exception thrown anywhere inside the try block).
+    if (btn) { btn.textContent = '\uD83D\uDCBE Save'; btn.disabled = false; }
   }
 }
 
