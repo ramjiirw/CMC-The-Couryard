@@ -411,7 +411,7 @@ function renderPinned() {
     return pinnedSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
   });
   body.innerHTML = sorted.map(function(d){
-    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="/' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="/' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
@@ -553,7 +553,7 @@ function renderAll() {
   document.getElementById('allCount').textContent = filtered.length;
   if (!filtered.length) { body.innerHTML = '<tr><td colspan="2" class="empty-msg">No documents found.</td></tr>'; return; }
   body.innerHTML = filtered.map(function(d){
-    return '<tr><td><a class="doc-link" href="' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="/' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="/' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
 }
 
