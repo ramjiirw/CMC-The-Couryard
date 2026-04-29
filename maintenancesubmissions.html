@@ -373,6 +373,26 @@
     margin-left: auto; font-size: 0.72rem; font-weight: 400;
     opacity: 0.75; text-transform: uppercase; letter-spacing: 0.04em;
   }
+
+  /* ── Site Images Gallery ── */
+  .img-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.85rem; padding:1rem 1.2rem 1.2rem; }
+  .img-card { cursor:pointer; border:1px solid var(--border); border-radius:6px; overflow:hidden; background:var(--warm); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .img-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(74,63,53,0.15); }
+  .img-card-thumb { aspect-ratio:4/3; width:100%; overflow:hidden; background:#ede8e0; display:flex; align-items:center; justify-content:center; }
+  .img-card-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .img-card-caption { padding:0.5rem 0.7rem; font-size:0.78rem; color:#4a3f35; border-top:1px solid var(--border); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3; min-height:2.6em; }
+  .img-empty { padding:1.2rem; text-align:center; font-size:0.82rem; color:var(--accent); font-style:italic; }
+  @media (max-width:700px) { .img-grid { grid-template-columns:repeat(2,1fr); } .img-card-caption { -webkit-line-clamp:3; min-height:3.9em; } }
+  @media (max-width:420px) { .img-grid { grid-template-columns:1fr; } }
+
+  /* Site Images Modal */
+  #imgModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+  #imgModal.open { display:flex; }
+  .img-modal-card { background:white; border-radius:8px; padding:12px; max-width:90vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+  .img-modal-img { max-width:100%; max-height:calc(90vh - 60px); object-fit:contain; border-radius:4px; }
+  .img-modal-caption { padding:0.7rem 0.4rem 0.2rem; font-size:0.85rem; color:#4a3f35; text-align:center; }
+  .img-modal-close { position:fixed; top:14px; right:18px; color:white; font-size:24px; cursor:pointer; background:rgba(255,255,255,0.18); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10000; user-select:none; line-height:1; }
+  .img-modal-close:hover { background:rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
@@ -452,6 +472,23 @@
     </div>
   </div>
 
+  <!-- SITE IMAGES PANEL -->
+  <div class="doc-card-wrapper">
+    <button class="btn-toggle" id="toggle-sipimages" onclick="toggleSiteImages()" aria-expanded="false">
+      <span>&#128247; Site Images <span class="count-pill" id="imgCount" style="margin-left:0.5rem;">&#8230;</span></span>
+      <span class="toggle-hint">
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9658;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-sipimages">
+      <div style="background:white;">
+        <div id="imgGrid" class="img-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card" style="min-height:120px;">
     <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;"></span><span class="count-pill" style="letter-spacing:0.04em;background:rgba(255,255,255,0.12);color:var(--cream);">SHOWING · <span id="issueCount">-</span></span></div>
     <div class="filter-bar">
@@ -522,6 +559,15 @@
 
 </main>
 
+
+<!-- Site Images Modal -->
+<div id="imgModal" onclick="closeImageModal(event)">
+  <div class="img-modal-close" onclick="closeImageModal(event)">&#10005;</div>
+  <div class="img-modal-card" onclick="event.stopPropagation();">
+    <img class="img-modal-img" id="imgModalImg" alt="">
+    <div class="img-modal-caption" id="imgModalCaption"></div>
+  </div>
+</div>
 
 <!-- Floating Report Button -->
 <button class="fab" onclick="openReportModal()">&#10133; Report an Issue</button>
@@ -1412,6 +1458,109 @@ function renderMaintDocs() {
   } catch(err) {
     document.getElementById('wrap-maintdocs').innerHTML =
       '<div class="doc-state-error">⚠️ Could not load documents. Make sure the index has been generated.<br><small>' + err.message + '</small></div>';
+  }
+})();
+
+// ── Site Images Gallery ──────────────────────────────────────────────────────
+// Mirrors the Site Images gallery from index.html [SIP], but pulls from BOTH
+// cmcsipimages AND cmcmaintenanceimages folders so residents see everything
+// SIP viewers see plus any maintenance-only extras. Deduped by path and sorted
+// alphabetically. HIDE_ prefix hides files. Click thumbnail → modal.
+var siteImages = [];
+function _imgEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function toggleSiteImages() {
+  var btn   = document.getElementById('toggle-sipimages');
+  var panel = document.getElementById('panel-sipimages');
+  if (!btn || !panel) return;
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  if (open) {
+    setTimeout(function() {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+}
+
+function renderSiteImages() {
+  var grid = document.getElementById('imgGrid');
+  var countEl = document.getElementById('imgCount');
+  if (!grid) return;
+  if (countEl) countEl.textContent = siteImages.length;
+  if (!siteImages.length) {
+    grid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">No site images available.</div>';
+    return;
+  }
+  grid.innerHTML = siteImages.map(function(img, i) {
+    return '<div class="img-card" onclick="openImageModal(' + i + ')">' +
+             '<div class="img-card-thumb"><img src="/' + _imgEsc(img.path) + '" alt="' + _imgEsc(img.name) + '" loading="lazy"></div>' +
+             '<div class="img-card-caption" title="' + _imgEsc(img.name) + '">' + _imgEsc(img.name) + '</div>' +
+           '</div>';
+  }).join('');
+}
+
+function openImageModal(idx) {
+  var img = siteImages[idx];
+  if (!img) return;
+  var modal = document.getElementById('imgModal');
+  document.getElementById('imgModalImg').src = '/' + img.path;
+  document.getElementById('imgModalImg').alt = img.name;
+  document.getElementById('imgModalCaption').textContent = img.name;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal(e) {
+  if (e) e.stopPropagation();
+  var modal = document.getElementById('imgModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('imgModal');
+    if (modal && modal.classList.contains('open')) closeImageModal();
+  }
+});
+
+(async function loadSiteImages() {
+  var grid = document.getElementById('imgGrid');
+  if (grid) grid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">Loading\u2026</div>';
+  try {
+    var res = await fetch('cmcdocuments/index.json?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var imageExts = /\.(jpe?g|png|webp|gif|svg)$/i;
+    // Pull images from BOTH the SIP folder and the maintenance-only folder.
+    // Path substring match means a folder absent from index.json is silently
+    // ignored — fine for an empty cmcmaintenanceimages folder pre-population.
+    var sources = ['cmcsipimages', 'cmcmaintenanceimages'];
+    var seen = {};
+    var collected = [];
+    (data.folders || []).forEach(function(folder) {
+      (folder.files || []).forEach(function(file) {
+        var inSource = sources.some(function(s) { return file.path.indexOf(s) !== -1; });
+        if (!inSource) return;
+        if (file.name.indexOf('HIDE_') === 0) return;
+        if (!imageExts.test(file.name)) return;
+        if (seen[file.path]) return; // dedupe by path
+        seen[file.path] = true;
+        collected.push({ name: file.name.replace(imageExts, ''), path: file.path });
+      });
+    });
+    collected.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    siteImages = collected;
+    renderSiteImages();
+  } catch(err) {
+    if (grid) grid.innerHTML = '<div class="img-empty" style="grid-column:1/-1;">Could not load images.</div>';
+    var countEl = document.getElementById('imgCount');
+    if (countEl) countEl.textContent = '0';
   }
 })();
 
