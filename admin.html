@@ -542,6 +542,116 @@
     #mntTableWrap .mnt-det-label { font-size:0.62rem !important; }
   }
 
+  /* ──────────────────────────────────────────────────────────────────────────
+     MAINTENANCE — MOBILE LAYOUT (≤768px)
+     The desktop 9-column table is replaced with a vertical card stack.
+     The dark Issue Log header is simplified, and all filter controls live
+     in a slide-up drawer triggered by a Filters button.
+     ────────────────────────────────────────────────────────────────────── */
+  @media(max-width:768px) {
+    /* Show mobile-only chrome, hide desktop chrome */
+    #mntDesktopHeader { display:none !important; }
+    #mntDesktopFilterBar { display:none !important; }
+    #mntMobileHeader { display:flex !important; }
+    #mntMobileBar { display:flex !important; }
+
+    /* Hide the desktop table itself; cards render in their own container */
+    #mntTableWrap table { display:none; }
+    #mntTableWrap { padding:0.6rem; background:#efe9dd; }
+
+    /* Card layout — one card per issue */
+    .mnt-card { background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(120,90,60,0.10); margin-bottom:0.7rem; overflow:hidden; }
+    .mnt-card-top { display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.85rem 0.4rem; gap:0.5rem; }
+    .mnt-card-num { font-weight:700; font-size:0.95rem; color:#1e1a16; }
+    .mnt-card-date { font-size:0.75rem; color:#6b5f52; flex:1; margin-left:0.6rem; }
+    .mnt-card-edit { background:none; border:none; font-size:1.2rem; padding:4px 8px; cursor:pointer; line-height:1; }
+    .mnt-card-meta1 { padding:0 0.85rem 0.5rem; font-size:0.82rem; color:#4a4030; }
+    .mnt-card-meta1 .mnt-card-cat { color:#6b5f52; }
+    .mnt-card-pills { display:flex; gap:0.4rem; padding:0 0.85rem 0.5rem; flex-wrap:wrap; }
+    .mnt-card-asg { display:flex; gap:0.85rem; padding:0 0.85rem 0.55rem; font-size:0.74rem; color:#6b5f52; flex-wrap:wrap; }
+    .mnt-card-asg b { color:#9a8878; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; font-size:0.66rem; margin-right:0.25rem; }
+    .mnt-card-issue { padding:0.55rem 0.85rem 0.45rem; background:#faf7f2; border-left:3px solid #c4956a; }
+    .mnt-card-update { padding:0.55rem 0.85rem; background:#f5f0e8; border-left:3px solid #b8ad9e; }
+    .mnt-card-issue .mnt-card-label, .mnt-card-update .mnt-card-label {
+      font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;
+      color:#9a8878; font-weight:700; display:block; margin-bottom:0.2rem;
+    }
+    .mnt-card-issue .mnt-card-text { font-size:0.84rem; color:#4a4030; line-height:1.5; white-space:pre-wrap; word-wrap:break-word; }
+    .mnt-card-update .mnt-card-text { font-size:0.82rem; color:#6a5848; line-height:1.5; font-style:italic; white-space:pre-wrap; word-wrap:break-word; }
+
+    /* Mobile sticky simplified header */
+    #mntMobileHeader {
+      display:none; align-items:center; gap:0.5rem;
+      background:#1e1a16; color:#f5f0e8;
+      padding:0.6rem 0.85rem;
+      font-size:0.78rem; font-weight:700;
+      letter-spacing:0.05em; text-transform:uppercase;
+      position:sticky; top:0; z-index:51;
+    }
+    #mntMobileHeader .mob-count { background:rgba(196,149,106,0.25); color:#c4956a; border-radius:10px; font-size:0.7rem; padding:0.1rem 0.5rem; font-weight:700; }
+
+    /* Mobile sticky button bar (Filters + Add) */
+    #mntMobileBar {
+      display:none; align-items:center; gap:0.5rem;
+      padding:0.55rem 0.6rem;
+      background:#faf7f2; border-bottom:1px solid #c8bfb4;
+      box-shadow:0 2px 4px rgba(120,90,60,0.08);
+      position:sticky; top:38px; z-index:50;
+    }
+    #mntMobileBar .mob-filters-btn,
+    #mntMobileBar .mob-add-btn {
+      flex:1; padding:0.55rem 0.5rem; border-radius:6px;
+      border:1px solid rgba(122,92,62,0.3);
+      background:#fff; color:#1e1a16;
+      font-family:Arial,sans-serif; font-size:0.82rem; font-weight:600;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.35rem;
+    }
+    #mntMobileBar .mob-add-btn {
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border-color:transparent;
+    }
+    #mntMobileBar .mob-filters-btn .mob-filters-badge {
+      display:inline-block; background:var(--accent2); color:#fff;
+      font-size:0.68rem; font-weight:700; border-radius:10px;
+      padding:0 0.45rem; min-width:1.1rem; text-align:center;
+    }
+
+    /* Filter drawer — slides up from bottom */
+    #mntMobFilterDrawer { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:none; align-items:flex-end; }
+    #mntMobFilterDrawer.open { display:flex; }
+    #mntMobFilterDrawer .drawer-box {
+      width:100%; background:var(--cream); border-radius:16px 16px 0 0;
+      padding:1.2rem 1.1rem 1.4rem; max-height:85dvh; overflow-y:auto;
+      box-shadow:0 -4px 30px rgba(0,0,0,0.25);
+      display:flex; flex-direction:column; gap:0.75rem;
+    }
+    #mntMobFilterDrawer h3 { margin:0 0 0.4rem; font-size:0.95rem; color:var(--accent); }
+    #mntMobFilterDrawer label {
+      font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;
+      color:var(--accent); font-weight:700; display:block; margin-bottom:0.2rem;
+    }
+    #mntMobFilterDrawer .drawer-row { display:flex; gap:0.5rem; }
+    #mntMobFilterDrawer .drawer-row > div { flex:1; }
+    #mntMobFilterDrawer .drawer-actions { display:flex; gap:0.5rem; margin-top:0.5rem; }
+    #mntMobFilterDrawer .drawer-actions button {
+      flex:1; padding:0.7rem 0.5rem; border-radius:8px;
+      font-family:Arial,sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; border:none;
+    }
+    #mntMobFilterDrawer .drawer-clear { background:#fff; color:var(--mid); border:1px solid rgba(122,92,62,0.3) !important; }
+    #mntMobFilterDrawer .drawer-apply { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+
+    /* Hide desktop sticky-header wrapper entirely on mobile */
+    #mntStickyHeader { position:static; }
+  }
+
+  /* Above 768: hide mobile-only chrome */
+  @media(min-width:769px) {
+    #mntMobileHeader { display:none !important; }
+    #mntMobileBar { display:none !important; }
+    #mntMobFilterDrawer { display:none !important; }
+    #mntMobileCards { display:none !important; }
+  }
+
 
   /* ── AGM Minutes Preview button (admin, scoped) ── */
   #panel-agmminutes .finance-section { border: 1px solid #ddd5c8; border-radius: 10px; box-shadow: 0 4px 24px rgba(30,26,22,0.10); overflow: hidden; margin-bottom: 1.5rem; }
@@ -934,15 +1044,38 @@
       </div>
 
       <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
-        <!-- Dark card header -->
-        <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+        <!-- Sticky header group: dark header + filter bar stay pinned together
+             when the user scrolls down. The table's thead sticks just below
+             this group via JS-set top offset. -->
+        <div id="mntStickyHeader" style="position:sticky;top:0;z-index:50;background:white;">
+
+        <!-- Mobile-only simplified header (hidden on desktop via media query) -->
+        <div id="mntMobileHeader" style="display:none;">
+          &#128203; Issue Log
+          <span class="mob-count" id="mntMobileCount">-</span>
+          <span style="margin-left:auto;font-size:0.7rem;font-weight:400;letter-spacing:0;text-transform:none;color:rgba(245,240,232,0.7);" id="mntMobileBadges"></span>
+        </div>
+
+        <!-- Mobile-only Filters + Add bar (hidden on desktop via media query) -->
+        <div id="mntMobileBar" style="display:none;">
+          <button type="button" class="mob-filters-btn" onclick="mntMobFilterOpen()">
+            <span>&#9776; Filters</span>
+            <span id="mntMobFiltersBadge" class="mob-filters-badge" style="display:none;">0</span>
+          </button>
+          <button type="button" class="mob-add-btn" id="mntAddIssueBtnMobile" onclick="mntAddIssueOpen()" style="display:none;">
+            &#43; Add Issue
+          </button>
+        </div>
+
+        <!-- Dark card header (desktop) -->
+        <div id="mntDesktopHeader" style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
           &#128203; Issue Log
           <span id="mntCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
           <span id="mntStatusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;"></span>
           <button class="abtn" id="mntRefreshBtn" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;margin-left:0.5rem;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
         </div>
-        <!-- Filter bar -->
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
+        <!-- Filter bar (desktop) -->
+        <div id="mntDesktopFilterBar" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;box-shadow:0 2px 4px rgba(120,90,60,0.06);">
           <select id="mntFilterAddr" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Addresses</option>
           </select>
@@ -971,7 +1104,8 @@
           <button id="mntClearFiltersBtn" onclick="mntClearFilters()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#3d6b4a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear</button>
           <button id="mntAddIssueBtn" onclick="mntAddIssueOpen()" style="display:none;padding:0.3rem 0.9rem;border-radius:5px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;margin-left:0.25rem;">&#43; Add Director Issue</button>
         </div>
-        <div id="mntTableWrap" style="overflow-x:auto;background:white;">
+        </div><!-- /mntStickyHeader -->
+        <div id="mntTableWrap" style="background:white;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading issues…</div>
         </div>
       </div>
@@ -1770,6 +1904,7 @@ function showDashboard() {
   document.getElementById('adminScreen').style.display = 'flex';
   document.getElementById('lockBtn').style.display = '';
   document.getElementById('mntAddIssueBtn').style.display = '';
+  document.getElementById('mntAddIssueBtnMobile').style.display = '';
   startAutoLock();
   loadResidents();
   loadWelcomeStats();
@@ -2214,13 +2349,20 @@ function mntUpdateFilterBtn() {
   if (document.getElementById('mntDateTo').value) count++;
   if (mntHideResolvedOn) count++;
   var btn = document.getElementById('mntClearFiltersBtn');
-  if (!btn) return;
-  if (count > 0) {
-    btn.textContent = '\u2715 Clear Filters (' + count + ')';
-    btn.style.background = '#b05030';
-    btn.style.display = '';
-  } else {
-    btn.style.display = 'none';
+  if (btn) {
+    if (count > 0) {
+      btn.textContent = '\u2715 Clear Filters (' + count + ')';
+      btn.style.background = '#b05030';
+      btn.style.display = '';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+  // Mirror count onto the mobile Filters button badge
+  var mobBadge = document.getElementById('mntMobFiltersBadge');
+  if (mobBadge) {
+    if (count > 0) { mobBadge.textContent = count; mobBadge.style.display = ''; }
+    else           { mobBadge.style.display = 'none'; }
   }
 }
 
@@ -2236,6 +2378,70 @@ function mntClearFilters() {
   var btn = document.getElementById('mntHideResolved');
   if (btn) { btn.style.background = '#fff'; btn.style.color = '#6b5f52'; btn.style.borderColor = '#b8ad9e'; }
   mntUpdateFilterBtn();
+  renderMaintenanceTable();
+}
+
+// ── Mobile filter drawer (≤768px) ─────────────────────────────────────────────
+// The mobile drawer mirrors the desktop filter inputs by id (mntMobFilter*).
+// Each mobile control writes its value back to the desktop control on change
+// then calls mntApplyFilters(). This keeps a single source of truth and avoids
+// duplicating the filter logic.
+
+function mntMobFilterSyncFromDesktop() {
+  // Copy the current filter values from desktop inputs into the mobile drawer
+  // controls so the drawer always reflects what's actually applied.
+  var pairs = [
+    ['mntMobSearch','mntSearch'],
+    ['mntMobFilterAddr','mntFilterAddr'],
+    ['mntMobFilterStatus','mntFilterStatus'],
+    ['mntMobFilterPriority','mntFilterPriority'],
+    ['mntMobFilterCat','mntFilterCat'],
+    ['mntMobDateFrom','mntDateFrom'],
+    ['mntMobDateTo','mntDateTo']
+  ];
+  pairs.forEach(function(p){
+    var mob = document.getElementById(p[0]);
+    var desk = document.getElementById(p[1]);
+    if (mob && desk) mob.value = desk.value;
+  });
+}
+
+function mntMobFilterPopulate() {
+  // Populate the mobile dropdowns to match the desktop dropdowns. Called every
+  // time the drawer opens so newly added addresses, categories, and statuses
+  // are picked up.
+  var copyOptions = function(srcId, dstId) {
+    var src = document.getElementById(srcId);
+    var dst = document.getElementById(dstId);
+    if (!src || !dst) return;
+    var current = dst.value;
+    dst.innerHTML = src.innerHTML;
+    if (current && Array.from(dst.options).some(function(o){ return o.value === current; })) dst.value = current;
+  };
+  copyOptions('mntFilterAddr',     'mntMobFilterAddr');
+  copyOptions('mntFilterStatus',   'mntMobFilterStatus');
+  copyOptions('mntFilterPriority', 'mntMobFilterPriority');
+  copyOptions('mntFilterCat',      'mntMobFilterCat');
+}
+
+function mntMobFilterOpen() {
+  mntMobFilterPopulate();
+  mntMobFilterSyncFromDesktop();
+  // Also reflect the currently active sort
+  var sortSel = document.getElementById('mntMobSort');
+  if (sortSel) sortSel.value = (mntSortCol || 'num') + '|' + (mntSortDir || 'asc');
+  document.getElementById('mntMobFilterDrawer').classList.add('open');
+}
+
+function mntMobFilterClose() {
+  document.getElementById('mntMobFilterDrawer').classList.remove('open');
+}
+
+function mntMobSortChange(value) {
+  // value is "col|dir" — e.g. "dateAdded|desc"
+  var parts = (value || 'num|asc').split('|');
+  mntSortCol = parts[0] || 'num';
+  mntSortDir = (parts[1] === 'desc') ? 'desc' : 'asc';
   renderMaintenanceTable();
 }
 
@@ -2287,6 +2493,17 @@ function mntSortIcon(col) {
 }
 
 var _mntEditPanelOpen = false;
+
+// Measure the height of the sticky filter+header block and write it to a CSS
+// variable so the table's <thead> can stick directly underneath it. Re-run on
+// resize because the filter bar wraps at narrower widths.
+function mntPositionStickyHeader() {
+  var sticky = document.getElementById('mntStickyHeader');
+  if (!sticky) return;
+  var h = sticky.offsetHeight;
+  document.documentElement.style.setProperty('--mnt-thead-top', h + 'px');
+}
+window.addEventListener('resize', mntPositionStickyHeader);
 
 function renderMaintenanceTable() {
   // Don't re-render while an edit panel is open — it would destroy unsaved content
@@ -2348,6 +2565,8 @@ function renderMaintenanceTable() {
   // Update count pill and status summary badges
   var total = mntAllIssues.length;
   document.getElementById('mntCountPill').textContent = total;
+  var mobCount = document.getElementById('mntMobileCount');
+  if (mobCount) mobCount.textContent = total;
   var newCount      = mntAllIssues.filter(function(r){ var s=(r.status||'').toLowerCase(); return s.indexOf('new')>=0 && !r.dateResolved && s.indexOf('progress')<0 && s.indexOf('resolv')<0; }).length;
   var inProgCount   = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; }).length;
   var resolvedCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; }).length;
@@ -2357,6 +2576,15 @@ function renderMaintenanceTable() {
   if (inProgCount)   sb += '<span style="' + bs + 'background:#fff4e0;color:#b8680a;border-color:#f5dba0;">' + inProgCount + ' In Progress</span>';
   if (resolvedCount) sb += '<span style="' + bs + 'background:#2e7d52;color:#ffffff;border-color:#2e7d52;">' + resolvedCount + ' Resolved</span>';
   document.getElementById('mntStatusBadges').innerHTML = sb;
+  // Mobile header gets a compact, text-only summary (badges are too wide for the bar)
+  var mobBadges = document.getElementById('mntMobileBadges');
+  if (mobBadges) {
+    var parts = [];
+    if (newCount)      parts.push(newCount + ' new');
+    if (inProgCount)   parts.push(inProgCount + ' active');
+    if (resolvedCount) parts.push(resolvedCount + ' done');
+    mobBadges.textContent = parts.join(' · ');
+  }
 
   if (!issues.length) {
     document.getElementById('mntTableWrap').innerHTML = '<div style="color:var(--mid);font-size:0.82rem;padding:1.5rem;font-style:italic;">No issues match this filter.</div>';
@@ -2364,8 +2592,11 @@ function renderMaintenanceTable() {
   }
 
   // Table header style - dark so it stands out clearly
-  var TH  = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;';
-  var THx = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;';
+  // Sticky TH cells: stick to the bottom of the sticky filter-bar block when
+  // scrolling. The `top` value is set dynamically by mntPositionStickyHeader()
+  // because the filter bar's height varies (it wraps at narrower widths).
+  var TH  = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:var(--mnt-thead-top,0px);z-index:40;';
+  var THx = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;position:sticky;top:var(--mnt-thead-top,0px);z-index:40;';
 
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr>';
@@ -2390,30 +2621,38 @@ function renderMaintenanceTable() {
     // ── Main data row (single line) ───────────────────────────────────────────
     // Row no longer toggles a Detail expand — the description and update text
     // are always visible in the band underneath. Editing is via the pencil cell.
+    // Card-style delineation: the main row uses no bottom border (the card is
+    // closed off by the Update band's bottom shadow instead).
+    var cardTop = 'border-top:1px solid #e0d8cc;';
     html += '<tr id="mnt-row-' + i + '" data-actual-index="' + actualRowIndex + '"';
     html += ' onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})"';
     html += ' onmouseout="(function(r){if(!r.classList.contains(\'mnt-row-dirty\')){r.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})}})(this)">';
-    html += '<td style="' + tdBase + 'font-weight:600;border-bottom:0.5px solid #e8e0d5;">' + (row.issueNumber || (i+1)) + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + escHtml(row.address || '') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + escHtml(row.category || '') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + mntPriBadge(row.priority) + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;">' + (row.assignedTo ? escHtml(row.assignedTo) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
-    html += '<td style="' + tdBase + 'border-bottom:0.5px solid #e8e0d5;text-align:center;padding:0.4rem;">';
+    html += '<td style="' + tdBase + 'font-weight:600;' + cardTop + '">' + (row.issueNumber || (i+1)) + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.address || '') + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.category || '') + '</td>';
+    html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + mntPriBadge(row.priority) + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + (row.assignedTo ? escHtml(row.assignedTo) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
+    html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
+    html += '<td style="' + tdBase + cardTop + 'text-align:center;padding:0.4rem;">';
     html += '<button onclick="mntEditClick(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;font-size:1.05rem;color:#c4956a;padding:4px 6px;line-height:1;" title="Edit issue">✏️</button>';
     html += '</td>';
     html += '</tr>';
 
     // ── Always-visible info band (Issue + Update) ─────────────────────────────
-    // Sits directly under the main row. Description wraps freely; rows grow as
-    // needed. Empty values fall back to a faint placeholder.
+    // Sits directly under the main row as part of the same "card". Description
+    // wraps freely; rows grow as needed. Empty values fall back to a faint
+    // placeholder.
     html += '<tr>';
     html += '<td colspan="9" style="padding:0;">';
 
+    // Card wrapper — gives the issue+update bands a unified visual boundary,
+    // with subtle shadow underneath to clearly separate this issue from the next.
+    html += '<div style="box-shadow:0 2px 4px rgba(120,90,60,0.08);border-bottom:1px solid #d8cfbf;">';
+
     // Band 1: Issue description
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#faf7f2;border-left:3px solid #c4956a;border-bottom:1px solid #e0d8cc;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#faf7f2;border-left:3px solid #c4956a;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Issue</span>';
     html += '<div class="mnt-det-desc-text" style="font-size:' + detFontSize + ' !important;color:#4a4030;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;">' + (row.description ? escHtml(row.description) : '<span style="color:#b8ad9e;font-style:italic;">No description</span>') + '</div>';
     html += '</div>';
@@ -2423,6 +2662,14 @@ function renderMaintenanceTable() {
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Update</span>';
     html += '<div class="mnt-det-upd-text" style="font-size:' + detFontSize + ' !important;color:#6a5848;line-height:1.6;font-style:italic;white-space:pre-wrap;word-wrap:break-word;">' + (row.updates ? escHtml(row.updates) : '<span style="color:#b8ad9e;">No updates yet</span>') + '</div>';
     html += '</div>';
+
+    html += '</div>'; // end card wrapper
+    html += '</td></tr>';
+
+    // Spacer row — creates a small visible gap between issue cards. Background
+    // matches the page so the card edges read clearly. The closing </td></tr>
+    // for the info band is INSIDE this string so we don't double-close above.
+    html += '<tr aria-hidden="true"><td colspan="9" style="padding:0;height:8px;background:#efe9dd;border:none;"></td></tr>';
 
     // Edit panel (mnt-edit-* — kept for compatibility with all existing JS)
     html += '<tr id="mnt-edit-' + i + '" style="position:relative;z-index:10;"><td colspan="9" style="padding:0;position:relative;z-index:10;">'; 
@@ -2473,11 +2720,37 @@ function renderMaintenanceTable() {
     html += '</div>';
 
     html += '</div></div></td></tr>'; // end edit panel
-
-    html += '</td></tr>'; // end detail expand row
   });
 
   html += '</tbody></table>';
+
+  // ── Mobile-only card rendering ────────────────────────────────────────────
+  // The table above is hidden via CSS at ≤768px. The cards below are hidden
+  // above 768px. This means we render both into the DOM but only one is shown
+  // at any viewport. Editing on mobile uses the existing mntMobOpen() modal.
+  html += '<div id="mntMobileCards">';
+  if (issues.length === 0) {
+    html += '<div style="color:var(--mid);font-size:0.85rem;padding:1.5rem;font-style:italic;text-align:center;">No issues match this filter.</div>';
+  } else {
+    issues.forEach(function(row) {
+      var actualRowIndex = row.rowIndex;
+      var resolvedStr = mntFmtDate(row.dateResolved || '');
+      var assignedStr = row.assignedTo ? escHtml(row.assignedTo) : '—';
+      html += '<div class="mnt-card">';
+      html += '<div class="mnt-card-top">';
+      html += '<span class="mnt-card-num">#' + (row.issueNumber || '') + '</span>';
+      html += '<span class="mnt-card-date">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</span>';
+      html += '<button class="mnt-card-edit" onclick="mntMobOpen(0,' + actualRowIndex + ')" title="Edit">✏️</button>';
+      html += '</div>';
+      html += '<div class="mnt-card-meta1">' + escHtml(row.address || '') + ' <span class="mnt-card-cat">·</span> <span class="mnt-card-cat">' + escHtml(row.category || '') + '</span></div>';
+      html += '<div class="mnt-card-pills">' + mntStatusBadge(row.status, row.dateResolved) + ' ' + mntPriBadge(row.priority) + '</div>';
+      html += '<div class="mnt-card-asg"><span><b>Assigned</b>' + assignedStr + '</span><span><b>Resolved</b>' + (resolvedStr || '—') + '</span></div>';
+      html += '<div class="mnt-card-issue"><span class="mnt-card-label">Issue</span><div class="mnt-card-text">' + (row.description ? escHtml(row.description) : '<span style="color:#b8ad9e;font-style:italic;">No description</span>') + '</div></div>';
+      html += '<div class="mnt-card-update"><span class="mnt-card-label">Update</span><div class="mnt-card-text">' + (row.updates ? escHtml(row.updates) : '<span style="color:#b8ad9e;font-style:normal;">No updates yet</span>') + '</div></div>';
+      html += '</div>'; // end card
+    });
+  }
+  html += '</div>'; // end mobile cards container
 
   // Inject responsive CSS for the edit layout (once, inside the table wrapper)
   html += '<style>';
@@ -2494,6 +2767,9 @@ function renderMaintenanceTable() {
 
   document.getElementById('mntTableWrap').innerHTML = html;
   mntStyleAllPriSels();
+  // Update the sticky <thead> top offset to match current filter-bar height
+  // (it depends on whether the bar wraps onto multiple lines at this width).
+  mntPositionStickyHeader();
 }
 
 function mntPopulateDropdowns() {
@@ -6290,6 +6566,86 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     <div class="mnt-add-footer">
       <button class="abtn abtn-muted" onclick="mntAddIssueGuardedClose()">Cancel</button>
       <button class="abtn abtn-primary" id="mntAddSubmitBtn" onclick="mntAddIssueSubmit()">&#128190; Add Director Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile maintenance filter drawer (slides up from bottom on ≤768px).
+     Reuses the existing desktop filter inputs by name — closing the drawer
+     simply applies the current filter values via mntApplyFilters(). -->
+<div id="mntMobFilterDrawer" onclick="if(event.target===this) mntMobFilterClose()">
+  <div class="drawer-box">
+    <h3>Filter Issues</h3>
+
+    <div>
+      <label>Search</label>
+      <input type="text" id="mntMobSearch" oninput="document.getElementById('mntSearch').value=this.value;mntApplyFilters();" placeholder="Search description…" style="width:100%;padding:0.7rem 0.85rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:1rem;color:var(--dark);background:#fff;box-sizing:border-box;" />
+    </div>
+
+    <div class="drawer-row">
+      <div>
+        <label>Address</label>
+        <select id="mntMobFilterAddr" onchange="document.getElementById('mntFilterAddr').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+          <option value="">All Addresses</option>
+        </select>
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="mntMobFilterStatus" onchange="document.getElementById('mntFilterStatus').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+          <option value="">All Statuses</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-row">
+      <div>
+        <label>Priority</label>
+        <select id="mntMobFilterPriority" onchange="document.getElementById('mntFilterPriority').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+          <option value="">All Priorities</option>
+          <option value="High">🔴 High</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+        </select>
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="mntMobFilterCat" onchange="document.getElementById('mntFilterCat').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-row">
+      <div>
+        <label>From</label>
+        <input type="date" id="mntMobDateFrom" onchange="document.getElementById('mntDateFrom').value=this.value;mntApplyFilters();" style="width:100%;padding:0.6rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;" />
+      </div>
+      <div>
+        <label>To</label>
+        <input type="date" id="mntMobDateTo" onchange="document.getElementById('mntDateTo').value=this.value;mntApplyFilters();" style="width:100%;padding:0.6rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;" />
+      </div>
+    </div>
+
+    <div>
+      <label>Sort by</label>
+      <select id="mntMobSort" onchange="mntMobSortChange(this.value)" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+        <option value="num|desc">Number (newest)</option>
+        <option value="num|asc">Number (oldest)</option>
+        <option value="dateAdded|desc">Date Added (newest)</option>
+        <option value="dateAdded|asc">Date Added (oldest)</option>
+        <option value="dateResolved|desc">Date Resolved (newest)</option>
+        <option value="dateResolved|asc">Date Resolved (oldest)</option>
+        <option value="priority|asc">Priority (High → Low)</option>
+        <option value="status|asc">Status</option>
+        <option value="address|asc">Address</option>
+      </select>
+    </div>
+
+    <button id="mntMobHideResolved" onclick="mntToggleHideResolved();this.textContent=(document.getElementById('mntHideResolved').textContent||'').trim();" style="padding:0.6rem 0.5rem;border:1px solid rgba(122,92,62,0.3);border-radius:8px;background:#fff;color:var(--mid);font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Hide Resolved</button>
+
+    <div class="drawer-actions">
+      <button class="drawer-clear" onclick="mntClearFilters();mntMobFilterSyncFromDesktop();">Clear All</button>
+      <button class="drawer-apply" onclick="mntMobFilterClose()">Done</button>
     </div>
   </div>
 </div>
