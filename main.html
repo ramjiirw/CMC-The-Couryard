@@ -352,14 +352,16 @@
   }
   /* ── Maintenance: open count + priority pills ── */
   .mnt-open-row {
-    display: flex; justify-content: space-between; align-items: baseline;
+    display: flex; justify-content: flex-start; align-items: baseline;
+    gap: 0.6rem;
     padding: 0.15rem 0;
   }
   .mnt-open-num {
     font-size: 1.1rem; font-weight: 700; color: var(--accent);
   }
   .mnt-pri-pills {
-    display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.35rem;
+    display: flex; justify-content: space-between; gap: 0.35rem;
+    flex-wrap: wrap; margin-top: 0.5rem;
   }
   .mnt-pri-pill {
     font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
