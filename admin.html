@@ -126,6 +126,79 @@
   .mnt-mob-box select, .mnt-mob-box textarea, .mnt-mob-box input { width:100%;padding:0.7rem 0.85rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:1rem;color:var(--dark);background:#fff;box-sizing:border-box; }
   .mnt-mob-box textarea { min-height:200px;resize:vertical; }
   .mnt-mob-box select:focus, .mnt-mob-box textarea:focus, .mnt-mob-box input:focus { outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+
+  /* ── Phone-only custom combobox ───────────────────────────────────────────
+     Native <input list=...> + <datalist> is unreliable on iOS Safari (the
+     suggestion popup is flaky and sometimes doesn't appear at all on tap).
+     For phones (≤600px) we hide the <input list> and show a custom combobox
+     that's just a styled button — tap opens an overlay panel with the list
+     of existing values and a "Type new" action. iPad mini and desktop keep
+     the native input/datalist which works fine there. */
+  .mob-combo { display:none; }
+  @media(max-width:600px) {
+    .mob-combo-input { display:none !important; }
+    .mob-combo { display:flex !important; }
+  }
+  .mob-combo {
+    width:100%; padding:0.7rem 0.85rem;
+    border:1px solid rgba(122,92,62,0.28); border-radius:8px;
+    background:#fff; color:var(--dark); font-size:1rem;
+    box-sizing:border-box; align-items:center; justify-content:space-between;
+    cursor:pointer; gap:0.5rem; min-height:46px;
+  }
+  .mob-combo-value { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mob-combo-value.is-empty { color:#9a8878; }
+  .mob-combo-chev { color:#9a8878; font-size:0.85rem; flex-shrink:0; }
+
+  /* Combobox overlay panel — opens above the modal, blocks tapping behind */
+  #mobComboOverlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    z-index:1000; display:none; align-items:flex-end; justify-content:center;
+  }
+  #mobComboOverlay.open { display:flex; }
+  #mobComboOverlay .panel {
+    background:var(--cream); width:100%; border-radius:16px 16px 0 0;
+    padding:1rem 0 1.4rem; max-height:70dvh; display:flex; flex-direction:column;
+    box-shadow:0 -4px 30px rgba(0,0,0,0.25);
+  }
+  #mobComboOverlay .panel-title {
+    font-size:0.78rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--accent); padding:0 1.2rem 0.7rem;
+    border-bottom:1px solid rgba(122,92,62,0.15);
+  }
+  #mobComboOverlay .panel-list { flex:1; overflow-y:auto; padding:0.3rem 0; }
+  #mobComboOverlay .panel-item {
+    padding:0.85rem 1.2rem; font-size:1rem; color:var(--dark);
+    cursor:pointer; border-bottom:1px solid rgba(122,92,62,0.08);
+  }
+  #mobComboOverlay .panel-item:last-of-type { border-bottom:none; }
+  #mobComboOverlay .panel-item:active { background:rgba(196,149,106,0.18); }
+  #mobComboOverlay .panel-item.is-empty { color:#9a8878; font-style:italic; padding:1rem 1.2rem; text-align:center; }
+  #mobComboOverlay .panel-item-new {
+    color:var(--accent); font-weight:700;
+    border-top:2px solid rgba(122,92,62,0.15); margin-top:0.2rem;
+  }
+  #mobComboOverlay .panel-cancel {
+    margin:0.7rem 1.2rem 0; padding:0.75rem;
+    background:rgba(122,92,62,0.1); color:var(--mid);
+    border:none; border-radius:8px; font-size:0.9rem; font-weight:700; cursor:pointer;
+  }
+  #mobComboOverlay .panel-typenew {
+    padding:0.9rem 1.2rem; display:none; gap:0.5rem; flex-direction:column;
+  }
+  #mobComboOverlay .panel-typenew.open { display:flex; }
+  #mobComboOverlay .panel-typenew input {
+    padding:0.7rem 0.85rem; border:1px solid rgba(122,92,62,0.28);
+    border-radius:8px; font-size:1rem; color:var(--dark); background:#fff;
+    width:100%; box-sizing:border-box;
+  }
+  #mobComboOverlay .panel-typenew-btns { display:flex; gap:0.5rem; }
+  #mobComboOverlay .panel-typenew-btns button {
+    flex:1; padding:0.7rem; border:none; border-radius:8px;
+    font-size:0.9rem; font-weight:700; cursor:pointer;
+  }
+  #mobComboOverlay .panel-typenew-cancel { background:rgba(122,92,62,0.1); color:var(--mid); }
+  #mobComboOverlay .panel-typenew-save { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
   .mnt-mob-btns { display:flex;gap:0.6rem;margin-top:0.2rem; }
   .mnt-mob-btns button { flex:1;padding:0.8rem;border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;border:none; }
 
@@ -2445,6 +2518,97 @@ function mntMobSortChange(value) {
   mntSortCol = parts[0] || 'num';
   mntSortDir = (parts[1] === 'desc') ? 'desc' : 'asc';
   renderMaintenanceTable();
+}
+
+// ── Phone-only custom combobox (Category / Assigned to) ──────────────────────
+// Native <input list> + <datalist> is unreliable on iOS Safari, so on phones
+// (≤600px) we hide the native input and show a custom button that opens a
+// proper overlay panel. The hidden native input still holds the actual value,
+// so save handlers don't need any logic changes.
+
+function mobComboSyncDisplay(inputId) {
+  // Mirror the hidden input's value into the visible combobox display.
+  var input   = document.getElementById(inputId);
+  var display = document.getElementById(inputId + '_display');
+  if (!input || !display) return;
+  var val = (input.value || '').trim();
+  if (val) {
+    display.textContent = val;
+    display.classList.remove('is-empty');
+  } else {
+    display.textContent = 'Tap to choose…';
+    display.classList.add('is-empty');
+  }
+}
+
+function mobComboOpen(inputId, datalistId, title) {
+  var overlay  = document.getElementById('mobComboOverlay');
+  var listEl   = document.getElementById('mobComboPanelList');
+  var titleEl  = document.getElementById('mobComboPanelTitle');
+  var datalist = document.getElementById(datalistId);
+
+  overlay.dataset.target = inputId;
+  overlay.dataset.source = datalistId;
+  titleEl.textContent = title || 'Choose';
+
+  // Build the option list from the datalist (which mntPopulateDropdowns
+  // populates whenever maintenance issues load). Plus a "Type new" row.
+  var html = '';
+  var opts = datalist ? datalist.querySelectorAll('option') : [];
+  if (opts.length === 0) {
+    html += '<div class="panel-item is-empty">No existing values yet</div>';
+  } else {
+    for (var i = 0; i < opts.length; i++) {
+      var v = opts[i].value || '';
+      if (!v) continue;
+      html += '<div class="panel-item" onclick="mobComboPick(\'' + v.replace(/'/g, "\\'") + '\')">' + escHtml(v) + '</div>';
+    }
+  }
+  html += '<div class="panel-item panel-item-new" onclick="mobComboShowTypeNew()">+ Type a new value</div>';
+  listEl.innerHTML = html;
+
+  // Reset the type-new state in case it was open from a previous use
+  document.getElementById('mobComboTypeNewArea').classList.remove('open');
+  document.getElementById('mobComboTypeNewInput').value = '';
+
+  overlay.classList.add('open');
+}
+
+function mobComboPick(value) {
+  var overlay = document.getElementById('mobComboOverlay');
+  var inputId = overlay.dataset.target;
+  if (!inputId) return mobComboClose();
+  var input = document.getElementById(inputId);
+  if (input) {
+    input.value = value;
+    // Trigger any oninput handler so dirty-tracking still fires
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    mobComboSyncDisplay(inputId);
+  }
+  mobComboClose();
+}
+
+function mobComboShowTypeNew() {
+  var area = document.getElementById('mobComboTypeNewArea');
+  area.classList.add('open');
+  var inp = document.getElementById('mobComboTypeNewInput');
+  setTimeout(function() { inp.focus(); }, 50);
+}
+
+function mobComboTypeNewCancel() {
+  document.getElementById('mobComboTypeNewArea').classList.remove('open');
+  document.getElementById('mobComboTypeNewInput').value = '';
+}
+
+function mobComboTypeNewSave() {
+  var v = (document.getElementById('mobComboTypeNewInput').value || '').trim();
+  if (!v) { mobComboTypeNewCancel(); return; }
+  mobComboPick(v);
+}
+
+function mobComboClose() {
+  document.getElementById('mobComboOverlay').classList.remove('open');
+  document.getElementById('mobComboTypeNewArea').classList.remove('open');
 }
 
 var _mntPendingStatus = null, _mntPendingPriority = null, _mntPendingHideResolved = false;
@@ -5843,6 +6007,9 @@ function mntMobOpen(uiIndex, actualRowIndex) {
   document.getElementById('mntMob_note').value         = row.updates     || '';
   document.getElementById('mntMob_priority').value     = row.priority    || '';
   document.getElementById('mntMob_assigned').value     = row.assignedTo  || '';
+  // Mirror the just-set hidden values into the visible phone combobox displays
+  mobComboSyncDisplay('mntMob_category');
+  mobComboSyncDisplay('mntMob_assigned');
   // Restore any unsaved draft note for this issue
   var draftKey = 'mnt_draft_' + actualRowIndex;
   var draft = sessionStorage.getItem(draftKey);
@@ -6592,6 +6759,25 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
 <!-- Mobile maintenance filter drawer (slides up from bottom on ≤768px).
      Reuses the existing desktop filter inputs by name — closing the drawer
      simply applies the current filter values via mntApplyFilters(). -->
+<!-- Custom combobox overlay for phone-only Category / Assigned to inputs.
+     Shown when user taps a .mob-combo button on a ≤600px viewport. The overlay
+     is shared by all phone-only comboboxes — JS routes the chosen value back
+     to the correct hidden <input> based on the targetId stored on this element. -->
+<div id="mobComboOverlay" data-target="" data-source="" onclick="if(event.target===this) mobComboClose()">
+  <div class="panel">
+    <div class="panel-title" id="mobComboPanelTitle">Choose</div>
+    <div class="panel-list" id="mobComboPanelList"></div>
+    <div class="panel-typenew" id="mobComboTypeNewArea">
+      <input type="text" id="mobComboTypeNewInput" placeholder="Type a new value…" autocomplete="off" />
+      <div class="panel-typenew-btns">
+        <button type="button" class="panel-typenew-cancel" onclick="mobComboTypeNewCancel()">Cancel</button>
+        <button type="button" class="panel-typenew-save" onclick="mobComboTypeNewSave()">Save</button>
+      </div>
+    </div>
+    <button type="button" class="panel-cancel" onclick="mobComboClose()">Close</button>
+  </div>
+</div>
+
 <div id="mntMobFilterDrawer" onclick="if(event.target===this) mntMobFilterClose()">
   <div class="drawer-box">
     <h3>Filter Issues</h3>
@@ -6690,11 +6876,15 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     </div>
     <div>
       <label>Category</label>
-      <input id="mntMob_category" list="mntCategoryOptions" placeholder="Type or pick a category" autocomplete="off" />
+      <input id="mntMob_category" class="mob-combo-input" list="mntCategoryOptions" placeholder="Type to see categories" autocomplete="off" />
+      <div class="mob-combo" onclick="mobComboOpen('mntMob_category','mntCategoryOptions','Category')" tabindex="0">
+        <span class="mob-combo-value is-empty" id="mntMob_category_display">Tap to choose…</span>
+        <span class="mob-combo-chev">▾</span>
+      </div>
     </div>
     <div>
       <label>Description</label>
-      <textarea id="mntMob_description" placeholder="Issue description…" style="min-height:80px;"></textarea>
+      <textarea id="mntMob_description" placeholder="Issue description…"></textarea>
     </div>
     <div>
       <label>Status</label>
@@ -6719,7 +6909,11 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     </div>
     <div>
       <label>Assigned to</label>
-      <input id="mntMob_assigned" list="mntAssignedOptions" placeholder="Type or pick a name" autocomplete="off" />
+      <input id="mntMob_assigned" class="mob-combo-input" list="mntAssignedOptions" placeholder="Type to see existing names" autocomplete="off" />
+      <div class="mob-combo" onclick="mobComboOpen('mntMob_assigned','mntAssignedOptions','Assigned to')" tabindex="0">
+        <span class="mob-combo-value is-empty" id="mntMob_assigned_display">Tap to choose…</span>
+        <span class="mob-combo-chev">▾</span>
+      </div>
     </div>
     <div class="mnt-mob-btns">
       <button onclick="mntMobTryClose()" style="background:rgba(122,92,62,0.1);color:var(--mid);">Cancel</button>
