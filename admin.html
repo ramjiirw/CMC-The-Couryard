@@ -81,7 +81,7 @@
   .sidebar-link:hover { background:rgba(196,149,106,0.07); color:var(--stone); border-left-color:rgba(196,149,106,0.3); }
   .sidebar-link.active { background:rgba(196,149,106,0.1); color:var(--accent2); border-left-color:var(--accent2); }
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
-  .admin-content { flex:1; padding:1.8rem; padding-right:0.5rem; padding-bottom:6rem; overflow-y:auto; overflow-x:clip; min-width:0; }
+  .admin-content { flex:1; padding:1.8rem; padding-right:0.5rem; padding-bottom:6rem; overflow-y:auto; min-width:0; }
   @media (max-width:768px) {
     .admin-content { overflow-x:auto !important; padding:0.5rem; }
     #panel-directory .dir-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -1045,11 +1045,11 @@
         </div>
       </div>
 
-      <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+      <div class="admin-panel" id="panel-maintenance" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);overflow:visible;">
         <!-- Sticky header group: dark header + filter bar stay pinned together
              when the user scrolls down. The table's thead sticks just below
              this group via JS-set top offset. -->
-        <div id="mntStickyHeader" style="position:sticky;top:0;z-index:50;background:white;">
+        <div id="mntStickyHeader" style="position:sticky;top:0;z-index:50;background:white;display:block;">
 
         <!-- Mobile-only simplified header (hidden on desktop via media query) -->
         <div id="mntMobileHeader" style="display:none;">
@@ -2630,7 +2630,10 @@ function renderMaintenanceTable() {
     html += ' onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})"';
     html += ' onmouseout="(function(r){if(!r.classList.contains(\'mnt-row-dirty\')){r.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})}})(this)">';
     var priColor = mntPriColor(row.priority);
-    html += '<td style="' + tdBase + 'font-weight:600;' + cardTop + 'border-left:4px solid ' + priColor + ';">' + (row.issueNumber || (i+1)) + '</td>';
+    // First cell: priority-coloured left rule, NO border-top (so the corner
+    // doesn't break the vertical line). Other cells keep border-top to make
+    // the visual separator between cards.
+    html += '<td style="' + tdBase + 'font-weight:600;border-left:4px solid ' + priColor + ';">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.address || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.category || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
