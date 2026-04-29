@@ -2600,7 +2600,7 @@ function renderMaintenanceTable() {
   var TH  = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:var(--mnt-thead-top,0px);z-index:40;';
   var THx = 'background:#2a2520;padding:0.6rem 1rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#c4a882;text-align:left;border-bottom:2px solid #3a3530;white-space:nowrap;position:sticky;top:var(--mnt-thead-top,0px);z-index:40;';
 
-  var html = '<table style="width:100%;border-collapse:collapse;">';
+  var html = '<table style="width:100%;border-collapse:separate;border-spacing:0;">';
   html += '<thead><tr>';
   html += '<th style="' + TH  + 'width:36px;" onclick="mntToggleSort(\'num\')">#' + mntSortIcon('num') + '</th>';
   html += '<th style="' + TH  + 'width:110px;" onclick="mntToggleSort(\'address\')">Address' + mntSortIcon('address') + '</th>';
@@ -2630,16 +2630,11 @@ function renderMaintenanceTable() {
     html += ' onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})"';
     html += ' onmouseout="(function(r){if(!r.classList.contains(\'mnt-row-dirty\')){r.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})}})(this)">';
     var priColor = mntPriColor(row.priority);
-    // Priority-coloured left rule. Implemented with `box-shadow: inset` rather
-    // than `border-left` because, with the table's `border-collapse:collapse`,
-    // a real left border on the first cell can render with subtle alignment
-    // gaps versus the same colour on the info-band wrapper below it. The inset
-    // shadow paints inside the element regardless of border-collapse rules,
-    // so the colour stripe is pixel-perfect aligned end-to-end down the card.
-    var priLineCell = 'box-shadow:inset 4px 0 0 ' + priColor + ';';
-    var priLineDiv  = 'box-shadow:inset 4px 0 0 ' + priColor + ', 0 2px 4px rgba(120,90,60,0.08);';
-
-    html += '<td style="' + tdBase + 'font-weight:600;' + cardTop + priLineCell + 'padding-left:1.25rem;">' + (row.issueNumber || (i+1)) + '</td>';
+    // Priority-coloured left rule. With the table set to `border-collapse:
+    // separate`, `border-left` on the first cell renders cleanly without
+    // competing with adjacent cell borders, and the wrapper div below uses
+    // the same border-left for a continuous line down the full card height.
+    html += '<td style="' + tdBase + 'font-weight:600;' + cardTop + 'border-left:4px solid ' + priColor + ';">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.address || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.category || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
@@ -2659,20 +2654,19 @@ function renderMaintenanceTable() {
     html += '<tr>';
     html += '<td colspan="9" style="padding:0;">';
 
-    // Card wrapper — uses the same inset box-shadow as the main row first cell
-    // so the priority colour stripe appears unbroken from card top to bottom.
-    // The second shadow value is the subtle drop shadow that separates this
-    // card from the next.
-    html += '<div style="border-bottom:1px solid #d8cfbf;' + priLineDiv + '">';
+    // Card wrapper — same priority colour border-left as the main row above,
+    // creating a single unbroken vertical accent line down the entire card.
+    // Subtle drop shadow separates from the next card.
+    html += '<div style="box-shadow:0 2px 4px rgba(120,90,60,0.08);border-bottom:1px solid #d8cfbf;border-left:4px solid ' + priColor + ';">';
 
     // Band 1: Issue description
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1.25rem;background:#faf7f2;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#faf7f2;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Issue</span>';
     html += '<div class="mnt-det-desc-text" style="font-size:' + detFontSize + ' !important;color:#4a4030;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;">' + (row.description ? escHtml(row.description) : '<span style="color:#b8ad9e;font-style:italic;">No description</span>') + '</div>';
     html += '</div>';
 
     // Band 2: Latest update
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1.25rem;background:#f5f0e8;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#f5f0e8;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Update</span>';
     html += '<div class="mnt-det-upd-text" style="font-size:' + detFontSize + ' !important;color:#6a5848;line-height:1.6;font-style:italic;white-space:pre-wrap;word-wrap:break-word;">' + (row.updates ? escHtml(row.updates) : '<span style="color:#b8ad9e;">No updates yet</span>') + '</div>';
     html += '</div>';
