@@ -350,6 +350,27 @@
     border-radius: 6px; padding: 0.38rem 0.75rem;
     font-size: 0.76rem; font-weight: 700; margin-top: 0.15rem;
   }
+  /* ── Maintenance: open count + priority pills ── */
+  .mnt-open-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 0.15rem 0;
+  }
+  .mnt-open-num {
+    font-size: 1.1rem; font-weight: 700; color: var(--accent);
+  }
+  .mnt-pri-pills {
+    display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.35rem;
+  }
+  .mnt-pri-pill {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
+    padding: 0.2rem 0.55rem; border-radius: 10px;
+    display: inline-flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+  .mnt-pri-pill.high   { background: rgba(192, 57, 43, 0.12);  color: #c0392b; }
+  .mnt-pri-pill.medium { background: rgba(184, 104, 10, 0.12); color: #b8680a; }
+  .mnt-pri-pill.low    { background: #eaf4ed;                  color: var(--green); }
+  .mnt-pri-pill.none   { background: #ece6da;                  color: var(--accent); }
 
   /* ── Occupancy bar ── */
   .occ-bar-wrap { margin-top: 0.5rem; }
@@ -925,11 +946,14 @@
         <span id="mntBadge" style="display:none;" class="unread-badge">NEW</span>
       </div>
       <div class="agm-details" id="mntDetails">
-        <div class="agm-detail-row" id="mntNewRow"><span class="agm-detail-label">New</span><span class="agm-detail-val" id="mntNew"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row" id="mntProgressRow"><span class="agm-detail-label">In Progress</span><span class="agm-detail-val" id="mntProgress"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="mnt-open-row" id="mntOpenRow">
+          <span class="agm-detail-label">Open issues</span>
+          <span class="mnt-open-num" id="mntOpenNum"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+        </div>
+        <div class="mnt-pri-pills" id="mntPriPills"></div>
         <div id="mntAllClear" style="display:none;" class="mnt-all-clear">✓ No open issues</div>
       </div>
-      <p class="agm-cta">View &amp; report issues →</p>
+      <p class="agm-cta">View site documents &amp; report/monitor site issues →</p>
     </a>
 
     <!-- Resident Map -->
@@ -1377,16 +1401,39 @@
       const data = bundle.maintenance;
       if (!data || data.status !== 'ok') throw new Error('error');
       const issues = data.issues || [];
-      const newCount      = issues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
-      const progressCount = issues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
-      const resolvedCount = issues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
-      document.getElementById('mntNew').textContent      = newCount;
-      document.getElementById('mntProgress').textContent = progressCount;
-      document.getElementById('mntNewRow').style.display      = newCount > 0 ? '' : 'none';
-      document.getElementById('mntProgressRow').style.display = progressCount > 0 ? '' : 'none';
-      // All-clear state
-      if (newCount === 0 && progressCount === 0) {
-        document.getElementById('mntAllClear').style.display = 'inline-flex';
+      // Open = not resolved (status doesn't include "resolv" AND no dateResolved).
+      // Mirrors the maintenance page convention.
+      const openIssues = issues.filter(r => {
+        const s = (r.status || '').toLowerCase();
+        return !s.includes('resolv') && !r.dateResolved;
+      });
+      const openCount = openIssues.length;
+      // Priority breakdown of OPEN issues only
+      let highCount = 0, medCount = 0, lowCount = 0, noneCount = 0;
+      openIssues.forEach(r => {
+        const p = (r.priority || '').toLowerCase();
+        if (p === 'high') highCount++;
+        else if (p === 'medium') medCount++;
+        else if (p === 'low') lowCount++;
+        else noneCount++;
+      });
+      const openNumEl  = document.getElementById('mntOpenNum');
+      const openRowEl  = document.getElementById('mntOpenRow');
+      const pillsEl    = document.getElementById('mntPriPills');
+      const allClearEl = document.getElementById('mntAllClear');
+      if (openCount === 0) {
+        openRowEl.style.display = 'none';
+        pillsEl.style.display = 'none';
+        allClearEl.style.display = 'inline-flex';
+      } else {
+        openNumEl.textContent = openCount;
+        // Build pills only for non-zero buckets so the card stays uncluttered
+        const parts = [];
+        if (highCount) parts.push('<span class="mnt-pri-pill high">'   + highCount + ' HIGH</span>');
+        if (medCount)  parts.push('<span class="mnt-pri-pill medium">' + medCount  + ' MED</span>');
+        if (lowCount)  parts.push('<span class="mnt-pri-pill low">'    + lowCount  + ' LOW</span>');
+        if (noneCount) parts.push('<span class="mnt-pri-pill none">'   + noneCount + ' UNSET</span>');
+        pillsEl.innerHTML = parts.join('');
       }
       // Badge — status New AND date added is exactly today
       const now24 = new Date();
@@ -1408,8 +1455,8 @@
       if (recentCount > 0) { badge.textContent = recentCount + ' JUST IN'; badge.style.display = 'inline-block'; }
       else badge.style.display = 'none';
     } catch(e) {
-      document.getElementById('mntNew').textContent = '—';
-      document.getElementById('mntProgress').textContent = '—';
+      const openNumEl = document.getElementById('mntOpenNum');
+      if (openNumEl) openNumEl.textContent = '—';
       showOfflineNotice();
     }
   })();
