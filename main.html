@@ -1430,7 +1430,7 @@
         // Build pills only for non-zero buckets so the card stays uncluttered
         const parts = [];
         if (highCount) parts.push('<span class="mnt-pri-pill high">'   + highCount + ' HIGH</span>');
-        if (medCount)  parts.push('<span class="mnt-pri-pill medium">' + medCount  + ' MED</span>');
+        if (medCount)  parts.push('<span class="mnt-pri-pill medium">' + medCount  + ' MEDIUM</span>');
         if (lowCount)  parts.push('<span class="mnt-pri-pill low">'    + lowCount  + ' LOW</span>');
         if (noneCount) parts.push('<span class="mnt-pri-pill none">'   + noneCount + ' UNSET</span>');
         pillsEl.innerHTML = parts.join('');
