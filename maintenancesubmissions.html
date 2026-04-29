@@ -1122,13 +1122,25 @@ function renderIssues() {
   });
   list = applySort(list);
   document.getElementById('issueCount').textContent = list.length;
-  const newCount      = allIssues.filter(r => (r.status||'').toLowerCase().includes('new') && !r.dateResolved).length;
-  const progressCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('progress')).length;
-  const resolvedCount = allIssues.filter(r => (r.status||'').toLowerCase().includes('resolv') || !!r.dateResolved).length;
+  // Priority breakdown of OPEN issues only — matches the dashboard card.
+  // Open = not resolved (status doesn't include "resolv" AND no dateResolved).
+  const openIssues = allIssues.filter(r => {
+    const s = (r.status||'').toLowerCase();
+    return !s.includes('resolv') && !r.dateResolved;
+  });
+  let pHigh = 0, pMed = 0, pLow = 0, pNone = 0;
+  openIssues.forEach(r => {
+    const p = (r.priority||'').toLowerCase();
+    if (p === 'high') pHigh++;
+    else if (p === 'medium') pMed++;
+    else if (p === 'low') pLow++;
+    else pNone++;
+  });
   document.getElementById('statusBadges').innerHTML =
-    (newCount      ? '<span class="badge badge-new">'      + newCount      + ' New</span>' : '') +
-    (progressCount ? '<span class="badge badge-progress">' + progressCount + ' In Progress</span>' : '') +
-    (resolvedCount ? '<span class="badge badge-done">'     + resolvedCount + ' Resolved</span>' : '');
+    (pHigh ? '<span class="badge badge-pri-high">'   + pHigh + ' HIGH</span>'   : '') +
+    (pMed  ? '<span class="badge badge-pri-medium">' + pMed  + ' MEDIUM</span>' : '') +
+    (pLow  ? '<span class="badge badge-pri-low">'    + pLow  + ' LOW</span>'    : '') +
+    (pNone ? '<span class="badge badge-pri-none">'   + pNone + ' UNSET</span>'  : '');
   if (!list.length) {
     document.getElementById('issuesBody').innerHTML = '<div class="state-msg">No issues match this filter.</div>';
     return;
