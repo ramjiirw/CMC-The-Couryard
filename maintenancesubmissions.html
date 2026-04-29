@@ -452,7 +452,7 @@
   <!-- Maintenance Documents -->
   <div class="doc-card-wrapper">
     <button class="btn-toggle" id="toggle-maintdocs" onclick="toggleMaintDocs()" aria-expanded="false">
-      <span>📄 Maintenance and Site Documents</span>
+      <span>📄 Maintenance and Site Documents <span class="count-pill" id="maintDocTotalCount" style="margin-left:0.5rem;">…</span></span>
       <span class="toggle-hint">
         <span class="hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
@@ -1460,14 +1460,17 @@ function renderMaintDocs() {
 
 (async function loadMaintDocs() {
   var INDEX_URL = 'cmcdocuments/index.json';
+  var totalCountEl = document.getElementById('maintDocTotalCount');
   try {
     var res = await fetch(INDEX_URL + '?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var idx = await res.json();
     var folder = (idx.folders || []).find(function(f) { return f.key === 'cmcmaintenance'; });
     maintDocState.files = folder ? (folder.files || []) : [];
+    if (totalCountEl) totalCountEl.textContent = maintDocState.files.length;
     renderMaintDocs();
   } catch(err) {
+    if (totalCountEl) totalCountEl.textContent = '!';
     document.getElementById('wrap-maintdocs').innerHTML =
       '<div class="doc-state-error">⚠️ Could not load documents. Make sure the index has been generated.<br><small>' + err.message + '</small></div>';
   }
