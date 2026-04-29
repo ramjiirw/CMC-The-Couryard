@@ -123,9 +123,9 @@
   .mnt-mob-box h3 { font-size:0.95rem;font-weight:700;color:var(--accent);margin:0 0 0.15rem; }
   .mnt-mob-box .mnt-mob-addr { font-size:0.75rem;color:var(--mid);margin-top:0;margin-bottom:0.2rem; }
   .mnt-mob-box label { font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);font-weight:700;margin-bottom:0.25rem;display:block; }
-  .mnt-mob-box select, .mnt-mob-box textarea { width:100%;padding:0.7rem 0.85rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:1rem;color:var(--dark);background:#fff;box-sizing:border-box; }
-  .mnt-mob-box textarea { min-height:130px;resize:vertical; }
-  .mnt-mob-box select:focus, .mnt-mob-box textarea:focus { outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  .mnt-mob-box select, .mnt-mob-box textarea, .mnt-mob-box input { width:100%;padding:0.7rem 0.85rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:1rem;color:var(--dark);background:#fff;box-sizing:border-box; }
+  .mnt-mob-box textarea { min-height:200px;resize:vertical; }
+  .mnt-mob-box select:focus, .mnt-mob-box textarea:focus, .mnt-mob-box input:focus { outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
   .mnt-mob-btns { display:flex;gap:0.6rem;margin-top:0.2rem; }
   .mnt-mob-btns button { flex:1;padding:0.8rem;border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;border:none; }
 
@@ -2630,10 +2630,16 @@ function renderMaintenanceTable() {
     html += ' onmouseover="this.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'#faf7f2\'})"';
     html += ' onmouseout="(function(r){if(!r.classList.contains(\'mnt-row-dirty\')){r.querySelectorAll(\'td\').forEach(function(c){c.style.background=\'white\'})}})(this)">';
     var priColor = mntPriColor(row.priority);
-    // First cell: priority-coloured left rule, NO border-top (so the corner
-    // doesn't break the vertical line). Other cells keep border-top to make
-    // the visual separator between cards.
-    html += '<td style="' + tdBase + 'font-weight:600;border-left:4px solid ' + priColor + ';">' + (row.issueNumber || (i+1)) + '</td>';
+    // Priority-coloured left rule. Implemented with `box-shadow: inset` rather
+    // than `border-left` because, with the table's `border-collapse:collapse`,
+    // a real left border on the first cell can render with subtle alignment
+    // gaps versus the same colour on the info-band wrapper below it. The inset
+    // shadow paints inside the element regardless of border-collapse rules,
+    // so the colour stripe is pixel-perfect aligned end-to-end down the card.
+    var priLineCell = 'box-shadow:inset 4px 0 0 ' + priColor + ';';
+    var priLineDiv  = 'box-shadow:inset 4px 0 0 ' + priColor + ', 0 2px 4px rgba(120,90,60,0.08);';
+
+    html += '<td style="' + tdBase + 'font-weight:600;' + cardTop + priLineCell + 'padding-left:1.25rem;">' + (row.issueNumber || (i+1)) + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.address || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + escHtml(row.category || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
@@ -2653,19 +2659,20 @@ function renderMaintenanceTable() {
     html += '<tr>';
     html += '<td colspan="9" style="padding:0;">';
 
-    // Card wrapper — the left rule continues from the main row above using the
-    // same priority colour, creating a single unbroken vertical accent line
-    // down the entire card. Subtle bottom shadow separates from the next card.
-    html += '<div style="box-shadow:0 2px 4px rgba(120,90,60,0.08);border-bottom:1px solid #d8cfbf;border-left:4px solid ' + priColor + ';">';
+    // Card wrapper — uses the same inset box-shadow as the main row first cell
+    // so the priority colour stripe appears unbroken from card top to bottom.
+    // The second shadow value is the subtle drop shadow that separates this
+    // card from the next.
+    html += '<div style="border-bottom:1px solid #d8cfbf;' + priLineDiv + '">';
 
     // Band 1: Issue description
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#faf7f2;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1.25rem;background:#faf7f2;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Issue</span>';
     html += '<div class="mnt-det-desc-text" style="font-size:' + detFontSize + ' !important;color:#4a4030;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;">' + (row.description ? escHtml(row.description) : '<span style="color:#b8ad9e;font-style:italic;">No description</span>') + '</div>';
     html += '</div>';
 
     // Band 2: Latest update
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#f5f0e8;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1.25rem;background:#f5f0e8;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Update</span>';
     html += '<div class="mnt-det-upd-text" style="font-size:' + detFontSize + ' !important;color:#6a5848;line-height:1.6;font-style:italic;white-space:pre-wrap;word-wrap:break-word;">' + (row.updates ? escHtml(row.updates) : '<span style="color:#b8ad9e;">No updates yet</span>') + '</div>';
     html += '</div>';
