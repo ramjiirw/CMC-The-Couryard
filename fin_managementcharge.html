@@ -1452,12 +1452,20 @@
   }
 
   /* ── CREDITS HELPERS ──────────────────────────────────────────────────────
-   * cmccredits records overpayments that have been formally credited forward.
-   * cmcfinances stays the cash truth; credits only adjust per-year attribution.
-   * The property net total never changes — credits just shift outstanding from
-   * one year row to another. */
+   * cmccredits records two kinds of credit:
+   *   1. FORWARD credit (sourceYear > 0): an overpayment in sourceYear has
+   *      been credited into targetYear. cmcfinances stays the cash truth;
+   *      forward credits only adjust per-year attribution. The property net
+   *      total is unaffected — credits just shift outstanding from one year
+   *      row to another.
+   *   2. WAIVER (sourceYear === 0): a charge in targetYear has been struck
+   *      off (goodwill / dispute settlement / billing correction). There is
+   *      no source year. The property net total genuinely drops — the
+   *      resident owes less than the raw `due` figure suggests. */
   function getCreditsFromYear(address, sourceYear) {
     // Credits this property pushed OUT of sourceYear (overpayment forwarded).
+    // Waivers (sourceYear === 0) never match a real year, so they're
+    // correctly excluded from "credited forward" displays.
     if (!creditsData || !creditsData.length) return [];
     return creditsData.filter(function(c) {
       return c.address === address && c.sourceYear === sourceYear;
@@ -1466,6 +1474,8 @@
 
   function getCreditsToYear(address, targetYear) {
     // Credits this property received INTO targetYear (reduces outstanding).
+    // Includes both forwards and waivers — both kinds reduce what's owed
+    // for the target year as displayed on the tracker.
     if (!creditsData || !creditsData.length) return [];
     return creditsData.filter(function(c) {
       return c.address === address && c.targetYear === targetYear;
@@ -1474,6 +1484,15 @@
 
   function sumCredits(rows) {
     return rows.reduce(function(s, c) { return s + (c.amount || 0); }, 0);
+  }
+
+  /* Total waivers for a property across ALL years. Used to reduce the
+   * property's net Total Due — waivers genuinely reduce what's owed. */
+  function sumWaivers(address) {
+    if (!creditsData || !creditsData.length) return 0;
+    return creditsData
+      .filter(function(c) { return c.address === address && c.sourceYear === 0; })
+      .reduce(function(s, c) { return s + (c.amount || 0); }, 0);
   }
 
   function isOnTrack(address, year) {
@@ -1569,6 +1588,16 @@
       // Previous years net outstanding (pooled — matches Annual Overview lines 1977–1989)
       var mcPrevDue = 0;
       mcPrevYears.forEach(function(yr){ mcPrevDue += (getDue(yr) || 0); });
+      // Adjustments (sourceYear === 0) for previous years reduce what's truly
+      // owed for those years. Forward credits don't reduce mcPrevDue because
+      // they net to zero across years (they're attribution shifts).
+      var mcPrevAdj = 0;
+      mcPrevYears.forEach(function(yr) {
+        mcPrevAdj += getCreditsToYear(addr, yr)
+          .filter(function(c){ return c.sourceYear === 0; })
+          .reduce(function(s,c){ return s + c.amount; }, 0);
+      });
+      mcPrevDue = Math.round((mcPrevDue - mcPrevAdj) * 100) / 100;
       if (mcPrevDue > 0) {
         var mcAllPaid = mcYears.reduce(function(s, yr) {
           return s + getPayments(addr, yr).reduce(function(s2,p){ return s2 + p.amount; }, 0);
@@ -1842,12 +1871,19 @@
     PROPERTIES.forEach(function(addr) {
       var payments = getPayments(addr, activeYear).filter(function(p){ return !p.isArrears; });
       var mcPaid = payments.reduce(function(s,p){ return s + p.amount; }, 0);
-      var outstanding = due - mcPaid;
-      totalDue += due;
+      /* Adjustments for this year reduce the property's Due figure and outstanding.
+       * Forward credits in/out are NOT applied here — this view is a single-year
+       * cash snapshot, and forward credits are an attribution shift across years. */
+      var adjustmentsThisYear = getCreditsToYear(addr, activeYear)
+        .filter(function(c){ return c.sourceYear === 0; })
+        .reduce(function(s,c){ return s + c.amount; }, 0);
+      var dueAdj = Math.round((due - adjustmentsThisYear) * 100) / 100;
+      var outstanding = Math.round((dueAdj - mcPaid) * 100) / 100;
+      totalDue += dueAdj;
       totalPaid += mcPaid;
 
       var dotClass = outstanding > 0 ? 'dot-red' : outstanding < 0 ? 'dot-amber' : 'dot-green';
-      if (mcPaid === 0 && due > 0) dotClass = 'dot-red';
+      if (mcPaid === 0 && dueAdj > 0) dotClass = 'dot-red';
       var outClass = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
       var outText = outstanding > 0 ? fmt(outstanding) :
                     outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '\u2713 Paid in full';
@@ -1860,7 +1896,7 @@
       var pillHtml = (activeYear === currentYear && isOnTrack(addr, activeYear))
         ? ' <span style="font-size:0.7rem;background:#2e6b45;color:#9fd4b0;border-radius:3px;padding:2px 6px;font-weight:600;white-space:nowrap;">' + activeYear + ' charge up to date</span>'
         : '';
-      html += '<span class="prop-val val-due">' + fmt(due) + '</span>';
+      html += '<span class="prop-val val-due">' + fmt(dueAdj) + '</span>';
       html += '<span class="prop-val val-paid">' + fmt(mcPaid) + '</span>';
       html += '<span class="prop-val ' + outClass + '">' + outText + pillHtml + '</span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
@@ -2030,6 +2066,13 @@
       });
       /* propTotalPaid already includes arrears (positive) and refunds (negative) via amount sign */
 
+      /* Waivers genuinely reduce what's owed (charge struck off, not paid).
+       * Forward credits do NOT reduce the property total — they only shift
+       * outstanding between years. Only waivers (sourceYear === 0) come back
+       * from sumWaivers(). */
+      var propWaived = sumWaivers(addr);
+      propTotalDue = Math.round((propTotalDue - propWaived) * 100) / 100;
+
       var propOut  = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
       var dotClass = (propTotalPaid === 0 && propTotalDue > 0) ? 'dot-red' : propOut > 0 ? 'dot-amber' : 'dot-green';
       var propOutClass = propOut > 0 ? 'val-owed' : propOut < 0 ? 'val-over' : 'val-clear';
@@ -2117,15 +2160,32 @@
           html += '<div class="credit-note">' + noteParts.join(' \u00b7 ') + '</div>';
         }
         if (creditsIn.length > 0) {
-          var sources = {};
-          creditsIn.forEach(function(c) {
-            sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
-          });
-          var srcYrs = Object.keys(sources).sort();
-          var srcLabel = srcYrs.length === 1
-            ? srcYrs[0]
-            : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
-          html += '<div class="credit-note">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+          /* Split credits-in into forwards (have a real source year) and
+           * waivers (sourceYear === 0, struck off). Render them as separate
+           * notes so the message is accurate for each kind. */
+          var forwardsIn = creditsIn.filter(function(c){ return c.sourceYear !== 0; });
+          var waiversIn  = creditsIn.filter(function(c){ return c.sourceYear === 0; });
+          var lines = [];
+
+          if (forwardsIn.length > 0) {
+            var sources = {};
+            forwardsIn.forEach(function(c) {
+              sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
+            });
+            var srcYrs = Object.keys(sources).sort();
+            var srcLabel = srcYrs.length === 1
+              ? srcYrs[0]
+              : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
+            var fwdAmt = forwardsIn.reduce(function(s,c){ return s+c.amount; }, 0);
+            lines.push('includes ' + fmt(fwdAmt) + ' credit from ' + srcLabel);
+          }
+
+          if (waiversIn.length > 0) {
+            var waiverAmt = waiversIn.reduce(function(s,c){ return s+c.amount; }, 0);
+            lines.push('includes ' + fmt(waiverAmt) + ' adjustment');
+          }
+
+          html += '<div class="credit-note">' + lines.join(' \u00b7 ') + '</div>';
         }
 
         html += '<div class="month-panel" id="yrmonths-' + yrKey + '" style="background:rgba(122,92,62,0.03);">';
@@ -2201,16 +2261,25 @@
       var curDue = getDue(currentYear) || 0;
       var curMcPaid = getPayments(addr, currentYear).filter(function(p){ return !p.isArrears && !p.isRefund; }).reduce(function(s,p){ return s+p.amount; }, 0);
       /* Credits forwarded INTO the current year reduce its outstanding — they're
-       * already covered by overpayment from a prior year. Cash-truth curMcPaid
-       * stays separate for the prev-years calc below. */
+       * already covered by overpayment from a prior year. Adjustments (sourceYear===0)
+       * also reduce outstanding for the current year. Cash-truth curMcPaid stays
+       * separate for the prev-years calc below. */
       var curCreditsIn = sumCredits(getCreditsToYear(addr, currentYear));
       grandCurOut += Math.max(0, curDue - curMcPaid - curCreditsIn);
-      /* Previous years outstanding — all payments vs prev due */
+      /* Previous years outstanding — all payments vs prev due (less adjustments) */
       var pDue = 0;
       prevYearsForGrand.forEach(function(yr) {
         var due = getDue(yr); if (!due) return;
         pDue += due;
       });
+      // Adjustments for previous years reduce what's truly owed.
+      var pAdj = 0;
+      prevYearsForGrand.forEach(function(yr) {
+        pAdj += getCreditsToYear(addr, yr)
+          .filter(function(c){ return c.sourceYear === 0; })
+          .reduce(function(s,c){ return s + c.amount; }, 0);
+      });
+      pDue = Math.round((pDue - pAdj) * 100) / 100;
       var allPaid = years.reduce(function(s, yr) {
         return s + getPayments(addr, yr).reduce(function(s2,p){ return s2+p.amount; }, 0);
       }, 0);
@@ -4691,6 +4760,12 @@
       propTotalDue  += due;
       propTotalPaid += getPayments(addr, yr).reduce(function(s,p){ return s+p.amount; }, 0);
     });
+    /* Waivers genuinely reduce what's owed (charge struck off, not paid).
+     * Forward credits do NOT reduce the property total — they only shift
+     * outstanding between years. Same logic as the on-screen tracker. */
+    var propWaived = sumWaivers(addr);
+    propTotalDue = Math.round((propTotalDue - propWaived) * 100) / 100;
+
     var propOut = Math.round((propTotalDue - propTotalPaid) * 100) / 100;
     var propOutCol = propOut > 0 ? '#c62828' : propOut < 0 ? '#7b1fa2' : '#2e7d32';
     var propOutTxt = propOut > 0 ? fmt(propOut) :
@@ -4786,14 +4861,29 @@
         h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;-webkit-text-size-adjust:100%;text-size-adjust:100%;">' + noteParts.join(' \u00b7 ') + '</div>';
       }
       if (isOpen && creditsIn.length > 0) {
-        var sources = {};
-        creditsIn.forEach(function(c) {
-          sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
-        });
-        var srcYrs = Object.keys(sources).sort();
-        var srcLabel = srcYrs.length === 1 ? srcYrs[0]
-                     : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
-        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;-webkit-text-size-adjust:100%;text-size-adjust:100%;">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+        /* Same split as on-screen tracker: forwards vs waivers. */
+        var forwardsIn = creditsIn.filter(function(c){ return c.sourceYear !== 0; });
+        var waiversIn  = creditsIn.filter(function(c){ return c.sourceYear === 0; });
+        var lines = [];
+
+        if (forwardsIn.length > 0) {
+          var sources = {};
+          forwardsIn.forEach(function(c) {
+            sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount;
+          });
+          var srcYrs = Object.keys(sources).sort();
+          var srcLabel = srcYrs.length === 1 ? srcYrs[0]
+                       : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
+          var fwdAmt = forwardsIn.reduce(function(s,c){ return s+c.amount; }, 0);
+          lines.push('includes ' + fmt(fwdAmt) + ' credit from ' + srcLabel);
+        }
+
+        if (waiversIn.length > 0) {
+          var waiverAmt = waiversIn.reduce(function(s,c){ return s+c.amount; }, 0);
+          lines.push('includes ' + fmt(waiverAmt) + ' adjustment');
+        }
+
+        h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-bottom:1px solid #ede8e0;-webkit-text-size-adjust:100%;text-size-adjust:100%;">' + lines.join(' \u00b7 ') + '</div>';
       }
       /* When collapsed, surface the credit notes more compactly so the slim card still tells the story */
       if (!isOpen && (creditsOut.length > 0 || creditsIn.length > 0)) {
@@ -4804,11 +4894,21 @@
           Object.keys(t2).sort().forEach(function(y){ compactParts.push(fmt(t2[y]) + ' credited forward to ' + y); });
         }
         if (creditsIn.length > 0) {
-          var s2 = {};
-          creditsIn.forEach(function(c){ s2[c.sourceYear] = (s2[c.sourceYear]||0) + c.amount; });
-          var sYrs = Object.keys(s2).sort();
-          var sLabel = sYrs.length === 1 ? sYrs[0] : sYrs[0] + '\u2013' + sYrs[sYrs.length-1];
-          compactParts.push('includes ' + fmt(creditsInAmt) + ' credit from ' + sLabel);
+          /* Split forwards vs waivers — same logic as the expanded card. */
+          var fwdInC = creditsIn.filter(function(c){ return c.sourceYear !== 0; });
+          var wvInC  = creditsIn.filter(function(c){ return c.sourceYear === 0; });
+          if (fwdInC.length > 0) {
+            var s2 = {};
+            fwdInC.forEach(function(c){ s2[c.sourceYear] = (s2[c.sourceYear]||0) + c.amount; });
+            var sYrs = Object.keys(s2).sort();
+            var sLabel = sYrs.length === 1 ? sYrs[0] : sYrs[0] + '\u2013' + sYrs[sYrs.length-1];
+            var fwdAmtC = fwdInC.reduce(function(s,c){ return s+c.amount; }, 0);
+            compactParts.push('includes ' + fmt(fwdAmtC) + ' credit from ' + sLabel);
+          }
+          if (wvInC.length > 0) {
+            var wvAmtC = wvInC.reduce(function(s,c){ return s+c.amount; }, 0);
+            compactParts.push('includes ' + fmt(wvAmtC) + ' adjustment');
+          }
         }
         h += '<div style="padding:6px 1rem 10px 2.5rem;background:#faf7f2;font-size:14px;font-style:italic;color:#8a7a65;text-align:right;border-top:1px solid #f0ebe2;-webkit-text-size-adjust:100%;text-size-adjust:100%;">' + compactParts.join(' \u00b7 ') + '</div>';
       }
