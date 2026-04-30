@@ -2371,6 +2371,15 @@
         var due = getDue(yr); if (!due) return;
         pDue += due;
       });
+      /* Adjustments (sourceYear === 0) for previous years reduce what's truly
+       * owed. Forward credits don't reduce pDue because they net to zero. */
+      var pAdj = 0;
+      prevYears.forEach(function(yr) {
+        pAdj += getCreditsToYear(addr, yr)
+          .filter(function(c){ return c.sourceYear === 0; })
+          .reduce(function(s,c){ return s + c.amount; }, 0);
+      });
+      pDue = Math.round((pDue - pAdj) * 100) / 100;
       /* All payments across all years (including arrears/refunds) go toward clearing debt */
       var allPaid = years.reduce(function(s, yr) {
         return s + getPayments(addr, yr).reduce(function(s2,p){ return s2+p.amount; }, 0);
