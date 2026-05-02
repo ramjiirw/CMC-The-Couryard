@@ -174,6 +174,7 @@
   .modal-field { margin-bottom:1.1rem; }
   .modal-field label { font-size:0.68rem; font-weight:500; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:6px; }
   .modal-field select, .modal-field input[type=text], .modal-field textarea { width:100%; padding:0.65rem 0.8rem; border:1px solid var(--border); border-radius:5px; background:white; font-size:0.9rem; color:var(--dark); font-family:Arial,sans-serif; box-sizing:border-box; }
+  .modal-field select#oneOffProperty { font-size:1.05rem; padding:0.8rem 0.8rem; font-weight:500; }
   .modal-field textarea { resize:vertical; min-height:60px; }
   .modal-field input.meter-input { padding:0.85rem 1rem; background:#1e1a16; color:var(--water); border:1px solid #3a3530; font-family:'Courier New',monospace; font-size:1.6rem; text-align:center; letter-spacing:0.06em; }
   .modal-prev-panel { background:var(--warm); border:1px solid var(--border); border-radius:6px; padding:0.7rem 1rem; margin-bottom:1.1rem; display:flex; justify-content:space-between; align-items:baseline; }
@@ -332,7 +333,7 @@
     <div class="modal-body">
       <div class="modal-field">
         <label>Submitted by</label>
-        <select id="oneOffSubmitter">
+        <select id="oneOffSubmitter" onchange="updateOneOffSaveState()">
           <option value="">— Select —</option>
         </select>
       </div>
@@ -348,7 +349,7 @@
       </div>
       <div class="modal-field">
         <label>New reading <span style="color:var(--stone);font-weight:400;text-transform:none;letter-spacing:0;">(00000.000)</span></label>
-        <input type="text" inputmode="decimal" id="oneOffReading" class="meter-input" placeholder="00000.000" maxlength="9" oninput="validateMeterInput(this)" onblur="if(this.value && isValidMeterFormat(this.value)) this.value = normalizeMeterValue(this.value);">
+        <input type="text" inputmode="decimal" id="oneOffReading" class="meter-input" placeholder="00000.000" maxlength="9" oninput="validateMeterInput(this); updateOneOffSaveState();" onblur="if(this.value && isValidMeterFormat(this.value)) this.value = normalizeMeterValue(this.value); updateOneOffSaveState();">
         <div id="oneOffReadingError" style="display:none;color:#c0392b;font-size:0.78rem;margin-top:0.4rem;"></div>
       </div>
       <div class="modal-field">
@@ -364,12 +365,12 @@
       </div>
       <div class="modal-field" id="oneOffNotesField" style="display:none;">
         <label id="oneOffNotesLabel">Notes <span style="color:var(--stone);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea id="oneOffNotes" placeholder="e.g. Carl & Christina Moore moving out, handover to new owner"></textarea>
+        <textarea id="oneOffNotes" oninput="updateOneOffSaveState()" placeholder="e.g. Carl & Christina Moore moving out, handover to new owner"></textarea>
       </div>
       <div class="modal-error" id="oneOffError"></div>
       <div class="modal-actions">
         <button class="modal-btn modal-btn-cancel" onclick="closeOneOffModal()">Cancel</button>
-        <button class="modal-btn modal-btn-save" id="oneOffSaveBtn" onclick="submitOneOffReading()">Save reading</button>
+        <button class="modal-btn modal-btn-save" id="oneOffSaveBtn" disabled onclick="submitOneOffReading()">Save reading</button>
       </div>
     </div>
   </div>
@@ -1002,6 +1003,7 @@ function openOneOffModal() {
   // Always reset submitter to blank — never pre-fill
   document.getElementById('oneOffSubmitter').value = '';
   document.getElementById('oneOffModal').classList.add('open');
+  updateOneOffSaveState();
 }
 
 function closeOneOffModal() {
@@ -1011,7 +1013,7 @@ function closeOneOffModal() {
 function onOneOffPropertyChange() {
   const property = document.getElementById('oneOffProperty').value;
   const panel = document.getElementById('oneOffPrevPanel');
-  if (!property) { panel.style.display = 'none'; return; }
+  if (!property) { panel.style.display = 'none'; updateOneOffSaveState(); return; }
   const prop = waterData.properties.find(function(p){ return p.property === property; });
   if (prop && prop.lastReading !== null && prop.lastReading !== undefined) {
     document.getElementById('oneOffPrevValue').innerHTML =
@@ -1023,6 +1025,7 @@ function onOneOffPropertyChange() {
     document.getElementById('oneOffPrevValue').textContent = 'No previous reading';
     panel.style.display = 'flex';
   }
+  updateOneOffSaveState();
 }
 
 function onOneOffReasonChange() {
@@ -1038,6 +1041,24 @@ function onOneOffReasonChange() {
   } else {
     notesField.style.display = 'none';
   }
+  updateOneOffSaveState();
+}
+
+function updateOneOffSaveState() {
+  const submitter = document.getElementById('oneOffSubmitter').value;
+  const property = document.getElementById('oneOffProperty').value;
+  const readingStr = document.getElementById('oneOffReading').value.trim();
+  const reason = document.getElementById('oneOffReason').value;
+  const notes = document.getElementById('oneOffNotes').value.trim();
+
+  const submitterValid = submitter && submitter !== '__add__';
+  const propertyValid = !!property;
+  const readingValid = readingStr && isValidMeterFormat(readingStr);
+  const reasonValid = !!reason;
+  const notesValid = (reason !== 'Other') || (reason === 'Other' && notes.length > 0);
+
+  const allValid = submitterValid && propertyValid && readingValid && reasonValid && notesValid;
+  document.getElementById('oneOffSaveBtn').disabled = !allValid;
 }
 
 function submitOneOffReading() {
