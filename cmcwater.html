@@ -233,7 +233,7 @@
     <h3>The Courtyard</h3>
     <span class="login-subtitle">Water Meter Readings</span>
     <div class="pw-field">
-      <input type="password" id="pwInput" placeholder="Loading..." disabled onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="pwInput" placeholder="Loading..." disabled autofocus autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="pw-error" id="pwError"></div>
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Enter Water Readings</button>
