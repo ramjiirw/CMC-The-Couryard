@@ -488,11 +488,13 @@ function init() {
       pwInput.placeholder = 'Enter access password';
       pwInput.disabled = false;
       loginBtn.disabled = false;
+      pwInput.focus();
     })
     .catch(function(){
       pwInput.placeholder = 'Enter access password';
       pwInput.disabled = false;
       loginBtn.disabled = false;
+      pwInput.focus();
     });
 
   if (sessionStorage.getItem(AUTH_KEY) === 'true') {
@@ -561,6 +563,7 @@ function doLock() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').textContent = '';
+  document.getElementById('pwInput').focus();
 }
 
 function setWelcomeMsg() {
