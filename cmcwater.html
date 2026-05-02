@@ -413,6 +413,7 @@ const FIXED_PROPERTIES = [
 let waterPassword = null;
 let waterData = null;
 let pendingReadings = {};
+let isSubmitting = false;
 
 document.getElementById('footerYear').textContent = new Date().getFullYear();
 
@@ -862,7 +863,12 @@ function updateSubmitButtonState() {
     hint.textContent = '';
     if (sel) sel.style.display = 'inline-block';
   }
-  document.getElementById('submitBtn').disabled = !(total === 14 && submitterValid);
+  const btn = document.getElementById('submitBtn');
+  if (!isSubmitting) {
+    btn.classList.remove('submitting');
+    btn.textContent = 'Submit all readings';
+    btn.disabled = !(total === 14 && submitterValid);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -881,6 +887,7 @@ function submitAllReadings() {
   }
 
   const submitBtn = document.getElementById('submitBtn');
+  isSubmitting = true;
   submitBtn.disabled = true;
   submitBtn.classList.add('submitting');
   submitBtn.textContent = 'Submitting...';
@@ -905,10 +912,12 @@ function submitAllReadings() {
     .then(function(d){
       hideLoading();
       if (d.status === 'ok') {
+        isSubmitting = false;
         showToast('Submitted ' + d.count + ' readings ✓ — locking', 'success');
         // Auto-logout after successful submit so they have to log in again
         setTimeout(doLock, 1500);
       } else {
+        isSubmitting = false;
         showToast(d.message || 'Submission failed', 'error');
         submitBtn.disabled = false;
         submitBtn.classList.remove('submitting');
@@ -916,6 +925,7 @@ function submitAllReadings() {
       }
     })
     .catch(function(err){
+      isSubmitting = false;
       hideLoading();
       console.error(err);
       showToast('Network error — please try again', 'error');
