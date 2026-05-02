@@ -92,6 +92,8 @@
   .card-prev-label { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.05em; }
   .reading-card.farmhouse .card-prev-label { color:#3d6b4a; }
   .card-prev-value { font-family:'Courier New',monospace; font-size:0.95rem; color:var(--mid); margin-top:2px; }
+  .card-prev-value.shimmer { background:linear-gradient(90deg, rgba(184,173,158,0.15) 0%, rgba(184,173,158,0.4) 50%, rgba(184,173,158,0.15) 100%); background-size:200% 100%; animation:shimmer 1.5s ease-in-out infinite; color:transparent !important; border-radius:3px; display:inline-block; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   .reading-card.farmhouse .card-prev-value { color:#3d6b4a; }
   .card-prev-value.none { font-style:italic; }
   .card-input-label { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
@@ -276,12 +278,9 @@
         <div class="submit-hint" id="submitHint">Enter all 14 readings then select who is submitting.</div>
       </div>
       <div class="submit-controls">
-        <div class="submitter-wrap" id="submitterWrap" style="display:none;">
-          <label for="submitterSelectBottom" class="submitter-label">Submitted by</label>
-          <select id="submitterSelectBottom" class="submitter-select-bottom" onchange="onSubmitterChange()">
-            <option value="">Submitted by...</option>
-          </select>
-        </div>
+        <select id="submitterSelectBottom" class="submitter-select-bottom" onchange="onSubmitterChange()" style="display:none;">
+          <option value="">Submitted by...</option>
+        </select>
         <button class="submit-btn" id="submitBtn" disabled onclick="submitAllReadings()">Submit all readings</button>
       </div>
     </div>
@@ -392,6 +391,24 @@ const AUTH_KEY = 'cmc_water_auth';
 const SUBMITTER_KEY = 'cmc_water_submitter';
 const CUSTOM_NAMES_KEY = 'cmc_water_custom_names';
 const DEFAULT_NAMES = ['Director', 'Simon Turner', 'Ian Morrison'];
+
+// 14 properties never change. Baked in for instant render. Meter numbers from ResidentMap.
+const FIXED_PROPERTIES = [
+  { property: '1 The Courtyard',  meterNumber: '06AU005287' },
+  { property: '2 The Courtyard',  meterNumber: '06AU005281' },
+  { property: '3 The Courtyard',  meterNumber: '06AU005284' },
+  { property: '4 The Courtyard',  meterNumber: '06AU005290' },
+  { property: '5 The Courtyard',  meterNumber: '06AU005286' },
+  { property: '6 The Courtyard',  meterNumber: '06AU005283' },
+  { property: '7 The Courtyard',  meterNumber: '06AU005282' },
+  { property: '8 The Courtyard',  meterNumber: '06AU005285' },
+  { property: '9 The Courtyard',  meterNumber: '06AU005289' },
+  { property: '10 The Courtyard', meterNumber: '06AU005295' },
+  { property: '11 The Courtyard', meterNumber: '06AU005288' },
+  { property: '12 The Courtyard', meterNumber: '06AU005294' },
+  { property: '13 The Courtyard', meterNumber: '06AU005266' },
+  { property: '14 The Courtyard', meterNumber: '06AU005299' }
+];
 
 let waterPassword = null;
 let waterData = null;
@@ -504,16 +521,29 @@ function doLogin() {
 function showWater() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('waterScreen').style.display = 'flex';
-  // Clear any stale state immediately so user never sees old readings
-  waterData = null;
+  // Reset state
   pendingReadings = {};
-  document.getElementById('readingsContainer').innerHTML =
-    '<div style="text-align:center;padding:3rem 1rem;color:var(--mid);">Loading properties...</div>';
-  document.getElementById('submitBar').style.display = 'none';
-  document.getElementById('lockedWrap').style.display = 'none';
+  // Build initial waterData from baked-in fixed properties; previous readings load async
+  waterData = {
+    status: 'ok',
+    properties: FIXED_PROPERTIES.map(function(p) {
+      return {
+        property: p.property,
+        owner: '',
+        meterNumber: p.meterNumber,
+        lastReading: null,        // populated by loadWaterData
+        lastReadingDate: null
+      };
+    }),
+    lock: { locked: false }
+  };
+  populateOneOffPropertyDropdown(waterData.properties);
   setWelcomeMsg();
   setQuarterLabel();
   setupSubmitterDropdowns();
+  // Render cards immediately — instant feedback
+  renderReadingCards();
+  // Then fetch previous readings + lock state in the background
   loadWaterData();
 }
 
@@ -608,23 +638,50 @@ function loadWaterData() {
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.status !== 'ok') {
-        showToast('Failed to load properties', 'error');
+        showToast('Failed to load previous readings', 'error');
         return;
       }
-      waterData = d;
-      populateOneOffPropertyDropdown(d.properties);
-      // LOCK DISABLED FOR TESTING - uncomment the if/else below to re-enable
-      renderReadingCards();
-      // if (d.lock && d.lock.locked) {
-      //   renderLockedState();
-      // } else {
-      //   renderReadingCards();
-      // }
+      // Merge fetched lastReading + lastReadingDate into our baked-in property objects
+      // (We trust the baked-in property/meterNumber list — only previous readings come from API)
+      const lookup = {};
+      d.properties.forEach(function(p){ lookup[p.property] = p; });
+      waterData.properties.forEach(function(p) {
+        const fetched = lookup[p.property];
+        if (fetched) {
+          p.lastReading = fetched.lastReading;
+          p.lastReadingDate = fetched.lastReadingDate;
+        }
+      });
+      waterData.lock = d.lock || { locked: false };
+
+      // LOCK DISABLED FOR TESTING - uncomment to re-enable
+      // if (waterData.lock.locked) { renderLockedState(); return; }
+
+      // Update each card's "Previous" display in place (no full re-render)
+      updatePreviousReadingsInDom();
     })
     .catch(function(err){
       console.error(err);
       showToast('Network error — please refresh', 'error');
     });
+}
+
+function updatePreviousReadingsInDom() {
+  document.querySelectorAll('.reading-card').forEach(function(card) {
+    const propertyName = card.dataset.property;
+    const prop = waterData.properties.find(function(p){ return p.property === propertyName; });
+    if (!prop) return;
+    const prevValueEl = card.querySelector('.card-prev-value');
+    if (!prevValueEl) return;
+    if (prop.lastReading !== null && prop.lastReading !== undefined) {
+      prevValueEl.textContent = formatMeterValue(prop.lastReading);
+      prevValueEl.classList.remove('none', 'shimmer');
+    } else {
+      prevValueEl.textContent = '—';
+      prevValueEl.classList.add('none');
+      prevValueEl.classList.remove('shimmer');
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -677,10 +734,15 @@ function makeReadingCard(prop, isFarmhouse, isLast) {
   card.className = 'reading-card' + (isFarmhouse ? ' farmhouse' : '') + (isLast ? ' last-of-block' : '');
   card.dataset.property = prop.property;
 
-  const prevDisplay = (prop.lastReading !== null && prop.lastReading !== undefined)
-    ? formatMeterValue(prop.lastReading)
-    : '—';
-  const prevClass = (prop.lastReading === null) ? 'card-prev-value none' : 'card-prev-value';
+  let prevDisplay, prevClass;
+  if (prop.lastReading !== null && prop.lastReading !== undefined) {
+    prevDisplay = formatMeterValue(prop.lastReading);
+    prevClass = 'card-prev-value';
+  } else {
+    // Shimmer placeholder while previous reading loads
+    prevDisplay = '00000.000';
+    prevClass = 'card-prev-value shimmer';
+  }
 
   card.innerHTML =
     '<div class="tick-badge">&#10003;</div>' +
@@ -705,6 +767,13 @@ function makeReadingCard(prop, isFarmhouse, isLast) {
   input.addEventListener('input', function() {
     validateMeterInput(input);
     onCardInput(card, prop, input, label, errorDiv);
+  });
+
+  input.addEventListener('focus', function() {
+    // Smooth-scroll the card into view so the input the user is typing into is always visible
+    setTimeout(function() {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
   });
 
   input.addEventListener('blur', function() {
@@ -767,21 +836,31 @@ function updateSubmitButtonState() {
   const submitterValid = submitter && submitter !== '__add__';
   const counter = document.getElementById('submitCounter');
   const hint = document.getElementById('submitHint');
-  const wrap = document.getElementById('submitterWrap');
+  const sel = document.getElementById('submitterSelectBottom');
   const togo = 14 - total;
+
+  // Detect transition from <14 to 14 so we only scroll once
+  const previousTotal = updateSubmitButtonState._lastTotal || 0;
+  updateSubmitButtonState._lastTotal = total;
 
   if (total < 14) {
     counter.innerHTML = '<strong>' + total + ' of 14</strong> readings entered <span class="togo">· ' + togo + ' to go</span>';
     hint.textContent = 'Enter all 14 readings to continue.';
-    if (wrap) wrap.style.display = 'none';
+    if (sel) sel.style.display = 'none';
   } else if (!submitterValid) {
     counter.innerHTML = '<strong>14 of 14 ✓</strong> Ready to submit — who is submitting?';
     hint.textContent = '';
-    if (wrap) wrap.style.display = 'flex';
+    if (sel) sel.style.display = 'inline-block';
+    // Scroll to submit bar so user sees the dropdown without scrolling
+    if (previousTotal < 14) {
+      setTimeout(function() {
+        document.getElementById('submitBar').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
   } else {
     counter.innerHTML = '<strong>14 of 14 ✓</strong> Ready to submit';
     hint.textContent = '';
-    if (wrap) wrap.style.display = 'flex';
+    if (sel) sel.style.display = 'inline-block';
   }
   document.getElementById('submitBtn').disabled = !(total === 14 && submitterValid);
 }
