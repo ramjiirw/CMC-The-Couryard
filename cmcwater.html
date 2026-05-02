@@ -244,6 +244,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button class="btn-logout" onclick="doLock()" title="Lock and exit">&#128274; Lock</button>
       <a href="main.html" class="btn-logout">&larr; Back to Home</a>
     </div>
   </header>
@@ -379,8 +380,6 @@
 // ═══════════════════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 const AUTH_KEY = 'cmc_water_auth';
-const AUTH_TS_KEY = 'cmc_water_auth_ts';
-const AUTH_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 const SUBMITTER_KEY = 'cmc_water_submitter';
 const CUSTOM_NAMES_KEY = 'cmc_water_custom_names';
 const DEFAULT_NAMES = ['Tim', 'Director', 'Simon Turner', 'Ian Morrison'];
@@ -451,14 +450,8 @@ function init() {
       loginBtn.disabled = false;
     });
 
-  if (localStorage.getItem(AUTH_KEY) === 'true') {
-    const ts = parseInt(localStorage.getItem(AUTH_TS_KEY) || '0', 10);
-    if (ts && (Date.now() - ts) < AUTH_LIFETIME_MS) {
-      showWater();
-    } else {
-      localStorage.removeItem(AUTH_KEY);
-      localStorage.removeItem(AUTH_TS_KEY);
-    }
+  if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+    showWater();
   }
 }
 
@@ -470,8 +463,7 @@ function doLogin() {
     return;
   }
   if (val === waterPassword.toLowerCase()) {
-    localStorage.setItem(AUTH_KEY, 'true');
-    localStorage.setItem(AUTH_TS_KEY, Date.now().toString());
+    sessionStorage.setItem(AUTH_KEY, 'true');
     showWater();
   } else {
     err.textContent = 'Incorrect password — please try again.';
@@ -490,6 +482,14 @@ function showWater() {
   setQuarterLabel();
   setupSubmitterDropdowns();
   loadWaterData();
+}
+
+function doLock() {
+  sessionStorage.removeItem(AUTH_KEY);
+  document.getElementById('waterScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').textContent = '';
 }
 
 function setWelcomeMsg() {
@@ -775,8 +775,9 @@ function submitAllReadings() {
     .then(function(d){
       hideLoading();
       if (d.status === 'ok') {
-        showToast('Submitted ' + d.count + ' readings ✓', 'success');
-        setTimeout(loadWaterData, 600);
+        showToast('Submitted ' + d.count + ' readings ✓ — locking', 'success');
+        // Auto-logout after successful submit so they have to log in again
+        setTimeout(doLock, 1500);
       } else {
         showToast(d.message || 'Submission failed', 'error');
       }
