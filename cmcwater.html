@@ -13,10 +13,11 @@
     --water:#4eafd6; --water-deep:#2a7896;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:Arial,sans-serif; font-size:14px; background:var(--cream); min-height:100vh; min-height:-webkit-fill-available; overflow-x:hidden; display:flex; flex-direction:column; color:var(--dark); }
+  html, body { height:100%; }
+  body { font-family:Arial,sans-serif; font-size:14px; background:var(--cream); min-height:100vh; min-height:100dvh; overflow-x:hidden; display:flex; flex-direction:column; color:var(--dark); }
 
   /* ── LOGIN SCREEN — clones SIP exactly, only colours swapped ── */
-  #loginScreen { min-height:100vh; min-height:-webkit-fill-available; flex:1; display:flex; align-items:center; justify-content:center; background:#121820; position:relative; overflow:hidden; }
+  #loginScreen { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#121820; overflow:hidden; z-index:50; }
   #loginScreen::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 65%,rgba(60,140,180,0.45) 0%,transparent 55%),radial-gradient(ellipse at 30% 70%,rgba(40,100,130,0.25) 0%,transparent 60%),radial-gradient(ellipse at 75% 30%,rgba(60,140,170,0.15) 0%,transparent 50%); }
   @keyframes float-in { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
   .login-card { position:relative; background:rgba(255,255,255,0.06); border:1px solid rgba(60,140,170,0.4); border-radius:16px; padding:3rem 3.5rem; width:100%; max-width:400px; backdrop-filter:blur(12px); text-align:center; box-shadow:0 32px 80px rgba(0,0,0,0.6),0 8px 24px rgba(40,100,130,0.3); animation:float-in 0.6s ease forwards; }
@@ -67,12 +68,12 @@
   /* ── Block headers ── */
   .block-header { background:#2a2520; padding:0.65rem 1rem; margin:0 0 0.7rem 0; border-radius:5px; display:flex; align-items:center; justify-content:space-between; }
   .block-header.farmhouse { background:#2a4a3a; }
-  .block-header .bh-title { font-size:0.82rem; font-weight:500; color:var(--cream); text-transform:uppercase; letter-spacing:0.06em; }
+  .block-header .bh-title { font-size:0.9rem; font-weight:600; color:var(--cream); text-transform:uppercase; letter-spacing:0.06em; }
   .block-header .bh-title .sep { color:var(--accent2); margin:0 6px; }
   .block-header.farmhouse .bh-title .sep { color:#97c459; }
   .block-header .bh-title .props { color:var(--stone); font-weight:400; }
   .block-header.farmhouse .bh-title .props { color:#c8e2ce; }
-  .block-header .bh-count { font-size:0.75rem; color:var(--accent2); font-weight:500; }
+  .block-header .bh-count { font-size:0.85rem; color:var(--accent2); font-weight:700; }
   .block-header.farmhouse .bh-count { color:#97c459; }
 
   /* ── Card grid ── */
@@ -84,17 +85,17 @@
   .reading-card.farmhouse { background:var(--green-light); border-color:#c8e2ce; }
   .reading-card.captured { background:#f5e6d3; border-color:var(--accent2); }
   .card-header-row { display:flex; justify-content:space-between; align-items:flex-start; gap:0.8rem; margin-bottom:0.5rem; }
-  .card-meter { font-size:0.92rem; font-weight:500; color:var(--dark); letter-spacing:0.02em; }
-  .card-property { font-size:0.8rem; color:var(--stone); margin-top:1px; }
+  .card-meter { font-size:1rem; font-weight:600; color:var(--dark); letter-spacing:0.02em; }
+  .card-property { font-size:0.9rem; color:var(--stone); margin-top:2px; }
   .reading-card.farmhouse .card-property { color:#8aa092; }
   .reading-card.captured .card-property { color:#8a7d68; }
   .card-prev { text-align:right; }
-  .card-prev-label { font-size:0.65rem; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; }
+  .card-prev-label { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.05em; }
   .reading-card.farmhouse .card-prev-label { color:#3d6b4a; }
-  .card-prev-value { font-family:'Courier New',monospace; font-size:0.85rem; color:var(--mid); margin-top:1px; }
+  .card-prev-value { font-family:'Courier New',monospace; font-size:0.95rem; color:var(--mid); margin-top:2px; }
   .reading-card.farmhouse .card-prev-value { color:#3d6b4a; }
   .card-prev-value.none { font-style:italic; }
-  .card-input-label { font-size:0.65rem; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:5px; }
+  .card-input-label { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
   .reading-card.farmhouse .card-input-label { color:#3d6b4a; }
   .reading-card.captured .card-input-label { color:var(--accent); font-weight:500; }
   .card-input { width:100%; padding:0.75rem 1rem; background:#1e1a16; color:var(--water); border:1px solid #3a3530; border-radius:4px; font-family:'Courier New',monospace; font-size:1.5rem; text-align:center; letter-spacing:0.06em; box-sizing:border-box; transition:all 0.15s; }
@@ -118,16 +119,18 @@
   /* ── Bottom submit bar (with submitter dropdown) ── */
   .submit-bar { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; background:var(--warm); border:1px solid var(--border); border-radius:8px; margin-top:0.7rem; gap:1rem; flex-wrap:wrap; }
   .submit-info { display:flex; flex-direction:column; gap:0.5rem; min-width:0; flex:1; }
-  .submit-counter { font-size:0.95rem; color:var(--mid); }
-  .submit-counter strong { color:var(--dark); }
-  .submit-counter .togo { color:var(--accent2); margin-left:0.4rem; }
+  .submit-counter { font-size:1rem; color:var(--mid); }
+  .submit-counter strong { color:var(--dark); font-size:1.05rem; }
+  .submit-counter .togo { color:var(--accent2); margin-left:0.4rem; font-weight:600; }
   .submit-controls { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
-  .submitter-select-bottom { padding:0.55rem 0.75rem; border:1px solid var(--border); border-radius:5px; background:white; font-size:0.85rem; color:var(--dark); font-family:Arial,sans-serif; cursor:pointer; min-width:160px; }
+  .submitter-wrap { display:flex; flex-direction:column; gap:4px; }
+  .submitter-label { font-size:0.75rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.05em; }
+  .submitter-select-bottom { padding:0.6rem 0.8rem; border:1px solid var(--border); border-radius:5px; background:white; font-size:0.95rem; color:var(--dark); font-family:Arial,sans-serif; cursor:pointer; min-width:180px; }
   .submitter-select-bottom.required { border-color:#c0392b; box-shadow:0 0 0 3px rgba(192,57,43,0.1); }
   .submit-btn { padding:0.7rem 1.4rem; background:var(--accent); color:white; border:none; border-radius:5px; font-size:0.9rem; font-weight:500; letter-spacing:0.03em; cursor:pointer; font-family:Arial,sans-serif; transition:all 0.15s; }
   .submit-btn:hover:not(:disabled) { background:#5e4530; }
   .submit-btn:disabled { background:var(--stone); color:var(--warm); cursor:not-allowed; opacity:0.6; }
-  .submit-hint { font-size:0.78rem; color:var(--mid); font-style:italic; }
+  .submit-hint { font-size:0.85rem; color:var(--mid); font-style:italic; }
   @media(max-width:600px) {
     .submit-bar { flex-direction:column; align-items:stretch; }
     .submit-controls { flex-direction:column; align-items:stretch; }
@@ -142,13 +145,13 @@
   .locked-meta { font-size:0.92rem; color:var(--mid); margin-bottom:1.5rem; }
   .summary-card { background:var(--warm); border:1px solid var(--border); border-radius:8px; padding:1.2rem 1.4rem; margin-bottom:1.5rem; text-align:left; }
   .summary-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.85rem; border-bottom:1px solid var(--border); }
-  .summary-header-label { font-size:0.85rem; color:var(--mid); text-transform:uppercase; letter-spacing:0.06em; font-weight:500; }
+  .summary-header-label { font-size:0.9rem; color:var(--mid); text-transform:uppercase; letter-spacing:0.06em; font-weight:700; }
   .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem 1.8rem; }
   @media(max-width:480px) { .summary-grid { grid-template-columns:1fr; } }
-  .summary-row { display:flex; justify-content:space-between; font-size:0.95rem; padding:0.2rem 0; }
-  .summary-row .sr-prop { color:var(--dark); }
+  .summary-row { display:flex; justify-content:space-between; font-size:1rem; padding:0.35rem 0; }
+  .summary-row .sr-prop { color:var(--dark); font-weight:500; }
   .summary-row .sr-prop.farmhouse { color:#3d6b4a; }
-  .summary-row .sr-val { font-family:'Courier New',monospace; color:var(--dark); font-weight:500; }
+  .summary-row .sr-val { font-family:'Courier New',monospace; color:var(--dark); font-weight:600; font-size:1.05rem; }
   .lock-bar { background:#2a2520; border-radius:8px; padding:1rem 1.2rem; margin-bottom:1.2rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-align:left; }
   .lock-bar .lb-status { font-size:0.78rem; color:var(--accent2); text-transform:uppercase; letter-spacing:0.06em; font-weight:500; }
   .lock-bar .lb-detail { font-size:0.85rem; color:var(--stone); margin-top:4px; }
@@ -270,9 +273,12 @@
         <div class="submit-hint" id="submitHint">Enter all 14 readings then select who is submitting.</div>
       </div>
       <div class="submit-controls">
-        <select id="submitterSelectBottom" class="submitter-select-bottom" onchange="onSubmitterChange()">
-          <option value="">— Submitted by —</option>
-        </select>
+        <div class="submitter-wrap" id="submitterWrap" style="display:none;">
+          <label for="submitterSelectBottom" class="submitter-label">Submitted by</label>
+          <select id="submitterSelectBottom" class="submitter-select-bottom" onchange="onSubmitterChange()">
+            <option value="">Submitted by...</option>
+          </select>
+        </div>
         <button class="submit-btn" id="submitBtn" disabled onclick="submitAllReadings()">Submit all readings</button>
       </div>
     </div>
@@ -382,7 +388,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEF
 const AUTH_KEY = 'cmc_water_auth';
 const SUBMITTER_KEY = 'cmc_water_submitter';
 const CUSTOM_NAMES_KEY = 'cmc_water_custom_names';
-const DEFAULT_NAMES = ['Tim', 'Director', 'Simon Turner', 'Ian Morrison'];
+const DEFAULT_NAMES = ['Director', 'Simon Turner', 'Ian Morrison'];
 
 let waterPassword = null;
 let waterData = null;
@@ -535,8 +541,7 @@ function setupSubmitterDropdowns() {
     const addOpt = document.createElement('option');
     addOpt.value = '__add__'; addOpt.textContent = '+ Add new...';
     sel.appendChild(addOpt);
-    const last = localStorage.getItem(SUBMITTER_KEY);
-    if (last && allNames.indexOf(last) !== -1) sel.value = last;
+    // Do NOT pre-fill from localStorage - always start blank
   });
 }
 
@@ -554,12 +559,9 @@ function onSubmitterChange() {
       }
       setupSubmitterDropdowns();
       sel.value = trimmed;
-      localStorage.setItem(SUBMITTER_KEY, trimmed);
     } else {
-      sel.value = localStorage.getItem(SUBMITTER_KEY) || '';
+      sel.value = '';
     }
-  } else if (val) {
-    localStorage.setItem(SUBMITTER_KEY, val);
   }
   sel.classList.remove('required');
   updateSubmitButtonState();
@@ -725,17 +727,21 @@ function updateSubmitButtonState() {
   const submitterValid = submitter && submitter !== '__add__';
   const counter = document.getElementById('submitCounter');
   const hint = document.getElementById('submitHint');
+  const wrap = document.getElementById('submitterWrap');
   const togo = 14 - total;
 
   if (total < 14) {
     counter.innerHTML = '<strong>' + total + ' of 14</strong> readings entered <span class="togo">· ' + togo + ' to go</span>';
-    hint.textContent = 'Enter all 14 readings then select who is submitting.';
+    hint.textContent = 'Enter all 14 readings to continue.';
+    if (wrap) wrap.style.display = 'none';
   } else if (!submitterValid) {
-    counter.innerHTML = '<strong>14 of 14 ✓</strong> — select who is submitting';
-    hint.textContent = 'Select your name from the dropdown to submit.';
-  } else {
-    counter.innerHTML = '<strong>14 of 14 ✓</strong> — ready to submit';
+    counter.innerHTML = '<strong>14 of 14 ✓</strong> Ready to submit — who is submitting?';
     hint.textContent = '';
+    if (wrap) wrap.style.display = 'flex';
+  } else {
+    counter.innerHTML = '<strong>14 of 14 ✓</strong> Ready to submit';
+    hint.textContent = '';
+    if (wrap) wrap.style.display = 'flex';
   }
   document.getElementById('submitBtn').disabled = !(total === 14 && submitterValid);
 }
@@ -853,11 +859,8 @@ function openOneOffModal() {
   document.getElementById('oneOffPrevPanel').style.display = 'none';
   document.getElementById('oneOffError').textContent = '';
   document.getElementById('oneOffReadingError').style.display = 'none';
-  // Pre-fill submitter from main page if set
-  const main = document.getElementById('submitterSelectBottom').value;
-  if (main && main !== '__add__') {
-    document.getElementById('oneOffSubmitter').value = main;
-  }
+  // Always reset submitter to blank — never pre-fill
+  document.getElementById('oneOffSubmitter').value = '';
   document.getElementById('oneOffModal').classList.add('open');
 }
 
