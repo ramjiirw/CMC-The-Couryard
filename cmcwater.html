@@ -176,6 +176,9 @@
   .modal-field select, .modal-field input[type=text], .modal-field textarea { width:100%; padding:0.65rem 0.8rem; border:1px solid var(--border); border-radius:5px; background:white; font-size:0.9rem; color:var(--dark); font-family:Arial,sans-serif; box-sizing:border-box; }
   .modal-field select#oneOffProperty { font-size:1.05rem; padding:0.8rem 0.8rem; font-weight:500; }
   .modal-field textarea { resize:vertical; min-height:60px; }
+  .notes-toggle { background:none; border:none; padding:0.4rem 0; cursor:pointer; color:var(--accent); font-family:Arial,sans-serif; font-size:0.85rem; font-weight:500; text-align:left; display:inline-flex; align-items:center; gap:0.3rem; }
+  .notes-toggle:hover { color:#5e4530; text-decoration:underline; }
+  .notes-toggle #notesToggleIcon { font-size:1.1rem; line-height:1; display:inline-block; width:14px; text-align:center; }
   .modal-field input.meter-input { padding:0.85rem 1rem; background:#1e1a16; color:var(--water); border:1px solid #3a3530; font-family:'Courier New',monospace; font-size:1.6rem; text-align:center; letter-spacing:0.06em; }
   .modal-prev-panel { background:var(--warm); border:1px solid var(--border); border-radius:6px; padding:0.7rem 1rem; margin-bottom:1.1rem; display:flex; justify-content:space-between; align-items:baseline; }
   .modal-prev-panel .mp-label { font-size:0.75rem; color:var(--mid); text-transform:uppercase; letter-spacing:0.04em; }
@@ -191,12 +194,12 @@
   .modal-error { color:#c0392b; font-size:0.85rem; margin-bottom:0.7rem; min-height:1rem; }
 
   /* ── Toast & loading ── */
-  .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(100px); background:var(--dark); color:var(--cream); padding:0.95rem 1.6rem; border-radius:8px; font-size:0.92rem; box-shadow:0 4px 20px rgba(0,0,0,0.3); z-index:2000; transition:transform 0.3s ease; max-width:90%; }
+  .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(100px); background:var(--dark); color:var(--cream); padding:0.95rem 1.6rem; border-radius:8px; font-size:0.92rem; box-shadow:0 4px 20px rgba(0,0,0,0.3); z-index:2500; transition:transform 0.3s ease; max-width:90%; }
   .toast.show { transform:translateX(-50%) translateY(0); }
   .toast.error { background:#8b3a3a; }
   .toast.success { background:var(--green); }
 
-  .loading-overlay { position:fixed; inset:0; background:rgba(245,240,232,0.85); display:none; align-items:center; justify-content:center; z-index:500; flex-direction:column; gap:1rem; }
+  .loading-overlay { position:fixed; inset:0; background:rgba(245,240,232,0.85); display:none; align-items:center; justify-content:center; z-index:2000; flex-direction:column; gap:1rem; }
   .loading-overlay.show { display:flex; }
   .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--accent2); border-radius:50%; animation:spin 0.8s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
@@ -360,12 +363,15 @@
           <option value="Leak check">Leak check</option>
           <option value="Meter replacement">Meter replacement</option>
           <option value="Director check">Director check</option>
-          <option value="Other">Other (specify)</option>
         </select>
       </div>
-      <div class="modal-field" id="oneOffNotesField" style="display:none;">
-        <label id="oneOffNotesLabel">Notes <span style="color:var(--stone);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-        <textarea id="oneOffNotes" oninput="updateOneOffSaveState()" placeholder="e.g. Carl & Christina Moore moving out, handover to new owner"></textarea>
+      <div class="modal-field" style="margin-bottom:1.1rem;">
+        <button type="button" class="notes-toggle" id="notesToggle" onclick="toggleOneOffNotes()">
+          <span id="notesToggleIcon">+</span> <span id="notesToggleLabel">Add notes (optional)</span>
+        </button>
+        <div id="oneOffNotesWrap" style="display:none; margin-top:0.6rem;">
+          <textarea id="oneOffNotes" placeholder="e.g. Carl & Christina Moore moving out, handover to new owner"></textarea>
+        </div>
       </div>
       <div class="modal-error" id="oneOffError"></div>
       <div class="modal-actions">
@@ -999,7 +1005,10 @@ function openOneOffModal() {
   document.getElementById('oneOffReading').value = '';
   document.getElementById('oneOffReason').value = '';
   document.getElementById('oneOffNotes').value = '';
-  document.getElementById('oneOffNotesField').style.display = 'none';
+  // Reset notes toggle to closed state
+  document.getElementById('oneOffNotesWrap').style.display = 'none';
+  document.getElementById('notesToggleIcon').textContent = '+';
+  document.getElementById('notesToggleLabel').textContent = 'Add notes (optional)';
   document.getElementById('oneOffPrevPanel').style.display = 'none';
   document.getElementById('oneOffError').textContent = '';
   document.getElementById('oneOffReadingError').style.display = 'none';
@@ -1032,19 +1041,23 @@ function onOneOffPropertyChange() {
 }
 
 function onOneOffReasonChange() {
-  const reason = document.getElementById('oneOffReason').value;
-  const notesField = document.getElementById('oneOffNotesField');
-  const notesLabel = document.getElementById('oneOffNotesLabel');
-  if (reason === 'Other') {
-    notesField.style.display = 'block';
-    notesLabel.innerHTML = 'Notes <span style="color:#c0392b;font-weight:500;">required</span>';
-  } else if (reason) {
-    notesField.style.display = 'block';
-    notesLabel.innerHTML = 'Notes <span style="color:var(--stone);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span>';
-  } else {
-    notesField.style.display = 'none';
-  }
   updateOneOffSaveState();
+}
+
+function toggleOneOffNotes() {
+  const wrap = document.getElementById('oneOffNotesWrap');
+  const icon = document.getElementById('notesToggleIcon');
+  const label = document.getElementById('notesToggleLabel');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    icon.textContent = '−';
+    label.textContent = 'Notes (optional)';
+    document.getElementById('oneOffNotes').focus();
+  } else {
+    wrap.style.display = 'none';
+    icon.textContent = '+';
+    label.textContent = 'Add notes (optional)';
+  }
 }
 
 function updateOneOffSaveState() {
@@ -1052,15 +1065,13 @@ function updateOneOffSaveState() {
   const property = document.getElementById('oneOffProperty').value;
   const readingStr = document.getElementById('oneOffReading').value.trim();
   const reason = document.getElementById('oneOffReason').value;
-  const notes = document.getElementById('oneOffNotes').value.trim();
 
   const submitterValid = submitter && submitter !== '__add__';
   const propertyValid = !!property;
   const readingValid = readingStr && isValidMeterFormat(readingStr);
   const reasonValid = !!reason;
-  const notesValid = (reason !== 'Other') || (reason === 'Other' && notes.length > 0);
 
-  const allValid = submitterValid && propertyValid && readingValid && reasonValid && notesValid;
+  const allValid = submitterValid && propertyValid && readingValid && reasonValid;
   document.getElementById('oneOffSaveBtn').disabled = !allValid;
 }
 
@@ -1095,7 +1106,6 @@ function submitOneOffReading() {
   }
 
   if (!reason) { errEl.textContent = 'Please select a reason.'; return; }
-  if (reason === 'Other' && !notes) { errEl.textContent = 'Please specify notes for "Other".'; return; }
 
   const saveBtn = document.getElementById('oneOffSaveBtn');
   saveBtn.disabled = true;
