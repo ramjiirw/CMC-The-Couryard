@@ -1039,6 +1039,20 @@
       <p class="agm-cta">View fire safety checks &amp; documents &#x2192;</p>
     </a>
 
+    <!-- CMC Water -->
+    <a class="link-card agm-card" href="cmcwaterportal.html">
+      <div class="agm-card-top">
+        <span class="icon" style="margin:0">💧</span>
+        <h3 style="margin:0">CMC Water</h3>
+      </div>
+      <div class="agm-details">
+        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest meter reading</span></div>
+        <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="waterLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" style="margin-top:0.5rem;"><span class="agm-detail-label" style="flex:0 0 auto;color:var(--accent2);">⚠️ This section is being built — check back soon</span></div>
+      </div>
+      <p class="agm-cta">View water meter readings, billing and documents →</p>
+    </a>
+
     <!-- Document Search Card -->
     <div class="link-card agm-card search-hub-card">
       <div class="agm-card-top">
@@ -1360,6 +1374,39 @@
     } catch(e) {
       document.getElementById('bioLatest').textContent = '—';
       showOfflineNotice();
+    }
+  })();
+
+  // Load latest water meter reading for CMC Water card
+  (async function() {
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=readWater', { redirect: 'follow' });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.properties) throw new Error();
+
+      // Find most recent reading date across all properties.
+      // lastReadingDate is formatted as 'dd/MM/yyyy HH:mm' from the GAS backend.
+      let mostRecent = null;
+      data.properties.forEach(function(p) {
+        if (!p.lastReadingDate) return;
+        const m = p.lastReadingDate.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (!m) return;
+        const d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+        if (!mostRecent || d > mostRecent) mostRecent = d;
+      });
+
+      const el = document.getElementById('waterLatest');
+      if (!mostRecent) { el.textContent = 'No readings yet'; return; }
+
+      const dateStr = mostRecent.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+      const month = mostRecent.getMonth(); // 0-11
+      const quarter = Math.floor(month / 3) + 1; // Q1 = Jan-Mar, Q2 = Apr-Jun, etc.
+      const year = mostRecent.getFullYear();
+      el.textContent = dateStr + ' · Q' + quarter + ' ' + year;
+    } catch(e) {
+      const el = document.getElementById('waterLatest');
+      if (el) el.textContent = '—';
     }
   })();
 
