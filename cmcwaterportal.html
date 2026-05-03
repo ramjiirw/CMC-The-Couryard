@@ -961,11 +961,23 @@ function renderWaterReport() {
   var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
     + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  // Reading date — earliest row's date for this quarter
+  // Reading date — earliest row's date for this quarter, reformatted as "2 May 2026"
   var readingDate = '—';
   Object.keys(curMap).forEach(function(p) {
     var d = curMap[p].readingDate;
-    if (d && readingDate === '—') readingDate = d;
+    if (d && readingDate === '—') {
+      var parts = d.split('/');
+      if (parts.length === 3) {
+        var dt = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        if (!isNaN(dt.getTime())) {
+          readingDate = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        } else {
+          readingDate = d;
+        }
+      } else {
+        readingDate = d;
+      }
+    }
   });
 
   var curQuarterLabel  = year + ' Q' + q;
