@@ -422,6 +422,13 @@ let waterData = null;
 let pendingReadings = {};
 let isSubmitting = false;
 
+// Idle / inactivity auto-lockout
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const IDLE_WARNING_MS = 29 * 60 * 1000; // show warning toast at 29 minutes
+let idleWarnTimer = null;
+let idleLockTimer = null;
+let idleListenersAttached = false;
+
 document.getElementById('footerYear').textContent = new Date().getFullYear();
 
 // ═══════════════════════════════════════════════════════════════════
@@ -555,9 +562,13 @@ function showWater() {
   renderReadingCards();
   // Then fetch previous readings + lock state in the background
   loadWaterData();
+  // Start 30-minute idle auto-lockout (with 1-minute warning toast)
+  attachIdleListeners();
+  resetIdleTimer();
 }
 
 function doLock() {
+  clearIdleTimers();
   sessionStorage.removeItem(AUTH_KEY);
   // Wipe state so a future login starts clean (defence in depth alongside showWater())
   waterData = null;
@@ -570,6 +581,34 @@ function doLock() {
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').textContent = '';
   if (!('ontouchstart' in window)) document.getElementById('pwInput').focus();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// IDLE AUTO-LOCKOUT (30 minutes, 1-minute warning)
+// ═══════════════════════════════════════════════════════════════════
+function clearIdleTimers() {
+  if (idleWarnTimer) { clearTimeout(idleWarnTimer); idleWarnTimer = null; }
+  if (idleLockTimer) { clearTimeout(idleLockTimer); idleLockTimer = null; }
+}
+
+function resetIdleTimer() {
+  // Only run while the user is actually logged in
+  if (sessionStorage.getItem(AUTH_KEY) !== 'true') return;
+  clearIdleTimers();
+  idleWarnTimer = setTimeout(function() {
+    showToast('You will be logged out in 1 minute due to inactivity', 'info');
+  }, IDLE_WARNING_MS);
+  idleLockTimer = setTimeout(function() {
+    doLock();
+  }, IDLE_TIMEOUT_MS);
+}
+
+function attachIdleListeners() {
+  if (idleListenersAttached) return;
+  idleListenersAttached = true;
+  ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(function(ev) {
+    document.addEventListener(ev, resetIdleTimer, { passive: true });
+  });
 }
 
 function setWelcomeMsg() {
@@ -811,10 +850,10 @@ function onCardInput(card, prop, input, label, errorDiv) {
     label.textContent = 'New reading (00000.000)';
   } else {
     const num = parseFloat(val);
-    // Check if lower than previous
-    if (prop.lastReading !== null && prop.lastReading !== undefined && num < prop.lastReading) {
+    // Check if lower than or equal to previous
+    if (prop.lastReading !== null && prop.lastReading !== undefined && num <= prop.lastReading) {
       card.classList.add('error');
-      errorDiv.textContent = 'Reading must be ≥ previous (' + formatMeterValue(prop.lastReading) + ')';
+      errorDiv.textContent = 'Reading must be greater than previous (' + formatMeterValue(prop.lastReading) + ')';
       delete pendingReadings[prop.property];
       label.textContent = 'New reading (00000.000)';
     } else {
@@ -1120,8 +1159,8 @@ function submitOneOffReading() {
 
   // Lower-than-previous check
   const prop = waterData.properties.find(function(p){ return p.property === property; });
-  if (prop && prop.lastReading !== null && prop.lastReading !== undefined && reading < prop.lastReading) {
-    readingErr.textContent = 'Reading must be ≥ previous (' + formatMeterValue(prop.lastReading) + ').';
+  if (prop && prop.lastReading !== null && prop.lastReading !== undefined && reading <= prop.lastReading) {
+    readingErr.textContent = 'Reading must be greater than previous (' + formatMeterValue(prop.lastReading) + ').';
     readingErr.style.display = 'block';
     return;
   }
