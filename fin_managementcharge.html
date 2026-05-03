@@ -4398,8 +4398,26 @@
           if (bAmt === 0 && aAmt === 0) return;
           if (bvaHideActuals && bAmt === 0) return;
           var vAmt = aAmt - bAmt;
+
+          // Per-unit suffix (Hide Actuals + group expanded only)
+          // Maps line-item category → { divisor, label }. Suffix renders as: · £X · label
+          var BVA_PER_UNIT = {
+            'Management Charge':                { divisor: 14, label: 'charge per property' },
+            'Farmhouse Rent Recharge':          { divisor: 4,  label: 'charge per farmhouse leaseholder' },
+            'Farmhouse Insurance Rent Recharge':{ divisor: 4,  label: 'charge per farmhouse leaseholder' },
+            'Grass Cutting':                    { divisor: 9,  label: 'charge per cut' },
+            'Road Annual Contribution':         { divisor: 14, label: 'charge per property' }
+          };
+          var perUnitSuffix = '';
+          if (bvaHideActuals && isOpen && BVA_PER_UNIT[cat] && bAmt > 0) {
+            var pu = BVA_PER_UNIT[cat];
+            var perUnit = Math.round(bAmt / pu.divisor);
+            var perUnitFmt = '£' + perUnit.toLocaleString('en-GB');
+            perUnitSuffix = ' <span style="color:#9e8e7e;font-size:16px;">· ' + perUnitFmt + ' · ' + pu.label + '</span>';
+          }
+
           html += '<div class="bva-item-row">';
-          html += '<span class="bva-item-name">' + name + '</span>';
+          html += '<span class="bva-item-name">' + name + perUnitSuffix + '</span>';
           html += '<div class="bva-item-cols">';
           html += '<div class="bva-icol bva-budget-val">' + (bAmt ? bvaFmt(bAmt) : '—') + '</div>';
           if (!bvaHideActuals) html += '<div class="bva-icol" style="color:#6b5f52;">' + (aAmt ? bvaFmt(aAmt) : '—') + '</div>';
