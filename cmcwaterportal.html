@@ -407,9 +407,26 @@
   /* Print: landscape, hide chrome, show only the report overlay */
   @media print {
     @page { size: landscape; }
-    body > *:not(#water-report-overlay) { display: none !important; }
-    #water-report-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
+    /* Hide everything by making it invisible, but keep it in the layout flow.
+       Then make only the overlay and its descendants visible. This avoids the
+       Chrome blank-preview bug caused by display:none + position:fixed→absolute. */
+    body * { visibility: hidden !important; }
+    #water-report-overlay, #water-report-overlay * { visibility: visible !important; }
+    #water-report-overlay {
+      position: static !important;
+      overflow: visible !important;
+      height: auto !important;
+      width: 100% !important;
+      background: white !important;
+      z-index: auto !important;
+    }
     #water-report-overlay > div:first-child { display: none !important; }
+    #water-report-overlay-content {
+      display: block !important;
+      max-width: none !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
   }
 
   /* Mobile horizontal scroll (matches BvA pattern) */
@@ -424,6 +441,12 @@
     font-size: 13px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 0 8px 0;
   }
   .water-rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-family: Arial, sans-serif; }
+  /* Fixed widths for predictable-content columns so Address and Resident get the leftover space */
+  .water-rpt-table th:nth-child(3), .water-rpt-table td:nth-child(3) { width: 120px; }
+  .water-rpt-table th:nth-child(4), .water-rpt-table td:nth-child(4),
+  .water-rpt-table th:nth-child(5), .water-rpt-table td:nth-child(5),
+  .water-rpt-table th:nth-child(6), .water-rpt-table td:nth-child(6) { width: 110px; }
+  .water-rpt-table th:first-child, .water-rpt-table td:first-child { white-space: nowrap; }
   .water-rpt-table th {
     text-align: right; font-size: 13px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.06em;
     padding: 0 8px 8px 8px; border-bottom: 2.5px solid #1e1a16;
@@ -568,7 +591,7 @@
         <button onclick="closeWaterReportOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#10005; Close</button>
       </div>
     </div>
-    <div id="water-report-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+    <div id="water-report-overlay-content" style="padding:2rem 3rem;max-width:1180px;margin:0 auto;"></div>
   </div>
 
 </main>
