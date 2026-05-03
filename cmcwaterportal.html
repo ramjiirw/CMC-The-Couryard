@@ -393,6 +393,76 @@
   .img-modal-caption { padding:0.7rem 0.4rem 0.2rem; font-size:0.85rem; color:#4a3f35; text-align:center; }
   .img-modal-close { position:fixed; top:14px; right:18px; color:white; font-size:24px; cursor:pointer; background:rgba(255,255,255,0.18); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10000; user-select:none; line-height:1; }
   .img-modal-close:hover { background:rgba(255,255,255,0.3); }
+
+  /* ── Water Meter Readings Report ─────────────────────────────────────── */
+  /* Loading-state styling for the trigger button */
+  .btn-loading { pointer-events: none; opacity: 0.8; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open  { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes water-rpt-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .hint-loading { animation: water-rpt-pulse 1.2s ease-in-out infinite; }
+
+  /* Print: landscape, hide chrome, show only the report overlay */
+  @media print {
+    @page { size: landscape; }
+    body > *:not(#water-report-overlay) { display: none !important; }
+    #water-report-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
+    #water-report-overlay > div:first-child { display: none !important; }
+  }
+
+  /* Mobile horizontal scroll (matches BvA pattern) */
+  @media (max-width: 768px) {
+    #water-report-overlay { overflow-x: auto; }
+    #water-report-overlay-content { min-width: 700px; }
+    #water-report-overlay > div:first-child { min-width: 700px; }
+  }
+
+  /* Report body styles */
+  .water-rpt-col-head {
+    font-size: 13px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 0 8px 0;
+  }
+  .water-rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-family: Arial, sans-serif; }
+  .water-rpt-table th {
+    text-align: right; font-size: 13px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 0 8px 8px 8px; border-bottom: 2.5px solid #1e1a16;
+  }
+  .water-rpt-table th:first-child, .water-rpt-table th:nth-child(2), .water-rpt-table th:nth-child(3) { text-align: left; }
+  .water-rpt-table td { padding: 9px 8px; font-size: 17px; color: #1e1a16; border-bottom: 1px solid #ede8e0; }
+  .water-rpt-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .water-rpt-table tr:nth-child(even) td { background: #faf7f2; }
+  .water-rpt-table td.prev { color: #b8ad9e; }
+  .water-rpt-table td.curr { font-weight: 700; color: #1e1a16; }
+  .water-rpt-table td.vol  { color: #6b5f52; }
+  .water-rpt-table tfoot td { font-weight: 700; font-size: 17px; color: #1e1a16; border-top: 2.5px solid #1e1a16; border-bottom: none; padding-top: 12px; background: transparent !important; }
+  .water-rpt-table tfoot td.label { text-align: left; }
+  .water-rpt-table th .qlabel { display: block; font-size: 14px; font-weight: 700; color: #1e1a16; text-transform: none; letter-spacing: 0; margin-bottom: 2px; }
+  .water-rpt-table th .qrole  { display: block; font-size: 12px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.05em; }
+  .water-rpt-table th.col-prev .qlabel { color: #b8ad9e; }
+  .water-rpt-table th.col-curr .qlabel { color: #1e1a16; }
+  .water-rpt-table th.col-vol  .qlabel { color: #b8ad9e; }
+
+  /* Quarter buttons */
+  .water-qtr-btn-group { display: inline-flex; gap: 4px; }
+  .water-qtr-btn {
+    padding: 0.35rem 0.75rem; background: rgba(255,255,255,0.15); color: #fff;
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 5px;
+    font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; min-width: 38px;
+  }
+  .water-qtr-btn:hover:not(.disabled):not(.active) { background: rgba(255,255,255,0.25); }
+  .water-qtr-btn.active { background: #fff; color: #2a7896; }
+  .water-qtr-btn.disabled { opacity: 0.35; cursor: not-allowed; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+
+  /* Empty state */
+  .water-rpt-empty {
+    padding: 4rem 2rem; text-align: center; color: #6b5f52;
+    background: #faf7f2; border-radius: 8px; margin-top: 1rem;
+    font-family: Arial, sans-serif;
+  }
+  .water-rpt-empty .icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.5; }
+  .water-rpt-empty .msg  { font-size: 1rem; font-weight: 600; color: #1e1a16; }
+  .water-rpt-empty .sub  { font-size: 0.85rem; margin-top: 0.4rem; }
 </style>
 </head>
 <body>
@@ -449,6 +519,17 @@
     <p>View water meter readings, billing and water-related documents.</p>
   </div>
 
+  <!-- Water Meter Readings Report -->
+  <div class="doc-card-wrapper" style="margin-bottom:1rem;">
+    <button class="btn-toggle btn-loading" id="toggle-waterreport" onclick="openWaterReport()" style="background:#2a7896;color:#ffffff;">
+      <span>&#128202; Open Water Meter Readings Report</span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to open &amp; view</span>
+      </span>
+    </button>
+  </div>
+
   <!-- Maintenance Documents -->
   <div class="doc-card-wrapper">
     <button class="btn-toggle" id="toggle-maintdocs" onclick="toggleMaintDocs()" aria-expanded="false">
@@ -470,6 +551,24 @@
         <div id="wrap-maintdocs"><div class="doc-state-empty">Loading documents…</div></div>
       </div>
     </div>
+  </div>
+
+  <!-- Water Report Overlay -->
+  <div id="water-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+    <div style="position:sticky;top:0;z-index:10;background:#2a7896;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <select id="water-rpt-year-select" onchange="waterChangeYear(this.value)" style="width:90px;padding:0.35rem 0.6rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
+      <div class="water-qtr-btn-group" id="water-rpt-qtr-btns">
+        <button class="water-qtr-btn" data-q="1">Q1</button>
+        <button class="water-qtr-btn" data-q="2">Q2</button>
+        <button class="water-qtr-btn" data-q="3">Q3</button>
+        <button class="water-qtr-btn" data-q="4">Q4</button>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+        <button onclick="printWaterReport()" style="padding:0.4rem 1rem;background:#fff;color:#2a7896;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+        <button onclick="closeWaterReportOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#10005; Close</button>
+      </div>
+    </div>
+    <div id="water-report-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
   </div>
 
 </main>
@@ -655,6 +754,292 @@ async function saveRow(rowIndex, i) {
 }
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
+// ─── Water Meter Readings Report ─────────────────────────────────────────────
+// Hardcoded meter numbers (they never change). Property name → meter number.
+const WATER_METERS = {
+  '1 The Courtyard':  '06AU005287',
+  '2 The Courtyard':  '06AU005281',
+  '3 The Courtyard':  '06AU005284',
+  '4 The Courtyard':  '06AU005290',
+  '5 The Courtyard':  '06AU005286',
+  '6 The Courtyard':  '06AU005283',
+  '7 The Courtyard':  '06AU005282',
+  '8 The Courtyard':  '06AU005285',
+  '9 The Courtyard':  '06AU005289',
+  '10 The Courtyard': '06AU005295',
+  '11 The Courtyard': '06AU005288',
+  '12 The Courtyard': '06AU005294',
+  '13 The Courtyard': '06AU005266',
+  '14 The Courtyard': '06AU005299'
+};
+const WATER_QTR_RANGE = {
+  1: 'January – March',
+  2: 'April – June',
+  3: 'July – September',
+  4: 'October – December'
+};
+
+let waterReportData = null;       // { rows, availableYears, availableQuartersByYear }
+let waterReportYear = null;
+let waterReportQuarter = null;
+
+// Pre-fetch the report data on page load so the trigger button is "ready" without a wait.
+(function preloadWaterReport() {
+  fetch(SCRIPT_URL + '?action=readWaterReport', { redirect: 'follow' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === 'ok') {
+        waterReportData = d;
+      }
+      var btn = document.getElementById('toggle-waterreport');
+      if (btn) btn.classList.remove('btn-loading');
+    })
+    .catch(function() {
+      var btn = document.getElementById('toggle-waterreport');
+      if (btn) btn.classList.remove('btn-loading');
+    });
+})();
+
+async function openWaterReport() {
+  // If preload hasn't completed yet, fetch on demand
+  if (!waterReportData) {
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readWaterReport', { redirect: 'follow' });
+      var json = await res.json();
+      if (json.status === 'ok') {
+        waterReportData = json;
+      } else {
+        alert('Could not load water meter data: ' + (json.message || 'unknown error'));
+        return;
+      }
+    } catch(e) {
+      alert('Could not load water meter data: ' + e.message);
+      return;
+    }
+  }
+
+  var years = waterReportData.availableYears || [];
+  if (years.length === 0) {
+    alert('No water meter readings recorded yet.');
+    return;
+  }
+
+  // Default: latest year + latest quarter with data
+  waterReportYear = years[0];
+  var qInYear = (waterReportData.availableQuartersByYear || {})[waterReportYear] || [];
+  waterReportQuarter = qInYear.length ? Math.max.apply(null, qInYear) : 1;
+
+  // Build year dropdown
+  var sel = document.getElementById('water-rpt-year-select');
+  sel.innerHTML = '';
+  years.forEach(function(y) {
+    var o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    o.style.background = '#2a7896'; o.style.color = '#fff';
+    if (y === waterReportYear) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  refreshWaterQuarterButtons();
+  renderWaterReport();
+
+  var overlay = document.getElementById('water-report-overlay');
+  if (overlay) {
+    overlay.style.display = 'block';
+    overlay.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+  }
+}
+
+function closeWaterReportOverlay() {
+  var overlay = document.getElementById('water-report-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
+}
+
+function waterChangeYear(y) {
+  waterReportYear = parseInt(y, 10);
+  var qInYear = (waterReportData.availableQuartersByYear || {})[waterReportYear] || [];
+  // Snap to latest available quarter in the new year
+  if (qInYear.length) waterReportQuarter = Math.max.apply(null, qInYear);
+  refreshWaterQuarterButtons();
+  renderWaterReport();
+}
+
+function waterChangeQuarter(q) {
+  waterReportQuarter = q;
+  refreshWaterQuarterButtons();
+  renderWaterReport();
+}
+
+function refreshWaterQuarterButtons() {
+  var avail = (waterReportData.availableQuartersByYear || {})[waterReportYear] || [];
+  var btns = document.querySelectorAll('#water-rpt-qtr-btns .water-qtr-btn');
+  btns.forEach(function(btn) {
+    var q = parseInt(btn.dataset.q, 10);
+    var isAvail = avail.indexOf(q) !== -1;
+    btn.classList.toggle('disabled', !isAvail);
+    btn.classList.toggle('active', isAvail && q === waterReportQuarter);
+    btn.onclick = isAvail ? (function(qq) { return function() { waterChangeQuarter(qq); }; })(q) : null;
+  });
+}
+
+function waterFmtReading(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  // 5-digit integer + 3-decimal: e.g. 01621.005
+  var fixed = Number(n).toFixed(3);
+  var parts = fixed.split('.');
+  while (parts[0].length < 5) parts[0] = '0' + parts[0];
+  return parts[0] + '.' + parts[1];
+}
+
+function waterFmtVolume(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  // 3-digit integer + 3-decimal: e.g. 031.804
+  var fixed = Number(n).toFixed(3);
+  var parts = fixed.split('.');
+  while (parts[0].length < 3) parts[0] = '0' + parts[0];
+  return parts[0] + '.' + parts[1];
+}
+
+function renderWaterReport() {
+  var rows = (waterReportData && waterReportData.rows) || [];
+  var year = waterReportYear;
+  var q    = waterReportQuarter;
+
+  // Build current-quarter map: property → row
+  var curMap = {};
+  rows.forEach(function(r) {
+    if (r.year === year && r.q === q) curMap[r.property] = r;
+  });
+
+  // Previous quarter
+  var prevYear = (q === 1) ? year - 1 : year;
+  var prevQ    = (q === 1) ? 4 : q - 1;
+  var prevMap = {};
+  rows.forEach(function(r) {
+    if (r.year === prevYear && r.q === prevQ) prevMap[r.property] = r;
+  });
+
+  // List of properties — sorted by numeric prefix (1 The Courtyard, 2 The Courtyard, ...)
+  var propsSet = {};
+  Object.keys(curMap).forEach(function(p) { propsSet[p] = true; });
+  Object.keys(prevMap).forEach(function(p) { propsSet[p] = true; });
+  var props = Object.keys(propsSet).sort(function(a, b) {
+    var na = parseInt((a.match(/^\d+/) || ['9999'])[0], 10);
+    var nb = parseInt((b.match(/^\d+/) || ['9999'])[0], 10);
+    return na - nb;
+  });
+
+  var now = new Date();
+  var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  // Reading date — earliest row's date for this quarter
+  var readingDate = '—';
+  Object.keys(curMap).forEach(function(p) {
+    var d = curMap[p].readingDate;
+    if (d && readingDate === '—') readingDate = d;
+  });
+
+  var curQuarterLabel  = year + ' Q' + q;
+  var prevQuarterLabel = prevYear + ' Q' + prevQ;
+  var quarterRange     = WATER_QTR_RANGE[q] || '';
+
+  var h = '';
+
+  // Header row
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+  h += '<div style="display:flex;align-items:center;">';
+  h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+  h += '<div style="margin-left:1rem;">';
+  h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Water Meter Readings</div>';
+  h += '</div></div>';
+  h += '<div style="text-align:right;">';
+  h += '<div style="font-size:20px;font-weight:700;color:#2a7896;">' + curQuarterLabel + ' &middot; ' + quarterRange + '</div>';
+  h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+  h += '</div></div>';
+
+  // Reading-date sub-line
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;font-size:17px;color:#1e1a16;">';
+  h += '<div><span style="font-weight:600;">Water meter reading date:</span> ' + readingDate + '</div>';
+  h += '<div></div></div>';
+
+  // Section heading
+  h += '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:0;">';
+  h += '<div class="water-rpt-col-head" style="flex:1;">Quarterly Readings</div>';
+  h += '</div>';
+
+  // Empty state if no current-quarter data
+  if (props.length === 0 || Object.keys(curMap).length === 0) {
+    h += '<div class="water-rpt-empty">';
+    h += '<div class="icon">&#128167;</div>';
+    h += '<div class="msg">No readings recorded for this quarter</div>';
+    h += '<div class="sub">When readings are submitted for ' + curQuarterLabel + " they'll appear here.</div>";
+    h += '</div>';
+  } else {
+    // Table
+    h += '<table class="water-rpt-table">';
+    h += '<thead><tr>';
+    h += '<th>Address</th>';
+    h += '<th>Resident</th>';
+    h += '<th>Water Meter</th>';
+    h += '<th class="col-prev"><span class="qlabel">' + prevQuarterLabel + '</span><span class="qrole">Previous Quarter</span></th>';
+    h += '<th class="col-curr"><span class="qlabel">' + curQuarterLabel  + '</span><span class="qrole">Current Quarter</span></th>';
+    h += '<th class="col-vol"><span class="qlabel">'  + curQuarterLabel  + '</span><span class="qrole">Water Volume</span></th>';
+    h += '</tr></thead><tbody>';
+
+    var totPrev = 0, totCur = 0, totVol = 0;
+    var hasPrev = false, hasVol = false;
+
+    props.forEach(function(p) {
+      var cur  = curMap[p];
+      var prev = prevMap[p];
+      var resident = (cur && cur.residentName) || (prev && prev.residentName) || '';
+      var meter    = WATER_METERS[p] || '';
+
+      var curReading  = cur  ? cur.reading  : null;
+      var prevReading = prev ? prev.reading : null;
+      var volume      = (cur && curReading !== null && prevReading !== null)
+        ? (curReading - prevReading)
+        : (cur && cur.volume !== null ? cur.volume : null);
+
+      if (curReading  !== null) totCur  += curReading;
+      if (prevReading !== null) { totPrev += prevReading; hasPrev = true; }
+      if (volume      !== null) { totVol  += volume; hasVol = true; }
+
+      h += '<tr>';
+      h += '<td>' + p + '</td>';
+      h += '<td>' + resident + '</td>';
+      h += '<td>' + meter + '</td>';
+      h += '<td class="num prev">' + waterFmtReading(prevReading) + '</td>';
+      h += '<td class="num curr">' + waterFmtReading(curReading)  + '</td>';
+      h += '<td class="num vol">'  + waterFmtVolume(volume)       + '</td>';
+      h += '</tr>';
+    });
+
+    h += '</tbody><tfoot><tr>';
+    h += '<td class="label" colspan="3">Total CMC Water Meter Reading and Total Water Volume</td>';
+    h += '<td class="num prev">' + (hasPrev ? waterFmtReading(totPrev) : '&mdash;') + '</td>';
+    h += '<td class="num curr">' + waterFmtReading(totCur) + '</td>';
+    h += '<td class="num vol">'  + (hasVol ? waterFmtVolume(totVol) : '&mdash;') + '</td>';
+    h += '</tr></tfoot></table>';
+  }
+
+  document.getElementById('water-report-overlay-content').innerHTML = h;
+}
+
+function printWaterReport() {
+  var origTitle = document.title;
+  document.title = 'CMC The Courtyard \u2014 Water Meter Readings ' + (waterReportYear || '') + ' Q' + (waterReportQuarter || '');
+  window.print();
+  document.title = origTitle;
+}
+// ─── End Water Meter Readings Report ────────────────────────────────────────
 
 (function() {
     const now = new Date();
