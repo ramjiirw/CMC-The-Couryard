@@ -4402,11 +4402,11 @@
           // Per-unit suffix (Hide Actuals + group expanded only)
           // Maps line-item category → { divisor, label }. Suffix renders as: · £X · label
           var BVA_PER_UNIT = {
-            'Management Charge':                { divisor: 14, label: 'charge per property' },
-            'Farmhouse Rent Recharge':          { divisor: 4,  label: 'charge per farmhouse leaseholder' },
-            'Farmhouse Insurance Rent Recharge':{ divisor: 4,  label: 'charge per farmhouse leaseholder' },
-            'Grass Cutting':                    { divisor: 9,  label: 'charge per cut' },
-            'Road Annual Contribution':         { divisor: 14, label: 'charge per property' }
+            'I-Management Charge':                 { divisor: 14, label: 'charge per property' },
+            'I-Farmhouse Rent Recharge':           { divisor: 4,  label: 'charge per farmhouse leaseholder' },
+            'I-Farmhouse Insurance Rent Recharge': { divisor: 4,  label: 'charge per farmhouse leaseholder' },
+            'E-Grass Cutting':                     { divisor: 9,  label: 'charge per cut' },
+            'E-Road Annual Contribution':          { divisor: 14, label: 'charge per property' }
           };
           var perUnitSuffix = '';
           if (bvaHideActuals && isOpen && BVA_PER_UNIT[cat] && bAmt > 0) {
