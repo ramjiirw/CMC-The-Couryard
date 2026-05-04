@@ -582,6 +582,11 @@
     .agm-action-card-top { flex-direction: column; align-items: flex-start; gap: 6px; }
     .agm-action-card-text { width: 100%; }
 
+    /* ── Action filter controls: hint on top row, buttons share second row ── */
+    .agm-actions-controls { flex-direction: column; align-items: stretch; gap: 8px; }
+    .agm-filter-group { width: 100%; }
+    .agm-filter-btn { flex: 1; padding: 0.45rem 0.4rem; }
+
     /* ── Voting rows: num+result on top, motion below ── */
     .agm-vote-row { flex-direction: column; align-items: flex-start; gap: 4px; }
     .agm-vote-row > div { width: 100%; }
@@ -685,6 +690,10 @@
   .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
   .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
   .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
+  .agm-actions-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 10px; padding: 0 8px; flex-wrap: wrap; }
+  .agm-filter-group { display: flex; gap: 6px; flex-shrink: 0; }
+  .agm-filter-btn { padding: 0.35rem 0.8rem; background: #fff; color: #4a5e3a; border: 1px solid #cdc4b4; border-radius: 5px; font-family: Arial, sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+  .agm-filter-btn:hover { background: #f0ebe0; }
   .agm-actions-group-head { font-size: 12px; font-weight: 500; color: #7a5c3e; text-transform: uppercase; letter-spacing: 0.08em; padding: 10px 8px 4px; margin-top: 4px; margin-bottom: 4px; }
 
   .agm-action-row {
@@ -2068,7 +2077,7 @@
   var agmActionCounter = 0;
   var agmItemCounter = 0;
   var agmActionNumberMap = {};
-  var agmActionsSortByStatus = false;
+  var agmActionFilter = 'all'; // 'all' | 'outstanding' | 'complete'
   var agmAllActionCards = [];
 
   function esc(s) {
@@ -2182,34 +2191,36 @@
     agmUpdateCollapseBtn();
   }
 
-  function agmApplySort() {
-    var btn = document.getElementById('agm-sort-btn');
+  function agmApplyActionFilter() {
     var list = document.getElementById('agm-actions-list');
     if (!list) return;
     var cards = Array.from(list.querySelectorAll('.agm-action-card'));
-    if (agmActionsSortByStatus) {
-      // Outstanding first, then complete — preserve order within each group
-      cards.sort(function(a, b) {
-        var aOut = a.querySelector('.agm-badge-outstanding') ? 0 : 1;
-        var bOut = b.querySelector('.agm-badge-outstanding') ? 0 : 1;
-        return aOut - bOut;
-      });
-      if (btn) btn.textContent = '\u21C5 Sort by number';
-    } else {
-      // Restore Action 1-100 order
-      cards.sort(function(a, b) {
-        var aNum = parseInt(((a.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
-        var bNum = parseInt(((b.querySelector('.agm-action-card-num') || {}).textContent || '0').replace(/\D/g,''));
-        return aNum - bNum;
-      });
-      if (btn) btn.textContent = '\u21C5 Sort by status';
-    }
-    cards.forEach(function(card) { list.appendChild(card); });
+    cards.forEach(function(card) {
+      var isComplete = !!card.querySelector('.agm-badge-complete');
+      var show = agmActionFilter === 'all'
+              || (agmActionFilter === 'outstanding' && !isComplete)
+              || (agmActionFilter === 'complete' && isComplete);
+      card.style.display = show ? '' : 'none';
+    });
+    // Update active button styling
+    ['all','outstanding','complete'].forEach(function(key) {
+      var b = document.getElementById('agm-filter-' + key);
+      if (!b) return;
+      if (key === agmActionFilter) {
+        b.style.background = 'rgba(74,94,58,0.85)';
+        b.style.color = '#fff';
+        b.style.borderColor = 'rgba(255,255,255,0.3)';
+      } else {
+        b.style.background = '#fff';
+        b.style.color = '#4a5e3a';
+        b.style.borderColor = '#cdc4b4';
+      }
+    });
   }
 
-  function agmToggleActionSort() {
-    agmActionsSortByStatus = !agmActionsSortByStatus;
-    agmApplySort();
+  function agmSetActionFilter(filter) {
+    agmActionFilter = filter;
+    agmApplyActionFilter();
   }
 
   function agmToggle(key) {
@@ -2604,9 +2615,13 @@
     h += '</div>';
     h += '<div class="bva-items' + (actionsOpen ? ' open' : '') + '" id="agm-grp-actions">';
     if (hasActions) {
-      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:6px;padding:0 8px;">';
+      h += '<div class="agm-actions-controls">';
       h += '<span class="agm-actions-hint" style="margin-bottom:0;">Click any action to view the full agenda item detail</span>';
-      h += '<button onclick="agmToggleActionSort()" id="agm-sort-btn" style="padding:0.35rem 0.8rem;width:130px;background:rgba(74,94,58,0.85);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">&#8645; Sort by status</button>';
+      h += '<div class="agm-filter-group">';
+      h += '<button onclick="agmSetActionFilter(\'all\')" id="agm-filter-all" class="agm-filter-btn">All</button>';
+      h += '<button onclick="agmSetActionFilter(\'outstanding\')" id="agm-filter-outstanding" class="agm-filter-btn">Outstanding</button>';
+      h += '<button onclick="agmSetActionFilter(\'complete\')" id="agm-filter-complete" class="agm-filter-btn">Complete</button>';
+      h += '</div>';
       h += '</div>';
       h += '<div id="agm-actions-list">';
       h += dirActions;
@@ -2715,6 +2730,8 @@
     h += '</div>';
 
     document.getElementById('agm-overlay-content').innerHTML = h;
+    // Re-apply current action filter so active button styling and visibility are correct after render
+    agmApplyActionFilter();
   }
 
 // ── Farmhouse Smoke Check Card ────────────────────────────────────────────────
