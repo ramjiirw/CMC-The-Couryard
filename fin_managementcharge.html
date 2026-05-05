@@ -2976,6 +2976,29 @@
     }
     html += '</div>';
 
+    // Directors' Note dropdown — only render if a note exists for this year.
+    // Sourced from bvaData.notes[year], same as BVA. Year commentary is shared
+    // across both reports since the same actuals back both views.
+    var ietDirectorsNote = '';
+    if (bvaData && bvaData.notes && bvaData.notes[ietReportYear]) {
+      ietDirectorsNote = String(bvaData.notes[ietReportYear]).trim();
+    }
+    if (ietDirectorsNote) {
+      var ietDnOpen = !!ietOpenGroups['__directorsNote'];
+      html += '<div class="iet-section-divider"></div>';
+      html += '<div class="iet-group-row' + (ietDnOpen ? ' open' : '') + '" onclick="toggleIETDirectorsNote()">';
+      html += '<div class="iet-group-chevron' + (ietDnOpen ? ' open' : '') + '" id="iet-dn-chev"></div>';
+      html += '<div class="iet-group-name">Directors\' Note</div>';
+      html += '<div class="iet-group-total"></div>';
+      html += '<div></div>';
+      html += '</div>';
+      html += '<div class="iet-items' + (ietDnOpen ? ' open' : '') + '" id="iet-dn-items">';
+      html += '<div class="iet-item-row" style="white-space:normal;display:block;padding:0.85rem 1.5rem 1rem 1.5rem;">';
+      html += '<div style="font-size:0.85rem;color:var(--mid);line-height:1.6;white-space:pre-wrap;">' + ietDirectorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+
     document.getElementById('iet-inner').innerHTML = html;
   }
 
@@ -3005,6 +3028,30 @@
     if (items) items.classList.toggle('open', ietOpenGroups[key]);
     if (chev)  chev.classList.toggle('open',  ietOpenGroups[key]);
     if (row)   row.classList.toggle('open',   ietOpenGroups[key]);
+  }
+
+  // Directors' Note toggle for the I&E screen view. Lives on the same
+  // ietOpenGroups state as the income/expense groups, but is rendered only
+  // once at the bottom of the report so it has its own DOM ids.
+  function toggleIETDirectorsNote() {
+    ietOpenGroups['__directorsNote'] = !ietOpenGroups['__directorsNote'];
+    var items = document.getElementById('iet-dn-items');
+    var chev  = document.getElementById('iet-dn-chev');
+    var row   = chev ? chev.closest('.iet-group-row') : null;
+    var isOpen = ietOpenGroups['__directorsNote'];
+    if (items) items.classList.toggle('open', isOpen);
+    if (chev)  chev.classList.toggle('open',  isOpen);
+    if (row)   row.classList.toggle('open',   isOpen);
+    // Scroll to the bottom of the overlay when opening, so the expanded note
+    // is visible without manual scrolling.
+    if (isOpen) {
+      var overlay = document.getElementById('iet-report-overlay');
+      if (overlay) {
+        setTimeout(function() {
+          overlay.scrollTo({ top: overlay.scrollHeight, behavior: 'smooth' });
+        }, 50);
+      }
+    }
   }
 
   function toggleIETDrill(key) {
@@ -3082,7 +3129,7 @@
         }
       });
 
-      var DATA = { year: ietReportYear, generated: generated, netColor: nc, netLabel: nl, netSign: ns, totalInc: ti, totalExp: te, net: n, transferAmt: transferAmt, incTxns: incT, expTxns: expT, incGroups: INCOME_GROUPS, expGroups: EXPENSE_GROUPS, reserveOut: rptReserveOut, reserveIn: rptReserveIn, reserveByCategory: rptReserveByCategory };
+      var DATA = { year: ietReportYear, generated: generated, netColor: nc, netLabel: nl, netSign: ns, totalInc: ti, totalExp: te, net: n, transferAmt: transferAmt, incTxns: incT, expTxns: expT, incGroups: INCOME_GROUPS, expGroups: EXPENSE_GROUPS, reserveOut: rptReserveOut, reserveIn: rptReserveIn, reserveByCategory: rptReserveByCategory, directorsNote: (bvaData && bvaData.notes && bvaData.notes[ietReportYear]) ? String(bvaData.notes[ietReportYear]).trim() : '' };
       var content = document.getElementById('iet-report-overlay-content');
       rptOG = {}; rptOD = {};
       if (content) content.innerHTML = buildIETReportContent(DATA);
@@ -3421,6 +3468,17 @@
       h += '<p style="font-size:14px;color:#6b5f52;font-style:italic;margin:0.5rem 0 0 0;line-height:1.5;">Reserve movements are transfers between CMC&#39;s own accounts and do not affect operating performance.</p>';
     }
     h += '</div>';
+
+    // Directors' Note — always shown in full on the print/report view (no toggle).
+    // Lives at the very bottom so the operating figures and reserve movements
+    // come first, with editorial commentary closing the report.
+    if (DATA.directorsNote) {
+      h += '<div style="height:20px;"></div>';
+      h += '<div style="border:1px solid #d0c8b8;border-radius:6px;background:#fbf8f2;padding:1rem 1.25rem;">';
+      h += '<div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;margin-bottom:0.5rem;">Directors&#39; Note</div>';
+      h += '<div style="font-size:14px;color:#3d3429;line-height:1.6;white-space:pre-wrap;">' + DATA.directorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
+      h += '</div>';
+    }
 
     return h;
   }
