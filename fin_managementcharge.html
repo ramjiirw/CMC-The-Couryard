@@ -3476,20 +3476,17 @@
     h += '</div>';
 
     // Directors' Note — collapsible dropdown matching the BVA pattern.
-    // Click the header to expand/collapse. State held in rptDnOpen, re-renders on toggle.
+    // Uses BVA's exact CSS classes so styling is identical to the BVA Directors' Note.
     if (DATA.directorsNote) {
       h += '<div style="height:16px;"></div>';
-      // Header — clickable, no box, matching BVA's plain row style
-      h += '<div onclick="toggleRptDirectorsNote()" style="cursor:pointer;padding:0.6rem 0.25rem;display:flex;align-items:center;gap:0.5rem;user-select:none;">';
-      h += '<span style="display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #6b5f52;transition:transform 0.2s;transform-origin:30% 50%;' + (rptDnOpen ? 'transform:rotate(90deg);' : '') + '"></span>';
-      h += '<span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;">Directors&#39; Note</span>';
+      h += '<div class="bva-group-row" onclick="toggleRptDirectorsNote()">';
+      h += '<span class="bva-group-name"><span class="bva-chev' + (rptDnOpen ? ' open' : '') + '"></span>Directors\' Note</span>';
       h += '</div>';
-      // Content — only rendered when open
-      if (rptDnOpen) {
-        h += '<div style="padding:0.5rem 1.5rem 0.75rem 1.5rem;">';
-        h += '<div style="font-size:14px;color:#3d3429;line-height:1.6;white-space:pre-wrap;">' + DATA.directorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
-        h += '</div>';
-      }
+      h += '<div class="bva-items' + (rptDnOpen ? ' open' : '') + '">';
+      h += '<div class="bva-item-row" style="white-space:normal;">';
+      h += '<span class="bva-item-name" style="line-height:1.6;">' + DATA.directorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+      h += '</div>';
+      h += '</div>';
     }
 
     return h;
