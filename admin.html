@@ -800,6 +800,8 @@
       <div class="sidebar-link" data-panel="agmminutes" id="nav-agmminutes">&#8645; Minutes (Preview)</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
+      <div class="sidebar-label">Finance</div>
+      <div class="sidebar-link" data-panel="categoryref" id="nav-categoryref">&#128181; Category Reference</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
@@ -1849,6 +1851,70 @@ Checked By: [address]</pre>
       </div>
 
       <!-- Finance Reports Panel -->
+      <div class="admin-panel" id="panel-categoryref">
+        <div class="panel-title">&#128181; Category Reference</div>
+        <div class="panel-desc">How transaction categories in <code>cmcfinances</code> and <code>cmcbudget</code> are routed to the BVA and I&amp;E reports based on their prefix.</div>
+
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:1rem;">
+          <thead>
+            <tr style="background:rgba(122,92,62,0.06);">
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Prefix</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Meaning</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Where on BVA</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Where on I&amp;E</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);white-space:nowrap;">Affects Retained Surplus</th>
+              <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.5rem 0.6rem;"><span class="eref-chip" style="background:rgba(61,107,74,0.12);color:#3a6b4a;border:1px solid rgba(61,107,74,0.25);">I-</span></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--dark);">Income</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Income section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Income section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Yes (positive)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><code>I-Service Charge</code></td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.5rem 0.6rem;"><span class="eref-chip" style="background:rgba(160,100,50,0.12);color:#8a5520;border:1px solid rgba(160,100,50,0.25);">E-</span></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--dark);">Expenditure</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Expenditure section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Expenditure section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Yes (negative)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><code>E-Gardening</code></td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.5rem 0.6rem;"><span class="eref-chip" style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);">T-</span></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--dark);">Planned transfer to reserves &mdash; <em>actuals</em></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Planned Transfer line (actual column)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Transfer to Sinking Fund line</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Yes (reduces retained)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><code>T-Transfer to Sinking Fund</code></td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.5rem 0.6rem;"><span class="eref-chip" style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);">B-</span></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--dark);">Planned transfer to reserves &mdash; <em>budget placeholder</em></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Planned Transfer line (budget column only)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Not shown (budget-only)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Budget side only</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><code>B-Planned Transfer to Sinking Fund</code></td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
+              <td style="padding:0.5rem 0.6rem;"><span class="eref-chip" style="background:rgba(74,90,110,0.12);color:#4a5a6e;border:1px solid rgba(74,90,110,0.25);">R-</span></td>
+              <td style="padding:0.5rem 0.6rem;color:var(--dark);">Reserve movement (non-operating)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Reserve Movements memo section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);">Reserve Movements memo section</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><strong>No</strong> (memo only)</td>
+              <td style="padding:0.5rem 0.6rem;color:var(--mid);"><code>R-Transfer to Sinking Fund</code><br><code>R-Transfer from Sinking Fund</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-size:0.75rem;color:var(--mid);font-style:italic;line-height:1.5;padding:0.5rem 0.25rem;">
+          Adding new categories under an existing prefix (e.g. <code>E-New Category</code>) works straight away &mdash; no code change needed. Adding a brand new prefix requires a developer to update the portal logic.
+        </div>
+      </div>
+
       <!-- SIP Q&A Mobile Modal -->
       <div class="nb-mobile-modal" id="qaMobileModal">
         <div class="nb-mobile-box">
