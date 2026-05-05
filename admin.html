@@ -1586,9 +1586,15 @@
             </tr>
             <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Reminder</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic reminder sent 7 days and 2 days before the AGM date<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer. Can be suppressed via the AGM Agenda panel.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic reminder sent 30 days, 7 days and 2 days before the AGM date<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer. Can be suppressed via the AGM Agenda panel.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">AGM Date Reminder</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Automatic safety-net reminder &mdash; sent 65 days before the conventional 2nd Sunday of December AGM, only if the AGM date in <code>AGMAgenda!B4</code> is empty or in the past<br><span style="font-size:0.72rem;color:var(--mid);">Single ping per year &mdash; never nags. If the date is already set, no email is sent.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
             <tr style="border-top:1px solid rgba(184,173,158,0.15);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Reminder</span></td>
@@ -1655,7 +1661,30 @@ You can view the full agenda on the resident portal.</pre>
 
           <div class="eref-entry">
             <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-              <span class="eref-chip" style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);">AGM Reminder — 7 Day</span>
+              <span class="eref-chip" style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);">AGM Reminder &mdash; 30 Day</span>
+              <span class="eref-label">Sent automatically 30 days before AGM date</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Resident,
+
+This is a reminder that the CMC Annual General Meeting is taking place in 30 days.
+
+Date: [AGM date]
+Time: [AGM time]
+Venue: [AGM venue]
+Agenda items: [N director-led, M resident-raised]  &larr; only shown parts with non-zero counts
+
+The agenda is now open. You can view all current items on the resident portal, and if you would like to add an agenda item of your own, please do so &mdash; submissions close 2 days before the meeting.
+
+Kind regards,
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(180,100,20,0.12);color:#8a4a10;border:1px solid rgba(180,100,20,0.25);">AGM Reminder &mdash; 7 Day</span>
               <span class="eref-label">Sent automatically 7 days before AGM date</span>
               <span class="eref-arrow">&#9654;</span>
             </div>
@@ -1693,6 +1722,32 @@ Venue: [AGM venue]
 Agenda items: [N] resident-raised items on the agenda  ← only shown if items exist
 
 You can view the full agenda on the resident portal. Agenda submissions are now closed.
+
+Kind regards,
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);">AGM Date Reminder</span>
+              <span class="eref-label">Sent to directors 65 days before the conventional 2nd Sunday of December AGM, only if AGM date is unset</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Director,
+
+The CMC Annual General Meeting is approximately 2 months away (2nd Sunday of December &mdash; [Sunday X December YYYY]).
+
+The AGM date in the system is not currently set, which means residents cannot yet view AGM details or submit agenda items.
+
+When you set the date in AGMAgenda!B4:
+
+- The AGM card on the resident portal becomes active 60 days before the meeting
+- Agenda submissions automatically open at the same time
+- Residents receive an automated reminder 30 days before the meeting
+
+Please log in and set the AGM date when convenient.
 
 Kind regards,
 CMC The Courtyard</pre>
@@ -5334,6 +5389,7 @@ var BH_TYPE_CHIP_MAP = {
   'Maintenance Resolved':   { bg:'rgba(61,107,74,0.12)',   color:'#3a6b4a',      border:'rgba(61,107,74,0.25)' },
   'AGM Agenda':             { bg:'rgba(120,60,140,0.12)',  color:'#6a2a7a',      border:'rgba(120,60,140,0.25)' },
   'AGM Reminder':           { bg:'rgba(180,100,20,0.12)',  color:'#8a4a10',      border:'rgba(180,100,20,0.25)' },
+  'Director AGM Date Reminder': { bg:'rgba(90,26,26,0.12)', color:'#5a1a1a',      border:'rgba(90,26,26,0.25)' },
   'Farmhouse Rent Invoice - January': { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
   'Farmhouse Rent Invoice - July':    { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
   'Farmhouse Smoke Check \u2014 Reminder':  { bg:'rgba(90,26,26,0.12)',  color:'#5a1a1a', border:'rgba(90,26,26,0.25)' },
