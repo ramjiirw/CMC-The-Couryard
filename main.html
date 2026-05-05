@@ -941,9 +941,12 @@
         <span id="residentItemsPill" style="display:none;background:#d6e0c0;color:#3d5a0a;font-size:0.72rem;font-weight:700;border-radius:10px;padding:0.2rem 0.5rem 0.2rem 0.6rem;letter-spacing:0.02em;white-space:nowrap;align-items:center;gap:0.4rem;"></span>
       </div>
       <div class="agm-details" id="agmDetails">
-        <div class="agm-detail-row"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">AGM Time</span><span class="agm-detail-val" id="agmTime"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row"><span class="agm-detail-label">Venue</span><span class="agm-detail-val" id="agmVenue"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="agmRowDate"><span class="agm-detail-label">AGM Date</span><span class="agm-detail-val" id="agmDate"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="agmRowTime"><span class="agm-detail-label">AGM Time</span><span class="agm-detail-val" id="agmTime"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="agmRowVenue"><span class="agm-detail-label">Venue</span><span class="agm-detail-val" id="agmVenue"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" id="agmDormantRow1" style="display:none;"><span class="agm-detail-label">Next AGM</span><span class="agm-detail-val">Second Sunday of December</span></div>
+        <div class="agm-detail-row" id="agmDormantRow2" style="display:none;"><span class="agm-detail-label">Details</span><span class="agm-detail-val">Appear 60 days before</span></div>
+        <div class="agm-detail-row" id="agmDormantRow3" style="display:none;"><span class="agm-detail-label">Resources</span><span class="agm-detail-val">Minutes archive &middot; documents</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <p class="agm-cta" style="margin:0">View agenda, archived minutes<br>&amp; submit agenda items <span style="white-space:nowrap;">→</span></p>
@@ -1209,12 +1212,51 @@
       const avail = bundle.availability;
       if (!data || data.status !== 'ok') throw new Error();
       const rows = data.agenda;
+
+      // Helper to swap the AGM card body between live mode (Date/Time/Venue)
+      // and dormant mode (the three "Next AGM / Details / Resources" rows).
+      // Triggered when AGM is more than 60 days away, or in the past, or no
+      // valid date is present in the system.
+      function showAGMDormantRows() {
+        ['agmRowDate','agmRowTime','agmRowVenue'].forEach(function(id) {
+          var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
+        ['agmDormantRow1','agmDormantRow2','agmDormantRow3'].forEach(function(id) {
+          var el = document.getElementById(id); if (el) el.style.display = '';
+        });
+      }
+      function showAGMLiveRows() {
+        ['agmRowDate','agmRowTime','agmRowVenue'].forEach(function(id) {
+          var el = document.getElementById(id); if (el) el.style.display = '';
+        });
+        ['agmDormantRow1','agmDormantRow2','agmDormantRow3'].forEach(function(id) {
+          var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
+      }
+
       rows.forEach(row => {
         const key = (row[0]||'').toString().trim();
         const val = (row[1]||'').toString().trim();
         if (key === 'Date') {
           const d = new Date(val);
           const isValid = !isNaN(d.getTime()) && val.includes('-');
+          // Card visibility: live mode if AGM is within 60 days AND not past;
+          // dormant mode otherwise.
+          if (isValid) {
+            const todayCheck = new Date();
+            todayCheck.setHours(0,0,0,0);
+            const dCheck = new Date(d);
+            dCheck.setHours(0,0,0,0);
+            const diffCheck = Math.round((dCheck - todayCheck) / (1000*60*60*24));
+            if (diffCheck > 60 || diffCheck < 0) {
+              showAGMDormantRows();
+            } else {
+              showAGMLiveRows();
+            }
+          } else {
+            // No valid date in B4 → dormant mode
+            showAGMDormantRows();
+          }
           document.getElementById('agmDate').textContent = isValid
             ? d.toLocaleDateString('en-GB', {weekday:'long'}) + ' ' + d.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})
             : val;
