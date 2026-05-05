@@ -2245,14 +2245,14 @@
     if (item.item) {
       var titleHtml = '';
       if (section === 'aob') {
-        // AOB: strip AOB prefix from title, show raised by to the right
+        // AOB: strip AOB prefix from title, show raised by on the LEFT, bullet, then title
         var aobCleanTitle = (item.item || '').replace(/^AOB\d+\s*/i, '');
-        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(aobCleanTitle) + raisedBy + '</div>';
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;">' + esc(item.raisedBy) + '</span><span style="font-size:16px;color:#9e8e7e;font-weight:400;margin:0 8px;">&bull;</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + raisedBy + esc(aobCleanTitle) + '</div>';
       } else if (section === 'res') {
-        // Resident: show title + raised by to the right
-        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;margin-left:12px;">' + esc(item.raisedBy) + '</span>' : '';
-        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(item.item) + raisedBy + '</div>';
+        // Resident: show raised by on the LEFT, bullet, then title
+        var raisedBy = item.raisedBy ? '<span style="font-size:16px;color:#9e8e7e;font-weight:400;">' + esc(item.raisedBy) + '</span><span style="font-size:16px;color:#9e8e7e;font-weight:400;margin:0 8px;">&bull;</span>' : '';
+        titleHtml = '<div class="agm-agenda-title" style="display:flex;align-items:baseline;gap:0;">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + raisedBy + esc(item.item) + '</div>';
       } else {
         // Director or modal: title only
         titleHtml = '<div class="agm-agenda-title">' + (isMobile && itemNum ? '<span style="font-size:13px;font-weight:500;color:#b8ad9e;margin-right:8px;flex-shrink:0;">' + itemNum + '</span>' : '') + esc(item.item) + '</div>';
