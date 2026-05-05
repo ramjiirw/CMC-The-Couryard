@@ -1405,6 +1405,12 @@
     } catch(err) {
       bvaData = { status: 'ok', budget: [], years: [] };
     }
+    // bvaData arrives AFTER the initial renderIET() at line 1367, so the
+    // Directors' Note (which reads from bvaData.notes) is silently absent on
+    // first load. Re-render now that bvaData is available.
+    if (typeof renderIET === 'function' && finSummaryData) {
+      try { renderIET(); } catch(e) {}
+    }
     document.getElementById('toggle-bvareport').classList.remove('btn-loading');
     // Show/hide section and set button state based on enabled years
     var hasEnabledYears = bvaData && bvaData.years && bvaData.years.length > 0;
@@ -3472,20 +3478,18 @@
     // Directors' Note — collapsible dropdown matching the BVA pattern.
     // Click the header to expand/collapse. State held in rptDnOpen, re-renders on toggle.
     if (DATA.directorsNote) {
-      h += '<div style="height:20px;"></div>';
-      h += '<div style="border:1px solid #d0c8b8;border-radius:6px;background:#fbf8f2;overflow:hidden;">';
-      // Header — clickable
-      h += '<div onclick="toggleRptDirectorsNote()" style="cursor:pointer;padding:0.85rem 1.25rem;display:flex;align-items:center;gap:0.5rem;user-select:none;' + (rptDnOpen ? 'border-bottom:1px solid #d0c8b8;' : '') + '">';
+      h += '<div style="height:16px;"></div>';
+      // Header — clickable, no box, matching BVA's plain row style
+      h += '<div onclick="toggleRptDirectorsNote()" style="cursor:pointer;padding:0.6rem 0.25rem;display:flex;align-items:center;gap:0.5rem;user-select:none;">';
       h += '<span style="display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid #6b5f52;transition:transform 0.2s;transform-origin:30% 50%;' + (rptDnOpen ? 'transform:rotate(90deg);' : '') + '"></span>';
       h += '<span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6b5f52;">Directors&#39; Note</span>';
       h += '</div>';
       // Content — only rendered when open
       if (rptDnOpen) {
-        h += '<div style="padding:1rem 1.25rem;">';
+        h += '<div style="padding:0.5rem 1.5rem 0.75rem 1.5rem;">';
         h += '<div style="font-size:14px;color:#3d3429;line-height:1.6;white-space:pre-wrap;">' + DATA.directorsNote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>';
         h += '</div>';
       }
-      h += '</div>';
     }
 
     return h;
