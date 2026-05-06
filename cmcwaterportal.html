@@ -406,26 +406,32 @@
 
   /* Print: landscape, hide chrome, show only the report overlay */
   @media print {
-    @page { size: landscape; }
-    /* Hide everything by making it invisible, but keep it in the layout flow.
-       Then make only the overlay and its descendants visible. This avoids the
-       Chrome blank-preview bug caused by display:none + position:fixed→absolute. */
-    body * { visibility: hidden !important; }
-    #water-report-overlay, #water-report-overlay * { visibility: visible !important; }
+    @page { size: A4 landscape; margin: 10mm; }
+    html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+    /* Collapse all top-level page chrome (header, main, FAB, modals, etc.) so it
+       takes no space above the report. The overlay is a direct child of body and
+       is excluded from this rule via :not(). */
+    body > *:not(#water-report-overlay) { display: none !important; }
     #water-report-overlay {
+      display: block !important;
       position: static !important;
       overflow: visible !important;
       height: auto !important;
       width: 100% !important;
       background: white !important;
       z-index: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
+    /* Hide the overlay's own header bar (Save as PDF / Close buttons) */
     #water-report-overlay > div:first-child { display: none !important; }
     #water-report-overlay-content {
       display: block !important;
       max-width: none !important;
       height: auto !important;
       overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
   }
 
