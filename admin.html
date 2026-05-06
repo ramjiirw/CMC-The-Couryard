@@ -8360,40 +8360,43 @@ function weBuildPreviewHtml(year, quarter, intro, closing, p) {
 
   // Header rows
   const headerCells = ''
-    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Address</th>'
-    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Resident</th>'
-    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Water Meter</th>'
-    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
-      + '<div style="font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + (quarter === 1 ? (year - 1) + ' Q4' : year + ' Q' + (quarter - 1)) + '</div>'
-      + '<div style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Previous Quarter</div>'
+    + '<th style="text-align:left;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Address</th>'
+    + '<th style="text-align:left;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Resident</th>'
+    + '<th style="text-align:left;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Water Meter</th>'
+    + '<th style="text-align:right;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;">' + (quarter === 1 ? (year - 1) + ' Q4' : year + ' Q' + (quarter - 1)) + '</span>'
+      + '<br>'
+      + '<span style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Previous Quarter</span>'
       + '</th>'
-    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
-      + '<div style="font-size:14px;font-weight:700;color:#1e1a16;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + year + ' Q' + quarter + '</div>'
-      + '<div style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Current Quarter</div>'
+    + '<th style="text-align:right;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="font-size:14px;font-weight:700;color:#1e1a16;text-transform:none;letter-spacing:0;">' + year + ' Q' + quarter + '</span>'
+      + '<br>'
+      + '<span style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Current Quarter</span>'
       + '</th>'
-    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
-      + '<div style="font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + year + ' Q' + quarter + '</div>'
-      + '<div style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Water Volume</div>'
+    + '<th style="text-align:right;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 14px 8px 14px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;">' + year + ' Q' + quarter + '</span>'
+      + '<br>'
+      + '<span style="font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Water Volume</span>'
       + '</th>';
 
   const rowsHtml = (p.rows || []).map(function(r, i) {
     const sb = i % 2 === 1 ? 'background:#faf7f2;' : '';
-    const prev = (r.previous !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.previous) + '</td>' : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
-    const curr = (r.current  !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;font-weight:700;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.current) + '</td>' : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
-    const vol  = (r.volume   !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;color:#6b5f52;border-bottom:1px solid #ede8e0;">' + weFmtVolume(r.volume) + '</td>'  : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    const prev = (r.previous !== null) ? '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.previous) + '</td>' : '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    const curr = (r.current  !== null) ? '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;font-weight:700;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.current) + '</td>' : '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    const vol  = (r.volume   !== null) ? '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;color:#6b5f52;border-bottom:1px solid #ede8e0;">' + weFmtVolume(r.volume) + '</td>'  : '<td style="' + sb + 'padding:8px;line-height:1.2;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
     return '<tr>'
-      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;white-space:nowrap;">' + weEscHtml(r.property) + '</td>'
-      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.resident) + '</td>'
-      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.meter) + '</td>'
+      + '<td style="' + sb + 'padding:8px;line-height:1.2;color:#1e1a16;border-bottom:1px solid #ede8e0;white-space:nowrap;">' + weEscHtml(r.property) + '</td>'
+      + '<td style="' + sb + 'padding:8px;line-height:1.2;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.resident) + '</td>'
+      + '<td style="' + sb + 'padding:8px;line-height:1.2;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.meter) + '</td>'
       + prev + curr + vol
       + '</tr>';
   }).join('');
 
   const totalsHtml = '<tr>'
-    + '<td colspan="3" style="padding:12px 8px;font-size:14px;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">Total CMC Water Meter Reading and Total Water Volume</td>'
-    + '<td style="padding:12px 8px;font-size:15px;text-align:right;font-weight:700;color:#b8ad9e;border-top:2.5px solid #1e1a16;">' + (p.totals.previous > 0 ? weFmtReading(p.totals.previous) : '&mdash;') + '</td>'
-    + '<td style="padding:12px 8px;font-size:15px;text-align:right;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">' + weFmtReading(p.totals.current) + '</td>'
-    + '<td style="padding:12px 8px;font-size:15px;text-align:right;font-weight:700;color:#6b5f52;border-top:2.5px solid #1e1a16;">' + (p.totals.volume > 0 ? weFmtVolume(p.totals.volume) : '&mdash;') + '</td>'
+    + '<td colspan="3" style="padding:12px 8px;line-height:1.2;font-size:14px;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">Total CMC Water Meter Reading and Total Water Volume</td>'
+    + '<td style="padding:12px 8px;line-height:1.2;font-size:15px;text-align:right;font-weight:700;color:#b8ad9e;border-top:2.5px solid #1e1a16;">' + (p.totals.previous > 0 ? weFmtReading(p.totals.previous) : '&mdash;') + '</td>'
+    + '<td style="padding:12px 8px;line-height:1.2;font-size:15px;text-align:right;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">' + weFmtReading(p.totals.current) + '</td>'
+    + '<td style="padding:12px 8px;line-height:1.2;font-size:15px;text-align:right;font-weight:700;color:#6b5f52;border-top:2.5px solid #1e1a16;">' + (p.totals.volume > 0 ? weFmtVolume(p.totals.volume) : '&mdash;') + '</td>'
     + '</tr>';
 
   return ''
