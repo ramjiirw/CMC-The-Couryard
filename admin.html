@@ -8391,9 +8391,9 @@ function weBuildPreviewHtml(year, quarter, intro, closing, p) {
 
   const totalsHtml = '<tr>'
     + '<td colspan="3" style="padding:12px 8px;font-size:14px;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">Total CMC Water Meter Reading and Total Water Volume</td>'
-    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#b8ad9e;border-top:2.5px solid #1e1a16;">' + (p.totals.previous > 0 ? weFmtReading(p.totals.previous) : '&mdash;') + '</td>'
-    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">' + weFmtReading(p.totals.current) + '</td>'
-    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#6b5f52;border-top:2.5px solid #1e1a16;">' + (p.totals.volume > 0 ? weFmtVolume(p.totals.volume) : '&mdash;') + '</td>'
+    + '<td style="padding:12px 8px;font-size:18px;text-align:right;font-weight:700;color:#b8ad9e;border-top:2.5px solid #1e1a16;">' + (p.totals.previous > 0 ? weFmtReading(p.totals.previous) : '&mdash;') + '</td>'
+    + '<td style="padding:12px 8px;font-size:18px;text-align:right;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">' + weFmtReading(p.totals.current) + '</td>'
+    + '<td style="padding:12px 8px;font-size:18px;text-align:right;font-weight:700;color:#6b5f52;border-top:2.5px solid #1e1a16;">' + (p.totals.volume > 0 ? weFmtVolume(p.totals.volume) : '&mdash;') + '</td>'
     + '</tr>';
 
   return ''
