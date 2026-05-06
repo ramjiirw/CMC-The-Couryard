@@ -800,6 +800,8 @@
       <div class="sidebar-link" data-panel="agmminutes" id="nav-agmminutes">&#8645; Minutes (Preview)</div>
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
+      <div class="sidebar-label">Water</div>
+      <div class="sidebar-link" data-panel="wateremail" id="nav-wateremail">&#128167; Water Meter Readings</div>
       <div class="sidebar-label">Finance</div>
       <div class="sidebar-link" data-panel="categoryref" id="nav-categoryref">&#128181; Category Reference</div>
       <div class="sidebar-label">Settings</div>
@@ -1905,6 +1907,115 @@ Checked By: [address]</pre>
         </div>
       </div>
 
+      <!-- Water Meter Readings Email Panel -->
+      <div class="admin-panel" id="panel-wateremail">
+        <div class="panel-title">&#128167; Water Meter Readings &mdash; Email to Liscombe Park</div>
+        <div class="panel-desc">Send the quarterly water meter readings to the water company. The intro and closing text are editable below before sending. The preview updates live.</div>
+        <div id="weMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
+
+        <!-- Quarter selector -->
+        <div style="margin-bottom:1rem;background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.75rem 0.9rem;">
+          <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
+            <label style="font-size:0.78rem;font-weight:600;color:var(--mid);">Quarter:</label>
+            <select id="weYearSel" onchange="weOnQuarterChange()" style="padding:0.4rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);cursor:pointer;">
+              <option value="">— Year —</option>
+            </select>
+            <div id="weQtrBtns" style="display:inline-flex;gap:4px;"></div>
+            <span id="weReadingsCount" style="font-size:0.75rem;color:var(--mid);font-style:italic;margin-left:auto;"></span>
+          </div>
+          <div id="weWarningBanner" style="display:none;margin-top:0.6rem;padding:0.5rem 0.75rem;background:rgba(196,149,106,0.15);border:1px solid rgba(196,149,106,0.35);border-radius:5px;font-size:0.78rem;color:var(--accent);"></div>
+        </div>
+
+        <!-- Recipients (editable) -->
+        <div style="margin-bottom:1rem;background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.75rem 0.9rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;">Recipients</div>
+            <div style="font-size:0.7rem;color:var(--stone);font-style:italic;">Editable for this send only — sheets are not modified.</div>
+          </div>
+
+          <!-- TO -->
+          <div style="margin-bottom:0.55rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">TO <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— water company (from cmcwater R1)</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('to')" title="Reload from sheet">&#8635; Reset to sheet</button>
+            </div>
+            <input type="text" id="weToField" placeholder="email@example.com, another@example.com" oninput="weMarkTouched('to');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
+          </div>
+
+          <!-- CC -->
+          <div style="margin-bottom:0.55rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— visible to the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Clear CC">&#10005; Clear</button>
+            </div>
+            <input type="text" id="weCcField" placeholder="(empty)" oninput="weMarkTouched('cc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
+          </div>
+
+          <!-- BCC -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — hidden from the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Reload directors from sheet">&#8635; Reset to sheet</button>
+            </div>
+            <input type="text" id="weBccField" placeholder="(empty)" oninput="weMarkTouched('bcc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
+          </div>
+        </div>
+
+        <!-- Subject -->
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Subject</label>
+          <input type="text" id="weSubject" oninput="weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.55rem 0.8rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;">
+        </div>
+
+        <!-- Intro (editable) -->
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Intro text <span style="font-weight:400;color:var(--stone);">(appears above the table)</span></label>
+          <textarea id="weIntro" oninput="weUpdatePreview()" rows="3" style="width:100%;box-sizing:border-box;padding:0.55rem 0.8rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
+          <div style="font-size:0.7rem;color:var(--stone);margin-top:0.2rem;font-style:italic;">Tip: <code>[reading date]</code> is replaced with the most common reading date for this quarter.</div>
+        </div>
+
+        <!-- Closing (editable) -->
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.78rem;font-weight:600;color:var(--mid);margin-bottom:0.3rem;">Closing text <span style="font-weight:400;color:var(--stone);">(appears below the table)</span></label>
+          <textarea id="weClosing" oninput="weUpdatePreview()" rows="6" style="width:100%;box-sizing:border-box;padding:0.55rem 0.8rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);outline:none;resize:vertical;"></textarea>
+        </div>
+
+        <!-- Live preview -->
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;">Email preview</div>
+          <div id="wePreviewWrap" style="background:#f4f4f4;padding:14px;border-radius:6px;max-height:600px;overflow-y:auto;border:1px solid rgba(122,92,62,0.28);">
+            <div id="wePreview" style="font-family:Arial,sans-serif;">
+              <div style="padding:2rem;text-align:center;color:var(--stone);font-style:italic;font-size:0.85rem;">Select a year and quarter to see the preview.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div id="weButtonArea" style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+          <button class="abtn abtn-muted" onclick="weClear()">&#10005; Clear</button>
+          <button class="abtn abtn-primary" id="weSendBtn" onclick="weReview()" disabled>&#128231; Review &amp; Send</button>
+        </div>
+        <div id="weSuccessArea" style="display:none;padding:0.75rem 0;">
+          <p style="margin:0;font-size:1.1rem;font-weight:700;color:var(--accent);">&#10003; <span id="weSuccessText"></span></p>
+        </div>
+
+        <!-- Review modal -->
+        <div id="weModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.6);z-index:500;align-items:center;justify-content:center;">
+          <div style="background:var(--cream);border-radius:10px;border:1px solid rgba(122,92,62,0.3);padding:1.5rem;width:90%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+            <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:0.2rem;">Review &amp; Send</div>
+            <div id="weModalSub" style="font-size:0.75rem;color:var(--mid);margin-bottom:1rem;"></div>
+            <div id="weModalRecipList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;padding:0.6rem 0.8rem;font-size:0.82rem;color:var(--dark);"></div>
+            <div style="font-size:0.72rem;font-weight:600;color:var(--mid);margin-bottom:0.25rem;">Subject</div>
+            <div id="weModalSubject" style="background:rgba(122,92,62,0.06);border:1px solid rgba(122,92,62,0.15);border-radius:6px;padding:0.5rem 0.75rem;font-size:0.85rem;color:var(--dark);margin-bottom:1rem;"></div>
+            <div style="padding:0.6rem 0.8rem;background:rgba(196,149,106,0.12);border:1px solid rgba(196,149,106,0.3);border-radius:6px;font-size:0.78rem;color:var(--accent);margin-bottom:1rem;">The email cannot be unsent once delivered. The full email content will be sent exactly as previewed below the form.</div>
+            <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+              <button class="abtn abtn-muted" onclick="weCloseModal()">Cancel</button>
+              <button class="abtn abtn-primary" id="weConfirmBtn" onclick="weSend()">&#128231; Send Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Finance Reports Panel -->
       <div class="admin-panel" id="panel-categoryref">
         <div class="panel-title">&#128181; Category Reference</div>
@@ -2243,6 +2354,7 @@ function showPanel(id) {
   if (id === 'agmsubmissions') loadAgmSubmissions();
   if (id === 'agmminutes') adminLoadAGMMinutes();
   if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
+  if (id === 'wateremail') weInit();
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -7921,6 +8033,507 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     document.getElementById('agm-admin-overlay-content').innerHTML = h;
   }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// WATER METER READINGS — EMAIL PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+var weState = {
+  loaded:           false,
+  availableYears:   [],
+  quartersByYear:   {},
+  selectedYear:     null,
+  selectedQuarter:  null,
+  preview:          null,    // { rows, totals, majorityDate, readingsCount, totalProperties, recipients }
+  // Canonical recipient lists from the sheets — never mutated, used by reset buttons
+  // and by the initial population of the editable fields.
+  sheetDefaults: {
+    to:  [],   // cmcwater R1
+    bcc: []    // cmcsettings col A (directors) — default into BCC
+  },
+  defaultIntro:     'Please find below the quarterly water meter readings for the properties at CMC The Courtyard, recorded on [reading date].',
+  defaultClosing:   'When returning the bill, please indicate the total standing charge, how many users on site this is divided between, and the price per cubic metre for the bill that relates to these readings. The total administration charge is \u00a32.50 per quarter.\n\nIf you have any queries regarding the readings, please don\'t hesitate to get in touch.'
+};
+
+async function weInit() {
+  // Reset state on every panel open so stale data doesn't leak across visits
+  weState.loaded = false;
+  weState.preview = null;
+  document.getElementById('weMsg').textContent = '';
+
+  // Default the editable text fields if they're empty
+  if (!document.getElementById('weIntro').value)   document.getElementById('weIntro').value   = weState.defaultIntro;
+  if (!document.getElementById('weClosing').value) document.getElementById('weClosing').value = weState.defaultClosing;
+
+  // Clear recipient field "touched" flags so this fresh visit re-loads sheet
+  // defaults into the fields once the preview returns. (User can still edit
+  // afterwards; the touched flag is per-visit only.)
+  ['weToField', 'weCcField', 'weBccField'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) { delete el.dataset.touched; el.value = ''; }
+  });
+
+  // Reset success/button areas
+  document.getElementById('weButtonArea').style.display  = 'flex';
+  document.getElementById('weSuccessArea').style.display = 'none';
+
+  try {
+    const url = SCRIPT_URL + '?action=readWaterReport';
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Failed to load water readings');
+
+    weState.availableYears = (data.availableYears || []).slice();
+    weState.quartersByYear = data.availableQuartersByYear || {};
+
+    // Year dropdown — newest first (already sorted in GS)
+    const yearSel = document.getElementById('weYearSel');
+    yearSel.innerHTML = '<option value="">— Year —</option>';
+    weState.availableYears.forEach(function(y) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      yearSel.appendChild(opt);
+    });
+
+    // Default to the newest available year
+    if (weState.availableYears.length) {
+      weState.selectedYear = weState.availableYears[0];
+      yearSel.value = weState.selectedYear;
+      weBuildQuarterButtons();
+      // Auto-select the latest available quarter for that year
+      const qs = weState.quartersByYear[weState.selectedYear] || [];
+      if (qs.length) {
+        weState.selectedQuarter = qs[qs.length - 1];
+        weUpdatePreview();
+      }
+    }
+
+    weState.loaded = true;
+  } catch(e) {
+    document.getElementById('weMsg').style.color = '#b05050';
+    document.getElementById('weMsg').textContent = '\u2717 Could not load water readings — ' + e.message;
+  }
+}
+
+function weOnQuarterChange() {
+  const yr = parseInt(document.getElementById('weYearSel').value, 10);
+  if (!yr) {
+    weState.selectedYear = null;
+    weState.selectedQuarter = null;
+    document.getElementById('weQtrBtns').innerHTML = '';
+    weClearPreview();
+    return;
+  }
+  weState.selectedYear = yr;
+  weBuildQuarterButtons();
+  // Auto-select latest available quarter for this year
+  const qs = weState.quartersByYear[yr] || [];
+  if (qs.length) {
+    weState.selectedQuarter = qs[qs.length - 1];
+    weUpdatePreview();
+  } else {
+    weState.selectedQuarter = null;
+    weClearPreview();
+  }
+}
+
+function weBuildQuarterButtons() {
+  const wrap = document.getElementById('weQtrBtns');
+  wrap.innerHTML = '';
+  const yr = weState.selectedYear;
+  if (!yr) return;
+  const available = weState.quartersByYear[yr] || [];
+  [1, 2, 3, 4].forEach(function(q) {
+    const btn = document.createElement('button');
+    const isAvailable = available.indexOf(q) !== -1;
+    const isActive    = weState.selectedQuarter === q;
+    btn.textContent = 'Q' + q;
+    btn.disabled = !isAvailable;
+    btn.style.cssText = 'padding:0.4rem 0.85rem;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;border:1px solid '
+      + (isActive ? 'var(--accent)' : 'rgba(122,92,62,0.28)') + ';'
+      + 'background:' + (isActive ? 'var(--accent)' : (isAvailable ? '#fff' : '#f5f0e8')) + ';'
+      + 'color:' + (isActive ? '#fff' : (isAvailable ? 'var(--mid)' : 'var(--stone)')) + ';'
+      + 'opacity:' + (isAvailable ? '1' : '0.45') + ';';
+    if (isAvailable) {
+      btn.onclick = function() { weSelectQuarter(q); };
+    }
+    wrap.appendChild(btn);
+  });
+}
+
+function weSelectQuarter(q) {
+  weState.selectedQuarter = q;
+  weBuildQuarterButtons();
+  weUpdatePreview();
+}
+
+function weClearPreview() {
+  weState.preview = null;
+  document.getElementById('wePreview').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--stone);font-style:italic;font-size:0.85rem;">Select a year and quarter to see the preview.</div>';
+  document.getElementById('weReadingsCount').textContent = '';
+  document.getElementById('weWarningBanner').style.display = 'none';
+  document.getElementById('weSendBtn').disabled = true;
+}
+
+// Debounced fetch so typing in textareas doesn't hammer the API. The actual
+// preview HTML re-render is local-only after the first fetch — only year/quarter
+// changes trigger a network call.
+var _wePreviewFetchTimer = null;
+var _weLastFetchKey = null;
+function weUpdatePreview() {
+  const yr = weState.selectedYear;
+  const q  = weState.selectedQuarter;
+  if (!yr || !q) {
+    weClearPreview();
+    return;
+  }
+  const key = yr + '_' + q;
+
+  if (_weLastFetchKey === key && weState.preview) {
+    // Already have the data; just re-render with current text
+    weRenderPreview();
+    return;
+  }
+
+  // New year/quarter → fetch
+  clearTimeout(_wePreviewFetchTimer);
+  _wePreviewFetchTimer = setTimeout(async function() {
+    try {
+      const url = SCRIPT_URL + '?action=previewWaterReadingsEmail&year=' + yr + '&quarter=' + q;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Preview failed');
+      weState.preview = data;
+      _weLastFetchKey = key;
+
+      // Subject default
+      const subjectField = document.getElementById('weSubject');
+      if (!subjectField.value || /Water Meter Readings \u2014 \d{4} Q[1-4]/.test(subjectField.value)) {
+        subjectField.value = 'CMC The Courtyard \u2014 Water Meter Readings \u2014 ' + yr + ' Q' + q;
+      }
+
+      weRenderPreview();
+    } catch(e) {
+      document.getElementById('weMsg').style.color = '#b05050';
+      document.getElementById('weMsg').textContent = '\u2717 Could not load preview — ' + e.message;
+      weClearPreview();
+    }
+  }, 50);
+}
+
+function weRenderPreview() {
+  const p = weState.preview;
+  if (!p) return;
+  const yr = p.year;
+  const q  = p.quarter;
+
+  // Stash sheet defaults so the reset buttons can recall them later
+  weState.sheetDefaults.to  = (p.recipients && p.recipients.to)  ? p.recipients.to.slice()  : [];
+  weState.sheetDefaults.bcc = (p.recipients && p.recipients.bcc) ? p.recipients.bcc.slice() : [];
+
+  // Populate fields if blank (first load), preserve user edits otherwise
+  const toEl  = document.getElementById('weToField');
+  const bccEl = document.getElementById('weBccField');
+  if (!toEl.dataset.touched) {
+    toEl.value = weState.sheetDefaults.to.join(', ');
+  }
+  if (!bccEl.dataset.touched) {
+    bccEl.value = weState.sheetDefaults.bcc.join(', ');
+  }
+
+  // Readings count + warning banner
+  const countEl = document.getElementById('weReadingsCount');
+  countEl.textContent = p.readingsCount + ' of ' + p.totalProperties + ' properties have readings';
+  const warn = document.getElementById('weWarningBanner');
+  const liveTo = weParseRecipientField(toEl.value);
+  if (p.readingsCount === 0) {
+    warn.innerHTML = '\u26a0 No readings recorded for ' + yr + ' Q' + q + '. The Send button is disabled.';
+    warn.style.display = 'block';
+    document.getElementById('weSendBtn').disabled = true;
+  } else if (p.readingsCount < p.totalProperties) {
+    warn.innerHTML = '\u26a0 Only ' + p.readingsCount + ' of ' + p.totalProperties + ' properties have readings for this quarter. The email will show \u201c\u2014\u201d for the missing ones.';
+    warn.style.display = 'block';
+    document.getElementById('weSendBtn').disabled = liveTo.length === 0;
+  } else {
+    warn.style.display = 'none';
+    document.getElementById('weSendBtn').disabled = liveTo.length === 0;
+  }
+
+  // Build the preview HTML, mirroring buildWaterReadingsHtml but with current
+  // values from the editable fields so changes show live.
+  const intro   = document.getElementById('weIntro').value   || '';
+  const closing = document.getElementById('weClosing').value || '';
+  document.getElementById('wePreview').innerHTML = weBuildPreviewHtml(yr, q, intro, closing, p);
+}
+
+function weEscHtml(s) {
+  return (s == null ? '' : String(s))
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function weEscBr(s) { return weEscHtml(s).replace(/\n/g, '<br>'); }
+
+// Splits a comma- or semicolon-separated email field into a clean array.
+// - Trims whitespace
+// - Drops empty entries
+// - Filters out anything without an "@" (silent — invalid entries just disappear)
+// - Deduplicates case-insensitively, preserves first-occurrence casing
+function weParseRecipientField(raw) {
+  if (!raw) return [];
+  const seen = {};
+  const out = [];
+  raw.split(/[,;\n]/).forEach(function(part) {
+    const e = part.trim();
+    if (!e || e.indexOf('@') === -1) return;
+    const key = e.toLowerCase();
+    if (seen[key]) return;
+    seen[key] = true;
+    out.push(e);
+  });
+  return out;
+}
+
+// Reset a single recipient field to its sheet default (or clear it for CC,
+// which has no sheet source). Wired to the small reset buttons next to each.
+function weResetField(which) {
+  if (which === 'to') {
+    const el = document.getElementById('weToField');
+    el.value = weState.sheetDefaults.to.join(', ');
+    delete el.dataset.touched;
+  } else if (which === 'bcc') {
+    const el = document.getElementById('weBccField');
+    el.value = weState.sheetDefaults.bcc.join(', ');
+    delete el.dataset.touched;
+  } else if (which === 'cc') {
+    const el = document.getElementById('weCcField');
+    el.value = '';
+    delete el.dataset.touched;
+  }
+  weUpdatePreview();
+}
+
+// Mark a recipient field as touched so weRenderPreview won't overwrite the
+// user's edits the next time the preview re-renders.
+function weMarkTouched(which) {
+  const id = which === 'to' ? 'weToField' : (which === 'cc' ? 'weCcField' : 'weBccField');
+  document.getElementById(id).dataset.touched = '1';
+}
+
+function weFmtReading(n) {
+  if (n === null || n === undefined || isNaN(n)) return '';
+  const fixed = Number(n).toFixed(3);
+  const parts = fixed.split('.');
+  return parts[0].padStart(5, '0') + '.' + parts[1];
+}
+
+function weFmtVolume(n) {
+  if (n === null || n === undefined || isNaN(n)) return '';
+  return Number(n).toFixed(3);
+}
+
+function weQtrMonthLabel(q) {
+  return ['January\u2013March','April\u2013June','July\u2013September','October\u2013December'][q - 1] || '';
+}
+
+function weFormatDateLong(ddmmyyyy) {
+  if (!ddmmyyyy) return '';
+  const m = ddmmyyyy.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m) return ddmmyyyy;
+  let yr = parseInt(m[3], 10); if (yr < 100) yr += 2000;
+  const d = new Date(yr, parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+  if (isNaN(d.getTime())) return ddmmyyyy;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function weBuildPreviewHtml(year, quarter, intro, closing, p) {
+  const dateLong = p.majorityDate ? weFormatDateLong(p.majorityDate) : '';
+  const introWithDate = intro
+    .replace(/\[date\]/gi, dateLong)
+    .replace(/\[reading date\]/gi, dateLong);
+
+  // Header rows
+  const headerCells = ''
+    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Address</th>'
+    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Resident</th>'
+    + '<th style="text-align:left;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">Water Meter</th>'
+    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="display:block;font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + (quarter === 1 ? (year - 1) + ' Q4' : year + ' Q' + (quarter - 1)) + '</span>'
+      + '<span style="display:block;font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Previous Quarter</span>'
+      + '</th>'
+    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="display:block;font-size:14px;font-weight:700;color:#1e1a16;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + year + ' Q' + quarter + '</span>'
+      + '<span style="display:block;font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Current Quarter</span>'
+      + '</th>'
+    + '<th style="text-align:right;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.06em;padding:0 8px 8px 8px;border-bottom:2.5px solid #1e1a16;">'
+      + '<span style="display:block;font-size:14px;font-weight:700;color:#b8ad9e;text-transform:none;letter-spacing:0;margin-bottom:2px;">' + year + ' Q' + quarter + '</span>'
+      + '<span style="display:block;font-size:12px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.05em;">Water Volume</span>'
+      + '</th>';
+
+  const rowsHtml = (p.rows || []).map(function(r, i) {
+    const sb = i % 2 === 1 ? 'background:#faf7f2;' : '';
+    const prev = (r.previous !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.previous) + '</td>' : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    const curr = (r.current  !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;font-weight:700;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weFmtReading(r.current) + '</td>' : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    const vol  = (r.volume   !== null) ? '<td style="' + sb + 'padding:8px;text-align:right;color:#6b5f52;border-bottom:1px solid #ede8e0;">' + weFmtVolume(r.volume) + '</td>'  : '<td style="' + sb + 'padding:8px;text-align:right;color:#b8ad9e;border-bottom:1px solid #ede8e0;">&mdash;</td>';
+    return '<tr>'
+      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;white-space:nowrap;">' + weEscHtml(r.property) + '</td>'
+      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.resident) + '</td>'
+      + '<td style="' + sb + 'padding:8px;color:#1e1a16;border-bottom:1px solid #ede8e0;">' + weEscHtml(r.meter) + '</td>'
+      + prev + curr + vol
+      + '</tr>';
+  }).join('');
+
+  const totalsHtml = '<tr>'
+    + '<td colspan="3" style="padding:12px 8px;font-size:14px;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">Total CMC Water Meter Reading and Total Water Volume</td>'
+    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#b8ad9e;border-top:2.5px solid #1e1a16;">' + (p.totals.previous > 0 ? weFmtReading(p.totals.previous) : '&mdash;') + '</td>'
+    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#1e1a16;border-top:2.5px solid #1e1a16;">' + weFmtReading(p.totals.current) + '</td>'
+    + '<td style="padding:12px 8px;text-align:right;font-weight:700;color:#6b5f52;border-top:2.5px solid #1e1a16;">' + (p.totals.volume > 0 ? weFmtVolume(p.totals.volume) : '&mdash;') + '</td>'
+    + '</tr>';
+
+  return ''
+    + '<div style="background:#ffffff;border-radius:6px;overflow:hidden;max-width:600px;margin:0 auto;">'
+    + '<div style="background:#2c2c2c;padding:20px 28px;color:#ffffff;">'
+    + '<table cellpadding="0" cellspacing="0"><tr>'
+    + '<td style="vertical-align:middle;padding-right:16px;"><div style="width:120px;height:90px;border-radius:10px;border:2px solid rgba(255,255,255,0.15);background:#7a6a55;display:flex;align-items:center;justify-content:center;color:#c8a96e;font-size:11px;letter-spacing:1px;">CMC LOGO</div></td>'
+    + '<td style="vertical-align:middle;">'
+    + '<p style="margin:0;font-size:26px;font-weight:300;color:#ffffff;letter-spacing:1px;">CMC The Courtyard</p>'
+    + '<p style="margin:8px 0 0;font-size:13px;color:#999999;letter-spacing:2px;text-transform:uppercase;">Water Meter Readings</p>'
+    + '<p style="margin:10px 0 0;font-size:13px;color:#c8a96e;letter-spacing:1px;font-style:italic;">' + year + ' Q' + quarter + ' &mdash; ' + weQtrMonthLabel(quarter) + '</p>'
+    + '</td></tr></table>'
+    + '</div>'
+    + '<div style="padding:32px;">'
+    + '<p style="margin:0 0 20px;font-size:18px;color:#333333;">Dear Liscombe Park,</p>'
+    + '<p style="margin:0 0 28px;font-size:18px;color:#555555;line-height:1.6;">' + weEscBr(introWithDate) + '</p>'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:4px;overflow:hidden;margin-bottom:28px;border-collapse:collapse;font-family:Arial,sans-serif;">'
+    + '<thead><tr>' + headerCells + '</tr></thead>'
+    + '<tbody>' + rowsHtml + '</tbody>'
+    + '<tfoot>' + totalsHtml + '</tfoot>'
+    + '</table>'
+    + '<p style="margin:0 0 28px;font-size:18px;color:#555555;line-height:1.6;">' + weEscBr(closing) + '</p>'
+    + '</div>'
+    + '<div style="background:#f9f9f9;border-top:1px solid #eeeeee;padding:16px 32px;">'
+    + '<p style="margin:0;font-size:18px;color:#999999;">Kind regards,<br><strong style="color:#555555;">CMC The Courtyard</strong></p>'
+    + '</div>'
+    + '</div>'
+    + '<div style="text-align:center;font-size:0.7rem;color:var(--stone);font-style:italic;margin-top:0.8rem;">Preview note: in the live email, the CMC logo image replaces the placeholder above.</div>';
+}
+
+function weClear() {
+  document.getElementById('weIntro').value   = weState.defaultIntro;
+  document.getElementById('weClosing').value = weState.defaultClosing;
+  if (weState.selectedYear && weState.selectedQuarter) {
+    document.getElementById('weSubject').value = 'CMC The Courtyard \u2014 Water Meter Readings \u2014 ' + weState.selectedYear + ' Q' + weState.selectedQuarter;
+  } else {
+    document.getElementById('weSubject').value = '';
+  }
+  // Reset recipient fields back to sheet defaults
+  weResetField('to');
+  weResetField('cc');
+  weResetField('bcc');
+  weRenderPreview();
+}
+
+function weReview() {
+  const p = weState.preview;
+  if (!p) return;
+
+  const toList  = weParseRecipientField(document.getElementById('weToField').value);
+  const ccList  = weParseRecipientField(document.getElementById('weCcField').value);
+  const bccList = weParseRecipientField(document.getElementById('weBccField').value);
+
+  if (!toList.length) {
+    document.getElementById('weMsg').style.color = '#b05050';
+    document.getElementById('weMsg').textContent = '\u2717 At least one TO recipient is required.';
+    return;
+  }
+
+  const subject = (document.getElementById('weSubject').value || '').trim();
+  if (!subject) {
+    document.getElementById('weMsg').style.color = '#b05050';
+    document.getElementById('weMsg').textContent = '\u2717 Subject is required.';
+    return;
+  }
+
+  // Build modal subhead
+  const parts = [toList.length + ' TO'];
+  if (ccList.length)  parts.push(ccList.length + ' CC');
+  if (bccList.length) parts.push(bccList.length + ' BCC');
+  document.getElementById('weModalSub').textContent = 'You are about to send this email to ' + parts.join(', ') + '. The email cannot be unsent once delivered.';
+
+  // Build the recipient list in the modal — all three sections, hide empty ones
+  let recipHtml = '';
+  function addSection(label, list) {
+    if (!list.length) return;
+    recipHtml += '<div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem;">' + label + '</div>';
+    recipHtml += '<div style="margin-bottom:0.7rem;line-height:1.5;">' + list.map(function(e) { return weEscHtml(e); }).join('<br>') + '</div>';
+  }
+  addSection('TO',  toList);
+  addSection('CC',  ccList);
+  addSection('BCC', bccList);
+  document.getElementById('weModalRecipList').innerHTML = recipHtml;
+  document.getElementById('weModalSubject').textContent = subject;
+
+  document.getElementById('weModalOverlay').style.display = 'flex';
+}
+
+function weCloseModal() {
+  document.getElementById('weModalOverlay').style.display = 'none';
+}
+
+async function weSend() {
+  const yr = weState.selectedYear;
+  const q  = weState.selectedQuarter;
+  const subject = (document.getElementById('weSubject').value || '').trim();
+  const intro   = (document.getElementById('weIntro').value   || '').trim();
+  const closing = (document.getElementById('weClosing').value || '').trim();
+  const toList  = weParseRecipientField(document.getElementById('weToField').value);
+  const ccList  = weParseRecipientField(document.getElementById('weCcField').value);
+  const bccList = weParseRecipientField(document.getElementById('weBccField').value);
+  const msg = document.getElementById('weMsg');
+
+  const btn = document.getElementById('weConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const payload = {
+      action:  'sendWaterReadingsEmail',
+      year:    yr,
+      quarter: q,
+      subject: subject,
+      intro:   intro,
+      closing: closing,
+      to:      toList,
+      cc:      ccList,
+      bcc:     bccList
+    };
+    const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Send failed');
+
+    weCloseModal();
+    document.getElementById('weSuccessText').textContent = data.message || 'Email sent successfully.';
+    document.getElementById('weButtonArea').style.display  = 'none';
+    document.getElementById('weSuccessArea').style.display = 'block';
+    msg.style.color = 'var(--green)';
+    msg.textContent = '\u2713 ' + (data.message || 'Sent.');
+
+    // Restore button area after 4s like bcSend does
+    setTimeout(function() {
+      document.getElementById('weButtonArea').style.display  = 'flex';
+      document.getElementById('weSuccessArea').style.display = 'none';
+    }, 4000);
+  } catch(e) {
+    weCloseModal();
+    msg.style.color = '#b05050';
+    msg.textContent = '\u2717 Could not send — ' + e.message;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '&#128231; Send Now';
+  setTimeout(function() { msg.textContent = ''; }, 6000);
+}
 
 </script>
 </body>
