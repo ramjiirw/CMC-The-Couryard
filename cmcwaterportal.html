@@ -409,9 +409,11 @@
     /* Strongest possible @page declaration. Chrome/Edge/Firefox respect this
        and default the print dialog to landscape A4. iOS Safari historically
        ignores @page orientation — there's no web-side fix for that; the user
-       has to flip orientation in their print dialog manually. */
-    @page { size: A4 landscape; margin: 10mm; }
-    @page :first { size: A4 landscape; margin: 10mm; }
+       has to flip orientation in their print dialog manually.
+       No explicit margin set so the print dialog defaults to "Default" margins
+       (the user can still pick any other option in the dialog). */
+    @page { size: A4 landscape; }
+    @page :first { size: A4 landscape; }
 
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
 
