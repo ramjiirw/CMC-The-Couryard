@@ -406,12 +406,28 @@
 
   /* Print: landscape, hide chrome, show only the report overlay */
   @media print {
+    /* Strongest possible @page declaration. Chrome/Edge/Firefox respect this
+       and default the print dialog to landscape A4. iOS Safari historically
+       ignores @page orientation — there's no web-side fix for that; the user
+       has to flip orientation in their print dialog manually. */
     @page { size: A4 landscape; margin: 10mm; }
+    @page :first { size: A4 landscape; margin: 10mm; }
+
     html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
-    /* Collapse all top-level page chrome (header, main, FAB, modals, etc.) so it
-       takes no space above the report. The overlay is a direct child of body and
-       is excluded from this rule via :not(). */
-    body > *:not(#water-report-overlay) { display: none !important; }
+
+    /* The overlay sits inside <main>, not as a direct child of <body>, so we
+       can't simply hide all body children (that hides <main> and therefore
+       the overlay too — leading to a blank print preview). Instead, hide the
+       known top-level chrome elements explicitly, and explicitly un-hide
+       <main> and the overlay's ancestor chain. */
+    body > header, body > footer, body > nav, body > aside,
+    body > .fab, body > .modal, body > .toast, body > .overlay,
+    body > script, body > noscript { display: none !important; }
+
+    /* Inside <main>, hide everything except the overlay */
+    main > *:not(#water-report-overlay) { display: none !important; }
+    main { display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; }
+
     #water-report-overlay {
       display: block !important;
       position: static !important;
@@ -432,14 +448,19 @@
       overflow: visible !important;
       margin: 0 !important;
       padding: 0 !important;
+      min-width: 0 !important;
     }
   }
 
-  /* Mobile horizontal scroll (matches BvA pattern) */
+  /* Mobile horizontal scroll (matches BvA pattern).
+     Both header and content get the same min-width so the sticky header bar
+     extends to the right edge of the report content (otherwise it stops at
+     viewport width while the table extends further, leaving a visible gap on
+     the right). 920px chosen to comfortably fit the 6-column table. */
   @media (max-width: 768px) {
     #water-report-overlay { overflow-x: auto; }
-    #water-report-overlay-content { min-width: 700px; }
-    #water-report-overlay > div:first-child { min-width: 700px; }
+    #water-report-overlay-content { min-width: 920px; }
+    #water-report-overlay > div:first-child { min-width: 920px; box-sizing: border-box; }
   }
 
   /* Report body styles */
