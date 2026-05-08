@@ -1531,6 +1531,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
             </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(74,122,155,0.13);color:#2a5a7a;border:1px solid rgba(74,122,155,0.28);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Assigned</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin presses the 📧 button on a maintenance issue and clicks Send<br><span style="font-size:0.72rem;color:var(--mid);">Recipients are picked from the Residents sheet using the Assigned To field. Subject and body are fully editable before sending. Email design matches all other maintenance emails — header: <em>Resident Task Assignment</em>. Logged to Broadcast History as <code>Maintenance Assigned</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Assigned residents (up to 2)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
               <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(196,149,106,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Scheduled</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin schedules a broadcast for a future date/time</td>
@@ -2363,6 +2369,7 @@ function showPanel(id) {
     if (!mntLoaded) {
       mntLoaded = true;
       loadMaintenanceIssues();
+      ctPreload(); // pre-load residents so the assignee picker is ready
     } else {
       // Data already preloaded — render instantly
       mntPopulateDropdowns();
@@ -3096,8 +3103,9 @@ function renderMaintenanceTable() {
     html += '<td style="' + tdBase + cardTop + '">' + mntPriBadge(row.priority) + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + (row.assignedTo ? escHtml(row.assignedTo) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
-    html += '<td style="' + tdBase + cardTop + 'text-align:center;padding:0.4rem;">';
-    html += '<button onclick="mntEditClick(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;font-size:1.05rem;color:#c4956a;padding:4px 6px;line-height:1;" title="Edit issue">✏️</button>';
+    html += '<td style="' + tdBase + cardTop + 'text-align:center;padding:0.4rem 0.25rem;">';
+    html += '<button onclick="mntEditClick(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;font-size:1.05rem;color:#c4956a;padding:3px 5px;line-height:1;display:block;" title="Edit issue">✏️</button>';
+    html += '<button onclick="mntOpenAssignModal(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;font-size:0.95rem;color:#6a9ec4;padding:3px 5px;line-height:1;display:block;" title="Send assignment email">📧</button>';
     html += '</td>';
     html += '</tr>';
 
@@ -3120,9 +3128,12 @@ function renderMaintenanceTable() {
     html += '</div>';
 
     // Band 2: Latest update
-    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#f5f0e8;">';
+    html += '<div style="padding:0.6rem 1rem 0.5rem 1rem;background:#f5f0e8;display:flex;align-items:center;justify-content:space-between;gap:1rem;">';
+    html += '<div style="flex:1;min-width:0;">';
     html += '<span class="mnt-det-label" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;color:#9a8878;font-weight:700;display:block;margin-bottom:0.25rem;">Update</span>';
     html += '<div class="mnt-det-upd-text" style="font-size:' + detFontSize + ' !important;color:#6a5848;line-height:1.6;font-style:italic;white-space:pre-wrap;word-wrap:break-word;">' + (row.updates ? escHtml(row.updates) : '<span style="color:#b8ad9e;">No updates yet</span>') + '</div>';
+    html += '</div>';
+    html += '<button onclick="mntOpenAssignModal(' + i + ',' + actualRowIndex + ',event)" style="flex-shrink:0;background:#1e3a52;border:1px solid #4a7a9b;color:#6a9ec4;border-radius:5px;padding:0.3rem 0.7rem;font-size:0.75rem;cursor:pointer;white-space:nowrap;" title="Send assignment email">📧 Email assignees</button>';
     html += '</div>';
 
     html += '</div>'; // end card wrapper
@@ -3161,16 +3172,28 @@ function renderMaintenanceTable() {
     html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
     html += '</div>';
     html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
-    html += '<input id="mnt-assigned-' + i + '" list="mntAssignedOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.assignedTo || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a name" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
+    html += '<div id="mnt-assigned-chips-' + i + '" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.3rem 0.4rem;min-height:34px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:0.35rem;">';
+    if (row.assignedTo) {
+      row.assignedTo.split(',').map(function(n){ return n.trim(); }).filter(Boolean).forEach(function(name) {
+        html += '<span style="display:inline-flex;align-items:center;gap:3px;background:#3a5a7a;border:1px solid #6a9ec4;border-radius:20px;padding:0.18rem 0.45rem;font-size:0.72rem;color:#b8d4ea;">';
+        html += escHtml(name);
+        html += '<button type="button" onclick="mntRemoveAssignee(' + i + ',\'' + name.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#6a9ec4;cursor:pointer;font-size:0.8rem;line-height:1;padding:0 0 0 2px;">×</button></span>';
+      });
+    } else {
+      html += '<span style="color:#5a4a3a;font-size:0.75rem;font-style:italic;">None assigned</span>';
+    }
+    html += '</div>';
+    html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#1e3a52;border:1px solid #4a7a9b;color:#6a9ec4;border-radius:5px;padding:0.28rem 0.6rem;font-size:0.72rem;cursor:pointer;width:100%;">+ Pick residents</button>';
+    html += '<input type="hidden" id="mnt-assigned-' + i + '" value="' + (row.assignedTo || '').replace(/"/g, '&quot;') + '" />';
     html += '</div>';
     html += '</div>'; // end mnt-edit-left
 
     // Right column: description + update note
     html += '<div class="mnt-edit-right">';
     html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Description</label>';
-    html += '<textarea id="mnt-desc-' + i + '" oninput="mntMarkDirty(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:60px;max-height:200px;margin-bottom:0.6rem;">' + (row.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<textarea id="mnt-desc-' + i + '" oninput="mntMarkDirty(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:100px;max-height:300px;margin-bottom:0.6rem;">' + (row.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
     html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
-    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:72px;max-height:300px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:120px;max-height:400px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
     html += '</div>'; // end mnt-edit-right
 
     html += '</div>'; // end mnt-edit-layout
@@ -3204,6 +3227,7 @@ function renderMaintenanceTable() {
       html += '<span class="mnt-card-num">#' + (row.issueNumber || '') + '</span>';
       html += '<span class="mnt-card-date">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</span>';
       html += '<button class="mnt-card-edit" onclick="mntMobOpen(0,' + actualRowIndex + ')" title="Edit">✏️</button>';
+      html += '<button class="mnt-card-edit" onclick="mntOpenAssignModal(-1,' + actualRowIndex + ',event)" style="color:#6a9ec4;" title="Send assignment email">📧</button>';
       html += '</div>';
       html += '<div class="mnt-card-meta1">' + escHtml(row.address || '') + ' <span class="mnt-card-cat">·</span> <span class="mnt-card-cat">' + escHtml(row.category || '') + '</span></div>';
       html += '<div class="mnt-card-pills">' + mntStatusBadge(row.status, row.dateResolved) + ' ' + mntPriBadge(row.priority) + '</div>';
@@ -3218,7 +3242,7 @@ function renderMaintenanceTable() {
   // Inject responsive CSS for the edit layout (once, inside the table wrapper)
   html += '<style>';
   html += '.mnt-edit-layout{display:flex;gap:0.75rem;align-items:flex-start;}';
-  html += '.mnt-edit-left{flex:0 0 140px;display:flex;flex-direction:column;}';
+  html += '.mnt-edit-left{flex:0 0 210px;display:flex;flex-direction:column;}';
   html += '.mnt-edit-right{flex:1;display:flex;flex-direction:column;}';
   html += '@media(max-width:600px){';
   html += '.mnt-edit-layout{flex-direction:column;}';
@@ -8549,6 +8573,365 @@ async function weSend() {
   setTimeout(function() { msg.textContent = ''; }, 6000);
 }
 
+// ── Assignment Email Modal ────────────────────────────────────────────────────
+
+var _mntAssignUiIndex     = null;
+var _mntAssignActualIndex = null;
+var _mntAssignIssueRow    = null;
+
+// Build display label: "FirstName (address)" — always include address
+function mntAssignLabel(r) {
+  var first = (r.firstName || '').trim();
+  var addr  = (r.address  || '').trim();
+  return first + (addr ? ' (' + addr + ')' : '');
+}
+
+// Return comma-separated stored string from hidden input
+function mntGetAssignedStr(uiIndex) {
+  var el = document.getElementById('mnt-assigned-' + uiIndex);
+  return el ? el.value.trim() : '';
+}
+
+// Re-render the chips in the edit panel from the hidden input value
+function mntRenderAssignChips(uiIndex) {
+  var container = document.getElementById('mnt-assigned-chips-' + uiIndex);
+  if (!container) return;
+  var val = mntGetAssignedStr(uiIndex);
+  var names = val ? val.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  if (names.length === 0) {
+    container.innerHTML = '<span style="color:#5a4a3a;font-size:0.75rem;font-style:italic;">None assigned</span>';
+    return;
+  }
+  container.innerHTML = names.map(function(name) {
+    return '<span style="display:inline-flex;align-items:center;gap:3px;background:#3a5a7a;border:1px solid #6a9ec4;border-radius:20px;padding:0.18rem 0.45rem;font-size:0.72rem;color:#b8d4ea;">'
+      + escHtml(name)
+      + '<button type="button" onclick="mntRemoveAssignee(' + uiIndex + ',\'' + name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="background:none;border:none;color:#6a9ec4;cursor:pointer;font-size:0.8rem;line-height:1;padding:0 0 0 2px;">×</button></span>';
+  }).join('');
+}
+
+function mntRemoveAssignee(uiIndex, name) {
+  var el = document.getElementById('mnt-assigned-' + uiIndex);
+  if (!el) return;
+  var names = el.value ? el.value.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  names = names.filter(function(n){ return n !== name; });
+  el.value = names.join(', ');
+  mntRenderAssignChips(uiIndex);
+  mntMarkDirty(uiIndex);
+}
+
+function mntOpenAssigneePicker(uiIndex, evt) {
+  if (evt) evt.stopPropagation();
+  // Remove any existing popover
+  var old = document.getElementById('mntAssigneePop');
+  if (old) { old.remove(); return; }
+
+  var btn = evt && evt.currentTarget ? evt.currentTarget : document.querySelector('[onclick*="mntOpenAssigneePicker(' + uiIndex + '"]');
+  var current = mntGetAssignedStr(uiIndex);
+  var currentNames = current ? current.split(',').map(function(n){ return n.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  // Group residents by address in property order
+  var residents = (typeof ctResidents !== 'undefined' && ctResidents.length) ? ctResidents : [];
+  var grouped = {};
+  var order = [];
+  residents.forEach(function(r) {
+    var addr = (r.address || '').trim();
+    if (!addr) return;
+    if (!grouped[addr]) { grouped[addr] = []; order.push(addr); }
+    grouped[addr].push(r);
+  });
+  // Sort by leading number
+  order.sort(function(a, b) {
+    var na = parseInt(a.match(/\d+/) || 9999, 10);
+    var nb = parseInt(b.match(/\d+/) || 9999, 10);
+    return na - nb;
+  });
+
+  var pop = document.createElement('div');
+  pop.id = 'mntAssigneePop';
+  pop.style.cssText = 'position:absolute;z-index:9999;background:#1e1a16;border:1px solid #4a4030;border-radius:8px;padding:0.7rem;width:240px;box-shadow:0 4px 16px rgba(0,0,0,0.5);';
+
+  var html = '<div style="font-size:0.68rem;font-weight:700;color:#c8a96e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Select up to 2 residents</div>';
+  html += '<div id="mntAssignPopWarn" style="font-size:0.68rem;color:#c8a96e;font-style:italic;margin-bottom:0.4rem;display:none;">2 of 2 selected — deselect one to change</div>';
+  html += '<div style="max-height:220px;overflow-y:auto;">';
+
+  order.forEach(function(addr) {
+    html += '<div style="font-size:0.62rem;color:#6a5848;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #2e2820;padding-bottom:0.15rem;margin:0.4rem 0 0.25rem;">' + escHtml(addr) + '</div>';
+    grouped[addr].forEach(function(r) {
+      var label   = mntAssignLabel(r);
+      var hasEmail = r.email && r.email.indexOf('@') > -1;
+      var checked  = currentNames.indexOf(label.toLowerCase()) >= 0;
+      if (hasEmail) {
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.22rem 0;cursor:pointer;">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#6a9ec4;cursor:pointer;">'
+          + '<span style="font-size:0.78rem;color:#e8e0d0;">' + escHtml(label) + '</span></label>';
+      } else {
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.22rem 0;opacity:0.38;cursor:not-allowed;">'
+          + '<input type="checkbox" disabled style="cursor:not-allowed;">'
+          + '<span style="font-size:0.78rem;color:#e8e0d0;">' + escHtml(label) + '</span>'
+          + '<span style="font-size:0.65rem;color:#6a5848;font-style:italic;">no email</span></label>';
+      }
+    });
+  });
+
+  html += '</div>';
+  html += '<button onclick="mntConfirmAssigneePicker(' + uiIndex + ')" style="background:#4a7a9b;color:white;border:none;border-radius:5px;padding:0.35rem 0.9rem;font-size:0.78rem;font-weight:600;cursor:pointer;width:100%;margin-top:0.5rem;">Confirm</button>';
+
+  pop.innerHTML = html;
+
+  // Enforce max-2 rule
+  pop.addEventListener('change', function() {
+    var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+    var warn = pop.querySelector('#mntAssignPopWarn');
+    if (checked.length >= 2) {
+      warn.style.display = 'block';
+      pop.querySelectorAll('input[type=checkbox]:not(:checked)').forEach(function(cb) { cb.disabled = true; });
+    } else {
+      warn.style.display = 'none';
+      pop.querySelectorAll('input[type=checkbox]:not([data-noemail])').forEach(function(cb) { cb.disabled = false; });
+    }
+  });
+
+  // Position below the pick button
+  var pickBtn = document.querySelector('#mnt-edit-inner-' + uiIndex + ' button[onclick*="mntOpenAssigneePicker"]');
+  if (pickBtn) {
+    pickBtn.parentNode.style.position = 'relative';
+    pickBtn.parentNode.appendChild(pop);
+    pop.style.top = (pickBtn.offsetTop + pickBtn.offsetHeight + 4) + 'px';
+    pop.style.left = '0';
+  } else {
+    document.body.appendChild(pop);
+    pop.style.position = 'fixed';
+    pop.style.top = '50%';
+    pop.style.left = '50%';
+    pop.style.transform = 'translate(-50%,-50%)';
+  }
+
+  // Close on outside click
+  setTimeout(function() {
+    document.addEventListener('click', function closePop(e) {
+      if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', closePop); }
+    });
+  }, 50);
+}
+
+function mntConfirmAssigneePicker(uiIndex) {
+  var pop = document.getElementById('mntAssigneePop');
+  if (!pop) return;
+  var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+  var names = [];
+  checked.forEach(function(cb) { names.push(cb.getAttribute('data-label')); });
+  var el = document.getElementById('mnt-assigned-' + uiIndex);
+  if (el) { el.value = names.join(', '); }
+  mntRenderAssignChips(uiIndex);
+  mntMarkDirty(uiIndex);
+  pop.remove();
+}
+
+function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
+  if (evt) evt.stopPropagation();
+
+  // Find the row object
+  var row = null;
+  for (var k = 0; k < mntAllIssues.length; k++) {
+    if (mntAllIssues[k].rowIndex == actualRowIndex) { row = mntAllIssues[k]; break; }
+  }
+
+  // Get current assignedTo — from edit panel hidden input if open, else from row data
+  var assignedStr = '';
+  if (uiIndex >= 0) {
+    var hiddenEl = document.getElementById('mnt-assigned-' + uiIndex);
+    assignedStr = hiddenEl ? hiddenEl.value.trim() : (row ? (row.assignedTo || '') : '');
+  } else {
+    assignedStr = row ? (row.assignedTo || '') : '';
+  }
+
+  if (!assignedStr) {
+    alert('No assignees saved on this issue yet — please assign and save residents first.');
+    return;
+  }
+
+  _mntAssignUiIndex     = uiIndex;
+  _mntAssignActualIndex = actualRowIndex;
+  _mntAssignIssueRow    = row;
+
+  // Build recipient list from assignedStr labels, matched against ctResidents
+  var assignedNames = assignedStr.split(',').map(function(n){ return n.trim(); }).filter(Boolean);
+  var recipients = []; // [{label, email}]
+  assignedNames.forEach(function(name) {
+    // Match by label (firstName + address)
+    var match = null;
+    if (typeof ctResidents !== 'undefined') {
+      ctResidents.forEach(function(r) {
+        if (mntAssignLabel(r).toLowerCase() === name.toLowerCase() && r.email && r.email.indexOf('@') > -1) {
+          match = r;
+        }
+      });
+    }
+    if (match) {
+      recipients.push({ label: name, email: match.email.trim() });
+    }
+  });
+
+  // Build salutation
+  var firstNames = assignedNames;
+  var salutation = firstNames.length > 1
+    ? firstNames.slice(0, -1).join(', ') + ' and ' + firstNames[firstNames.length - 1]
+    : (firstNames[0] || 'Resident');
+
+  var issueNum  = row ? (row.issueNumber || actualRowIndex) : actualRowIndex;
+  var dateAdded = row ? mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') : '';
+  var desc      = row ? (row.description || '') : '';
+  var category  = row ? (row.category || '') : '';
+  var address   = row ? (row.address || '') : '';
+  var priority  = row ? (row.priority || '') : '';
+
+  // Pre-fill modal fields
+  document.getElementById('mntAssignIssueRef').textContent = 'Issue #' + issueNum + ' \u2014 ' + address + ' \u2014 ' + category;
+
+  // To chips
+  var toDiv = document.getElementById('mntAssignToChips');
+  toDiv.innerHTML = recipients.length
+    ? recipients.map(function(rc) {
+        return '<span style="display:inline-flex;align-items:center;gap:3px;background:#1a3a2a;border:1px solid #2a6a4a;border-radius:20px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6abf8a;">'
+          + escHtml(rc.label) + ' \u2014 ' + escHtml(rc.email) + '</span>';
+      }).join('')
+    : '<span style="color:#9a8878;font-size:0.75rem;font-style:italic;">No email addresses found for assigned residents</span>';
+
+  document.getElementById('mntAssignSubject').value =
+    'CMC The Courtyard \u2014 Maintenance Issue #' + issueNum + ' \u2014 Assigned to You';
+
+  var body = 'Dear ' + salutation + ',\n\n'
+    + 'You have been asked to manage the following maintenance issue on behalf of CMC The Courtyard. '
+    + 'Please review the details below and take the necessary steps to progress it.\n\n'
+    + '---\n'
+    + 'Issue #: ' + issueNum + '\n'
+    + 'Address: ' + address + '\n'
+    + 'Category: ' + category + '\n'
+    + (priority ? 'Priority: ' + priority + '\n' : '')
+    + 'Description: ' + desc + '\n'
+    + (dateAdded ? 'Reported: ' + dateAdded + '\n' : '')
+    + '---\n\n'
+    + 'Steps to manage this issue:\n\n'
+    + '1. Review the issue details above and inspect if required.\n'
+    + '2. Obtain at least one quote from a suitable contractor. For larger spend, please seek at least two or three quotes.\n'
+    + '3. For any expenditure, please liaise with the directors before instructing any work — all spend must be approved in advance.\n'
+    + '4. Once quotes are obtained, share them with the directors via the portal or by email for sign-off.\n'
+    + '5. Arrange for the work to be carried out once approved.\n'
+    + '6. Confirm completion back to the directors so the issue can be marked as resolved.\n\n'
+    + 'Please do not hesitate to contact the directors if you have any questions.\n\n'
+    + 'Kind regards\n\nCMC The Courtyard';
+
+  document.getElementById('mntAssignBody').value = body;
+  document.getElementById('mntAssignPreview').style.display = 'none';
+  document.getElementById('mntAssignSendBtn').disabled = false;
+  document.getElementById('mntAssignSendBtn').textContent = 'Send email';
+
+  // Store recipients for send
+  document.getElementById('mntAssignModal').dataset.emails    = JSON.stringify(recipients.map(function(r){ return r.email; }));
+  document.getElementById('mntAssignModal').dataset.assigned  = assignedStr;
+  document.getElementById('mntAssignModal').dataset.rowIndex  = actualRowIndex;
+  document.getElementById('mntAssignModal').dataset.issueNum  = issueNum;
+
+  document.getElementById('mntAssignModal').style.display = 'flex';
+}
+
+function mntCloseAssignModal() {
+  document.getElementById('mntAssignModal').style.display = 'none';
+  document.getElementById('mntAssignPreview').style.display = 'none';
+}
+
+function mntToggleAssignPreview() {
+  var previewDiv = document.getElementById('mntAssignPreview');
+  if (previewDiv.style.display === 'none') {
+    var emails  = JSON.parse(document.getElementById('mntAssignModal').dataset.emails || '[]');
+    var subject = document.getElementById('mntAssignSubject').value;
+    var body    = document.getElementById('mntAssignBody').value;
+    document.getElementById('mntAssignPreviewText').textContent =
+      'TO: ' + (emails.join(', ') || '(none)') + '\nSUBJECT: ' + subject + '\n\n' + body;
+    previewDiv.style.display = 'block';
+  } else {
+    previewDiv.style.display = 'none';
+  }
+}
+
+function mntSendAssignEmail() {
+  var modal   = document.getElementById('mntAssignModal');
+  var emails  = JSON.parse(modal.dataset.emails || '[]');
+  var subject = document.getElementById('mntAssignSubject').value.trim();
+  var body    = document.getElementById('mntAssignBody').value.trim();
+  var rowIdx  = parseInt(modal.dataset.rowIndex, 10);
+  var assigned = modal.dataset.assigned || '';
+  var issueNum = modal.dataset.issueNum || '';
+
+  if (!emails.length) { alert('No email addresses found for assigned residents.'); return; }
+  if (!subject)        { alert('Please enter a subject line.'); return; }
+
+  var btn = document.getElementById('mntAssignSendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action:      'sendAssignmentEmail',
+      rowIndex:    rowIdx,
+      assignedTo:  assigned,
+      emails:      emails,
+      subject:     subject,
+      body:        body,
+      issueNumber: issueNum
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(resp) {
+    if (resp.status === 'ok') {
+      mntCloseAssignModal();
+      showToast('Assignment email sent \u2713');
+    } else {
+      alert('Send failed: ' + (resp.message || 'Unknown error'));
+      btn.disabled = false;
+      btn.textContent = 'Send email';
+    }
+  })
+  .catch(function(err) {
+    alert('Send failed: ' + err.toString());
+    btn.disabled = false;
+    btn.textContent = 'Send email';
+  });
+}
+
 </script>
+
+<!-- ── Assignment Email Modal ──────────────────────────────────────────────── -->
+<div id="mntAssignModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#2a2520;border-radius:8px;width:min(620px,96vw);max-height:92vh;overflow-y:auto;padding:1.4rem 1.6rem;position:relative;">
+    <button onclick="mntCloseAssignModal()" style="position:absolute;top:0.7rem;right:0.9rem;background:none;border:none;color:#9a8878;font-size:1.3rem;cursor:pointer;line-height:1;">&#10005;</button>
+    <p style="margin:0 0 0.2rem;font-size:1rem;font-weight:700;color:var(--cream);letter-spacing:0.03em;">&#128231; Send assignment email</p>
+    <p id="mntAssignIssueRef" style="margin:0 0 1rem;font-size:0.78rem;color:#c8a96e;font-style:italic;"></p>
+
+    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">To</label>
+    <div id="mntAssignToChips" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.4rem 0.6rem;margin-bottom:0.9rem;display:flex;flex-wrap:wrap;gap:0.3rem;min-height:34px;"></div>
+
+    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Subject</label>
+    <input id="mntAssignSubject" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;margin-bottom:0.9rem;" />
+
+    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Message</label>
+    <textarea id="mntAssignBody" rows="14" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;resize:vertical;margin-bottom:0.9rem;line-height:1.5;"></textarea>
+
+    <div id="mntAssignPreview" style="display:none;border:1px solid #3a3530;border-radius:5px;padding:0.8rem;background:#1a1610;margin-bottom:0.9rem;">
+      <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#9a8878;">Preview (plain text)</p>
+      <pre id="mntAssignPreviewText" style="margin:0;font-family:Arial,sans-serif;font-size:0.75rem;color:#c8c0b0;white-space:pre-wrap;word-wrap:break-word;"></pre>
+    </div>
+
+    <div style="display:flex;gap:0.6rem;justify-content:space-between;align-items:center;">
+      <button onclick="mntToggleAssignPreview()" style="background:#3a3530;color:#9a8878;border:none;border-radius:5px;padding:0.4rem 0.9rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
+      <div style="display:flex;gap:0.6rem;">
+        <button onclick="mntCloseAssignModal()" style="background:#3a3530;color:#9a8878;border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">Cancel</button>
+        <button id="mntAssignSendBtn" onclick="mntSendAssignEmail()" style="background:#4a7a9b;color:white;border:none;border-radius:5px;padding:0.45rem 1.2rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Send email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
