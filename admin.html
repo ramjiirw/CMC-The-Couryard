@@ -1170,6 +1170,11 @@
           <select id="mntFilterCat" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
             <option value="">All Categories</option>
           </select>
+          <select id="mntFilterAssigned" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+            <option value="">All</option>
+            <option value="assigned">Assigned</option>
+            <option value="unassigned">Unassigned</option>
+          </select>
           <input id="mntSearch" type="text" placeholder="Search description…" oninput="mntApplyFilters()"
             style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;width:150px;outline:none;" />
           <button id="mntHideResolved" onclick="mntToggleHideResolved()" style="padding:0.3rem 0.75rem;border-radius:5px;border:1px solid #b8ad9e;background:#fff;color:#6b5f52;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Hide Resolved</button>
@@ -2395,6 +2400,7 @@ function showPanel(id) {
       document.getElementById('mntFilterPriority').value = '';
       document.getElementById('mntFilterCat').value = '';
       document.getElementById('mntFilterAddr').value = '';
+      if (document.getElementById('mntFilterAssigned')) document.getElementById('mntFilterAssigned').value = '';
       document.getElementById('mntDateFrom').value = '';
       document.getElementById('mntDateTo').value = '';
       mntHideResolvedOn = false;
@@ -2717,6 +2723,7 @@ function mntUpdateFilterBtn() {
   if (document.getElementById('mntFilterPriority').value) count++;
   if (document.getElementById('mntFilterCat').value) count++;
   if (document.getElementById('mntFilterAddr').value) count++;
+  if (document.getElementById('mntFilterAssigned') && document.getElementById('mntFilterAssigned').value) count++;
   if (document.getElementById('mntDateFrom').value) count++;
   if (document.getElementById('mntDateTo').value) count++;
   if (mntHideResolvedOn) count++;
@@ -2744,6 +2751,7 @@ function mntClearFilters() {
   document.getElementById('mntFilterPriority').value = '';
   document.getElementById('mntFilterCat').value = '';
   document.getElementById('mntFilterAddr').value = '';
+  if (document.getElementById('mntFilterAssigned')) document.getElementById('mntFilterAssigned').value = '';
   document.getElementById('mntDateFrom').value = '';
   document.getElementById('mntDateTo').value = '';
   mntHideResolvedOn = false;
@@ -2768,6 +2776,7 @@ function mntMobFilterSyncFromDesktop() {
     ['mntMobFilterStatus','mntFilterStatus'],
     ['mntMobFilterPriority','mntFilterPriority'],
     ['mntMobFilterCat','mntFilterCat'],
+    ['mntMobFilterAssigned','mntFilterAssigned'],
     ['mntMobDateFrom','mntDateFrom'],
     ['mntMobDateTo','mntDateTo']
   ];
@@ -2976,6 +2985,7 @@ function renderMaintenanceTable() {
   var catFilter     = document.getElementById('mntFilterCat').value.toLowerCase().trim();
   var addrFilter    = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
   var priorityFilter = (document.getElementById('mntFilterPriority').value || '').toLowerCase().trim();
+  var assignedFilter = (document.getElementById('mntFilterAssigned') ? document.getElementById('mntFilterAssigned').value : '').toLowerCase().trim();
   var dateFrom     = document.getElementById('mntDateFrom').value;
   var dateTo       = document.getElementById('mntDateTo').value;
   var fromMs       = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
@@ -2994,6 +3004,11 @@ function renderMaintenanceTable() {
     if (catFilter  && (r.category  || '').toLowerCase().indexOf(catFilter)  < 0) return false;
     if (addrFilter && (r.address   || '').toLowerCase().indexOf(addrFilter) < 0) return false;
     if (priorityFilter && (r.priority || '').toLowerCase() !== priorityFilter) return false;
+    if (assignedFilter) {
+      var hasAssignee = !!(r.assignedTo && r.assignedTo.toString().trim());
+      if (assignedFilter === 'assigned'   && !hasAssignee) return false;
+      if (assignedFilter === 'unassigned' &&  hasAssignee) return false;
+    }
     // Free-text search — description, updates, and assigned-to
     if (searchText) {
       var hay = [(r.description||''), (r.updates||''), (r.assignedTo||'')].join(' ').toLowerCase();
@@ -7132,6 +7147,17 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
         <label>Category</label>
         <select id="mntMobFilterCat" onchange="document.getElementById('mntFilterCat').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
           <option value="">All Categories</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-row">
+      <div>
+        <label>Assignment</label>
+        <select id="mntMobFilterAssigned" onchange="document.getElementById('mntFilterAssigned').value=this.value;mntApplyFilters();" style="width:100%;padding:0.65rem 0.5rem;border:1px solid rgba(122,92,62,0.28);border-radius:8px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:#1e1a16;">
+          <option value="">All</option>
+          <option value="assigned">Assigned</option>
+          <option value="unassigned">Unassigned</option>
         </select>
       </div>
     </div>
