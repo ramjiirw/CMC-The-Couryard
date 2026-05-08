@@ -3162,7 +3162,7 @@ function renderMaintenanceTable() {
     // Edit panel (mnt-edit-* — kept for compatibility with all existing JS)
     html += '<tr id="mnt-edit-' + i + '" style="position:relative;z-index:10;"><td colspan="9" style="padding:0;position:relative;z-index:10;">'; 
     html += '<div id="mnt-edit-inner-' + i + '" style="max-height:0;overflow:hidden;transition:max-height 0.28s ease;position:relative;z-index:10;">'; 
-    html += '<div style="padding:0.75rem 1rem;background:#2a2520;border-top:2px solid var(--accent2);border-bottom:2px solid var(--accent2);">'; 
+    html += '<div style="padding:0.85rem 1rem;background:#f5f0e8;border-top:2px solid var(--accent2);border-bottom:2px solid var(--accent2);box-shadow:inset 0 2px 6px rgba(122,92,62,0.08);">'; 
 
     // Responsive edit layout: status+priority left, textarea right
     // On mobile (<600px) these stack vertically via a style block injected once
@@ -3170,23 +3170,23 @@ function renderMaintenanceTable() {
 
     // Left column: status + priority stacked
     html += '<div class="mnt-edit-left">';
-    html += '<div style="margin-bottom:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Status</label>';
-    html += '<select id="mnt-status-' + i + '" onchange="mntMarkDirty(' + i + ')" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;">';
+    html += '<div style="margin-bottom:0.6rem;"><label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Status</label>';
+    html += '<select id="mnt-status-' + i + '" onchange="mntMarkDirty(' + i + ')" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;width:100%;">';
     ['New','In Progress','Resolved'].forEach(function(s){
       html += '<option value="' + s + '"' + ((row.status||'New')===s?' selected':'') + '>' + s + '</option>';
     });
     html += '</select></div>';
-    html += '<div><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Priority</label>';
-    html += '<select id="mnt-priority-' + i + '" onchange="mntMarkDirty(' + i + ');mntStylePriSel(this)" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;width:100%;font-weight:700;">';
-    html += '<option value="" style="color:#aaa;font-weight:400;"' + (!(row.priority)?' selected':'') + '>— Not set —</option>';
+    html += '<div><label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Priority</label>';
+    html += '<select id="mnt-priority-' + i + '" onchange="mntMarkDirty(' + i + ');mntStylePriSel(this)" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;font-family:Arial,sans-serif;font-size:0.82rem;width:100%;font-weight:700;">';
+    html += '<option value="" style="color:#888;font-weight:400;"' + (!(row.priority)?' selected':'') + '>— Not set —</option>';
     html += '<option value="High" style="color:#c0392b;"' + (row.priority==='High'?' selected':'') + '>🔴 High</option>';
     html += '<option value="Medium" style="color:#b8680a;"' + (row.priority==='Medium'?' selected':'') + '>🟡 Medium</option>';
     html += '<option value="Low" style="color:#2e7d52;"' + (row.priority==='Low'?' selected':'') + '>🟢 Low</option>';
     html += '</select></div>';
-    html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Category</label>';
-    html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
+    html += '<div style="margin-top:0.6rem;"><label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Category</label>';
+    html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
     html += '</div>';
-    html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
+    html += '<div style="margin-top:0.6rem;"><label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
     html += '<div id="mnt-assigned-chips-' + i + '" style="background:#ffffff;border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.35rem 0.45rem;min-height:34px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.35rem;">';
     if (row.assignedTo) {
       row.assignedTo.split(',').map(function(n){ return n.trim(); }).filter(Boolean).forEach(function(name) {
@@ -3198,24 +3198,24 @@ function renderMaintenanceTable() {
       html += '<span style="color:#a09080;font-size:0.75rem;font-style:italic;">None assigned</span>';
     }
     html += '</div>';
-    html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#f5f0e8;border:1px solid #c4956a;color:#7a5c3e;border-radius:5px;padding:0.32rem 0.6rem;font-size:0.74rem;font-weight:600;cursor:pointer;width:100%;">+ Pick residents</button>';
+    html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#ffffff;border:1px solid #c4956a;color:#7a5c3e;border-radius:5px;padding:0.32rem 0.6rem;font-size:0.74rem;font-weight:600;cursor:pointer;width:100%;">+ Pick residents</button>';
     html += '<input type="hidden" id="mnt-assigned-' + i + '" value="' + (row.assignedTo || '').replace(/"/g, '&quot;') + '" />';
     html += '</div>';
     html += '</div>'; // end mnt-edit-left
 
     // Right column: description + update note
     html += '<div class="mnt-edit-right">';
-    html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Description</label>';
-    html += '<textarea id="mnt-desc-' + i + '" oninput="mntMarkDirty(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:100px;max-height:300px;margin-bottom:0.6rem;">' + (row.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
-    html += '<label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
-    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-size:0.82rem;width:100%;resize:vertical;min-height:120px;max-height:400px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Description</label>';
+    html += '<textarea id="mnt-desc-' + i + '" oninput="mntMarkDirty(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-size:0.82rem;width:100%;resize:vertical;min-height:100px;max-height:300px;margin-bottom:0.6rem;">' + (row.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
+    html += '<label style="color:#7a5c3e;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Update Note</label>';
+    html += '<textarea id="mnt-note-' + i + '" oninput="mntOnNoteInput(' + i + ')" style="font-family:Arial,sans-serif;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-size:0.82rem;width:100%;resize:vertical;min-height:120px;max-height:400px;">' + (row.updates||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</textarea>';
     html += '</div>'; // end mnt-edit-right
 
     html += '</div>'; // end mnt-edit-layout
 
     // Save / Cancel buttons
-    html += '<div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:0.6rem;">';
-    html += '<button style="background:#3a3530;color:var(--stone);border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;" onclick="mntTryCollapse(' + i + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();}">Cancel</button>';
+    html += '<div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:0.7rem;">';
+    html += '<button style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;" onclick="mntTryCollapse(' + i + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();}">Cancel</button>';
     html += '<button id="mnt-save-' + i + '" onclick="saveMaintenanceRow(' + actualRowIndex + ',' + i + ')" style="background:var(--green);color:white;border:none;border-radius:5px;padding:0.45rem 1.1rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Save</button>';
     html += '</div>';
 
@@ -6210,7 +6210,7 @@ function mntStylePriSel(sel) {
   if (v === 'High')   { sel.style.color = '#c0392b'; }
   else if (v === 'Medium') { sel.style.color = '#b8680a'; }
   else if (v === 'Low')    { sel.style.color = '#2e7d52'; }
-  else                     { sel.style.color = '#aaa'; }
+  else                     { sel.style.color = '#888'; }
 }
 
 // Style all priority selects after table render
