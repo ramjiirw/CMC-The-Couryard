@@ -1538,7 +1538,7 @@
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
               <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(74,122,155,0.13);color:#2a5a7a;border:1px solid rgba(74,122,155,0.28);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Assigned</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin presses the 📧 button on a maintenance issue and clicks Send<br><span style="font-size:0.72rem;color:var(--mid);">Recipients are picked from the Residents sheet using the Assigned To field. Subject and body are fully editable before sending. Email design matches all other maintenance emails — header: <em>Resident Task Assignment</em>. Logged to Broadcast History as <code>Maintenance Assigned</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin presses the 📧 button on a maintenance issue and clicks Send<br><span style="font-size:0.72rem;color:var(--mid);">Recipients are picked from the Residents sheet using the Assigned To field. Subject and body are fully editable before sending. Email design matches all other maintenance emails — header: <em>Resident Task Assignment</em>. A 📋 Copy for WhatsApp button is also available, which copies a WhatsApp-formatted version to the clipboard for use with residents who have no email or for messaging via WhatsApp/text. Logged to Broadcast History as <code>Maintenance Assigned</code>.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Assigned residents (up to 2)</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
@@ -3914,7 +3914,8 @@ document.getElementById('footerYear').textContent = new Date().getFullYear();
 function mntAddIsDirty() {
   var cat  = document.getElementById('mntAddCategory').value;
   var desc = (document.getElementById('mntAddDescription').value || '').trim();
-  return !!(cat || desc);
+  var assigned = (document.getElementById('mntAddAssigned').value || '').trim();
+  return !!(cat || desc || assigned);
 }
 
 function mntAddIssueOpen() {
@@ -3923,6 +3924,10 @@ function mntAddIssueOpen() {
   document.getElementById('mntAddStatus').value = 'New';
   document.getElementById('mntAddPriority').value = '';
   document.getElementById('mntAddDescription').value = '';
+  document.getElementById('mntAddAssigned').value = '';
+  mntAddRenderAssignChips();
+  // Pre-load residents so picker is ready when needed
+  if (typeof ctPreload === 'function') ctPreload();
   var btn = document.getElementById('mntAddSubmitBtn');
   btn.disabled = false; btn.textContent = '💾 Add Director Issue';
   document.getElementById('mntAddDiscardOverlay').style.display = 'none';
@@ -3958,6 +3963,7 @@ async function mntAddIssueSubmit() {
   var status      = document.getElementById('mntAddStatus').value;
   var priority    = document.getElementById('mntAddPriority').value;
   var description = document.getElementById('mntAddDescription').value.trim();
+  var assignedTo  = document.getElementById('mntAddAssigned').value.trim();
   var err         = document.getElementById('mntAddErr');
   err.textContent = '';
   if (!category)    { err.textContent = 'Please select a category.';   return; }
@@ -3967,7 +3973,7 @@ async function mntAddIssueSubmit() {
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
-      body: JSON.stringify({ action:'addMaintenanceIssue', address:'Director', category:category, description:description, status:status, priority:priority })
+      body: JSON.stringify({ action:'addMaintenanceIssue', address:'Director', category:category, description:description, status:status, priority:priority, assignedTo:assignedTo })
     });
     var data = await res.json();
     if (!data || data.status !== 'ok') throw new Error(data && data.message ? data.message : 'Error');
@@ -6340,7 +6346,9 @@ function mntMobOpen(uiIndex, actualRowIndex) {
   document.getElementById('mntMob_assigned').value     = row.assignedTo  || '';
   // Mirror the just-set hidden values into the visible phone combobox displays
   mobComboSyncDisplay('mntMob_category');
-  mobComboSyncDisplay('mntMob_assigned');
+  mntMobRenderAssignChips();
+  // Pre-load residents so picker is ready when needed
+  if (typeof ctPreload === 'function') ctPreload();
   // Restore any unsaved draft note for this issue
   var draftKey = 'mnt_draft_' + actualRowIndex;
   var draft = sessionStorage.getItem(draftKey);
@@ -7079,6 +7087,14 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
         <label>Description</label>
         <textarea id="mntAddDescription" placeholder="Describe the issue clearly…"></textarea>
       </div>
+      <div class="mnt-add-field">
+        <label>Assigned to</label>
+        <div id="mntAddAssignedChips" style="background:#ffffff;border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.35rem 0.45rem;min-height:34px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.35rem;">
+          <span style="color:#a09080;font-size:0.78rem;font-style:italic;">None assigned</span>
+        </div>
+        <button type="button" onclick="mntAddOpenAssigneePicker(event)" style="background:#ffffff;border:1px solid #c4956a;color:#7a5c3e;border-radius:5px;padding:0.35rem 0.7rem;font-size:0.78rem;font-weight:600;cursor:pointer;">+ Pick residents</button>
+        <input type="hidden" id="mntAddAssigned" value="" />
+      </div>
     </div>
     <div class="mnt-add-footer">
       <button class="abtn abtn-muted" onclick="mntAddIssueGuardedClose()">Cancel</button>
@@ -7251,11 +7267,11 @@ document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qa
     </div>
     <div>
       <label>Assigned to</label>
-      <input id="mntMob_assigned" class="mob-combo-input" list="mntAssignedOptions" placeholder="Type to see existing names" autocomplete="off" />
-      <div class="mob-combo" onclick="mobComboOpen('mntMob_assigned','mntAssignedOptions','Assigned to')" tabindex="0">
-        <span class="mob-combo-value is-empty" id="mntMob_assigned_display">Tap to choose…</span>
-        <span class="mob-combo-chev">▾</span>
+      <div id="mntMob_assigned_chips" style="background:#ffffff;border:1px solid rgba(122,92,62,0.28);border-radius:7px;padding:0.5rem 0.55rem;min-height:40px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.4rem;">
+        <span style="color:#a09080;font-size:0.85rem;font-style:italic;">None assigned</span>
       </div>
+      <button type="button" onclick="mntMobOpenAssigneePicker(event)" style="background:#ffffff;border:1px solid #c4956a;color:#7a5c3e;border-radius:7px;padding:0.55rem 0.8rem;font-size:0.88rem;font-weight:600;cursor:pointer;width:100%;">+ Pick residents</button>
+      <input type="hidden" id="mntMob_assigned" value="" />
     </div>
     <div class="mnt-mob-btns">
       <button onclick="mntMobTryClose()" style="background:rgba(122,92,62,0.1);color:var(--mid);">Cancel</button>
@@ -8692,10 +8708,10 @@ function mntOpenAssigneePicker(uiIndex, evt) {
           + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;">'
           + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span></label>';
       } else {
-        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;opacity:0.45;cursor:not-allowed;">'
-          + '<input type="checkbox" disabled style="cursor:not-allowed;">'
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;cursor:pointer;border-radius:4px;" onmouseover="this.style.background=\'#f5f0e8\'" onmouseout="this.style.background=\'transparent\'">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" data-noemail="1" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;">'
           + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span>'
-          + '<span style="font-size:0.66rem;color:#a09080;font-style:italic;margin-left:auto;">no email</span></label>';
+          + '<span style="font-size:0.62rem;color:#8a4a10;background:#fff3cd;border:1px solid #f5d885;border-radius:10px;padding:0.05rem 0.4rem;margin-left:auto;font-weight:600;white-space:nowrap;">no email — copy only</span></label>';
       }
     });
   });
@@ -8771,6 +8787,251 @@ function mntConfirmAssigneePicker(uiIndex) {
   if (backdrop) backdrop.remove();
 }
 
+// ── Add Director Issue modal: assignee picker ────────────────────────────────
+async function mntAddOpenAssigneePicker(evt) {
+  if (evt) evt.stopPropagation();
+  var old = document.getElementById('mntAssigneePop');
+  if (old) { old.remove(); var oldBd = document.getElementById('mntAssigneePopBackdrop'); if (oldBd) oldBd.remove(); return; }
+
+  if (!ctLoaded) {
+    var ok = await ctLoadResidents();
+    if (!ok) return;
+  }
+
+  var current = document.getElementById('mntAddAssigned').value || '';
+  var currentNames = current ? current.split(',').map(function(n){ return n.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  var residents = (typeof ctResidents !== 'undefined' && ctResidents.length) ? ctResidents : [];
+  var grouped = {};
+  var order = [];
+  residents.forEach(function(r) {
+    var addr = (r.address || '').trim();
+    if (!addr) return;
+    if (!grouped[addr]) { grouped[addr] = []; order.push(addr); }
+    grouped[addr].push(r);
+  });
+  order.sort(function(a, b) {
+    var na = parseInt(a.match(/\d+/) || 9999, 10);
+    var nb = parseInt(b.match(/\d+/) || 9999, 10);
+    return na - nb;
+  });
+
+  var pop = document.createElement('div');
+  pop.id = 'mntAssigneePop';
+  pop.style.cssText = 'position:absolute;z-index:10001;background:#ffffff;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0.8rem;width:260px;max-width:calc(100vw - 32px);box-shadow:0 4px 16px rgba(122,92,62,0.18);';
+
+  var html = '<div style="font-size:0.7rem;font-weight:700;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.55rem;">Select up to 2 residents</div>';
+  html += '<div id="mntAssignPopWarn" style="font-size:0.68rem;color:#8a4a10;font-style:italic;background:#fff3cd;border:1px solid #f5d885;border-radius:4px;padding:0.3rem 0.5rem;margin-bottom:0.4rem;display:none;">2 of 2 selected — deselect one to change</div>';
+  html += '<div style="max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;">';
+
+  order.forEach(function(addr) {
+    html += '<div style="font-size:0.65rem;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid rgba(122,92,62,0.18);padding-bottom:0.2rem;margin:0.4rem 0 0.25rem;font-weight:600;">' + escHtml(addr) + '</div>';
+    grouped[addr].forEach(function(r) {
+      var label   = mntAssignLabel(r);
+      var hasEmail = r.email && r.email.indexOf('@') > -1;
+      var checked  = currentNames.indexOf(label.toLowerCase()) >= 0;
+      if (hasEmail) {
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;cursor:pointer;border-radius:4px;" onmouseover="this.style.background=\'#f5f0e8\'" onmouseout="this.style.background=\'transparent\'">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;">'
+          + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span></label>';
+      } else {
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;cursor:pointer;border-radius:4px;" onmouseover="this.style.background=\'#f5f0e8\'" onmouseout="this.style.background=\'transparent\'">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" data-noemail="1" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;">'
+          + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span>'
+          + '<span style="font-size:0.62rem;color:#8a4a10;background:#fff3cd;border:1px solid #f5d885;border-radius:10px;padding:0.05rem 0.4rem;margin-left:auto;font-weight:600;white-space:nowrap;">no email — copy only</span></label>';
+      }
+    });
+  });
+
+  html += '</div>';
+  html += '<button onclick="mntAddConfirmAssigneePicker()" style="background:#3d6b4a;color:white;border:none;border-radius:5px;padding:0.4rem 0.9rem;font-size:0.78rem;font-weight:600;cursor:pointer;width:100%;margin-top:0.5rem;">Confirm</button>';
+
+  pop.innerHTML = html;
+
+  pop.addEventListener('change', function() {
+    var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+    var warn = pop.querySelector('#mntAssignPopWarn');
+    if (checked.length >= 2) {
+      warn.style.display = 'block';
+      pop.querySelectorAll('input[type=checkbox]:not(:checked)').forEach(function(cb) { cb.disabled = true; });
+    } else {
+      warn.style.display = 'none';
+      pop.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = false; });
+    }
+  });
+
+  // Add modal is itself a fixed-position overlay — popover always centred-modal style
+  document.body.appendChild(pop);
+  pop.style.position = 'fixed';
+  pop.style.top = '50%';
+  pop.style.left = '50%';
+  pop.style.transform = 'translate(-50%,-50%)';
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'mntAssigneePopBackdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(30,26,22,0.4);z-index:10000;';
+  backdrop.onclick = function() { pop.remove(); backdrop.remove(); };
+  document.body.appendChild(backdrop);
+}
+
+function mntAddConfirmAssigneePicker() {
+  var pop = document.getElementById('mntAssigneePop');
+  if (!pop) return;
+  var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+  var names = [];
+  checked.forEach(function(cb) { names.push(cb.getAttribute('data-label')); });
+  document.getElementById('mntAddAssigned').value = names.join(', ');
+  mntAddRenderAssignChips();
+  pop.remove();
+  var backdrop = document.getElementById('mntAssigneePopBackdrop');
+  if (backdrop) backdrop.remove();
+}
+
+function mntAddRenderAssignChips() {
+  var container = document.getElementById('mntAddAssignedChips');
+  if (!container) return;
+  var val = (document.getElementById('mntAddAssigned').value || '').trim();
+  var names = val ? val.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  if (names.length === 0) {
+    container.innerHTML = '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">None assigned</span>';
+    return;
+  }
+  container.innerHTML = names.map(function(name) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.2rem 0.55rem;font-size:0.74rem;font-weight:500;">'
+      + escHtml(name)
+      + '<button type="button" onclick="mntAddRemoveAssignee(\'' + name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:0.85rem;line-height:1;padding:0 0 0 2px;font-weight:700;">×</button></span>';
+  }).join('');
+}
+
+function mntAddRemoveAssignee(name) {
+  var el = document.getElementById('mntAddAssigned');
+  if (!el) return;
+  var names = el.value ? el.value.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  names = names.filter(function(n){ return n !== name; });
+  el.value = names.join(', ');
+  mntAddRenderAssignChips();
+}
+
+// ── Mobile edit modal: assignee picker (mirrors Add modal pattern) ───────────
+async function mntMobOpenAssigneePicker(evt) {
+  if (evt) evt.stopPropagation();
+  var old = document.getElementById('mntAssigneePop');
+  if (old) { old.remove(); var oldBd = document.getElementById('mntAssigneePopBackdrop'); if (oldBd) oldBd.remove(); return; }
+
+  if (!ctLoaded) {
+    var ok = await ctLoadResidents();
+    if (!ok) return;
+  }
+
+  var current = document.getElementById('mntMob_assigned').value || '';
+  var currentNames = current ? current.split(',').map(function(n){ return n.trim().toLowerCase(); }).filter(Boolean) : [];
+
+  var residents = (typeof ctResidents !== 'undefined' && ctResidents.length) ? ctResidents : [];
+  var grouped = {};
+  var order = [];
+  residents.forEach(function(r) {
+    var addr = (r.address || '').trim();
+    if (!addr) return;
+    if (!grouped[addr]) { grouped[addr] = []; order.push(addr); }
+    grouped[addr].push(r);
+  });
+  order.sort(function(a, b) {
+    var na = parseInt(a.match(/\d+/) || 9999, 10);
+    var nb = parseInt(b.match(/\d+/) || 9999, 10);
+    return na - nb;
+  });
+
+  var pop = document.createElement('div');
+  pop.id = 'mntAssigneePop';
+  pop.style.cssText = 'position:fixed;z-index:10001;background:#ffffff;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0.8rem;width:280px;max-width:calc(100vw - 32px);box-shadow:0 4px 16px rgba(122,92,62,0.18);top:50%;left:50%;transform:translate(-50%,-50%);';
+
+  var html = '<div style="font-size:0.7rem;font-weight:700;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.55rem;">Select up to 2 residents</div>';
+  html += '<div id="mntAssignPopWarn" style="font-size:0.68rem;color:#8a4a10;font-style:italic;background:#fff3cd;border:1px solid #f5d885;border-radius:4px;padding:0.3rem 0.5rem;margin-bottom:0.4rem;display:none;">2 of 2 selected — deselect one to change</div>';
+  html += '<div style="max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">';
+
+  order.forEach(function(addr) {
+    html += '<div style="font-size:0.65rem;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid rgba(122,92,62,0.18);padding-bottom:0.2rem;margin:0.4rem 0 0.25rem;font-weight:600;">' + escHtml(addr) + '</div>';
+    grouped[addr].forEach(function(r) {
+      var label   = mntAssignLabel(r);
+      var hasEmail = r.email && r.email.indexOf('@') > -1;
+      var checked  = currentNames.indexOf(label.toLowerCase()) >= 0;
+      if (hasEmail) {
+        html += '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.45rem 0.3rem;cursor:pointer;border-radius:4px;">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;width:18px;height:18px;">'
+          + '<span style="font-size:0.88rem;color:#1e1a16;">' + escHtml(label) + '</span></label>';
+      } else {
+        html += '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.45rem 0.3rem;cursor:pointer;border-radius:4px;">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" data-noemail="1" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;width:18px;height:18px;">'
+          + '<span style="font-size:0.88rem;color:#1e1a16;">' + escHtml(label) + '</span>'
+          + '<span style="font-size:0.62rem;color:#8a4a10;background:#fff3cd;border:1px solid #f5d885;border-radius:10px;padding:0.05rem 0.4rem;margin-left:auto;font-weight:600;white-space:nowrap;">no email</span></label>';
+      }
+    });
+  });
+
+  html += '</div>';
+  html += '<button onclick="mntMobConfirmAssigneePicker()" style="background:#3d6b4a;color:white;border:none;border-radius:7px;padding:0.6rem 0.9rem;font-size:0.92rem;font-weight:600;cursor:pointer;width:100%;margin-top:0.6rem;">Confirm</button>';
+
+  pop.innerHTML = html;
+
+  pop.addEventListener('change', function() {
+    var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+    var warn = pop.querySelector('#mntAssignPopWarn');
+    if (checked.length >= 2) {
+      warn.style.display = 'block';
+      pop.querySelectorAll('input[type=checkbox]:not(:checked)').forEach(function(cb) { cb.disabled = true; });
+    } else {
+      warn.style.display = 'none';
+      pop.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = false; });
+    }
+  });
+
+  document.body.appendChild(pop);
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'mntAssigneePopBackdrop';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(30,26,22,0.5);z-index:10000;';
+  backdrop.onclick = function() { pop.remove(); backdrop.remove(); };
+  document.body.appendChild(backdrop);
+}
+
+function mntMobConfirmAssigneePicker() {
+  var pop = document.getElementById('mntAssigneePop');
+  if (!pop) return;
+  var checked = pop.querySelectorAll('input[type=checkbox]:checked');
+  var names = [];
+  checked.forEach(function(cb) { names.push(cb.getAttribute('data-label')); });
+  document.getElementById('mntMob_assigned').value = names.join(', ');
+  mntMobRenderAssignChips();
+  pop.remove();
+  var backdrop = document.getElementById('mntAssigneePopBackdrop');
+  if (backdrop) backdrop.remove();
+}
+
+function mntMobRenderAssignChips() {
+  var container = document.getElementById('mntMob_assigned_chips');
+  if (!container) return;
+  var val = (document.getElementById('mntMob_assigned').value || '').trim();
+  var names = val ? val.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  if (names.length === 0) {
+    container.innerHTML = '<span style="color:#a09080;font-size:0.85rem;font-style:italic;">None assigned</span>';
+    return;
+  }
+  container.innerHTML = names.map(function(name) {
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.25rem 0.65rem;font-size:0.82rem;font-weight:500;">'
+      + escHtml(name)
+      + '<button type="button" onclick="mntMobRemoveAssignee(\'' + name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:1rem;line-height:1;padding:0 0 0 3px;font-weight:700;">×</button></span>';
+  }).join('');
+}
+
+function mntMobRemoveAssignee(name) {
+  var el = document.getElementById('mntMob_assigned');
+  if (!el) return;
+  var names = el.value ? el.value.split(',').map(function(n){ return n.trim(); }).filter(Boolean) : [];
+  names = names.filter(function(n){ return n !== name; });
+  el.value = names.join(', ');
+  mntMobRenderAssignChips();
+}
+
 async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   if (evt) evt.stopPropagation();
 
@@ -8806,31 +9067,34 @@ async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
 
   // Build recipient list from assignedStr labels, matched against ctResidents
   var assignedNames = assignedStr.split(',').map(function(n){ return n.trim(); }).filter(Boolean);
-  var recipients = []; // [{label, email}]
-  var unmatched  = []; // names that couldn't be matched to a resident with email
+  var recipients   = []; // [{label, email}] — assignees with email (email send target)
+  var noEmailList  = []; // [label] — assignees without email (copy-only)
+  var unmatched    = []; // names that couldn't be matched to a resident at all
   assignedNames.forEach(function(name) {
-    // Match by label (firstName + address)
     var match = null;
     if (typeof ctResidents !== 'undefined') {
       ctResidents.forEach(function(r) {
-        if (mntAssignLabel(r).toLowerCase() === name.toLowerCase() && r.email && r.email.indexOf('@') > -1) {
+        if (mntAssignLabel(r).toLowerCase() === name.toLowerCase()) {
           match = r;
         }
       });
     }
     if (match) {
-      recipients.push({ label: name, email: match.email.trim() });
+      if (match.email && match.email.indexOf('@') > -1) {
+        recipients.push({ label: name, email: match.email.trim() });
+      } else {
+        noEmailList.push(name);
+      }
     } else {
       unmatched.push(name);
     }
   });
 
-  // Log to console for debugging
   if (unmatched.length) {
-    console.log('Assignment modal — could not find email for:', unmatched, '| ctResidents loaded:', (typeof ctResidents !== 'undefined' ? ctResidents.length : 'undefined'));
+    console.log('Assignment modal — could not find resident for:', unmatched, '| ctResidents loaded:', (typeof ctResidents !== 'undefined' ? ctResidents.length : 'undefined'));
   }
 
-  // Build salutation
+  // Build salutation — uses all assigned names (with or without email)
   var firstNames = assignedNames;
   var salutation = firstNames.length > 1
     ? firstNames.slice(0, -1).join(', ') + ' and ' + firstNames[firstNames.length - 1]
@@ -8848,14 +9112,21 @@ async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   // Pre-fill modal fields
   document.getElementById('mntAssignIssueRef').textContent = 'Issue #' + issueNum + ' \u2014 ' + address + ' \u2014 ' + category;
 
-  // To chips
+  // To chips — green for email recipients, amber for no-email (copy-only)
   var toDiv = document.getElementById('mntAssignToChips');
-  toDiv.innerHTML = recipients.length
-    ? recipients.map(function(rc) {
-        return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e6f0e8;border:1px solid #8ab098;border-radius:20px;padding:0.22rem 0.55rem;font-size:0.74rem;color:#2d5a3e;font-weight:500;">'
-          + escHtml(rc.label) + ' \u2014 ' + escHtml(rc.email) + '</span>';
-      }).join('')
-    : '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">No matching emails found' + (unmatched.length ? ' for: ' + escHtml(unmatched.join(', ')) : '') + '</span>';
+  var toHtml = '';
+  recipients.forEach(function(rc) {
+    toHtml += '<span style="display:inline-flex;align-items:center;gap:4px;background:#e6f0e8;border:1px solid #8ab098;border-radius:20px;padding:0.22rem 0.55rem;font-size:0.74rem;color:#2d5a3e;font-weight:500;">'
+      + escHtml(rc.label) + ' \u2014 ' + escHtml(rc.email) + '</span>';
+  });
+  noEmailList.forEach(function(name) {
+    toHtml += '<span style="display:inline-flex;align-items:center;gap:4px;background:#fff3cd;border:1px solid #f5d885;border-radius:20px;padding:0.22rem 0.55rem;font-size:0.74rem;color:#8a4a10;font-weight:500;">'
+      + escHtml(name) + ' \u2014 no email (copy only)</span>';
+  });
+  if (!toHtml) {
+    toHtml = '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">No matching residents found' + (unmatched.length ? ' for: ' + escHtml(unmatched.join(', ')) : '') + '</span>';
+  }
+  toDiv.innerHTML = toHtml;
 
   document.getElementById('mntAssignSubject').value =
     'CMC The Courtyard \u2014 Maintenance Issue #' + issueNum + ' \u2014 Assigned to You';
@@ -8892,6 +9163,12 @@ async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   document.getElementById('mntAssignModal').dataset.assigned  = assignedStr;
   document.getElementById('mntAssignModal').dataset.rowIndex  = actualRowIndex;
   document.getElementById('mntAssignModal').dataset.issueNum  = issueNum;
+  // Context for WhatsApp/copy
+  document.getElementById('mntAssignModal').dataset.issueCtx  = JSON.stringify({
+    issueNum: issueNum, address: address, category: category, status: status,
+    priority: priority, description: desc, dateAdded: dateAdded, updates: updates,
+    salutation: salutation
+  });
 
   document.getElementById('mntAssignModal').style.display = 'flex';
 }
@@ -8899,6 +9176,85 @@ async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
 function mntCloseAssignModal() {
   document.getElementById('mntAssignModal').style.display = 'none';
   document.getElementById('mntAssignPreview').style.display = 'none';
+}
+
+function mntBuildAssignWhatsApp() {
+  // Build a WhatsApp-formatted version of the assignment
+  // Reads the same context the modal was opened with, plus the (potentially edited) subject/body
+  var modal = document.getElementById('mntAssignModal');
+  var ctx;
+  try { ctx = JSON.parse(modal.dataset.issueCtx || '{}'); } catch(e) { ctx = {}; }
+
+  var lines = [];
+  lines.push('🔧 *CMC Maintenance Assignment*');
+  lines.push('');
+  lines.push('Hi ' + (ctx.salutation || 'there') + ', you\u2019ve been assigned issue #' + (ctx.issueNum || '') + '.');
+  lines.push('');
+  if (ctx.address)     lines.push('*Submitted by:* ' + ctx.address);
+  if (ctx.category)    lines.push('*Category:* '     + ctx.category);
+  if (ctx.status)      lines.push('*Status:* '       + ctx.status);
+  if (ctx.priority)    lines.push('*Priority:* '     + ctx.priority);
+  if (ctx.description) lines.push('*Issue:* '        + ctx.description);
+  if (ctx.dateAdded)   lines.push('*Reported:* '     + ctx.dateAdded);
+  if (ctx.updates) {
+    lines.push('');
+    lines.push('*Latest update:*');
+    lines.push(ctx.updates);
+  }
+  lines.push('');
+  lines.push('*Steps:*');
+  lines.push('1. Review and inspect if needed.');
+  lines.push('2. Get a quote (2\u20133 for larger spend).');
+  lines.push('3. Share quotes with the directors by email or in person and obtain approval before any work \u2014 all spend must be approved in advance.');
+  lines.push('4. Once approved, arrange for the work to be carried out.');
+  lines.push('5. Confirm completion so the issue can be marked resolved.');
+  lines.push('');
+  lines.push('Any questions, please contact the directors.');
+  lines.push('');
+  lines.push('— CMC The Courtyard');
+
+  return lines.join('\n');
+}
+
+function mntCopyAssignWhatsApp() {
+  var text = mntBuildAssignWhatsApp();
+  var btn = document.getElementById('mntAssignCopyBtn');
+  var originalText = btn.innerHTML;
+
+  function done(success) {
+    btn.innerHTML = success ? '\u2713 Copied' : '\u2717 Copy failed';
+    btn.style.background = success ? '#e6f0e8' : '#fdecec';
+    btn.style.color      = success ? '#2d5a3e' : '#7a3030';
+    btn.style.borderColor = success ? '#8ab098' : '#d88a8a';
+    setTimeout(function() {
+      btn.innerHTML = originalText;
+      btn.style.background = 'transparent';
+      btn.style.color = '#7a5c3e';
+      btn.style.borderColor = 'rgba(122,92,62,0.4)';
+    }, 2000);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ fallbackCopy(); });
+  } else {
+    fallbackCopy();
+  }
+
+  function fallbackCopy() {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done(true);
+    } catch(err) {
+      done(false);
+    }
+  }
 }
 
 function mntToggleAssignPreview() {
@@ -8924,7 +9280,7 @@ function mntSendAssignEmail() {
   var assigned = modal.dataset.assigned || '';
   var issueNum = modal.dataset.issueNum || '';
 
-  if (!emails.length) { alert('No email addresses found for assigned residents.'); return; }
+  if (!emails.length) { alert('No assigned residents have an email address — use \u201cCopy for WhatsApp\u201d instead.'); return; }
   if (!subject)        { alert('Please enter a subject line.'); return; }
 
   var btn = document.getElementById('mntAssignSendBtn');
@@ -8985,7 +9341,10 @@ function mntSendAssignEmail() {
     </div>
 
     <div style="display:flex;gap:0.6rem;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-      <button onclick="mntToggleAssignPreview()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button onclick="mntToggleAssignPreview()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
+        <button id="mntAssignCopyBtn" onclick="mntCopyAssignWhatsApp()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;" title="Copy WhatsApp-formatted version to clipboard">&#128203; Copy for WhatsApp</button>
+      </div>
       <div style="display:flex;gap:0.6rem;">
         <button onclick="mntCloseAssignModal()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.5rem 1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;">Cancel</button>
         <button id="mntAssignSendBtn" onclick="mntSendAssignEmail()" style="background:#3d6b4a;color:white;border:none;border-radius:6px;padding:0.5rem 1.3rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Send email</button>
