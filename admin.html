@@ -8771,8 +8771,14 @@ function mntConfirmAssigneePicker(uiIndex) {
   if (backdrop) backdrop.remove();
 }
 
-function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
+async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   if (evt) evt.stopPropagation();
+
+  // Ensure residents are loaded before we try to build recipient list
+  if (!ctLoaded) {
+    var ok = await ctLoadResidents();
+    if (!ok) return;
+  }
 
   // Find the row object
   var row = null;
@@ -8801,6 +8807,7 @@ function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   // Build recipient list from assignedStr labels, matched against ctResidents
   var assignedNames = assignedStr.split(',').map(function(n){ return n.trim(); }).filter(Boolean);
   var recipients = []; // [{label, email}]
+  var unmatched  = []; // names that couldn't be matched to a resident with email
   assignedNames.forEach(function(name) {
     // Match by label (firstName + address)
     var match = null;
@@ -8813,8 +8820,15 @@ function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
     }
     if (match) {
       recipients.push({ label: name, email: match.email.trim() });
+    } else {
+      unmatched.push(name);
     }
   });
+
+  // Log to console for debugging
+  if (unmatched.length) {
+    console.log('Assignment modal — could not find email for:', unmatched, '| ctResidents loaded:', (typeof ctResidents !== 'undefined' ? ctResidents.length : 'undefined'));
+  }
 
   // Build salutation
   var firstNames = assignedNames;
@@ -8841,7 +8855,7 @@ function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
         return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e6f0e8;border:1px solid #8ab098;border-radius:20px;padding:0.22rem 0.55rem;font-size:0.74rem;color:#2d5a3e;font-weight:500;">'
           + escHtml(rc.label) + ' \u2014 ' + escHtml(rc.email) + '</span>';
       }).join('')
-    : '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">No email addresses found for assigned residents</span>';
+    : '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">No matching emails found' + (unmatched.length ? ' for: ' + escHtml(unmatched.join(', ')) : '') + '</span>';
 
   document.getElementById('mntAssignSubject').value =
     'CMC The Courtyard \u2014 Maintenance Issue #' + issueNum + ' \u2014 Assigned to You';
