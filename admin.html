@@ -3172,18 +3172,18 @@ function renderMaintenanceTable() {
     html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
     html += '</div>';
     html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
-    html += '<div id="mnt-assigned-chips-' + i + '" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.3rem 0.4rem;min-height:34px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:0.35rem;">';
+    html += '<div id="mnt-assigned-chips-' + i + '" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.35rem 0.45rem;min-height:34px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.35rem;">';
     if (row.assignedTo) {
       row.assignedTo.split(',').map(function(n){ return n.trim(); }).filter(Boolean).forEach(function(name) {
-        html += '<span style="display:inline-flex;align-items:center;gap:3px;background:#3a5a7a;border:1px solid #6a9ec4;border-radius:20px;padding:0.18rem 0.45rem;font-size:0.72rem;color:#b8d4ea;">';
+        html += '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.2rem 0.55rem;font-size:0.74rem;font-weight:500;">';
         html += escHtml(name);
-        html += '<button type="button" onclick="mntRemoveAssignee(' + i + ',\'' + name.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#6a9ec4;cursor:pointer;font-size:0.8rem;line-height:1;padding:0 0 0 2px;">×</button></span>';
+        html += '<button type="button" onclick="mntRemoveAssignee(' + i + ',\'' + name.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:0.85rem;line-height:1;padding:0 0 0 2px;font-weight:700;">×</button></span>';
       });
     } else {
       html += '<span style="color:#5a4a3a;font-size:0.75rem;font-style:italic;">None assigned</span>';
     }
     html += '</div>';
-    html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#1e3a52;border:1px solid #4a7a9b;color:#6a9ec4;border-radius:5px;padding:0.28rem 0.6rem;font-size:0.72rem;cursor:pointer;width:100%;">+ Pick residents</button>';
+    html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#f5f0e8;border:1px solid #c4956a;color:#7a5c3e;border-radius:5px;padding:0.32rem 0.6rem;font-size:0.74rem;font-weight:600;cursor:pointer;width:100%;">+ Pick residents</button>';
     html += '<input type="hidden" id="mnt-assigned-' + i + '" value="' + (row.assignedTo || '').replace(/"/g, '&quot;') + '" />';
     html += '</div>';
     html += '</div>'; // end mnt-edit-left
@@ -8603,9 +8603,9 @@ function mntRenderAssignChips(uiIndex) {
     return;
   }
   container.innerHTML = names.map(function(name) {
-    return '<span style="display:inline-flex;align-items:center;gap:3px;background:#3a5a7a;border:1px solid #6a9ec4;border-radius:20px;padding:0.18rem 0.45rem;font-size:0.72rem;color:#b8d4ea;">'
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.2rem 0.55rem;font-size:0.74rem;font-weight:500;">'
       + escHtml(name)
-      + '<button type="button" onclick="mntRemoveAssignee(' + uiIndex + ',\'' + name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="background:none;border:none;color:#6a9ec4;cursor:pointer;font-size:0.8rem;line-height:1;padding:0 0 0 2px;">×</button></span>';
+      + '<button type="button" onclick="mntRemoveAssignee(' + uiIndex + ',\'' + name.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:0.85rem;line-height:1;padding:0 0 0 2px;font-weight:700;">×</button></span>';
   }).join('');
 }
 
@@ -8648,33 +8648,33 @@ function mntOpenAssigneePicker(uiIndex, evt) {
 
   var pop = document.createElement('div');
   pop.id = 'mntAssigneePop';
-  pop.style.cssText = 'position:absolute;z-index:9999;background:#1e1a16;border:1px solid #4a4030;border-radius:8px;padding:0.7rem;width:240px;box-shadow:0 4px 16px rgba(0,0,0,0.5);';
+  pop.style.cssText = 'position:absolute;z-index:9999;background:#ffffff;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0.8rem;width:260px;max-width:calc(100vw - 32px);box-shadow:0 4px 16px rgba(122,92,62,0.18);';
 
-  var html = '<div style="font-size:0.68rem;font-weight:700;color:#c8a96e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Select up to 2 residents</div>';
-  html += '<div id="mntAssignPopWarn" style="font-size:0.68rem;color:#c8a96e;font-style:italic;margin-bottom:0.4rem;display:none;">2 of 2 selected — deselect one to change</div>';
-  html += '<div style="max-height:220px;overflow-y:auto;">';
+  var html = '<div style="font-size:0.7rem;font-weight:700;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.55rem;">Select up to 2 residents</div>';
+  html += '<div id="mntAssignPopWarn" style="font-size:0.68rem;color:#8a4a10;font-style:italic;background:#fff3cd;border:1px solid #f5d885;border-radius:4px;padding:0.3rem 0.5rem;margin-bottom:0.4rem;display:none;">2 of 2 selected — deselect one to change</div>';
+  html += '<div style="max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;">';
 
   order.forEach(function(addr) {
-    html += '<div style="font-size:0.62rem;color:#6a5848;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #2e2820;padding-bottom:0.15rem;margin:0.4rem 0 0.25rem;">' + escHtml(addr) + '</div>';
+    html += '<div style="font-size:0.65rem;color:#7a5c3e;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid rgba(122,92,62,0.18);padding-bottom:0.2rem;margin:0.4rem 0 0.25rem;font-weight:600;">' + escHtml(addr) + '</div>';
     grouped[addr].forEach(function(r) {
       var label   = mntAssignLabel(r);
       var hasEmail = r.email && r.email.indexOf('@') > -1;
       var checked  = currentNames.indexOf(label.toLowerCase()) >= 0;
       if (hasEmail) {
-        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.22rem 0;cursor:pointer;">'
-          + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#6a9ec4;cursor:pointer;">'
-          + '<span style="font-size:0.78rem;color:#e8e0d0;">' + escHtml(label) + '</span></label>';
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;cursor:pointer;border-radius:4px;" onmouseover="this.style.background=\'#f5f0e8\'" onmouseout="this.style.background=\'transparent\'">'
+          + '<input type="checkbox" data-label="' + escHtml(label) + '" ' + (checked ? 'checked' : '') + ' style="accent-color:#7a5c3e;cursor:pointer;">'
+          + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span></label>';
       } else {
-        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.22rem 0;opacity:0.38;cursor:not-allowed;">'
+        html += '<label style="display:flex;align-items:center;gap:0.4rem;padding:0.28rem 0.3rem;opacity:0.45;cursor:not-allowed;">'
           + '<input type="checkbox" disabled style="cursor:not-allowed;">'
-          + '<span style="font-size:0.78rem;color:#e8e0d0;">' + escHtml(label) + '</span>'
-          + '<span style="font-size:0.65rem;color:#6a5848;font-style:italic;">no email</span></label>';
+          + '<span style="font-size:0.78rem;color:#1e1a16;">' + escHtml(label) + '</span>'
+          + '<span style="font-size:0.66rem;color:#a09080;font-style:italic;margin-left:auto;">no email</span></label>';
       }
     });
   });
 
   html += '</div>';
-  html += '<button onclick="mntConfirmAssigneePicker(' + uiIndex + ')" style="background:#4a7a9b;color:white;border:none;border-radius:5px;padding:0.35rem 0.9rem;font-size:0.78rem;font-weight:600;cursor:pointer;width:100%;margin-top:0.5rem;">Confirm</button>';
+  html += '<button onclick="mntConfirmAssigneePicker(' + uiIndex + ')" style="background:#3d6b4a;color:white;border:none;border-radius:5px;padding:0.4rem 0.9rem;font-size:0.78rem;font-weight:600;cursor:pointer;width:100%;margin-top:0.5rem;">Confirm</button>';
 
   pop.innerHTML = html;
 
@@ -8691,9 +8691,10 @@ function mntOpenAssigneePicker(uiIndex, evt) {
     }
   });
 
-  // Position below the pick button
+  // Position below the pick button — but on narrow screens, centre as a modal-style popover
   var pickBtn = document.querySelector('#mnt-edit-inner-' + uiIndex + ' button[onclick*="mntOpenAssigneePicker"]');
-  if (pickBtn) {
+  var isNarrow = window.innerWidth <= 600;
+  if (pickBtn && !isNarrow) {
     pickBtn.parentNode.style.position = 'relative';
     pickBtn.parentNode.appendChild(pop);
     pop.style.top = (pickBtn.offsetTop + pickBtn.offsetHeight + 4) + 'px';
@@ -8704,12 +8705,26 @@ function mntOpenAssigneePicker(uiIndex, evt) {
     pop.style.top = '50%';
     pop.style.left = '50%';
     pop.style.transform = 'translate(-50%,-50%)';
+    pop.style.zIndex = '10000';
+    // Add a faint backdrop on narrow screens so it reads as a modal
+    if (isNarrow) {
+      var backdrop = document.createElement('div');
+      backdrop.id = 'mntAssigneePopBackdrop';
+      backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(30,26,22,0.4);z-index:9998;';
+      backdrop.onclick = function() { pop.remove(); backdrop.remove(); };
+      document.body.appendChild(backdrop);
+    }
   }
 
   // Close on outside click
   setTimeout(function() {
     document.addEventListener('click', function closePop(e) {
-      if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', closePop); }
+      if (!pop.contains(e.target)) {
+        pop.remove();
+        var bd = document.getElementById('mntAssigneePopBackdrop');
+        if (bd) bd.remove();
+        document.removeEventListener('click', closePop);
+      }
     });
   }, 50);
 }
@@ -8725,6 +8740,8 @@ function mntConfirmAssigneePicker(uiIndex) {
   mntRenderAssignChips(uiIndex);
   mntMarkDirty(uiIndex);
   pop.remove();
+  var backdrop = document.getElementById('mntAssigneePopBackdrop');
+  if (backdrop) backdrop.remove();
 }
 
 function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
@@ -8784,6 +8801,8 @@ function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   var category  = row ? (row.category || '') : '';
   var address   = row ? (row.address || '') : '';
   var priority  = row ? (row.priority || '') : '';
+  var status    = row ? (row.status || '') : '';
+  var updates   = row ? (row.updates || '') : '';
 
   // Pre-fill modal fields
   document.getElementById('mntAssignIssueRef').textContent = 'Issue #' + issueNum + ' \u2014 ' + address + ' \u2014 ' + category;
@@ -8792,32 +8811,33 @@ function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   var toDiv = document.getElementById('mntAssignToChips');
   toDiv.innerHTML = recipients.length
     ? recipients.map(function(rc) {
-        return '<span style="display:inline-flex;align-items:center;gap:3px;background:#1a3a2a;border:1px solid #2a6a4a;border-radius:20px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6abf8a;">'
+        return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e6f0e8;border:1px solid #8ab098;border-radius:20px;padding:0.22rem 0.55rem;font-size:0.74rem;color:#2d5a3e;font-weight:500;">'
           + escHtml(rc.label) + ' \u2014 ' + escHtml(rc.email) + '</span>';
       }).join('')
-    : '<span style="color:#9a8878;font-size:0.75rem;font-style:italic;">No email addresses found for assigned residents</span>';
+    : '<span style="color:#a09080;font-size:0.78rem;font-style:italic;">No email addresses found for assigned residents</span>';
 
   document.getElementById('mntAssignSubject').value =
     'CMC The Courtyard \u2014 Maintenance Issue #' + issueNum + ' \u2014 Assigned to You';
 
   var body = 'Dear ' + salutation + ',\n\n'
-    + 'You have been asked to manage the following maintenance issue on behalf of CMC The Courtyard. '
+    + 'You have been assigned to manage the following maintenance issue on behalf of CMC The Courtyard. '
     + 'Please review the details below and take the necessary steps to progress it.\n\n'
     + '---\n'
     + 'Issue #: ' + issueNum + '\n'
-    + 'Address: ' + address + '\n'
+    + 'Submitted by: ' + address + '\n'
     + 'Category: ' + category + '\n'
+    + (status   ? 'Status: '   + status   + '\n' : '')
     + (priority ? 'Priority: ' + priority + '\n' : '')
     + 'Description: ' + desc + '\n'
     + (dateAdded ? 'Reported: ' + dateAdded + '\n' : '')
+    + (updates  ? '\nLatest update:\n' + updates + '\n' : '')
     + '---\n\n'
     + 'Steps to manage this issue:\n\n'
     + '1. Review the issue details above and inspect if required.\n'
     + '2. Obtain at least one quote from a suitable contractor. For larger spend, please seek at least two or three quotes.\n'
-    + '3. For any expenditure, please liaise with the directors before instructing any work — all spend must be approved in advance.\n'
-    + '4. Once quotes are obtained, share them with the directors via the portal or by email for sign-off.\n'
-    + '5. Arrange for the work to be carried out once approved.\n'
-    + '6. Confirm completion back to the directors so the issue can be marked as resolved.\n\n'
+    + '3. Share the quote(s) with the directors by email or in person and obtain approval before instructing any work — all spend must be approved in advance.\n'
+    + '4. Once approved, arrange for the work to be carried out.\n'
+    + '5. Confirm completion back to the directors so the issue can be marked as resolved.\n\n'
     + 'Please do not hesitate to contact the directors if you have any questions.\n\n'
     + 'Kind regards\n\nCMC The Courtyard';
 
@@ -8903,31 +8923,31 @@ function mntSendAssignEmail() {
 </script>
 
 <!-- ── Assignment Email Modal ──────────────────────────────────────────────── -->
-<div id="mntAssignModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:1rem;">
-  <div style="background:#2a2520;border-radius:8px;width:min(620px,96vw);max-height:92vh;overflow-y:auto;padding:1.4rem 1.6rem;position:relative;">
-    <button onclick="mntCloseAssignModal()" style="position:absolute;top:0.7rem;right:0.9rem;background:none;border:none;color:#9a8878;font-size:1.3rem;cursor:pointer;line-height:1;">&#10005;</button>
-    <p style="margin:0 0 0.2rem;font-size:1rem;font-weight:700;color:var(--cream);letter-spacing:0.03em;">&#128231; Send assignment email</p>
-    <p id="mntAssignIssueRef" style="margin:0 0 1rem;font-size:0.78rem;color:#c8a96e;font-style:italic;"></p>
+<div id="mntAssignModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(30,26,22,0.6);align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="background:#f5f0e8;border-radius:12px;width:min(620px,96vw);margin:auto;padding:1.4rem 1.6rem;position:relative;box-shadow:0 8px 32px rgba(30,26,22,0.3);">
+    <button onclick="mntCloseAssignModal()" style="position:absolute;top:0.8rem;right:1rem;background:none;border:none;color:#7a5c3e;font-size:1.3rem;cursor:pointer;line-height:1;">&#10005;</button>
+    <p style="margin:0 0 0.3rem;font-size:1.05rem;font-weight:700;color:#1e1a16;letter-spacing:0.02em;">&#128231; Send assignment email</p>
+    <p id="mntAssignIssueRef" style="margin:0 0 1rem;font-size:0.78rem;color:#7a5c3e;font-style:italic;"></p>
 
-    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">To</label>
-    <div id="mntAssignToChips" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.4rem 0.6rem;margin-bottom:0.9rem;display:flex;flex-wrap:wrap;gap:0.3rem;min-height:34px;"></div>
+    <label style="color:#6b5f52;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">To</label>
+    <div id="mntAssignToChips" style="background:#ffffff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.45rem 0.6rem;margin-bottom:0.9rem;display:flex;flex-wrap:wrap;gap:0.35rem;min-height:38px;"></div>
 
-    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Subject</label>
-    <input id="mntAssignSubject" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;margin-bottom:0.9rem;" />
+    <label style="color:#6b5f52;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Subject</label>
+    <input id="mntAssignSubject" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border-radius:6px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.85rem;margin-bottom:0.9rem;" />
 
-    <label style="color:#9a8878;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Message</label>
-    <textarea id="mntAssignBody" rows="14" style="width:100%;box-sizing:border-box;padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;resize:vertical;margin-bottom:0.9rem;line-height:1.5;"></textarea>
+    <label style="color:#6b5f52;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Message</label>
+    <textarea id="mntAssignBody" rows="14" style="width:100%;box-sizing:border-box;padding:0.55rem 0.75rem;border-radius:6px;border:1px solid rgba(122,92,62,0.28);background:#ffffff;color:#1e1a16;font-family:Arial,sans-serif;font-size:0.82rem;resize:vertical;margin-bottom:0.9rem;line-height:1.55;"></textarea>
 
-    <div id="mntAssignPreview" style="display:none;border:1px solid #3a3530;border-radius:5px;padding:0.8rem;background:#1a1610;margin-bottom:0.9rem;">
-      <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#9a8878;">Preview (plain text)</p>
-      <pre id="mntAssignPreviewText" style="margin:0;font-family:Arial,sans-serif;font-size:0.75rem;color:#c8c0b0;white-space:pre-wrap;word-wrap:break-word;"></pre>
+    <div id="mntAssignPreview" style="display:none;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.8rem;background:#ffffff;margin-bottom:0.9rem;">
+      <p style="margin:0 0 0.4rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#6b5f52;">Preview (plain text)</p>
+      <pre id="mntAssignPreviewText" style="margin:0;font-family:Arial,sans-serif;font-size:0.75rem;color:#1e1a16;white-space:pre-wrap;word-wrap:break-word;"></pre>
     </div>
 
-    <div style="display:flex;gap:0.6rem;justify-content:space-between;align-items:center;">
-      <button onclick="mntToggleAssignPreview()" style="background:#3a3530;color:#9a8878;border:none;border-radius:5px;padding:0.4rem 0.9rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
+    <div style="display:flex;gap:0.6rem;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+      <button onclick="mntToggleAssignPreview()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
       <div style="display:flex;gap:0.6rem;">
-        <button onclick="mntCloseAssignModal()" style="background:#3a3530;color:#9a8878;border:none;border-radius:5px;padding:0.45rem 0.9rem;font-family:Arial,sans-serif;font-size:0.82rem;cursor:pointer;">Cancel</button>
-        <button id="mntAssignSendBtn" onclick="mntSendAssignEmail()" style="background:#4a7a9b;color:white;border:none;border-radius:5px;padding:0.45rem 1.2rem;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">Send email</button>
+        <button onclick="mntCloseAssignModal()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.5rem 1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;">Cancel</button>
+        <button id="mntAssignSendBtn" onclick="mntSendAssignEmail()" style="background:#3d6b4a;color:white;border:none;border-radius:6px;padding:0.5rem 1.3rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Send email</button>
       </div>
     </div>
   </div>
