@@ -3172,7 +3172,7 @@ function renderMaintenanceTable() {
     html += '<input id="mnt-category-' + i + '" list="mntCategoryOptions" oninput="mntMarkDirty(' + i + ')" value="' + (row.category || '').replace(/"/g, '&quot;') + '" placeholder="Type or pick a category" style="padding:0.4rem 0.6rem;border-radius:5px;border:1px solid #3a3530;background:#1e1a16;color:var(--cream);font-family:Arial,sans-serif;font-size:0.82rem;width:100%;box-sizing:border-box;" />';
     html += '</div>';
     html += '<div style="margin-top:0.6rem;"><label style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:0.3rem;">Assigned to</label>';
-    html += '<div id="mnt-assigned-chips-' + i + '" style="background:#1e1a16;border:1px solid #3a3530;border-radius:5px;padding:0.35rem 0.45rem;min-height:34px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.35rem;">';
+    html += '<div id="mnt-assigned-chips-' + i + '" style="background:#ffffff;border:1px solid rgba(122,92,62,0.28);border-radius:5px;padding:0.35rem 0.45rem;min-height:34px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:0.35rem;">';
     if (row.assignedTo) {
       row.assignedTo.split(',').map(function(n){ return n.trim(); }).filter(Boolean).forEach(function(name) {
         html += '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.2rem 0.55rem;font-size:0.74rem;font-weight:500;">';
@@ -3180,7 +3180,7 @@ function renderMaintenanceTable() {
         html += '<button type="button" onclick="mntRemoveAssignee(' + i + ',\'' + name.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:0.85rem;line-height:1;padding:0 0 0 2px;font-weight:700;">×</button></span>';
       });
     } else {
-      html += '<span style="color:#5a4a3a;font-size:0.75rem;font-style:italic;">None assigned</span>';
+      html += '<span style="color:#a09080;font-size:0.75rem;font-style:italic;">None assigned</span>';
     }
     html += '</div>';
     html += '<button type="button" onclick="mntOpenAssigneePicker(' + i + ',event)" style="background:#f5f0e8;border:1px solid #c4956a;color:#7a5c3e;border-radius:5px;padding:0.32rem 0.6rem;font-size:0.74rem;font-weight:600;cursor:pointer;width:100%;">+ Pick residents</button>';
@@ -3475,6 +3475,7 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
         rowObj.priority     = newPriority;
         rowObj.category     = newCategory;
         rowObj.description  = newDescription;
+        rowObj.assignedTo   = newAssignedTo;
       }
       collapseMaintenanceRow(uiIndex);
       renderMaintenanceTable();
