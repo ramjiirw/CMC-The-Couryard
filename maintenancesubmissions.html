@@ -399,8 +399,20 @@
   .img-modal-close { position:fixed; top:14px; right:18px; color:white; font-size:24px; cursor:pointer; background:rgba(255,255,255,0.18); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10000; user-select:none; line-height:1; }
   .img-modal-close:hover { background:rgba(255,255,255,0.3); }
   .img-zoom-hint { position:absolute; bottom:8px; left:8px; background:rgba(30,26,22,0.65); color:#fff; font-size:0.7rem; padding:0.25rem 0.55rem; border-radius:4px; pointer-events:none; letter-spacing:0.02em; }
-  .img-zoom-reset { position:absolute; top:8px; right:8px; background:rgba(30,26,22,0.65); color:#fff; border:none; font-size:0.72rem; padding:0.3rem 0.65rem; border-radius:4px; cursor:pointer; letter-spacing:0.03em; font-family:Arial,sans-serif; }
+  .img-zoom-reset { position:absolute; top:8px; left:8px; background:rgba(30,26,22,0.65); color:#fff; border:none; font-size:0.72rem; padding:0.3rem 0.65rem; border-radius:4px; cursor:pointer; letter-spacing:0.03em; font-family:Arial,sans-serif; }
   .img-zoom-reset:hover { background:rgba(30,26,22,0.85); }
+  /* Vertical zoom control column on the right edge of the image stage.
+     Slider in the middle, + on top, − on bottom. Slider is rotated -90deg
+     so it runs vertically; native range inputs in vertical orientation are
+     inconsistent across browsers, hence the rotation trick. */
+  .img-zoom-controls { position:absolute; top:8px; right:8px; bottom:8px; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:5; }
+  .img-zoom-btn { background:rgba(30,26,22,0.65); color:#fff; border:none; width:30px; height:30px; border-radius:4px; font-size:1.05rem; font-weight:700; cursor:pointer; line-height:1; padding:0; font-family:Arial,sans-serif; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .img-zoom-btn:hover { background:rgba(30,26,22,0.85); }
+  .img-zoom-btn:active { background:rgba(30,26,22,0.95); }
+  .img-zoom-slider-wrap { flex:1; display:flex; align-items:center; justify-content:center; background:rgba(30,26,22,0.45); border-radius:4px; padding:6px 0; min-height:80px; }
+  .img-zoom-slider { -webkit-appearance:none; appearance:none; width:120px; height:4px; background:rgba(255,255,255,0.35); border-radius:2px; outline:none; transform:rotate(-90deg); transform-origin:center; cursor:pointer; flex-shrink:0; }
+  .img-zoom-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid rgba(0,0,0,0.2); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.4); }
+  .img-zoom-slider::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid rgba(0,0,0,0.2); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.4); }
 </style>
 </head>
 <body>
@@ -575,7 +587,14 @@
     <div class="img-modal-stage" id="imgModalStage">
       <img class="img-modal-img" id="imgModalImg" alt="">
       <button type="button" class="img-zoom-reset" id="imgZoomReset" onclick="resetImageZoom()" title="Reset zoom">Reset</button>
-      <div class="img-zoom-hint" id="imgZoomHint">Pinch / scroll to zoom · drag to pan</div>
+      <div class="img-zoom-controls">
+        <button type="button" class="img-zoom-btn" id="imgZoomIn" onclick="stepImageZoom(1)" title="Zoom in" aria-label="Zoom in">+</button>
+        <div class="img-zoom-slider-wrap">
+          <input type="range" class="img-zoom-slider" id="imgZoomSlider" min="1" max="6" step="0.05" value="1" oninput="setImageZoomFromSlider(this.value)" aria-label="Zoom level">
+        </div>
+        <button type="button" class="img-zoom-btn" id="imgZoomOut" onclick="stepImageZoom(-1)" title="Zoom out" aria-label="Zoom out">&#8722;</button>
+      </div>
+      <div class="img-zoom-hint" id="imgZoomHint">Pinch / scroll / slider to zoom · drag to pan</div>
     </div>
     <div class="img-modal-caption" id="imgModalCaption"></div>
   </div>
@@ -1551,6 +1570,7 @@ function renderSiteImages() {
 // so we can clean both up cleanly when the modal closes.
 var _imgPanzoom = null;
 var _imgPanzoomWheel = null;
+var _imgPanzoomChange = null;
 
 function openImageModal(idx) {
   var img = siteImages[idx];
@@ -1585,6 +1605,19 @@ function openImageModal(idx) {
     };
     stage.addEventListener('wheel', _imgPanzoomWheel, { passive: false });
     imgEl.addEventListener('dblclick', resetImageZoom);
+    // Keep the slider in sync with any other zoom action (pinch, wheel,
+    // double-tap reset, +/- buttons via Panzoom). 'panzoomchange' fires
+    // on every transform change and exposes the new scale on detail.
+    _imgPanzoomChange = function(ev) {
+      var slider = document.getElementById('imgZoomSlider');
+      if (slider && ev && ev.detail && typeof ev.detail.scale === 'number') {
+        slider.value = ev.detail.scale;
+      }
+    };
+    imgEl.addEventListener('panzoomchange', _imgPanzoomChange);
+    // Reset slider position to 1 (fit) on each open.
+    var slider = document.getElementById('imgZoomSlider');
+    if (slider) slider.value = 1;
   }
   if (imgEl.complete && imgEl.naturalWidth) {
     initPanzoom();
@@ -1595,6 +1628,23 @@ function openImageModal(idx) {
 
 function resetImageZoom() {
   if (_imgPanzoom) _imgPanzoom.reset();
+  var slider = document.getElementById('imgZoomSlider');
+  if (slider) slider.value = 1;
+}
+
+// Slider drag → set zoom level directly.
+function setImageZoomFromSlider(val) {
+  if (!_imgPanzoom) return;
+  var n = parseFloat(val);
+  if (isNaN(n)) return;
+  _imgPanzoom.zoom(n, { animate: false });
+}
+
+// + / − buttons → step zoom in or out by a fixed amount.
+function stepImageZoom(direction) {
+  if (!_imgPanzoom) return;
+  if (direction > 0) _imgPanzoom.zoomIn();
+  else _imgPanzoom.zoomOut();
 }
 
 function destroyImageZoom() {
@@ -1604,7 +1654,13 @@ function destroyImageZoom() {
     stage.removeEventListener('wheel', _imgPanzoomWheel);
     _imgPanzoomWheel = null;
   }
-  if (imgEl) imgEl.removeEventListener('dblclick', resetImageZoom);
+  if (imgEl) {
+    imgEl.removeEventListener('dblclick', resetImageZoom);
+    if (_imgPanzoomChange) {
+      imgEl.removeEventListener('panzoomchange', _imgPanzoomChange);
+      _imgPanzoomChange = null;
+    }
+  }
   if (_imgPanzoom) {
     try { _imgPanzoom.destroy(); } catch(e) {}
     _imgPanzoom = null;
