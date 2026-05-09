@@ -2690,6 +2690,23 @@ function mntParseDateVal(v) {
   return new Date(v).getTime() || 0;
 }
 
+// Shorten assignee names for compact display in tables/cards/chips.
+// "John Smith (5 The Courtyard)" -> "John (5)"
+// "John Smith (5 The Courtyard), Jane Doe (8 The Courtyard)" -> "John (5), Jane (8)"
+// Anything not matching the expected pattern is returned unchanged as a safe fallback.
+// Note: this is for DISPLAY only — the underlying assignedTo string is preserved
+// for filtering, removal, and email-recipient resolution.
+function mntFormatAssignee(str) {
+  if (!str) return '';
+  return String(str).split(',').map(function(part) {
+    var p = part.trim();
+    if (!p) return '';
+    var m = p.match(/^(\S+)[^(]*\((\d+)[^)]*\)\s*$/);
+    if (m) return m[1] + ' (' + m[2] + ')';
+    return p; // fallback: return original piece untouched
+  }).filter(Boolean).join(', ');
+}
+
 function mntStatusBadge(status, dateResolved) {
   var s = (status || 'New').trim();
   var v = s.toLowerCase();
@@ -3116,7 +3133,7 @@ function renderMaintenanceTable() {
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateAdded || row.dateSubmitted || row.date || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + mntStatusBadge(row.status, row.dateResolved) + '</td>';
     html += '<td style="' + tdBase + cardTop + '">' + mntPriBadge(row.priority) + '</td>';
-    html += '<td style="' + tdBase + cardTop + '">' + (row.assignedTo ? escHtml(row.assignedTo) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
+    html += '<td style="' + tdBase + cardTop + '">' + (row.assignedTo ? escHtml(mntFormatAssignee(row.assignedTo)) : '<span style="color:#b8ad9e;">—</span>') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'white-space:nowrap;">' + mntFmtDate(row.dateResolved || '') + '</td>';
     html += '<td style="' + tdBase + cardTop + 'text-align:center;padding:0.4rem 0.25rem;">';
     html += '<button onclick="mntEditClick(' + i + ',' + actualRowIndex + ',event)" style="background:none;border:none;cursor:pointer;font-size:1.05rem;color:#c4956a;padding:3px 5px;line-height:1;display:block;" title="Edit issue">✏️</button>';
@@ -3191,7 +3208,7 @@ function renderMaintenanceTable() {
     if (row.assignedTo) {
       row.assignedTo.split(',').map(function(n){ return n.trim(); }).filter(Boolean).forEach(function(name) {
         html += '<span style="display:inline-flex;align-items:center;gap:4px;background:#f5f0e8;color:#7a5c3e;border:1px solid #c4956a;border-radius:20px;padding:0.2rem 0.55rem;font-size:0.74rem;font-weight:500;">';
-        html += escHtml(name);
+        html += escHtml(mntFormatAssignee(name));
         html += '<button type="button" onclick="mntRemoveAssignee(' + i + ',\'' + name.replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:#7a5c3e;cursor:pointer;font-size:0.85rem;line-height:1;padding:0 0 0 2px;font-weight:700;">×</button></span>';
       });
     } else {
@@ -3235,7 +3252,7 @@ function renderMaintenanceTable() {
     issues.forEach(function(row) {
       var actualRowIndex = row.rowIndex;
       var resolvedStr = mntFmtDate(row.dateResolved || '');
-      var assignedStr = row.assignedTo ? escHtml(row.assignedTo) : '—';
+      var assignedStr = row.assignedTo ? escHtml(mntFormatAssignee(row.assignedTo)) : '—';
       var mobPriColor = mntPriColor(row.priority);
       html += '<div class="mnt-card" style="border-left:4px solid ' + mobPriColor + ';">';
       html += '<div class="mnt-card-top">';
