@@ -7,6 +7,7 @@
 <script src="auth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qr-creator/dist/qr-creator.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 <style>
   :root {
     --cream: #f5f0e8; --warm: #faf7f2; --stone: #b8ad9e;
@@ -389,10 +390,17 @@
   #imgModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; padding:20px; }
   #imgModal.open { display:flex; }
   .img-modal-card { background:white; border-radius:8px; padding:12px; max-width:90vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
-  .img-modal-img { max-width:100%; max-height:calc(90vh - 60px); object-fit:contain; border-radius:4px; }
+  /* Panzoom needs a fixed-size container that clips overflow so the image
+     can be panned within bounds without spilling out of the modal card. */
+  .img-modal-stage { position:relative; width:100%; max-height:calc(90vh - 90px); overflow:hidden; border-radius:4px; background:#f5f0e8; touch-action:none; display:flex; align-items:center; justify-content:center; }
+  .img-modal-img { max-width:100%; max-height:calc(90vh - 90px); object-fit:contain; border-radius:4px; cursor:grab; }
+  .img-modal-img:active { cursor:grabbing; }
   .img-modal-caption { padding:0.7rem 0.4rem 0.2rem; font-size:0.85rem; color:#4a3f35; text-align:center; }
   .img-modal-close { position:fixed; top:14px; right:18px; color:white; font-size:24px; cursor:pointer; background:rgba(255,255,255,0.18); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:10000; user-select:none; line-height:1; }
   .img-modal-close:hover { background:rgba(255,255,255,0.3); }
+  .img-zoom-hint { position:absolute; bottom:8px; left:8px; background:rgba(30,26,22,0.65); color:#fff; font-size:0.7rem; padding:0.25rem 0.55rem; border-radius:4px; pointer-events:none; letter-spacing:0.02em; }
+  .img-zoom-reset { position:absolute; top:8px; right:8px; background:rgba(30,26,22,0.65); color:#fff; border:none; font-size:0.72rem; padding:0.3rem 0.65rem; border-radius:4px; cursor:pointer; letter-spacing:0.03em; font-family:Arial,sans-serif; }
+  .img-zoom-reset:hover { background:rgba(30,26,22,0.85); }
 </style>
 </head>
 <body>
@@ -564,7 +572,11 @@
 <div id="imgModal" onclick="closeImageModal(event)">
   <div class="img-modal-close" onclick="closeImageModal(event)">&#10005;</div>
   <div class="img-modal-card" onclick="event.stopPropagation();">
-    <img class="img-modal-img" id="imgModalImg" alt="">
+    <div class="img-modal-stage" id="imgModalStage">
+      <img class="img-modal-img" id="imgModalImg" alt="">
+      <button type="button" class="img-zoom-reset" id="imgZoomReset" onclick="resetImageZoom()" title="Reset zoom">Reset</button>
+      <div class="img-zoom-hint" id="imgZoomHint">Pinch / scroll to zoom · drag to pan</div>
+    </div>
     <div class="img-modal-caption" id="imgModalCaption"></div>
   </div>
 </div>
@@ -1535,15 +1547,68 @@ function renderSiteImages() {
   }).join('');
 }
 
+// Holds the active Panzoom instance + the wheel handler we bind on open,
+// so we can clean both up cleanly when the modal closes.
+var _imgPanzoom = null;
+var _imgPanzoomWheel = null;
+
 function openImageModal(idx) {
   var img = siteImages[idx];
   if (!img) return;
   var modal = document.getElementById('imgModal');
-  document.getElementById('imgModalImg').src = '/' + img.path;
-  document.getElementById('imgModalImg').alt = img.name;
+  var imgEl = document.getElementById('imgModalImg');
+  imgEl.src = '/' + img.path;
+  imgEl.alt = img.name;
   document.getElementById('imgModalCaption').textContent = img.name;
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Tear down any leftover instance before creating a new one.
+  destroyImageZoom();
+
+  // Initialise Panzoom on the image once it's loaded so dimensions are known.
+  // Touch pinch-zoom and drag work natively; on desktop we bind the wheel
+  // event for scroll-to-zoom. Double-tap / double-click resets to fit.
+  function initPanzoom() {
+    if (typeof Panzoom !== 'function') return;
+    var stage = document.getElementById('imgModalStage');
+    _imgPanzoom = Panzoom(imgEl, {
+      maxScale: 6,
+      minScale: 1,
+      contain: 'outside',
+      cursor: 'grab',
+      step: 0.3
+    });
+    _imgPanzoomWheel = function(ev) {
+      if (!_imgPanzoom) return;
+      _imgPanzoom.zoomWithWheel(ev);
+    };
+    stage.addEventListener('wheel', _imgPanzoomWheel, { passive: false });
+    imgEl.addEventListener('dblclick', resetImageZoom);
+  }
+  if (imgEl.complete && imgEl.naturalWidth) {
+    initPanzoom();
+  } else {
+    imgEl.addEventListener('load', initPanzoom, { once: true });
+  }
+}
+
+function resetImageZoom() {
+  if (_imgPanzoom) _imgPanzoom.reset();
+}
+
+function destroyImageZoom() {
+  var stage = document.getElementById('imgModalStage');
+  var imgEl = document.getElementById('imgModalImg');
+  if (_imgPanzoomWheel && stage) {
+    stage.removeEventListener('wheel', _imgPanzoomWheel);
+    _imgPanzoomWheel = null;
+  }
+  if (imgEl) imgEl.removeEventListener('dblclick', resetImageZoom);
+  if (_imgPanzoom) {
+    try { _imgPanzoom.destroy(); } catch(e) {}
+    _imgPanzoom = null;
+  }
 }
 
 function closeImageModal(e) {
@@ -1551,6 +1616,7 @@ function closeImageModal(e) {
   var modal = document.getElementById('imgModal');
   if (modal) modal.classList.remove('open');
   document.body.style.overflow = '';
+  destroyImageZoom();
 }
 
 document.addEventListener('keydown', function(e) {
