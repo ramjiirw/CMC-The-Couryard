@@ -940,6 +940,22 @@ function fmtDate(v) {
   return isNaN(d) ? v : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
+// Shorten assignee names for compact display in the card layout.
+// "John Smith (5 The Courtyard)" -> "John (5)"
+// "John Smith (5 The Courtyard), Jane Doe (8 The Courtyard)" -> "John (5), Jane (8)"
+// Anything not matching the expected pattern is returned unchanged as a safe fallback.
+function formatAssignee(str) {
+  if (!str) return '';
+  return String(str).split(',').map(part => {
+    const p = part.trim();
+    if (!p) return '';
+    // Match "Firstname ... (number ...)" — capture first word and first number in brackets
+    const m = p.match(/^(\S+)[^(]*\((\d+)[^)]*\)\s*$/);
+    if (m) return m[1] + ' (' + m[2] + ')';
+    return p; // fallback: return the original piece untouched
+  }).filter(Boolean).join(', ');
+}
+
 // Sort handling — driven by #sortSelect dropdown in the filter bar.
 // Default is dateAdded-desc (newest first).
 function applySort(list) {
@@ -1167,7 +1183,7 @@ function renderIssues() {
     html += '<div class="meta-cell"><span class="label">Date Added</span><span class="value">' + (r.dateAdded ? fmtDate(r.dateAdded) : '<span class="value-empty">—</span>') + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Status</span><span class="value">' + statusBadge(r.status, r.dateResolved) + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Priority</span><span class="value">' + priorityBadge(r.priority) + '</span></div>';
-    html += '<div class="meta-cell"><span class="label">Assigned to</span><span class="value">' + (r.assignedTo ? '<span class="assigned-tag">' + r.assignedTo + '</span>' : '<span class="value-empty">—</span>') + '</span></div>';
+    html += '<div class="meta-cell"><span class="label">Assigned to</span><span class="value">' + (r.assignedTo ? '<span class="assigned-tag">' + formatAssignee(r.assignedTo) + '</span>' : '<span class="value-empty">—</span>') + '</span></div>';
     html += '<div class="meta-cell"><span class="label">Date Resolved</span><span class="value">' + (r.dateResolved ? fmtDate(r.dateResolved) : '<span class="value-empty">—</span>') + '</span></div>';
     html += '</div>';
 
