@@ -563,7 +563,10 @@ function openImageModal(idx) {
   // Initialise Panzoom on the image once it's loaded so dimensions are known.
   // Touch pinch-zoom and drag work natively; on desktop we bind the wheel
   // event for scroll-to-zoom. Double-tap / double-click resets to fit.
+  // On mobile / tablet (≤1024px) we skip Panzoom entirely so touch events on
+  // the image fall through to the browser's native page-level pinch zoom.
   function initPanzoom() {
+    if (window.innerWidth <= 1024) return;
     if (typeof Panzoom !== 'function') return;
     var stage = document.getElementById('imgModalStage');
     _imgPanzoom = Panzoom(imgEl, {
