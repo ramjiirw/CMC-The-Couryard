@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CMC The Courtyard — Seller's Information Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 <style>
@@ -176,6 +176,14 @@
   .img-zoom-btn:hover { background:rgba(30,26,22,0.85); }
   .img-zoom-btn:active { background:rgba(30,26,22,0.95); }
   .img-zoom-btn.is-text { font-size:0.72rem; font-weight:600; letter-spacing:0.03em; }
+  /* Mobile / tablet: hide the zoom buttons & hint, and let the browser handle
+     pinch/zoom at the page level (no touch-action lock on the stage). */
+  @media (max-width: 1024px) {
+    .img-zoom-controls, .img-zoom-hint { display:none; }
+    .img-modal-stage { touch-action:auto; }
+    .img-modal-img { cursor:default; }
+    .img-modal-img:active { cursor:default; }
+  }
 </style>
 </head>
 <body>
