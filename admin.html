@@ -1538,7 +1538,7 @@
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
               <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(74,122,155,0.13);color:#2a5a7a;border:1px solid rgba(74,122,155,0.28);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Maintenance Assigned</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin presses the 📧 button on a maintenance issue and clicks Send<br><span style="font-size:0.72rem;color:var(--mid);">Recipients are picked from the Residents sheet using the Assigned To field. Subject and body are fully editable before sending. Email design matches all other maintenance emails — header: <em>Resident Task Assignment</em>. The modal also has a 📋 Copy button (formatted message to clipboard) and a 💬 Open in WhatsApp button (opens WhatsApp with the message pre-filled — pick one or more chats in WhatsApp). Logged to Broadcast History as <code>Maintenance Assigned</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin presses the 📧 button on a maintenance issue and clicks Send<br><span style="font-size:0.72rem;color:var(--mid);">Recipients are picked from the Residents sheet using the Assigned To field. Subject and body are fully editable before sending. Email design matches all other maintenance emails — header: <em>Resident Task Assignment</em>. The modal also has a 📋 Copy button (formatted message to clipboard, paste into any chat app), and on mobile a 💬 Open in WhatsApp button that opens WhatsApp with the message pre-filled. Logged to Broadcast History as <code>Maintenance Assigned</code>.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Assigned residents (up to 2)</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
@@ -9158,6 +9158,10 @@ async function mntOpenAssignModal(uiIndex, actualRowIndex, evt) {
   document.getElementById('mntAssignSendBtn').disabled = false;
   document.getElementById('mntAssignSendBtn').textContent = 'Send email';
 
+  // Show "Open in WhatsApp" only on narrow screens (where the URL handoff to the WhatsApp app is genuinely faster than Copy)
+  var waBtn = document.getElementById('mntAssignWhatsAppBtn');
+  if (waBtn) waBtn.style.display = window.innerWidth <= 768 ? 'inline-block' : 'none';
+
   // Store recipients for send
   document.getElementById('mntAssignModal').dataset.emails    = JSON.stringify(recipients.map(function(r){ return r.email; }));
   document.getElementById('mntAssignModal').dataset.assigned  = assignedStr;
@@ -9352,7 +9356,7 @@ function mntSendAssignEmail() {
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
         <button onclick="mntToggleAssignPreview()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;">&#128065; Preview</button>
         <button id="mntAssignCopyBtn" onclick="mntCopyAssignWhatsApp()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;cursor:pointer;" title="Copy formatted message to clipboard">&#128203; Copy</button>
-        <button onclick="mntOpenWhatsApp()" style="background:#25d366;color:white;border:none;border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;" title="Open WhatsApp with the message ready &mdash; pick contacts in WhatsApp">&#128172; Open in WhatsApp</button>
+        <button id="mntAssignWhatsAppBtn" onclick="mntOpenWhatsApp()" style="background:#25d366;color:white;border:none;border-radius:6px;padding:0.45rem 0.95rem;font-family:Arial,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;display:none;" title="Open WhatsApp with the message ready">&#128172; Open in WhatsApp</button>
       </div>
       <div style="display:flex;gap:0.6rem;">
         <button onclick="mntCloseAssignModal()" style="background:transparent;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:6px;padding:0.5rem 1rem;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;">Cancel</button>
