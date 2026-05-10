@@ -284,6 +284,23 @@
       </div>
     </div>
 
+    <!-- SITE IMAGES PANEL -->
+    <div class="doc-card-wrapper">
+      <button class="btn-toggle" id="toggle-sipimages" onclick="togglePanel('toggle-sipimages','panel-sipimages')" aria-expanded="false">
+        <span>&#128247; Site Images <span class="count-pill" id="imgCount" style="margin-left:0.5rem;">&#8230;</span></span>
+        <span class="toggle-hint">
+          <span class="hint-open">Tap to expand &amp; view</span>
+          <span class="hint-close">Tap to close</span>
+          <span class="chevron">&#9658;</span>
+        </span>
+      </button>
+      <div class="collapsible-panel" id="panel-sipimages">
+        <div style="background:white;">
+          <div id="imgGrid" class="img-grid"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="doc-card-wrapper">
       <button class="btn-toggle" id="toggle-sipdocs" onclick="togglePanel('toggle-sipdocs','panel-sipdocs')" aria-expanded="false">
         <span>&#128196; Documents <span class="count-pill" id="docsToggleCount" style="margin-left:0.5rem;">&#8230;</span></span>
@@ -307,23 +324,6 @@
             <button class="doc-filter-clear" id="sipClearBtn" onclick="clearSipSearch()">&#x2715; Clear</button>
           </div>
           <table class="doc-table" id="allTable"><thead><tr><th class="sortable sort-asc" id="allSortTh" onclick="toggleSortAll()">Document<span class="sort-icon"></span></th><th></th></tr></thead><tbody id="allBody"></tbody></table>
-        </div>
-      </div>
-    </div>
-
-    <!-- SITE IMAGES PANEL -->
-    <div class="doc-card-wrapper">
-      <button class="btn-toggle" id="toggle-sipimages" onclick="togglePanel('toggle-sipimages','panel-sipimages')" aria-expanded="false">
-        <span>&#128247; Site Images <span class="count-pill" id="imgCount" style="margin-left:0.5rem;">&#8230;</span></span>
-        <span class="toggle-hint">
-          <span class="hint-open">Tap to expand &amp; view</span>
-          <span class="hint-close">Tap to close</span>
-          <span class="chevron">&#9658;</span>
-        </span>
-      </button>
-      <div class="collapsible-panel" id="panel-sipimages">
-        <div style="background:white;">
-          <div id="imgGrid" class="img-grid"></div>
         </div>
       </div>
     </div>
