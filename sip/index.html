@@ -85,6 +85,12 @@
   .sortable.sort-asc .sort-icon::after { content:' ▲'; opacity:1; color:var(--accent2); }
   .sortable.sort-desc .sort-icon::after { content:' ▼'; opacity:1; color:var(--accent2); }
   .sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:' ▲▼'; }
+  .qa-sort-group { display:inline-flex; gap:0.4rem; margin-left:0.75rem; vertical-align:middle; }
+  .qa-sort-chip { cursor:pointer; user-select:none; font-size:0.72rem; font-weight:500; padding:0.15rem 0.55rem; border-radius:10px; border:1px solid rgba(184,173,158,0.4); color:#888780; background:transparent; display:inline-flex; align-items:center; gap:2px; white-space:nowrap; }
+  .qa-sort-chip.active { color:var(--accent); border-color:var(--accent); font-weight:700; }
+  .qa-sort-arrow { font-size:0.65rem; opacity:0.35; }
+  .qa-sort-chip.active.asc  .qa-sort-arrow::after { content:'▲'; opacity:1; color:var(--accent2); }
+  .qa-sort-chip.active.desc .qa-sort-arrow::after { content:'▼'; opacity:1; color:var(--accent2); }
   footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; position:sticky; bottom:0; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   footer p > span:first-child { color:#6090b0; }
@@ -251,7 +257,13 @@
           <table class="qa-table">
             <thead>
               <tr>
-                <th class="sortable sort-asc" id="qaSortQ" onclick="sortQA('topic')" title="Sort by topic">Question<span class="sort-icon"></span></th>
+                <th id="qaSortHeader">
+                  Question
+                  <span class="qa-sort-group">
+                    <span class="qa-sort-chip active asc" id="qaSortChipTopic" onclick="setQaSort('topic')">Topic<span class="qa-sort-arrow"></span></span>
+                    <span class="qa-sort-chip" id="qaSortChipNum" onclick="setQaSort('qaid')">Q#<span class="qa-sort-arrow"></span></span>
+                  </span>
+                </th>
                 <th>Answer</th>
               </tr>
             </thead>
@@ -706,14 +718,26 @@ function buildQaTopicFilter() {
   });
 }
 
-function sortQA(col) {
-  // Topic-only sort. Calls with the col param kept for compatibility but
-  // ignored — there's only one sortable column now.
-  qaSortDir = qaSortDir === 'asc' ? 'desc' : 'asc';
-  var hdr = document.getElementById('qaSortQ');
-  if (hdr) hdr.className = 'sortable ' + (qaSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+function setQaSort(col) {
+  // Toggle direction if clicking the active chip, otherwise switch to this col with asc default.
+  if (qaSortCol === col) {
+    qaSortDir = qaSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    qaSortCol = col;
+    qaSortDir = 'asc';
+  }
+  // Update chip visual state
+  var chipTopic = document.getElementById('qaSortChipTopic');
+  var chipNum   = document.getElementById('qaSortChipNum');
+  if (chipTopic && chipNum) {
+    chipTopic.className = 'qa-sort-chip' + (qaSortCol === 'topic' ? ' active ' + qaSortDir : '');
+    chipNum.className   = 'qa-sort-chip' + (qaSortCol === 'qaid'  ? ' active ' + qaSortDir : '');
+  }
   renderQA();
 }
+
+// Legacy alias - any old call site still works.
+function sortQA(col) { setQaSort(col || 'topic'); }
 
 function updateQaClearBtn() {
   var qVal = document.getElementById('qaSearchInput').value;
@@ -765,8 +789,17 @@ function renderQA() {
     return matchQ && matchT && matchBio;
   });
 
-  // Sort by topic only (single sortable column).
+  // Sort by selected column (topic A-Z by default, or by Q# / qaid).
   filtered.sort(function(a, b){
+    if (qaSortCol === 'qaid') {
+      var ai = (a.qaid === null || a.qaid === undefined || a.qaid === '') ? null : a.qaid;
+      var bi = (b.qaid === null || b.qaid === undefined || b.qaid === '') ? null : b.qaid;
+      // Rows without a qaid go to the end regardless of direction.
+      if (ai === null && bi === null) return 0;
+      if (ai === null) return 1;
+      if (bi === null) return -1;
+      return qaSortDir === 'asc' ? ai - bi : bi - ai;
+    }
     var av = (a.topic || '').toLowerCase();
     var bv = (b.topic || '').toLowerCase();
     return qaSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
