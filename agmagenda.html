@@ -1153,11 +1153,12 @@ function renderDocs() {
     else current.push(f);
   });
 
-  // Update header count (total of current + archive)
-  var count = state.files.length;
+  // Update header count: current count, then · ARCHIVE (n) if any archived
   var headerSpan = document.querySelector('#toggle-agmdocs span:first-child');
   if (headerSpan) {
-    headerSpan.textContent = '📄 AGM Documents' + (count > 0 ? ' (' + count + ')' : '');
+    var headerText = '📄 AGM Documents' + (current.length > 0 ? ' (' + current.length + ')' : '');
+    if (archive.length > 0) headerText += ' \u00b7 ARCHIVE (' + archive.length + ')';
+    headerSpan.textContent = headerText;
   }
 
   if (!state.files.length) {
@@ -1212,7 +1213,7 @@ function renderDocs() {
 
     html += '<div style="border-bottom:1px solid var(--border)">';
     html += '<div onclick="toggleAgmDocArchive()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:#5a5048;border-top:3px solid #b8ad9e;cursor:pointer;font-family:Arial,sans-serif;box-sizing:border-box">';
-    html += '<span style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#f5f0e8;min-width:0;overflow:hidden">■ Archive <span style="background:rgba(255,255,255,0.18);border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;color:#f5f0e8">' + archive.length + '</span></span>';
+    html += '<span style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#f5f0e8;min-width:0;overflow:hidden">■ ARCHIVE &middot; AGM DOCUMENTS <span style="background:rgba(255,255,255,0.18);border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;color:#f5f0e8">' + archive.length + '</span></span>';
     html += '<span style="font-size:0.72rem;color:#b8ad9e;white-space:nowrap;display:flex;align-items:center;gap:0.3rem"><span id="agmdoc-archive-hint">' + hintText + '</span> <span id="agmdoc-archive-chev" style="display:inline-block;transition:transform 0.25s;font-size:0.7rem;' + chevRot + '">&#9654;</span></span>';
     html += '</div>';
     html += '<div id="agmdoc-archive-panel" style="overflow:hidden;max-height:' + (isOpen ? '8000px' : '0') + ';transition:max-height 0.3s ease">';
