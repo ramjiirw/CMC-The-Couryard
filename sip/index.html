@@ -85,7 +85,8 @@
   .sortable.sort-asc .sort-icon::after { content:' ▲'; opacity:1; color:var(--accent2); }
   .sortable.sort-desc .sort-icon::after { content:' ▼'; opacity:1; color:var(--accent2); }
   .sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:' ▲▼'; }
-  .qa-sort-group { display:inline-flex; gap:0.4rem; margin-left:0.75rem; vertical-align:middle; }
+  .qa-sort-group { display:inline-flex; gap:0.4rem; margin-left:0.75rem; vertical-align:middle; align-items:center; }
+  .qa-sort-label { font-size:0.72rem; color:#888780; font-weight:400; letter-spacing:0.02em; }
   .qa-sort-chip { cursor:pointer; user-select:none; font-size:0.72rem; font-weight:500; padding:0.15rem 0.55rem; border-radius:10px; border:1px solid rgba(184,173,158,0.4); color:#888780; background:transparent; display:inline-flex; align-items:center; gap:2px; white-space:nowrap; }
   .qa-sort-chip.active { color:var(--accent); border-color:var(--accent); font-weight:700; }
   .qa-sort-arrow { font-size:0.65rem; opacity:0.35; }
@@ -260,6 +261,7 @@
                 <th id="qaSortHeader">
                   Question
                   <span class="qa-sort-group">
+                    <span class="qa-sort-label">Sort:</span>
                     <span class="qa-sort-chip active asc" id="qaSortChipTopic" onclick="setQaSort('topic')">Topic<span class="qa-sort-arrow"></span></span>
                     <span class="qa-sort-chip" id="qaSortChipNum" onclick="setQaSort('qaid')">Q#<span class="qa-sort-arrow"></span></span>
                   </span>
