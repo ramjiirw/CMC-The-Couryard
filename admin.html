@@ -98,6 +98,11 @@
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
+  .qa-sort-chip { cursor:pointer; user-select:none; font-size:0.65rem; font-weight:500; padding:0.1rem 0.45rem; border-radius:10px; border:1px solid rgba(184,173,158,0.4); color:#888780; background:transparent; display:inline-flex; align-items:center; gap:2px; white-space:nowrap; margin-right:0.3rem; }
+  .qa-sort-chip.active { color:#7a5c3e; border-color:#7a5c3e; font-weight:700; }
+  .qa-sort-chip-arrow { font-size:0.6rem; opacity:0.4; }
+  .qa-sort-chip.active.asc  .qa-sort-chip-arrow::after { content:'▲'; opacity:1; color:#c4956a; }
+  .qa-sort-chip.active.desc .qa-sort-chip-arrow::after { content:'▼'; opacity:1; color:#c4956a; }
   .res-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
   .res-table th { background:rgba(122,92,62,0.1); color:var(--accent); padding:0.55rem 0.7rem; text-align:left; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid rgba(122,92,62,0.22); }
   .res-table th:nth-child(1){width:30%;} .res-table th:nth-child(2){width:35%;} .res-table th:nth-child(3){width:35%;}
@@ -6652,6 +6657,14 @@ function qaSort() {
   var dir = _qaSortDir[col] || 'asc';
   if (col) {
     qaFiltered.sort(function(a, b){
+      if (col === 'qaid') {
+        var ai = (a.qaid === null || a.qaid === undefined || a.qaid === '') ? null : a.qaid;
+        var bi = (b.qaid === null || b.qaid === undefined || b.qaid === '') ? null : b.qaid;
+        if (ai === null && bi === null) return 0;
+        if (ai === null) return 1;
+        if (bi === null) return -1;
+        return dir === 'asc' ? ai - bi : bi - ai;
+      }
       var av = (a[col] || '').toLowerCase();
       var bv = (b[col] || '').toLowerCase();
       if (av < bv) return dir === 'asc' ? -1 : 1;
@@ -6740,10 +6753,18 @@ function qaRenderTable() {
       : ' <span style="color:#7a5c3e;font-size:0.75rem;">\u2193</span>';
   }
 
+  function chip(col, label) {
+    var active = (_qaSortCol === col);
+    var dir = _qaSortDir[col] || 'asc';
+    var cls = 'qa-sort-chip' + (active ? ' active ' + dir : '');
+    return '<span class="' + cls + '" onclick="qaSortBy(\'' + col + '\')">' + label + '<span class="qa-sort-chip-arrow"></span></span>';
+  }
+
   var thStyle = 'padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;cursor:pointer;user-select:none;white-space:nowrap;';
+  var thStyleNoClick = 'padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;user-select:none;white-space:nowrap;';
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr style="background:#faf7f2;">';
-  html += '<th style="' + thStyle + 'width:140px;" onclick="qaSortBy(\'topic\')">Topic' + sortArrow('topic') + '</th>';
+  html += '<th style="' + thStyleNoClick + 'width:180px;">' + chip('topic', 'Topic') + chip('qaid', 'Q#') + '</th>';
   html += '<th style="' + thStyle + '" onclick="qaSortBy(\'question\')">Question' + sortArrow('question') + '</th>';
   html += '<th style="' + thStyle + '" onclick="qaSortBy(\'answer\')">Answer' + sortArrow('answer') + '</th>';
   html += '<th style="padding:0.55rem 0.75rem;border-bottom:2px solid #c8bfb4;width:70px;"></th>';
