@@ -98,6 +98,7 @@
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
+  .qa-sort-label { font-size:0.65rem; color:#888780; font-weight:600; letter-spacing:0.05em; margin-right:4px; }
   .qa-sort-chip { cursor:pointer; user-select:none; font-size:0.65rem; font-weight:500; padding:0.1rem 0.45rem; border-radius:10px; border:1px solid rgba(184,173,158,0.4); color:#888780; background:transparent; display:inline-flex; align-items:center; gap:2px; white-space:nowrap; margin-right:0.3rem; }
   .qa-sort-chip.active { color:#7a5c3e; border-color:#7a5c3e; font-weight:700; }
   .qa-sort-chip-arrow { font-size:0.6rem; opacity:0.4; }
@@ -6764,7 +6765,7 @@ function qaRenderTable() {
   var thStyleNoClick = 'padding:0.55rem 1rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b5f52;text-align:left;border-bottom:2px solid #c8bfb4;user-select:none;white-space:nowrap;';
   var html = '<table style="width:100%;border-collapse:collapse;">';
   html += '<thead><tr style="background:#faf7f2;">';
-  html += '<th style="' + thStyleNoClick + 'width:180px;">' + chip('topic', 'Topic') + chip('qaid', 'Q#') + '</th>';
+  html += '<th style="' + thStyleNoClick + 'width:200px;"><span class="qa-sort-label">Sort:</span> ' + chip('topic', 'Topic') + chip('qaid', 'Q#') + '</th>';
   html += '<th style="' + thStyle + '" onclick="qaSortBy(\'question\')">Question' + sortArrow('question') + '</th>';
   html += '<th style="' + thStyle + '" onclick="qaSortBy(\'answer\')">Answer' + sortArrow('answer') + '</th>';
   html += '<th style="padding:0.55rem 0.75rem;border-bottom:2px solid #c8bfb4;width:70px;"></th>';
