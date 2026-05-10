@@ -748,10 +748,16 @@ function renderQA() {
   var t = document.getElementById('qaTopicFilter').value.toLowerCase().trim();
   var body = document.getElementById('qaBody');
 
+  // If search looks like a Q-number (e.g. "q22", "Q22"), extract the digits for exact qaid match.
+  // Plain digits like "22" also match qaid exactly, AND still match question/answer text as a fallback.
+  var qNumMatch = q.match(/^q?(\d+)$/);
+  var qNum = qNumMatch ? parseInt(qNumMatch[1], 10) : null;
+
   var filtered = qaData.filter(function(r){
     var matchQ = !q || r.question.toLowerCase().indexOf(q) !== -1
                     || r.answer.toLowerCase().indexOf(q) !== -1
-                    || r.topic.toLowerCase().indexOf(q) !== -1;
+                    || r.topic.toLowerCase().indexOf(q) !== -1
+                    || (qNum !== null && r.qaid === qNum);
     var matchT = !t || r.topic.toLowerCase() === t;
     var matchBio = !biFilterActive || (
       (r.question + ' ' + r.answer + ' ' + r.topic).toLowerCase().indexOf('bio filter') !== -1
