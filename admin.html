@@ -97,6 +97,7 @@
   .admin-panel.active { display:block; }
   .panel-title { font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:0.3rem; }
   .panel-desc { font-size:0.78rem; color:var(--mid); margin-bottom:1.4rem; }
+  .qa-q-ref { color:var(--accent); font-weight:700; }
   .res-table { width:100%; border-collapse:collapse; font-size:0.82rem; table-layout:fixed; }
   .res-table th { background:rgba(122,92,62,0.1); color:var(--accent); padding:0.55rem 0.7rem; text-align:left; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid rgba(122,92,62,0.22); }
   .res-table th:nth-child(1){width:30%;} .res-table th:nth-child(2){width:35%;} .res-table th:nth-child(3){width:35%;}
@@ -6627,10 +6628,19 @@ function qaApplyFilter() {
   var search = document.getElementById('qaFilterSearch').value.toLowerCase().trim();
   var clearBtn = document.getElementById('qaClearFilterBtn');
   clearBtn.style.display = (topic || search || _qaBioFilterActive || _qaReviewFilterActive) ? 'inline-block' : 'none';
+
+  // If search looks like a Q-number (e.g. "q22", "Q22"), extract the digits for exact qaid match.
+  // Plain digits like "22" also match qaid exactly, AND still match text as a fallback.
+  var qNumMatch = search.match(/^q?(\d+)$/);
+  var qNum = qNumMatch ? parseInt(qNumMatch[1], 10) : null;
+
   qaFiltered = qaAllRows.filter(function(r){
     var combined = (r.topic + ' ' + r.question + ' ' + r.answer).toLowerCase();
+    var matchSearch = !search
+                   || combined.indexOf(search) !== -1
+                   || (qNum !== null && r.qaid === qNum);
     return (!topic  || r.topic.toLowerCase() === topic)
-        && (!search || combined.indexOf(search) !== -1)
+        && matchSearch
         && (!_qaBioFilterActive || combined.indexOf('bio filter') !== -1)
         && (!_qaReviewFilterActive || r.review === true);
   });
@@ -6748,7 +6758,7 @@ function qaRenderTable() {
     if (row.topic) html += '<span style="display:inline-block;background:rgba(122,92,62,0.1);color:#7a5c3e;border:1px solid rgba(122,92,62,0.2);border-radius:10px;font-size:0.68rem;font-weight:700;padding:0.15rem 0.55rem;white-space:nowrap;">' + qaEsc(row.topic) + '</span>';
     if (row.review) html += '<div style="margin-top:0.4rem;"><span style="display:inline-block;background:rgba(192,98,42,0.12);color:#c0622a;border:1px solid rgba(192,98,42,0.3);border-radius:10px;font-size:0.66rem;font-weight:700;padding:0.12rem 0.5rem;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;">&#9888; Review</span></div>';
     html += '</td>';
-    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">' + qaEsc(row.question) + '</td>';
+    html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;font-weight:600;color:#1e1a16;vertical-align:top;border-right:1px solid #ede8e1;">' + (row.qaid !== null && row.qaid !== undefined && row.qaid !== '' ? '<span class="qa-q-ref">Q' + qaEsc(String(row.qaid)) + '.</span> ' : '') + qaEsc(row.question) + '</td>';
     html += '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:#6b5f52;vertical-align:top;white-space:pre-wrap;border-right:1px solid #ede8e1;">' + qaEsc(row.answer) + '</td>';
     html += '<td style="padding:0.75rem 0.6rem;vertical-align:top;text-align:center;">';
     html += '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;white-space:nowrap;" onclick="qaOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button>';
@@ -6757,7 +6767,7 @@ function qaRenderTable() {
     // Inline edit row
     html += '<tr id="qa-edit-row-' + i + '" style="display:none;background:#f5f0e8;">';
     html += '<td colspan="4" style="padding:1rem 1.25rem;border-bottom:2px solid #c8bfb4;">';
-    html += '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">Edit Q&amp;A</div>';
+    html += '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;margin-bottom:0.75rem;">Edit Q&amp;A' + (row.qaid !== null && row.qaid !== undefined && row.qaid !== '' ? ' &mdash; Q' + qaEsc(String(row.qaid)) : '') + '</div>';
     html += '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;">';
     html += '<div style="flex:0 0 220px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Topic</label>';
     html += '<input type="text" id="qa-edit-topic-' + i + '" value="' + qaEsc(row.topic) + '" list="qaTopicSuggest" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;" oninput="_qaEditingRow=_qaEditingRow||{}">';
@@ -6947,7 +6957,13 @@ function qaDeleteRow(actualIndex, evt) {
 function qaOpenMobileModal(actualIndex) {
   qaEditIndex = actualIndex;
   document.getElementById('qaMobileErr').textContent = '';
-  document.getElementById('qaMobileTitle').textContent = actualIndex === null ? 'Add Q&A' : 'Edit Q&A';
+  if (actualIndex === null) {
+    document.getElementById('qaMobileTitle').textContent = 'Add Q&A';
+  } else {
+    var rowForTitle = qaAllRows[actualIndex];
+    var qaidTxt = (rowForTitle && rowForTitle.qaid !== null && rowForTitle.qaid !== undefined && rowForTitle.qaid !== '') ? ' \u2014 Q' + rowForTitle.qaid : '';
+    document.getElementById('qaMobileTitle').textContent = 'Edit Q&A' + qaidTxt;
+  }
   if (actualIndex === null) {
     document.getElementById('qaMobileTopic').value    = '';
     document.getElementById('qaMobileQuestion').value = '';
