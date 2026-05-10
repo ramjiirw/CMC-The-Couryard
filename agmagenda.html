@@ -1130,11 +1130,30 @@ function fmtDocDate(iso) {
   return isNaN(d) ? iso : d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
 }
 
+function toggleAgmDocArchive() {
+  var panel = document.getElementById('agmdoc-archive-panel');
+  var hint  = document.getElementById('agmdoc-archive-hint');
+  var chev  = document.getElementById('agmdoc-archive-chev');
+  if (!panel) return;
+  var isOpen = panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '0';
+  renderDocs._archiveOpen = !isOpen;
+  panel.style.maxHeight = !isOpen ? '8000px' : '0';
+  if (hint) hint.textContent     = !isOpen ? 'Tap to close' : 'Tap to expand';
+  if (chev) chev.style.transform = !isOpen ? 'rotate(90deg)' : '';
+}
+
 function renderDocs() {
   var state = agmDocState;
   var wrap  = document.getElementById('wrap-agmdocs');
 
-  // Update header count
+  // Split files: ARCHIVE_ prefix into archive bucket, everything else stays current
+  var current = [], archive = [];
+  state.files.forEach(function(f) {
+    if (f.name.startsWith('ARCHIVE_')) archive.push(f);
+    else current.push(f);
+  });
+
+  // Update header count (total of current + archive)
   var count = state.files.length;
   var headerSpan = document.querySelector('#toggle-agmdocs span:first-child');
   if (headerSpan) {
@@ -1145,7 +1164,9 @@ function renderDocs() {
     wrap.innerHTML = '<div class="state-empty">No documents have been uploaded yet — check back soon.</div>';
     return;
   }
-  var sorted = state.files.slice().sort(function(a, b) {
+
+  // Sort current docs using existing sort state
+  var sorted = current.slice().sort(function(a, b) {
     if (state.sortCol === 'name') {
       var va = fixDocTitle(a.name).toLowerCase(), vb = fixDocTitle(b.name).toLowerCase();
       return state.sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
@@ -1163,9 +1184,43 @@ function renderDocs() {
     return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' +
       fixDocTitle(f.name) + '</a></td></tr>';
   }).join('');
-  wrap.innerHTML = '<table class="doc-table"><thead><tr>' +
-    '<th class="' + thCls('name') + '" onclick="reSortDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
-    '</tr></thead><tbody>' + rows + '</tbody></table>';
+
+  var html = '';
+  if (current.length) {
+    html += '<table class="doc-table"><thead><tr>' +
+      '<th class="' + thCls('name') + '" onclick="reSortDocs(\'name\')">Document<span class="sort-icon"></span></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+  } else {
+    html += '<div class="state-empty" style="padding:0.75rem 1.25rem;">No current documents — see archive below.</div>';
+  }
+
+  // Archive sub-section (only if there are archived files)
+  if (archive.length) {
+    var archSorted = archive.slice().sort(function(a, b) {
+      var va = fixDocTitle(a.name.replace(/^ARCHIVE_/, '')).toLowerCase();
+      var vb = fixDocTitle(b.name.replace(/^ARCHIVE_/, '')).toLowerCase();
+      return va.localeCompare(vb);
+    });
+    var archRows = archSorted.map(function(f) {
+      var dn = fixDocTitle(f.name.replace(/^ARCHIVE_/, ''));
+      return '<tr><td><a class="doc-link" href="' + f.path + '" target="_blank" rel="noopener">' + dn + '</a></td></tr>';
+    }).join('');
+
+    var isOpen   = renderDocs._archiveOpen === true;
+    var hintText = isOpen ? 'Tap to close' : 'Tap to expand';
+    var chevRot  = isOpen ? 'transform:rotate(90deg)' : '';
+
+    html += '<div style="border-bottom:1px solid var(--border)">';
+    html += '<div onclick="toggleAgmDocArchive()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0.6rem 1.25rem;background:#5a5048;border-top:3px solid #b8ad9e;cursor:pointer;font-family:Arial,sans-serif;box-sizing:border-box">';
+    html += '<span style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#f5f0e8;min-width:0;overflow:hidden">■ Archive <span style="background:rgba(255,255,255,0.18);border-radius:10px;font-size:0.68rem;padding:0.1rem 0.5rem;font-weight:700;color:#f5f0e8">' + archive.length + '</span></span>';
+    html += '<span style="font-size:0.72rem;color:#b8ad9e;white-space:nowrap;display:flex;align-items:center;gap:0.3rem"><span id="agmdoc-archive-hint">' + hintText + '</span> <span id="agmdoc-archive-chev" style="display:inline-block;transition:transform 0.25s;font-size:0.7rem;' + chevRot + '">&#9654;</span></span>';
+    html += '</div>';
+    html += '<div id="agmdoc-archive-panel" style="overflow:hidden;max-height:' + (isOpen ? '8000px' : '0') + ';transition:max-height 0.3s ease">';
+    html += '<table class="doc-table"><tbody>' + archRows + '</tbody></table>';
+    html += '</div></div>';
+  }
+
+  wrap.innerHTML = html;
 }
 
 function reSortDocs(col) {
