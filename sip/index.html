@@ -132,6 +132,7 @@
   .qa-table tbody td:nth-child(2) { width:50%; color:var(--mid); }
   .qa-q-topic { margin-bottom:0.45rem; }
   .qa-q-text { display:block; }
+  .qa-q-ref { color:var(--accent); font-weight:700; }
   /* ── Q&A TABLE MOBILE/TABLET SCROLL ── */
   @media (max-width:1279px) {
     #panel-sipqa .qa-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -774,8 +775,11 @@ function renderQA() {
 
   body.innerHTML = filtered.map(function(r){
     var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + esc(r.topic) + '</span></div>' : '';
+    var qaidHtml = (r.qaid !== null && r.qaid !== undefined && r.qaid !== '')
+      ? '<span class="qa-q-ref">Q' + esc(String(r.qaid)) + '.</span> '
+      : '';
     return '<tr>'
-      + '<td>' + topicHtml + '<span class="qa-q-text">' + esc(r.question) + '</span></td>'
+      + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + esc(r.question) + '</span></td>'
       + '<td>' + esc(r.answer).replace(/\n/g, '<br>') + '</td>'
       + '</tr>';
   }).join('');
