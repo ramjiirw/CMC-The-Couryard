@@ -937,7 +937,7 @@ function applyBriefingMerges(bal) {
   });
 }
 
-// Convert markdown bold/italic to HTML. Escapes other HTML first.
+// Convert markdown bold/italic/underline to HTML. Escapes other HTML first.
 function briefingFormat(text) {
   if (!text) return '';
   var s = text
@@ -949,6 +949,8 @@ function briefingFormat(text) {
   s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
   // **bold**
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // ++underline++
+  s = s.replace(/\+\+([^+\n]+)\+\+/g, '<u>$1</u>');
   // _italic_
   s = s.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
   return s;
