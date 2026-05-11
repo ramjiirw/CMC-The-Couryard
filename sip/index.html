@@ -891,10 +891,15 @@ function loadBriefing() {
   var hintOpen = btn ? btn.querySelector('.hint-open') : null;
   if (hintOpen) hintOpen.textContent = 'Loading briefing…';
 
-  fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect: 'follow' })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
+  var briefingP = fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect: 'follow' }).then(function(r){ return r.json(); });
+  var balancesP = fetch(SCRIPT_URL + '?action=readAccountBalances', { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+
+  Promise.all([briefingP, balancesP])
+    .then(function(results){
+      var d = results[0];
+      var bal = results[1];
       briefingRows = (d && d.rows) ? d.rows : [];
+      applyBriefingMerges(bal);
       renderBriefing();
       if (hintOpen) hintOpen.textContent = 'Tap to expand & view';
     })
@@ -903,6 +908,33 @@ function loadBriefing() {
       if (inner) inner.innerHTML = '<p style="margin:0;color:#8b3a3a;">Could not load briefing.</p>';
       if (hintOpen) hintOpen.textContent = 'Tap to expand & view';
     });
+}
+
+function fmtBal(n) {
+  return '£ ' + Number(n).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function applyBriefingMerges(bal) {
+  if (!briefingRows || !briefingRows.length) return;
+  var sinkingStr = (bal && bal.status === 'ok' && bal.sinking && bal.sinking.balance != null)
+    ? fmtBal(bal.sinking.balance) : '—';
+  var cashTotalStr = '—';
+  if (bal && bal.status === 'ok') {
+    var total = 0, any = false;
+    ['current','sinking','contingency'].forEach(function(k){
+      if (bal[k] && bal[k].balance != null) { total += Number(bal[k].balance); any = true; }
+    });
+    if (any) cashTotalStr = fmtBal(total);
+  }
+  function sub(s) {
+    if (!s) return s;
+    return s.replace(/\[merge_sinking_fund\]/g, sinkingStr)
+            .replace(/\[merge_cash_total\]/g, cashTotalStr);
+  }
+  briefingRows.forEach(function(row){
+    if (row.body)  row.body  = sub(row.body);
+    if (row.title) row.title = sub(row.title);
+  });
 }
 
 // Convert markdown bold/italic to HTML. Escapes other HTML first.
