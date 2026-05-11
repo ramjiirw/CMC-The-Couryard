@@ -7149,6 +7149,52 @@ function briefConfirmAbandon() {
   return confirm('You have unsaved briefing changes. Discard them?');
 }
 
+// Click-outside discard warning. When an edit row is open and the user clicks
+// somewhere that isn't inside the edit row / add form / a Brief* button, warn
+// if there are unsaved changes and close the row on confirm.
+var _briefOutsideListenerAttached = false;
+function briefAttachOutsideListener() {
+  if (_briefOutsideListenerAttached) return;
+  _briefOutsideListenerAttached = true;
+  document.addEventListener('mousedown', function(e){
+    if (!_briefEditPanelOpen) return;
+    // Find the currently open edit container
+    var editEl = null;
+    if (_briefEditingRow) {
+      if (_briefEditingRow.uiIndex === 'add') {
+        editEl = document.getElementById('brief-add-form');
+      } else if (_briefEditingRow.uiIndex === 'mobile') {
+        editEl = document.getElementById('briefMobileModal');
+      } else {
+        editEl = document.getElementById('brief-edit-row-' + _briefEditingRow.uiIndex);
+      }
+    }
+    if (!editEl) return;
+    // Inside the edit area? Do nothing.
+    if (editEl.contains(e.target)) return;
+    // Mobile modal handles its own outside clicks via the overlay backdrop —
+    // skip the document listener for mobile to avoid double prompts.
+    if (_briefEditingRow && _briefEditingRow.uiIndex === 'mobile') return;
+    // Only act if there are unsaved changes
+    if (!briefHasUnsaved()) return;
+    // Prevent the click from doing anything else until the user decides
+    e.preventDefault();
+    e.stopPropagation();
+    if (briefConfirmAbandon()) {
+      // Close whichever form is open
+      if (_briefEditingRow.uiIndex === 'add') {
+        briefRemoveAddForm();
+      } else {
+        var row = document.getElementById('brief-edit-row-' + _briefEditingRow.uiIndex);
+        if (row) row.style.display = 'none';
+        _briefEditingRow = null;
+        _briefEditPanelOpen = false;
+      }
+    }
+  }, true);
+}
+briefAttachOutsideListener();
+
 function briefLoad(force) {
   var wrap = document.getElementById('briefTableWrap');
   if (!wrap) return;
@@ -7234,7 +7280,7 @@ function briefRender() {
     html += '<tr style="border-bottom:1px solid #ede5d6;">'
       + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(secDisplay) + '</td>'
       + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(r.title || '') + '</td>'
-      + '<td style="padding:0.6rem;color:#3a342e;vertical-align:top;line-height:1.4;">' + briefEsc(briefTruncate(r.body, 180)) + '</td>'
+      + '<td style="padding:0.6rem;color:#3a342e;vertical-align:top;line-height:1.4;white-space:pre-wrap;word-break:break-word;">' + briefEsc(r.body || '') + '</td>'
       + '<td style="padding:0.6rem;text-align:center;vertical-align:top;">' + (r.review === true ? '<span style="color:#c0622a;font-weight:700;">&#9888;</span>' : '') + '</td>'
       + '<td style="padding:0.6rem;text-align:right;vertical-align:top;white-space:nowrap;">'
       + '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="briefOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button> '
@@ -7388,6 +7434,14 @@ function briefSaveRow(actualIndex, uiIndex, evt) {
   var err    = document.getElementById('brief-edit-err-' + uiIndex);
   if (!title && !body) { if (err) err.textContent = 'Enter a title or body.'; return; }
   var row = briefAllRows[actualIndex];
+  // Saving indicator: capture the save button and update its label
+  var saveBtn = (evt && evt.target) ? evt.target : null;
+  var saveBtnOrigHtml = null;
+  if (saveBtn) {
+    saveBtnOrigHtml = saveBtn.innerHTML;
+    saveBtn.innerHTML = '&#128190; Saving&hellip;';
+    saveBtn.disabled = true;
+  }
   // Map back to sheet rowIndex by finding the row position in the unfiltered list.
   // Since readSIPBriefingFresh re-sorts, we need a true sheet rowIndex. We use a separate read endpoint via title/body match.
   // For now, send identifying fields and let the server resolve. Simplest: send original section_num/title/body so server can find the row.
@@ -7408,10 +7462,12 @@ function briefSaveRow(actualIndex, uiIndex, evt) {
       briefLoad(true);
     } else {
       if (err) err.textContent = d.message || 'Save failed.';
+      if (saveBtn) { saveBtn.innerHTML = saveBtnOrigHtml; saveBtn.disabled = false; }
     }
   })
   .catch(function(e){
     if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
+    if (saveBtn) { saveBtn.innerHTML = saveBtnOrigHtml; saveBtn.disabled = false; }
   });
 }
 
