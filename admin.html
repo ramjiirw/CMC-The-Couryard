@@ -7266,30 +7266,27 @@ function briefRender() {
     wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">No matching sections.</div>';
     return;
   }
-  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
-    + '<thead><tr style="background:#f5f0e8;border-bottom:2px solid #c8bfb4;">'
-    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:50px;">#</th>'
-    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:180px;">Title</th>'
-    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;">Body</th>'
-    + '<th style="padding:0.5rem 0.6rem;text-align:center;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:70px;">Review</th>'
-    + '<th style="padding:0.5rem 0.6rem;text-align:right;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:140px;">Actions</th>'
-    + '</tr></thead><tbody>';
+  var html = '';
   briefFiltered.forEach(function(r, i){
     var actualIndex = briefAllRows.indexOf(r);
     var secDisplay = (r.section_num === null || r.section_num === undefined) ? '—' : r.section_num;
-    html += '<tr style="border-bottom:1px solid #ede5d6;">'
-      + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(secDisplay) + '</td>'
-      + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(r.title || '') + '</td>'
-      + '<td style="padding:0.6rem;color:#3a342e;vertical-align:top;line-height:1.4;white-space:pre-wrap;word-break:break-word;">' + briefEsc(r.body || '') + '</td>'
-      + '<td style="padding:0.6rem;text-align:center;vertical-align:top;">' + (r.review === true ? '<span style="color:#c0622a;font-weight:700;">&#9888;</span>' : '') + '</td>'
-      + '<td style="padding:0.6rem;text-align:right;vertical-align:top;white-space:nowrap;">'
-      + '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="briefOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button> '
-      + '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;" onclick="briefDeleteRow(' + actualIndex + ',event)">&#128465;</button>'
-      + '</td></tr>';
-    // Edit row placeholder (hidden until opened)
-    html += '<tr id="brief-edit-row-' + i + '" style="display:none;"><td colspan="5" style="padding:0;background:#f5f0e8;border-bottom:2px solid #c8bfb4;"></td></tr>';
+    html += '<div style="border-bottom:1px solid #ede5d6;padding:0.8rem 1.25rem;">'
+      // Header line: # | Title | review chip (spacer) | actions
+      + '<div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">'
+      +   '<span style="color:#6b5f52;font-weight:700;font-size:0.78rem;min-width:1.5rem;">' + briefEsc(secDisplay) + '</span>'
+      +   '<span style="color:#1e1a16;font-weight:700;font-size:0.92rem;flex:1;min-width:0;">' + briefEsc(r.title || '') + '</span>'
+      +   (r.review === true ? '<span title="Flagged for review" style="color:#c0622a;font-weight:700;font-size:0.95rem;">&#9888;</span>' : '')
+      +   '<span style="display:inline-flex;gap:0.4rem;">'
+      +     '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="briefOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button>'
+      +     '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;" onclick="briefDeleteRow(' + actualIndex + ',event)">&#128465;</button>'
+      +   '</span>'
+      + '</div>'
+      // Body line: full width
+      + '<div style="color:#3a342e;font-size:0.85rem;line-height:1.5;white-space:pre-wrap;word-break:break-word;">' + briefEsc(r.body || '') + '</div>'
+      + '</div>';
+    // Edit-row placeholder (hidden until opened). briefOpenEdit writes into firstElementChild.
+    html += '<div id="brief-edit-row-' + i + '" style="display:none;background:#f5f0e8;border-bottom:2px solid #c8bfb4;"><div></div></div>';
   });
-  html += '</tbody></table>';
   wrap.innerHTML = html;
 }
 
