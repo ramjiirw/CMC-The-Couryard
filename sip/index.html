@@ -475,7 +475,7 @@ function doLogin() {
 }
 
 function resetUI() {
-  ['toggle-sipqa','toggle-sipdocs'].forEach(function(btnId) {
+  ['toggle-sipbriefing','toggle-sipqa','toggle-sipimages','toggle-sipdocs'].forEach(function(btnId) {
     var panelId = btnId.replace('toggle-','panel-');
     var btn = document.getElementById(btnId);
     var panel = document.getElementById(panelId);
