@@ -816,6 +816,7 @@
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
       <div class="sidebar-link" data-panel="changesippw" id="nav-changesippw">&#128196; SIP Password</div>
       <div class="sidebar-link" data-panel="sipqa" id="nav-sipqa">&#10067; SIP Q &amp; A</div>
+      <div class="sidebar-link" data-panel="sipbriefing" id="nav-sipbriefing">&#128196; SIP Briefing</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -1518,6 +1519,26 @@
         </div>
         <div id="qaTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading Q&amp;A…</div>
+        </div>
+      </div>
+
+      <!-- SIP Briefing Panel -->
+      <div class="admin-panel" id="panel-sipbriefing" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+        <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;border-radius:10px 10px 0 0;">
+          &#128196; SIP Briefing
+          <span id="briefCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
+          <span style="margin-left:auto;"></span>
+          <button class="abtn" id="briefRefreshBtn" onclick="briefLoad(true)" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
+          <button class="abtn" id="briefAddBtn" onclick="briefOpenAdd()" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(61,107,74,0.7);border:1px solid rgba(61,107,74,0.5);color:#f5f0e8;">&#43; Add Section</button>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
+          <input id="briefFilterSearch" type="text" placeholder="Search title or body…" oninput="briefApplyFilter()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;width:200px;outline:none;" />
+          <button id="briefReviewFilterBtn" onclick="briefToggleReviewFilter()" style="padding:0.3rem 0.8rem;border-radius:5px;border:1px solid #b8ad9e;background:#fff;color:#6b5f52;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;">Show Review Only</button>
+          <button id="briefClearFilterBtn" onclick="briefClearFilter()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#c0622a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear</button>
+          <span style="margin-left:auto;color:#7a5c3e;font-size:0.72rem;font-style:italic;">Format: **bold**, _italic_, ++underline++ &nbsp;|&nbsp; Merge: [merge_sinking_fund], [merge_cash_total]</span>
+        </div>
+        <div id="briefTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
+          <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading briefing…</div>
         </div>
       </div>
 
@@ -6576,6 +6597,17 @@ showPanel = function(id) {
     _qaEditingRow = null;
     _qaEditPanelOpen = false;
   }
+  if (id === 'sipbriefing') briefLoad();
+  if (id !== 'sipbriefing' && typeof briefHasUnsaved === 'function' && briefHasUnsaved()) {
+    if (!briefConfirmAbandon()) { _origShowPanel2('sipbriefing'); return; }
+    if (_briefEditingRow !== null && _briefEditingRow.uiIndex !== 'mobile') {
+      var ber = document.getElementById('brief-edit-row-' + _briefEditingRow.uiIndex);
+      if (ber) ber.style.display = 'none';
+    }
+    briefRemoveAddForm();
+    _briefEditingRow = null;
+    _briefEditPanelOpen = false;
+  }
 };
 
 
@@ -7063,7 +7095,424 @@ function qaMobileDelete() {
 
 document.getElementById('qaRefreshBtn').addEventListener('click', function(){ qaLoad(); resetAutoLock(); });
 
-// ── Finance Reports ───────────────────────────────────────────────────────────
+// ─── SIP BRIEFING ADMIN ───────────────────────────────────────────────────────
+
+var briefAllRows = [];
+var briefFiltered = [];
+var _briefEditPanelOpen = false;
+var _briefReviewFilterActive = false;
+var _briefEditingRow = null; // { uiIndex, actualIndex } when an edit row is open
+
+function briefIsMobile() {
+  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
+}
+
+function briefEsc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function briefTruncate(s, n) {
+  s = (s || '').replace(/\s+/g, ' ').trim();
+  if (s.length <= n) return s;
+  return s.substring(0, n) + '…';
+}
+
+function briefHasUnsaved() {
+  // Check add form
+  var addForm = document.getElementById('brief-add-form');
+  if (addForm) {
+    var t = document.getElementById('brief-add-title');
+    var b = document.getElementById('brief-add-body');
+    var s = document.getElementById('brief-add-section');
+    if ((t && t.value.trim()) || (b && b.value.trim()) || (s && s.value.trim())) return true;
+  }
+  // Check open edit row
+  if (_briefEditingRow !== null && _briefEditingRow.uiIndex !== 'mobile' && _briefEditingRow.uiIndex !== 'add') {
+    var row = briefAllRows[_briefEditingRow.actualIndex];
+    if (!row) return false;
+    var t2 = document.getElementById('brief-edit-title-' + _briefEditingRow.uiIndex);
+    var b2 = document.getElementById('brief-edit-body-' + _briefEditingRow.uiIndex);
+    var s2 = document.getElementById('brief-edit-section-' + _briefEditingRow.uiIndex);
+    var r2 = document.getElementById('brief-edit-review-' + _briefEditingRow.uiIndex);
+    if (!t2 || !b2 || !s2 || !r2) return false;
+    var origSec = (row.section_num === null || row.section_num === undefined) ? '' : String(row.section_num);
+    if (t2.value !== (row.title || '')) return true;
+    if (b2.value !== (row.body  || '')) return true;
+    if (s2.value !== origSec) return true;
+    if (r2.checked !== (row.review === true)) return true;
+  }
+  return false;
+}
+
+function briefConfirmAbandon() {
+  return confirm('You have unsaved briefing changes. Discard them?');
+}
+
+function briefLoad(force) {
+  var wrap = document.getElementById('briefTableWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading briefing…</div>';
+  var url = SCRIPT_URL + '?action=readSIPBriefing' + (force ? '&_=' + Date.now() : '');
+  fetch(url, { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      briefAllRows = (d && d.rows) ? d.rows : [];
+      // Tag each row with its sheet rowIndex (rows are returned sorted, but sheet order matters for edits)
+      // readSIPBriefingFresh already filters empty rows and sorts by section_num — we lose original sheet position.
+      // Need original index: re-fetch with sheet position. Workaround: rowIndex = position in sheet = will be inferred via fresh fetch.
+      // Since readSIPBriefingFresh starts at row 2 and skips empty rows, we can't reliably map back. Use title+body match as fallback.
+      // SAFEST: include row index in the read. For now, infer by index+2 of the sorted-and-filtered list, which is wrong if
+      // section_num order doesn't match sheet order. So we instead query original sheet rows separately.
+      briefFiltered = briefAllRows.slice();
+      _briefReviewFilterActive = false;
+      var revBtn = document.getElementById('briefReviewFilterBtn');
+      if (revBtn) { revBtn.style.background=''; revBtn.style.color=''; revBtn.style.borderColor=''; }
+      var fs = document.getElementById('briefFilterSearch');
+      if (fs) fs.value = '';
+      briefApplyFilter();
+    })
+    .catch(function(){
+      wrap.innerHTML = '<div style="color:#b05050;font-size:0.84rem;padding:1.5rem;">Could not load briefing.</div>';
+    });
+}
+
+function briefApplyFilter() {
+  var search = (document.getElementById('briefFilterSearch')||{}).value || '';
+  search = search.toLowerCase().trim();
+  var clearBtn = document.getElementById('briefClearFilterBtn');
+  if (clearBtn) clearBtn.style.display = (search || _briefReviewFilterActive) ? 'inline-block' : 'none';
+
+  briefFiltered = briefAllRows.filter(function(r){
+    var hay = ((r.title || '') + ' ' + (r.body || '')).toLowerCase();
+    var matchSearch = !search || hay.indexOf(search) !== -1;
+    var matchReview = !_briefReviewFilterActive || r.review === true;
+    return matchSearch && matchReview;
+  });
+  briefRender();
+}
+
+function briefClearFilter() {
+  var fs = document.getElementById('briefFilterSearch');
+  if (fs) fs.value = '';
+  _briefReviewFilterActive = false;
+  var revBtn = document.getElementById('briefReviewFilterBtn');
+  if (revBtn) { revBtn.style.background=''; revBtn.style.color=''; revBtn.style.borderColor=''; }
+  briefApplyFilter();
+}
+
+function briefToggleReviewFilter() {
+  _briefReviewFilterActive = !_briefReviewFilterActive;
+  var revBtn = document.getElementById('briefReviewFilterBtn');
+  if (revBtn) {
+    revBtn.style.background  = _briefReviewFilterActive ? '#c0622a' : '';
+    revBtn.style.color       = _briefReviewFilterActive ? 'white'   : '';
+    revBtn.style.borderColor = _briefReviewFilterActive ? '#c0622a' : '';
+  }
+  briefApplyFilter();
+}
+
+function briefRender() {
+  var wrap = document.getElementById('briefTableWrap');
+  var pill = document.getElementById('briefCountPill');
+  if (pill) pill.textContent = briefAllRows.length;
+  if (!briefFiltered.length) {
+    wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">No matching sections.</div>';
+    return;
+  }
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+    + '<thead><tr style="background:#f5f0e8;border-bottom:2px solid #c8bfb4;">'
+    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:50px;">#</th>'
+    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:180px;">Title</th>'
+    + '<th style="padding:0.5rem 0.6rem;text-align:left;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;">Body</th>'
+    + '<th style="padding:0.5rem 0.6rem;text-align:center;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:70px;">Review</th>'
+    + '<th style="padding:0.5rem 0.6rem;text-align:right;color:#6b5f52;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;font-size:0.72rem;width:140px;">Actions</th>'
+    + '</tr></thead><tbody>';
+  briefFiltered.forEach(function(r, i){
+    var actualIndex = briefAllRows.indexOf(r);
+    var secDisplay = (r.section_num === null || r.section_num === undefined) ? '—' : r.section_num;
+    html += '<tr style="border-bottom:1px solid #ede5d6;">'
+      + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(secDisplay) + '</td>'
+      + '<td style="padding:0.6rem;color:#1e1a16;vertical-align:top;font-weight:600;">' + briefEsc(r.title || '') + '</td>'
+      + '<td style="padding:0.6rem;color:#3a342e;vertical-align:top;line-height:1.4;">' + briefEsc(briefTruncate(r.body, 180)) + '</td>'
+      + '<td style="padding:0.6rem;text-align:center;vertical-align:top;">' + (r.review === true ? '<span style="color:#c0622a;font-weight:700;">&#9888;</span>' : '') + '</td>'
+      + '<td style="padding:0.6rem;text-align:right;vertical-align:top;white-space:nowrap;">'
+      + '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="briefOpenEdit(' + actualIndex + ',' + i + ',event)">&#9998; Edit</button> '
+      + '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;" onclick="briefDeleteRow(' + actualIndex + ',event)">&#128465;</button>'
+      + '</td></tr>';
+    // Edit row placeholder (hidden until opened)
+    html += '<tr id="brief-edit-row-' + i + '" style="display:none;"><td colspan="5" style="padding:0;background:#f5f0e8;border-bottom:2px solid #c8bfb4;"></td></tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function briefEditFormMarkup(uiIndex, prefill) {
+  prefill = prefill || {};
+  var sec = (prefill.section_num === null || prefill.section_num === undefined) ? '' : prefill.section_num;
+  var idSuffix = (uiIndex === 'add') ? 'add' : ('edit-' + uiIndex);
+  return '<div style="padding:1rem 1.25rem;">'
+    + '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;align-items:flex-end;">'
+    + '<div style="flex:0 0 80px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Section #</label>'
+    + '<input type="number" step="0.1" id="brief-' + idSuffix.replace('edit-', 'edit-section-').replace(/^add$/, 'add-section') + '" value="' + briefEsc(sec) + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>'
+    + '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Title</label>'
+    + '<input type="text" id="brief-' + idSuffix.replace('edit-', 'edit-title-').replace(/^add$/, 'add-title') + '" value="' + briefEsc(prefill.title || '') + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;"></div>'
+    + '<label style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#6b5f52;cursor:pointer;user-select:none;padding-bottom:0.45rem;">'
+    + '<input type="checkbox" id="brief-' + idSuffix.replace('edit-', 'edit-review-').replace(/^add$/, 'add-review') + '"' + (prefill.review === true ? ' checked' : '') + ' style="width:16px;height:16px;cursor:pointer;accent-color:#c0622a;">'
+    + '<span>&#9888; Flag for review</span></label>'
+    + '</div>'
+    + '<label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Body</label>'
+    + '<textarea id="brief-' + idSuffix.replace('edit-', 'edit-body-').replace(/^add$/, 'add-body') + '" style="width:100%;padding:0.6rem 0.8rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.9rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:200px;resize:vertical;line-height:1.5;">' + briefEsc(prefill.body || '') + '</textarea>'
+    + '<div id="brief-' + idSuffix.replace('edit-', 'edit-err-').replace(/^add$/, 'add-err') + '" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin:0.4rem 0;"></div>'
+    + '</div>';
+}
+
+function briefOpenEdit(actualIndex, uiIndex, evt) {
+  if (evt) evt.stopPropagation();
+  if (briefIsMobile()) { briefOpenMobileModal(actualIndex); return; }
+  // Close another open row first
+  if (_briefEditingRow !== null && _briefEditingRow.uiIndex !== uiIndex) {
+    if (briefHasUnsaved() && !briefConfirmAbandon()) return;
+    if (_briefEditingRow.uiIndex !== 'add' && _briefEditingRow.uiIndex !== 'mobile') {
+      var oldRow = document.getElementById('brief-edit-row-' + _briefEditingRow.uiIndex);
+      if (oldRow) oldRow.style.display = 'none';
+    }
+    briefRemoveAddForm();
+  }
+  var editRow = document.getElementById('brief-edit-row-' + uiIndex);
+  if (!editRow) return;
+  var isOpen = editRow.style.display !== 'none';
+  if (isOpen) {
+    if (briefHasUnsaved() && !briefConfirmAbandon()) return;
+    editRow.style.display = 'none';
+    _briefEditingRow = null;
+    _briefEditPanelOpen = false;
+    return;
+  }
+  var row = briefAllRows[actualIndex];
+  var cell = editRow.firstElementChild;
+  cell.innerHTML = briefEditFormMarkup(uiIndex, row)
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;">'
+    + '<button class="abtn abtn-primary" onclick="briefSaveRow(' + actualIndex + ',' + uiIndex + ',event)">&#128190; Save</button>'
+    + '<button class="abtn abtn-muted" onclick="briefCloseEdit(' + uiIndex + ',event)">Cancel</button>'
+    + '</div>';
+  editRow.style.display = '';
+  _briefEditingRow = { uiIndex: uiIndex, actualIndex: actualIndex };
+  _briefEditPanelOpen = true;
+  editRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function briefCloseEdit(uiIndex, evt) {
+  if (evt) evt.stopPropagation();
+  if (briefHasUnsaved() && !briefConfirmAbandon()) return;
+  var editRow = document.getElementById('brief-edit-row-' + uiIndex);
+  if (editRow) editRow.style.display = 'none';
+  _briefEditingRow = null;
+  _briefEditPanelOpen = false;
+}
+
+function briefRemoveAddForm() {
+  var f = document.getElementById('brief-add-form');
+  if (f) f.remove();
+  if (_briefEditingRow && _briefEditingRow.uiIndex === 'add') {
+    _briefEditingRow = null;
+    _briefEditPanelOpen = false;
+  }
+}
+
+function briefOpenAdd() {
+  if (briefIsMobile()) {
+    if (briefHasUnsaved() && !briefConfirmAbandon()) return;
+    briefOpenMobileModal(null);
+    return;
+  }
+  if (briefHasUnsaved() && !briefConfirmAbandon()) return;
+  // Close any open edit row
+  if (_briefEditingRow !== null && _briefEditingRow.uiIndex !== 'add' && _briefEditingRow.uiIndex !== 'mobile') {
+    var oldRow = document.getElementById('brief-edit-row-' + _briefEditingRow.uiIndex);
+    if (oldRow) oldRow.style.display = 'none';
+    _briefEditingRow = null;
+  }
+  var wrap = document.getElementById('briefTableWrap');
+  if (document.getElementById('brief-add-form')) { briefRemoveAddForm(); return; }
+  var div = document.createElement('div');
+  div.id = 'brief-add-form';
+  div.style.cssText = 'background:#f5f0e8;border-bottom:2px solid #c8bfb4;';
+  div.innerHTML = '<div style="padding:0.5rem 1.25rem 0;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;">New Briefing Section</div>'
+    + briefEditFormMarkup('add')
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;">'
+    + '<button class="abtn abtn-primary" id="brief-add-save-btn" onclick="briefSubmitAdd()">&#128190; Add Section</button>'
+    + '<button class="abtn abtn-muted" onclick="briefRemoveAddForm()">Cancel</button>'
+    + '</div>';
+  wrap.insertBefore(div, wrap.firstChild);
+  _briefEditingRow = { uiIndex: 'add', actualIndex: null };
+  _briefEditPanelOpen = true;
+}
+
+function briefSubmitAdd() {
+  var sec   = document.getElementById('brief-add-section').value.trim();
+  var title = document.getElementById('brief-add-title').value.trim();
+  var body  = document.getElementById('brief-add-body').value;
+  var review = document.getElementById('brief-add-review').checked;
+  var err = document.getElementById('brief-add-err');
+  if (!title && !body) { err.textContent = 'Enter a title or body.'; return; }
+  var btn = document.getElementById('brief-add-save-btn');
+  btn.disabled = true; btn.innerHTML = 'Saving…';
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action:'addSIPBriefingRow', section_num: sec, title: title, body: body, review: review })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status === 'ok') {
+      briefRemoveAddForm();
+      briefLoad(true);
+    } else {
+      err.textContent = d.message || 'Save failed.';
+      btn.disabled = false; btn.innerHTML = '&#128190; Add Section';
+    }
+  })
+  .catch(function(e){
+    err.textContent = 'Network error: ' + (e.message || 'unknown');
+    btn.disabled = false; btn.innerHTML = '&#128190; Add Section';
+  });
+}
+
+function briefSaveRow(actualIndex, uiIndex, evt) {
+  if (evt) evt.stopPropagation();
+  var sec    = document.getElementById('brief-edit-section-' + uiIndex).value.trim();
+  var title  = document.getElementById('brief-edit-title-'   + uiIndex).value.trim();
+  var body   = document.getElementById('brief-edit-body-'    + uiIndex).value;
+  var review = document.getElementById('brief-edit-review-'  + uiIndex).checked;
+  var err    = document.getElementById('brief-edit-err-' + uiIndex);
+  if (!title && !body) { if (err) err.textContent = 'Enter a title or body.'; return; }
+  var row = briefAllRows[actualIndex];
+  // Map back to sheet rowIndex by finding the row position in the unfiltered list.
+  // Since readSIPBriefingFresh re-sorts, we need a true sheet rowIndex. We use a separate read endpoint via title/body match.
+  // For now, send identifying fields and let the server resolve. Simplest: send original section_num/title/body so server can find the row.
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({
+      action: 'updateSIPBriefingRow',
+      rowIndex: briefResolveSheetRow(row),
+      section_num: sec, title: title, body: body, review: review
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status === 'ok') {
+      _briefEditingRow = null;
+      _briefEditPanelOpen = false;
+      briefLoad(true);
+    } else {
+      if (err) err.textContent = d.message || 'Save failed.';
+    }
+  })
+  .catch(function(e){
+    if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
+  });
+}
+
+function briefDeleteRow(actualIndex, evt) {
+  if (evt) evt.stopPropagation();
+  var row = briefAllRows[actualIndex];
+  if (!row) return;
+  if (!confirm('Delete this briefing section?\n\n' + (row.title || row.body || '').substring(0, 80))) return;
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action: 'deleteSIPBriefingRow', rowIndex: briefResolveSheetRow(row) })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status === 'ok') briefLoad(true);
+    else alert('Delete failed: ' + (d.message || 'unknown'));
+  })
+  .catch(function(e){ alert('Delete failed: ' + (e.message || 'network error')); });
+}
+
+// readSIPBriefingFresh sorts by section_num and filters blanks, losing sheet position.
+// Resolve true sheet row by re-querying the sheet's natural order via raw read.
+// For reliability, we attach a stable rowIndex when loading. See briefLoad's processing.
+function briefResolveSheetRow(row) {
+  // row._sheetRow is set in briefLoad if available; fallback to position in original order
+  return row._sheetRow || (briefAllRows.indexOf(row) + 2);
+}
+
+// Mobile modal — reuses the same form markup in an overlay
+function briefOpenMobileModal(actualIndex) {
+  var existing = document.getElementById('briefMobileModal');
+  if (existing) existing.remove();
+  var isNew = actualIndex === null;
+  var row = isNew ? {} : briefAllRows[actualIndex];
+  var modal = document.createElement('div');
+  modal.id = 'briefMobileModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.innerHTML = '<div style="background:#fff;border-radius:10px;width:100%;max-width:640px;margin-top:2rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);">'
+    + '<div style="background:#1e1a16;color:#f5f0e8;padding:0.75rem 1.25rem;border-radius:10px 10px 0 0;font-size:0.85rem;font-weight:600;display:flex;align-items:center;">'
+    + (isNew ? 'New Briefing Section' : 'Edit Briefing Section')
+    + '<span style="margin-left:auto;cursor:pointer;font-size:1.4rem;line-height:1;" onclick="briefMobileCancel()">&times;</span>'
+    + '</div>'
+    + '<div id="briefMobileFormHost">' + briefEditFormMarkup(isNew ? 'add' : 'edit-mobile', row) + '</div>'
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;flex-wrap:wrap;">'
+    + '<button class="abtn abtn-primary" onclick="briefMobileSave(' + (isNew ? 'null' : actualIndex) + ')">&#128190; Save</button>'
+    + '<button class="abtn abtn-muted" onclick="briefMobileCancel()">Cancel</button>'
+    + (isNew ? '' : '<button class="abtn" style="background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;margin-left:auto;" onclick="briefMobileDelete(' + actualIndex + ')">&#128465; Delete</button>')
+    + '</div></div>';
+  document.body.appendChild(modal);
+  _briefEditingRow = { uiIndex: 'mobile', actualIndex: actualIndex };
+  _briefEditPanelOpen = true;
+}
+
+function briefMobileCancel() {
+  var m = document.getElementById('briefMobileModal');
+  if (m) m.remove();
+  _briefEditingRow = null;
+  _briefEditPanelOpen = false;
+}
+
+function briefMobileSave(actualIndex) {
+  var isNew = actualIndex === null;
+  var suffix = isNew ? 'add' : 'edit-mobile';
+  var sec    = document.getElementById('brief-' + suffix + '-section').value.trim();
+  var title  = document.getElementById('brief-' + suffix + '-title').value.trim();
+  var body   = document.getElementById('brief-' + suffix + '-body').value;
+  var review = document.getElementById('brief-' + suffix + '-review').checked;
+  if (!title && !body) { alert('Enter a title or body.'); return; }
+  var payload = isNew
+    ? { action:'addSIPBriefingRow', section_num: sec, title: title, body: body, review: review }
+    : { action:'updateSIPBriefingRow', rowIndex: briefResolveSheetRow(briefAllRows[actualIndex]), section_num: sec, title: title, body: body, review: review };
+  fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status === 'ok') { briefMobileCancel(); briefLoad(true); }
+    else alert('Save failed: ' + (d.message || 'unknown'));
+  })
+  .catch(function(e){ alert('Save failed: ' + (e.message || 'network error')); });
+}
+
+function briefMobileDelete(actualIndex) {
+  var row = briefAllRows[actualIndex];
+  if (!row) return;
+  if (!confirm('Delete this briefing section?\n\n' + (row.title || row.body || '').substring(0, 80))) return;
+  fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action:'deleteSIPBriefingRow', rowIndex: briefResolveSheetRow(row) })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.status === 'ok') { briefMobileCancel(); briefLoad(true); }
+    else alert('Delete failed: ' + (d.message || 'unknown'));
+  })
+  .catch(function(e){ alert('Delete failed: ' + (e.message || 'network error')); });
+}
 
 
 </script>
