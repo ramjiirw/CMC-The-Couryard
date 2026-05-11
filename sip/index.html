@@ -279,7 +279,7 @@
         </div>
       </button>
       <div class="collapsible-panel" id="panel-sipbriefing">
-        <div class="briefing-content" style="background:white;padding:1.5rem 1.5rem 0.5rem;color:#1e1a16;font-size:0.9rem;">
+        <div class="briefing-content" style="background:white;padding:1.5rem 1.5rem 0.5rem;color:#1e1a16;font-size:0.95rem;">
           <p style="margin:0;color:#6b5f52;font-style:italic;">Loading briefing…</p>
         </div>
       </div>
@@ -933,7 +933,7 @@ function renderBriefing() {
   if (!panel) return;
   var container = panel.querySelector('.briefing-content');
   if (!container) {
-    panel.innerHTML = '<div class="briefing-content" style="background:white;padding:1.5rem 1.5rem 0.5rem;color:#1e1a16;font-size:0.9rem;"></div>';
+    panel.innerHTML = '<div class="briefing-content" style="background:white;padding:1.5rem 1.5rem 0.5rem;color:#1e1a16;font-size:0.95rem;"></div>';
     container = panel.querySelector('.briefing-content');
   }
   if (!briefingRows.length) {
@@ -959,7 +959,7 @@ function renderBriefing() {
         if (g.title) {
           html += '<div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#7a5c3e;margin-bottom:0.4rem;">' + briefingFormat(g.title) + '</div>';
         }
-        html += '<div style="font-size:0.88rem;line-height:1.5;color:#1e1a16;">' + briefingFormat(g.body).replace(/\n/g, '<br>') + '</div>';
+        html += '<div style="line-height:1.5;color:#1e1a16;">' + briefingFormat(g.body).replace(/\n/g, '<br>') + '</div>';
         html += '</div>';
       });
       html += '</div>';
@@ -967,7 +967,7 @@ function renderBriefing() {
     }
     // Regular section
     if (row.title) {
-      html += '<h3 style="font-size:1.05rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;">' + briefingFormat(row.title) + '</h3>';
+      html += '<h3 style="font-size:1.15rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;">' + briefingFormat(row.title) + '</h3>';
     }
     if (row.body) {
       html += briefingParagraphs(row.body);
