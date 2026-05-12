@@ -898,8 +898,11 @@ async function loadIssues() {
 
     // Populate "Assigned to" filter dropdown from column M — alphabetical.
     // Read-only on this page; admin sets the value in the admin panel.
-    const assignees = [...new Set(allIssues.map(r => (r.assignedTo||'').trim()).filter(Boolean))]
-      .sort((a,b) => a.localeCompare(b));
+    // Rows may have multiple comma-separated assignees — split so each
+    // person appears as their own option.
+    const assignees = [...new Set(
+      allIssues.flatMap(r => (r.assignedTo||'').split(',').map(n => n.trim())).filter(Boolean)
+    )].sort((a,b) => a.localeCompare(b));
     const assignedSel = document.getElementById('filterAssigned');
     if (assignedSel) {
       const prevA = assignedSel.value;
@@ -1161,7 +1164,7 @@ function renderIssues() {
     const matchP = !pf || (r.priority||'') === pf;
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
-    const matchT = !tf || (r.assignedTo||'').toLowerCase() === tf;
+    const matchT = !tf || (r.assignedTo||'').split(',').map(n => n.trim().toLowerCase()).includes(tf);
     const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq) || (r.assignedTo||'').toLowerCase().includes(sq);
     return matchS && matchP && matchC && matchA && matchT && matchQ;
   });
