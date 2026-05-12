@@ -3093,11 +3093,14 @@ function renderMaintenanceTable() {
   var newCount      = mntAllIssues.filter(function(r){ var s=(r.status||'').toLowerCase(); return s.indexOf('new')>=0 && !r.dateResolved && s.indexOf('progress')<0 && s.indexOf('resolv')<0; }).length;
   var inProgCount   = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; }).length;
   var resolvedCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; }).length;
+  var assignedCount   = mntAllIssues.filter(function(r){ return !!(r.assignedTo && r.assignedTo.toString().trim()); }).length;
+  var unassignedCount = mntAllIssues.length - assignedCount;
   var bs = 'border-radius:10px;font-size:0.68rem;font-weight:600;padding:0.15rem 0.55rem;text-transform:uppercase;white-space:nowrap;border:1px solid;';
   var sb = '';
   if (newCount)      sb += '<span style="' + bs + 'background:#fdeaea;color:#c0392b;border-color:#f5c6c6;">' + newCount + ' New</span>';
   if (inProgCount)   sb += '<span style="' + bs + 'background:#fff4e0;color:#b8680a;border-color:#f5dba0;">' + inProgCount + ' In Progress</span>';
   if (resolvedCount) sb += '<span style="' + bs + 'background:#2e7d52;color:#ffffff;border-color:#2e7d52;">' + resolvedCount + ' Resolved</span>';
+  if (assignedCount || unassignedCount) sb += '<span style="' + bs + 'background:#f5f0e8;color:#7a5c3e;border-color:#d8c8b0;text-transform:none;">Assigned ' + assignedCount + ' &middot; Unassigned ' + unassignedCount + '</span>';
   document.getElementById('mntStatusBadges').innerHTML = sb;
   // Mobile header gets a compact, text-only summary (badges are too wide for the bar)
   var mobBadges = document.getElementById('mntMobileBadges');
@@ -3106,6 +3109,7 @@ function renderMaintenanceTable() {
     if (newCount)      parts.push(newCount + ' new');
     if (inProgCount)   parts.push(inProgCount + ' active');
     if (resolvedCount) parts.push(resolvedCount + ' done');
+    if (assignedCount || unassignedCount) parts.push('assigned ' + assignedCount + ' · unassigned ' + unassignedCount);
     mobBadges.textContent = parts.join(' · ');
   }
 
