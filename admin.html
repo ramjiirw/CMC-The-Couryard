@@ -3087,9 +3087,12 @@ function renderMaintenanceTable() {
 
   // Update count pill and status summary badges
   var total = mntAllIssues.length;
-  document.getElementById('mntCountPill').textContent = total;
+  var filtered = issues.length;
+  var anyFilter = !!(searchText || statusFilter || catFilter || addrFilter || priorityFilter || assignedFilter || dateFrom || dateTo || mntHideResolvedOn);
+  var countText = anyFilter ? (filtered + ' / ' + total) : String(total);
+  document.getElementById('mntCountPill').textContent = countText;
   var mobCount = document.getElementById('mntMobileCount');
-  if (mobCount) mobCount.textContent = total;
+  if (mobCount) mobCount.textContent = countText;
   var newCount      = mntAllIssues.filter(function(r){ var s=(r.status||'').toLowerCase(); return s.indexOf('new')>=0 && !r.dateResolved && s.indexOf('progress')<0 && s.indexOf('resolv')<0; }).length;
   var inProgCount   = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('progress')>=0; }).length;
   var resolvedCount = mntAllIssues.filter(function(r){ return (r.status||'').toLowerCase().indexOf('resolv')>=0 || !!r.dateResolved; }).length;
