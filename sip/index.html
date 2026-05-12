@@ -119,6 +119,7 @@
   .btn-toggle:not(.open) .toggle-hint .hint-open { display:inline; }
   .btn-toggle.open .toggle-hint .hint-close { display:inline; }
   .btn-toggle:not(.open) .toggle-hint .hint-close { display:none; }
+  .btn-toggle[disabled] { opacity:0.55; cursor:not-allowed; pointer-events:none; }
   /* ── BRIEFING TOGGLE (dark + gold border, two-row) ── */
   .btn-toggle-briefing { display:block; padding:0.95rem 1.4rem 0.7rem 1.4rem; border:2px solid #c89534; text-transform:none; letter-spacing:normal; }
   .btn-toggle-briefing:hover { background:#253545; }
@@ -734,6 +735,9 @@ function loadQA() {
    * 2. prefetchedQA is a Promise (in-flight) → await it
    * 3. prefetchedQA is 'failed' or null    → start a fresh fetch (legacy path)
    */
+  var qaBtn = document.getElementById('toggle-sipqa');
+  var qaHint = qaBtn ? qaBtn.querySelector('.hint-open') : null;
+
   function applyQAData(d) {
     if (d && d.status === 'ok') {
       qaData = d.rows || [];
@@ -741,9 +745,17 @@ function loadQA() {
       if (qaTotalEl) qaTotalEl.textContent = qaData.length;
       buildQaTopicFilter();
       renderQA();
+      if (qaBtn) qaBtn.removeAttribute('disabled');
+      if (qaHint) qaHint.textContent = 'Tap to expand & view';
     } else {
       document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+      if (qaHint) qaHint.textContent = 'Refresh page to retry';
     }
+  }
+
+  function qaFailed() {
+    document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
+    if (qaHint) qaHint.textContent = 'Refresh page to retry';
   }
 
   // Case 1: already resolved (typical when user spends >1s on login screen)
@@ -751,20 +763,21 @@ function loadQA() {
     applyQAData(prefetchedQA);
     return;
   }
+
+  // Cases 2 & 3 are async — disable the button while we wait
+  if (qaBtn) qaBtn.setAttribute('disabled', 'disabled');
+  if (qaHint) qaHint.textContent = 'Loading Q&A…';
+
   // Case 2: still in-flight — await it
   if (prefetchedQA && typeof prefetchedQA.then === 'function') {
-    prefetchedQA.then(applyQAData).catch(function(){
-      document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
-    });
+    prefetchedQA.then(applyQAData).catch(qaFailed);
     return;
   }
   // Case 3: prefetch failed or never started — fall back to fresh fetch (original behaviour)
   fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
     .then(function(r){ return r.json(); })
     .then(applyQAData)
-    .catch(function(){
-      document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
-    });
+    .catch(qaFailed);
 }
 
 function buildQaTopicFilter() {
@@ -927,6 +940,7 @@ function loadBriefing() {
   if (!panel) return;
   var btn = document.getElementById('toggle-sipbriefing');
   var hintOpen = btn ? btn.querySelector('.hint-open') : null;
+  if (btn) btn.setAttribute('disabled', 'disabled');
   if (hintOpen) hintOpen.textContent = 'Loading briefing…';
 
   var briefingP = fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect: 'follow' }).then(function(r){ return r.json(); });
@@ -939,12 +953,13 @@ function loadBriefing() {
       briefingRows = (d && d.rows) ? d.rows : [];
       applyBriefingMerges(bal);
       renderBriefing();
+      if (btn) btn.removeAttribute('disabled');
       if (hintOpen) hintOpen.textContent = 'Tap to expand & view';
     })
     .catch(function(){
       var inner = panel.querySelector('.briefing-content') || panel.firstElementChild;
       if (inner) inner.innerHTML = '<p style="margin:0;color:#8b3a3a;">Could not load briefing.</p>';
-      if (hintOpen) hintOpen.textContent = 'Tap to expand & view';
+      if (hintOpen) hintOpen.textContent = 'Refresh page to retry';
     });
 }
 
