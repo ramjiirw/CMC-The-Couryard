@@ -9219,11 +9219,16 @@ function mntRemoveAssignee(uiIndex, name) {
   mntMarkDirty(uiIndex);
 }
 
-function mntOpenAssigneePicker(uiIndex, evt) {
+async function mntOpenAssigneePicker(uiIndex, evt) {
   if (evt) evt.stopPropagation();
   // Remove any existing popover
   var old = document.getElementById('mntAssigneePop');
   if (old) { old.remove(); return; }
+
+  if (!ctLoaded) {
+    var ok = await ctLoadResidents();
+    if (!ok) return;
+  }
 
   var btn = evt && evt.currentTarget ? evt.currentTarget : document.querySelector('[onclick*="mntOpenAssigneePicker(' + uiIndex + '"]');
   var current = mntGetAssignedStr(uiIndex);
