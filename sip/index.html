@@ -154,6 +154,8 @@
   .qa-q-ref { color:var(--accent); font-weight:700; }
   /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
   .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  /* Document search-term highlight — same blue accent as Q&A, kept separate for future divergence */
+  .doc-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   /* Friendlier empty state for Q&A search */
   .qa-empty { padding:2rem 1.5rem; text-align:center; color:var(--mid); }
   .qa-empty-title { font-size:0.95rem; font-weight:700; color:var(--dark); margin-bottom:0.4rem; letter-spacing:0.01em; }
@@ -1068,10 +1070,31 @@ function renderAll() {
     return allSortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
   });
   document.getElementById('allCount').textContent = filtered.length;
-  if (!filtered.length) { body.innerHTML = '<tr><td colspan="2" class="empty-msg">No documents found.</td></tr>'; return; }
+  if (!filtered.length) {
+    var titleHtml = q
+      ? 'No documents match <span class="qa-empty-term">' + esc(q) + '</span>'
+      : 'No documents found';
+    var hintHtml = q
+      ? 'Try a different word, or clear the search.'
+      : 'There are no documents to show.';
+    body.innerHTML =
+      '<tr><td colspan="2" class="qa-empty">'
+        + '<div class="qa-empty-title">' + titleHtml + '</div>'
+        + '<div class="qa-empty-hint">' + hintHtml + '</div>'
+      + '</td></tr>';
+    return;
+  }
   body.innerHTML = filtered.map(function(d){
-    return '<tr><td><a class="doc-link" href="/' + esc(d.path) + '" target="_blank" rel="noopener">' + esc(d.name) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="/' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
+    return '<tr><td><a class="doc-link" href="/' + esc(d.path) + '" target="_blank" rel="noopener">' + hlDoc(d.name, q) + '</a></td><td style="text-align:right;"><a class="dl-btn" href="/' + esc(d.path) + '" target="_blank" download>Download</a></td></tr>';
   }).join('');
+}
+
+// Same pattern as hl() above, but wraps matches in <mark class="doc-hl">.
+function hlDoc(text, term) {
+  var safe = esc(text);
+  if (!term) return safe;
+  var re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  return safe.replace(re, function(m){ return '<mark class="doc-hl">' + m + '</mark>'; });
 }
 
 function togglePanel(btnId, panelId) {
