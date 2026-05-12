@@ -152,6 +152,13 @@
   .qa-q-topic { margin-bottom:0.45rem; }
   .qa-q-text { display:block; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
+  /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
+  .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  /* Friendlier empty state for Q&A search */
+  .qa-empty { padding:2rem 1.5rem; text-align:center; color:var(--mid); }
+  .qa-empty-title { font-size:0.95rem; font-weight:700; color:var(--dark); margin-bottom:0.4rem; letter-spacing:0.01em; }
+  .qa-empty-hint { font-size:0.82rem; color:var(--stone); font-style:italic; }
+  .qa-empty-term { color:#2d5a78; font-weight:700; font-style:normal; background:rgba(96,144,176,0.18); padding:0 4px; border-radius:3px; }
   /* ── Q&A TABLE MOBILE/TABLET SCROLL ── */
   @media (max-width:1279px) {
     #panel-sipqa .qa-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -862,20 +869,49 @@ function renderQA() {
   document.getElementById('qaCount').textContent = filtered.length;
 
   if (!filtered.length) {
-    body.innerHTML = '<tr><td colspan="2" class="empty-msg">No results found.</td></tr>';
+    var hasTerm = q.length > 0;
+    var hasTopic = t.length > 0;
+    var hintParts = [];
+    if (hasTerm)  hintParts.push('try a different word');
+    if (hasTopic) hintParts.push('change the topic');
+    if (biFilterActive) hintParts.push('turn off the Bio filter');
+    hintParts.push('or clear all filters');
+    var titleHtml = hasTerm
+      ? 'No questions match <span class="qa-empty-term">' + esc(q) + '</span>'
+      : 'No questions match your filters';
+    body.innerHTML =
+      '<tr><td colspan="2" class="qa-empty">'
+        + '<div class="qa-empty-title">' + titleHtml + '</div>'
+        + '<div class="qa-empty-hint">' + hintParts.join(', ') + '.</div>'
+      + '</td></tr>';
     return;
   }
 
+  // Highlight free-text search matches. Skip highlighting when the search is a
+  // Q-number shortcut (e.g. "q22"/"22") since that's an exact-id match, not a
+  // text match in any field.
+  var hlTerm = (q && qNum === null) ? q : '';
+
   body.innerHTML = filtered.map(function(r){
-    var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + esc(r.topic) + '</span></div>' : '';
+    var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + hl(r.topic, hlTerm) + '</span></div>' : '';
     var qaidHtml = (r.qaid !== null && r.qaid !== undefined && r.qaid !== '')
       ? '<span class="qa-q-ref">Q' + esc(String(r.qaid)) + '.</span> '
       : '';
     return '<tr>'
-      + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + esc(r.question) + '</span></td>'
-      + '<td>' + esc(r.answer).replace(/\n/g, '<br>') + '</td>'
+      + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + hl(r.question, hlTerm) + '</span></td>'
+      + '<td>' + hl(r.answer, hlTerm).replace(/\n/g, '<br>') + '</td>'
       + '</tr>';
   }).join('');
+}
+
+// Escape then wrap case-insensitive occurrences of `term` in <mark class="qa-hl">.
+// Returns escaped HTML; safe to insert into innerHTML.
+function hl(text, term) {
+  var safe = esc(text);
+  if (!term) return safe;
+  // Escape regex metacharacters in the search term, then match case-insensitively.
+  var re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  return safe.replace(re, function(m){ return '<mark class="qa-hl">' + m + '</mark>'; });
 }
 
 
