@@ -1118,22 +1118,28 @@ function togglePanel(btnId, panelId) {
   var isOpening = !panel.classList.contains('open');
 
   if (isOpening) {
-    // Opening: set explicit pixel height to animate, then release the cap
-    // so the panel auto-expands to fit any content size from then on.
+    // Start from 0 (whether first open or reopening after close)
+    panel.style.maxHeight = '0px';
+    panel.offsetHeight; // force reflow so the 0 starting point is registered
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
+    // After the open transition finishes, release the cap so content
+    // can grow/shrink freely (handles filters, dynamic content, long Q&As),
+    // and scroll the toggle button to the top of the screen.
     panel.addEventListener('transitionend', function handler(e) {
       if (e.propertyName === 'max-height') {
         panel.style.maxHeight = 'none';
         panel.removeEventListener('transitionend', handler);
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   } else {
-    // Closing: lock in current pixel height, force reflow, then animate to 0.
+    // Closing: replace 'none' with the actual pixel height, force reflow,
+    // then animate down to 0.
     panel.style.maxHeight = panel.scrollHeight + 'px';
-    panel.offsetHeight; // force reflow so browser registers the pixel value
-    panel.style.maxHeight = '0';
+    panel.offsetHeight; // force reflow
     panel.classList.remove('open');
+    panel.style.maxHeight = '0px';
   }
 
   btn.classList.toggle('open', isOpening);
