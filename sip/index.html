@@ -1130,7 +1130,14 @@ function togglePanel(btnId, panelId) {
       if (e.propertyName === 'max-height') {
         panel.style.maxHeight = 'none';
         panel.removeEventListener('transitionend', handler);
-        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Scroll the toggle button to just below the sticky header.
+        // Header is position:sticky on desktop, static on ≤1024px — getBoundingClientRect
+        // returns the actual rendered offset, so this works correctly on both.
+        var header = document.querySelector('header');
+        var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+        var btnTop = btn.getBoundingClientRect().top;
+        var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
+        window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
       }
     });
   } else {
