@@ -1135,28 +1135,17 @@ function togglePanel(btnId, panelId) {
   var isOpening = !panel.classList.contains('open');
 
   if (isOpening) {
-    // Accordion: close any other panel that's currently open before opening this one.
-    var openPanels = document.querySelectorAll('.collapsible-panel.open');
-    for (var i = 0; i < openPanels.length; i++) {
-      if (openPanels[i] !== panel) closePanel(openPanels[i]);
-    }
-
     // Start from 0 (whether first open or reopening after close)
     panel.style.maxHeight = '0px';
     panel.offsetHeight; // force reflow so the 0 starting point is registered
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
 
-    // Scroll the button to just below the sticky header. Target the document's
-    // scrolling element directly (more reliable than window.scrollTo when html
-    // has overflow rules set). Defer via setTimeout so the layout has updated
-    // to the panel's new (taller) state before we calculate scroll position.
-    var header = document.querySelector('header');
+    // Scroll the toggle button to the top, using scrollIntoView which the
+    // browser implements natively and handles reflow during animation.
+    // Deferred so the panel's max-height change is registered first.
     setTimeout(function() {
-      var scroller = document.scrollingElement || document.documentElement;
-      var headerHeight = header ? header.getBoundingClientRect().height : 0;
-      var absoluteTargetY = scroller.scrollTop + btn.getBoundingClientRect().top - headerHeight - 16;
-      scroller.scrollTo({ top: absoluteTargetY, behavior: 'smooth' });
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
 
     // After the open transition finishes, release the cap so content can
