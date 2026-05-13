@@ -49,6 +49,7 @@
   .lock-btn:hover { background:#253545; color:#f5f0e8; border-color:rgba(96,144,176,0.5); }
   .sip-body { max-width:1100px; width:100%; margin:0 auto; padding:1.8rem 1.5rem 4rem; flex:1; }
   @media(max-width:1024px) { header { position:static; } }
+  @media(min-width:1025px) { .btn-toggle { scroll-margin-top:140px; } } /* clears sticky header on desktop only */
   @media(max-width:768px) { .sip-body { padding-left:1rem; padding-right:1rem; padding-bottom:4rem; } }
   .page-title { margin-bottom:1.4rem; }
   .page-title h2 { font-size:1.4rem; font-weight:500; color:var(--accent); }
@@ -109,7 +110,7 @@
 
   /* ── COLLAPSIBLE DOCS PANEL ── */
   .doc-card-wrapper { background:var(--cream); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:1.4rem; }
-  .btn-toggle { display:flex; align-items:center; justify-content:space-between; width:100%; padding:0.75rem 1.25rem; background:#1e2a35; color:var(--cream); border:none; border-radius:10px 10px 0 0; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; scroll-margin-top:140px; }
+  .btn-toggle { display:flex; align-items:center; justify-content:space-between; width:100%; padding:0.75rem 1.25rem; background:#1e2a35; color:var(--cream); border:none; border-radius:10px 10px 0 0; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
   .btn-toggle:hover { background:#253545; }
   .btn-toggle.pinned-toggle { background:linear-gradient(135deg,#3a5a70,#6090b0); }
   .btn-toggle.pinned-toggle:hover { background:#4a7090; }
