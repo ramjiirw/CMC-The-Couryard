@@ -1141,19 +1141,16 @@ function togglePanel(btnId, panelId) {
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
 
-    // Scroll the toggle button to the top, using scrollIntoView which the
-    // browser implements natively and handles reflow during animation.
-    // Deferred so the panel's max-height change is registered first.
-    setTimeout(function() {
-      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 0);
-
-    // After the open transition finishes, release the cap so content can
-    // grow/shrink freely (handles filters, dynamic content, long Q&As).
+    // After the open transition finishes: release the cap so content can
+    // grow/shrink freely, AND scroll the button to the top. The scroll must
+    // happen here (not before) because while the panel is still expanding
+    // the page isn't tall enough for the browser to scroll to the target —
+    // window.scrollTo gets clamped to the current max scroll position.
     panel.addEventListener('transitionend', function handler(e) {
       if (e.propertyName === 'max-height') {
         panel.style.maxHeight = 'none';
         panel.removeEventListener('transitionend', handler);
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
     btn.classList.add('open');
