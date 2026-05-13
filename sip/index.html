@@ -1147,14 +1147,16 @@ function togglePanel(btnId, panelId) {
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
 
-    // Start the scroll-to-top at the same time as the expansion, so both
-    // animate together (rather than expand-then-jump). Header is sticky on
-    // desktop and static on ≤1024px — getBoundingClientRect handles both.
+    // Start the scroll-to-top in the next frame so the page has reflowed to
+    // its new (taller) height first — otherwise scrollBy gets clamped to the
+    // pre-expansion scroll max and effectively does nothing.
     var header = document.querySelector('header');
-    var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-    var btnTop = btn.getBoundingClientRect().top;
-    var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
-    window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+    requestAnimationFrame(function() {
+      var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+      var btnTop = btn.getBoundingClientRect().top;
+      var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
+      window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+    });
 
     // After the open transition finishes, release the cap so content can
     // grow/shrink freely (handles filters, dynamic content, long Q&As).
