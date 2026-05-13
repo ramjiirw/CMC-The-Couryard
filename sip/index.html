@@ -1147,17 +1147,16 @@ function togglePanel(btnId, panelId) {
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
 
-    // Scroll the button to just below the sticky header. Use the button's
-    // absolute position in the document (pageYOffset + viewport top) and
-    // subtract the header height so the target is below it. We must do this
-    // after a microtask delay so the page height has updated to accommodate
-    // the expanded panel; otherwise the scroll target may be clamped.
+    // Scroll the button to just below the sticky header. Target the document's
+    // scrolling element directly (more reliable than window.scrollTo when html
+    // has overflow rules set). Defer via setTimeout so the layout has updated
+    // to the panel's new (taller) state before we calculate scroll position.
     var header = document.querySelector('header');
     setTimeout(function() {
+      var scroller = document.scrollingElement || document.documentElement;
       var headerHeight = header ? header.getBoundingClientRect().height : 0;
-      // Absolute document Y of the button = current scroll + button's viewport top
-      var absoluteTargetY = window.pageYOffset + btn.getBoundingClientRect().top - headerHeight - 16;
-      window.scrollTo({ top: absoluteTargetY, behavior: 'smooth' });
+      var absoluteTargetY = scroller.scrollTop + btn.getBoundingClientRect().top - headerHeight - 16;
+      scroller.scrollTo({ top: absoluteTargetY, behavior: 'smooth' });
     }, 0);
 
     // After the open transition finishes, release the cap so content can
