@@ -1147,16 +1147,18 @@ function togglePanel(btnId, panelId) {
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
 
-    // Start the scroll-to-top in the next frame so the page has reflowed to
-    // its new (taller) height first — otherwise scrollBy gets clamped to the
-    // pre-expansion scroll max and effectively does nothing.
+    // Scroll the button to just below the sticky header. Use the button's
+    // absolute position in the document (pageYOffset + viewport top) and
+    // subtract the header height so the target is below it. We must do this
+    // after a microtask delay so the page height has updated to accommodate
+    // the expanded panel; otherwise the scroll target may be clamped.
     var header = document.querySelector('header');
-    requestAnimationFrame(function() {
-      var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-      var btnTop = btn.getBoundingClientRect().top;
-      var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
-      window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
-    });
+    setTimeout(function() {
+      var headerHeight = header ? header.getBoundingClientRect().height : 0;
+      // Absolute document Y of the button = current scroll + button's viewport top
+      var absoluteTargetY = window.pageYOffset + btn.getBoundingClientRect().top - headerHeight - 16;
+      window.scrollTo({ top: absoluteTargetY, behavior: 'smooth' });
+    }, 0);
 
     // After the open transition finishes, release the cap so content can
     // grow/shrink freely (handles filters, dynamic content, long Q&As).
