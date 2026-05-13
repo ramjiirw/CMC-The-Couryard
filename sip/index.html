@@ -13,6 +13,12 @@
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html, body { height:100%; }
+  /* Desktop only: reserve scrollbar space to prevent left/right shift when panels expand/collapse.
+     Scoped to devices with a true hover (mouse) at >=1025px — excludes iPad/iPhone where this
+     property can interfere with Safari's scroll positioning on initial load. */
+  @media (hover:hover) and (min-width:1025px) {
+    html { scrollbar-gutter:stable; }
+  }
   body { font-family:Arial,sans-serif; font-size:14px; background:var(--cream); min-height:100vh; min-height:-webkit-fill-available; min-height:100dvh; overflow-x:hidden; display:flex; flex-direction:column; }
 
   /* ── LOGIN SCREEN ── */
@@ -533,6 +539,10 @@ function showSip() {
   // Belt-and-braces: Safari on iPad mini recalculates vh late, nudge scroll again
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 150);
   setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 400);
+  // Later retries: Safari "preserves scroll position" when fetched data lands and fills the page,
+  // nudging the user down ~100px. These fire after content has typically loaded.
+  setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 800);
+  setTimeout(function(){ window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }, 1500);
   loadDocuments();
   loadQA();
   loadBriefing();
