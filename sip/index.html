@@ -39,7 +39,7 @@
 
   /* ── SIP SCREEN ── */
   #sipScreen { display:none; flex-direction:column; background:var(--cream); flex:1; }
-  header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; width:100vw; margin-left:calc(50% - 50vw); }
+  header { background:var(--dark); padding:1.5rem 2.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-bottom:1px solid rgba(196,149,106,0.2); position:sticky; top:0; z-index:100; }
   .header-brand { display:flex; align-items:center; gap:1rem; }
   .header-brand img { height:90px; width:120px; object-fit:cover; border-radius:10px; }
   .header-brand h1 { font-family:Arial,sans-serif; color:var(--cream); font-size:1.6rem; font-weight:500; letter-spacing:0.03em; }
@@ -93,7 +93,7 @@
   .qa-sort-arrow { font-size:0.65rem; opacity:0.35; }
   .qa-sort-chip.active.asc  .qa-sort-arrow::after { content:'▲'; opacity:1; color:var(--accent2); }
   .qa-sort-chip.active.desc .qa-sort-arrow::after { content:'▼'; opacity:1; color:var(--accent2); }
-  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; width:100vw; margin-left:calc(50% - 50vw); }
+  footer { background:var(--dark); border-top:1px solid rgba(196,149,106,0.15); padding:0.8rem 1.5rem; text-align:center; }
   footer p { font-size:0.72rem; color:var(--stone); letter-spacing:0.04em; text-align:center; }
   footer p > span:first-child { color:#6090b0; }
   footer #footerYear { color:var(--stone); }
@@ -1113,12 +1113,34 @@ function hlDoc(text, term) {
   return safe.replace(re, function(m){ return '<mark class="doc-hl">' + m + '</mark>'; });
 }
 
+function closePanel(panel) {
+  // Closing: replace 'none' with the actual pixel height, force reflow,
+  // then animate down to 0.
+  panel.style.maxHeight = panel.scrollHeight + 'px';
+  panel.offsetHeight; // force reflow
+  panel.classList.remove('open');
+  panel.style.maxHeight = '0px';
+  // Update the matching toggle button (derived from panel id: panel-X → toggle-X)
+  var btnId = panel.id.replace(/^panel-/, 'toggle-');
+  var btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+}
+
 function togglePanel(btnId, panelId) {
   var btn   = document.getElementById(btnId);
   var panel = document.getElementById(panelId);
   var isOpening = !panel.classList.contains('open');
 
   if (isOpening) {
+    // Accordion: close any other panel that's currently open before opening this one.
+    var openPanels = document.querySelectorAll('.collapsible-panel.open');
+    for (var i = 0; i < openPanels.length; i++) {
+      if (openPanels[i] !== panel) closePanel(openPanels[i]);
+    }
+
     // Start from 0 (whether first open or reopening after close)
     panel.style.maxHeight = '0px';
     panel.offsetHeight; // force reflow so the 0 starting point is registered
@@ -1141,17 +1163,11 @@ function togglePanel(btnId, panelId) {
         window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
       }
     });
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
   } else {
-    // Closing: replace 'none' with the actual pixel height, force reflow,
-    // then animate down to 0.
-    panel.style.maxHeight = panel.scrollHeight + 'px';
-    panel.offsetHeight; // force reflow
-    panel.classList.remove('open');
-    panel.style.maxHeight = '0px';
+    closePanel(panel);
   }
-
-  btn.classList.toggle('open', isOpening);
-  btn.setAttribute('aria-expanded', isOpening);
 }
 
 function onSipSearch() {
