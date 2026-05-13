@@ -1146,21 +1146,22 @@ function togglePanel(btnId, panelId) {
     panel.offsetHeight; // force reflow so the 0 starting point is registered
     panel.classList.add('open');
     panel.style.maxHeight = panel.scrollHeight + 'px';
-    // After the open transition finishes, release the cap so content
-    // can grow/shrink freely (handles filters, dynamic content, long Q&As),
-    // and scroll the toggle button to the top of the screen.
+
+    // Start the scroll-to-top at the same time as the expansion, so both
+    // animate together (rather than expand-then-jump). Header is sticky on
+    // desktop and static on ≤1024px — getBoundingClientRect handles both.
+    var header = document.querySelector('header');
+    var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+    var btnTop = btn.getBoundingClientRect().top;
+    var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
+    window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+
+    // After the open transition finishes, release the cap so content can
+    // grow/shrink freely (handles filters, dynamic content, long Q&As).
     panel.addEventListener('transitionend', function handler(e) {
       if (e.propertyName === 'max-height') {
         panel.style.maxHeight = 'none';
         panel.removeEventListener('transitionend', handler);
-        // Scroll the toggle button to just below the sticky header.
-        // Header is position:sticky on desktop, static on ≤1024px — getBoundingClientRect
-        // returns the actual rendered offset, so this works correctly on both.
-        var header = document.querySelector('header');
-        var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-        var btnTop = btn.getBoundingClientRect().top;
-        var scrollDelta = btnTop - headerBottom - 16; // 16px breathing room
-        window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
       }
     });
     btn.classList.add('open');
