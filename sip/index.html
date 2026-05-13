@@ -133,7 +133,7 @@
   .btn-toggle-briefing .briefing-alert { margin-top:0.55rem; padding-top:0.5rem; border-top:1px solid rgba(200,149,52,0.35); font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:#c89534; font-weight:700; display:flex; align-items:center; gap:0.5rem; }
   .btn-toggle-briefing .briefing-warn { font-size:0.8rem; }
   .collapsible-panel { overflow:hidden; max-height:0; transition:max-height 0.35s ease; }
-  .collapsible-panel.open { max-height:8000px; }
+  .collapsible-panel.open { max-height:none; }
   .doc-filter-clear { padding:0.28rem 0.7rem; border-radius:5px; border:none; background:#c0622a; color:white; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; display:none; align-items:center; gap:0.3rem; transition:background 0.2s; }
   .doc-filter-clear:hover { background:#a0501e; }
 
@@ -1115,9 +1115,29 @@ function hlDoc(text, term) {
 function togglePanel(btnId, panelId) {
   var btn   = document.getElementById(btnId);
   var panel = document.getElementById(panelId);
-  var open  = panel.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', open);
+  var isOpening = !panel.classList.contains('open');
+
+  if (isOpening) {
+    // Opening: set explicit pixel height to animate, then release the cap
+    // so the panel auto-expands to fit any content size from then on.
+    panel.classList.add('open');
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    panel.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName === 'max-height') {
+        panel.style.maxHeight = 'none';
+        panel.removeEventListener('transitionend', handler);
+      }
+    });
+  } else {
+    // Closing: lock in current pixel height, force reflow, then animate to 0.
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    panel.offsetHeight; // force reflow so browser registers the pixel value
+    panel.style.maxHeight = '0';
+    panel.classList.remove('open');
+  }
+
+  btn.classList.toggle('open', isOpening);
+  btn.setAttribute('aria-expanded', isOpening);
 }
 
 function onSipSearch() {
