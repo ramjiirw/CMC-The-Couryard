@@ -12,6 +12,7 @@
     --border:#ddd5c8; --warm:#faf7f2;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
+  html { overflow-y:scroll; } /* always reserve scrollbar space so page doesn't shift when panels expand/collapse */
   html, body { height:100%; }
   body { font-family:Arial,sans-serif; font-size:14px; background:var(--cream); min-height:100vh; min-height:-webkit-fill-available; min-height:100dvh; overflow-x:hidden; display:flex; flex-direction:column; }
 
