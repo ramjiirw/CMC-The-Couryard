@@ -238,6 +238,42 @@
     cursor: pointer; line-height: 1; padding: 0 0.2rem;
   }
   .report-modal-close:hover { opacity: 0.7; }
+  /* ── Resident Add Update — pill button next to UPDATES label ── */
+  .btn-add-update {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: var(--blue); color: white; border: none;
+    padding: 0.2rem 0.7rem; border-radius: 12px;
+    font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-add-update:hover { background: #2d5238; }
+  .btn-add-update .plus { font-size: 0.9rem; line-height: 1; }
+  /* Each update entry — date+name row tight against its text, single-line gap between entries */
+  .update-entry { margin: 0; padding: 0; }
+  .update-entry + .update-entry { margin-top: 0.75rem; }
+  .update-entry .update-meta {
+    font-size: 0.75rem; color: var(--accent); font-weight: 700;
+    margin: 0 0 0.05rem; letter-spacing: 0.02em;
+  }
+  .update-entry .update-text {
+    font-size: 0.92rem; color: var(--dark); line-height: 1.5; margin: 0;
+    white-space: pre-wrap;
+  }
+  /* Resident Update Modal — matches Report-an-Issue modal styling */
+  .update-modal-helper {
+    font-size: 0.78rem; color: var(--stone); font-style: italic;
+    margin-right: auto;
+  }
+  .form-group label .optional {
+    text-transform: none; font-weight: 500; font-style: italic;
+    color: var(--stone); letter-spacing: 0; margin-left: 0.3rem;
+  }
+  @media (max-width: 640px) {
+    .update-modal-actions { flex-direction: column; gap: 0.5rem !important; }
+    .update-modal-actions .update-modal-helper { margin: 0; text-align: center; }
+    .update-modal-actions .btn-submit { width: 100%; }
+  }
   .admin-bar { background: #2a2520; padding: 0.5rem 1.25rem; display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
   .admin-bar label { color: var(--stone); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
   .admin-bar input { padding: 0.3rem 0.6rem; border-radius: 5px; border: 1px solid #3a3530; background: #1e1a16; color: var(--cream); font-family: Arial,sans-serif; font-size: 0.82rem; width: 160px; }
@@ -633,6 +669,59 @@
   </div>
 </div>
 
+<!-- Resident Update Modal — for residents to append updates to an existing issue -->
+<div class="report-modal-overlay" id="updateModal" onclick="handleUpdateOverlayClick(event)">
+  <div class="report-modal">
+    <div class="report-modal-header">
+      <span>&#10133; Add an Update &middot; Issue <span id="updateModalIssueNum">#</span></span>
+      <button class="report-modal-close" onclick="guardedCloseUpdateModal()">&#x2715;</button>
+    </div>
+    <div class="submit-body">
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 200px;">
+          <label>Your name</label>
+          <select id="updateNameSelect" onchange="updateSubmitState()"><option value="">— Select your name —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Quick pick <span class="optional">(optional)</span></label>
+          <select id="updateQuickPick" onchange="onUpdateQuickPick();updateSubmitState()">
+            <option value="">— Pick a common update or write your own below —</option>
+            <option>Still ongoing — no change</option>
+            <option>Issue has worsened</option>
+            <option>Issue has improved</option>
+            <option>Tradesperson has visited</option>
+            <option>Tradesperson scheduled to visit</option>
+            <option>Awaiting parts / materials</option>
+            <option>Thank you — now resolved</option>
+            <option>Other — see below</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Your update</label>
+        <textarea id="updateText" placeholder="Add your update here..." oninput="updateSubmitState()"></textarea>
+      </div>
+      <div class="update-modal-actions" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:flex-end;">
+        <div id="updateSubmitMsg" class="submit-msg"></div>
+        <span class="update-modal-helper">Date will be added automatically</span>
+        <button class="btn-submit" id="updateSubmitBtn" onclick="submitUpdate()">Submit Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Unsaved update warning -->
+<div id="updateUnsavedModal" style="display:none;position:fixed;inset:0;background:transparent;z-index:1100;align-items:center;justify-content:center;">
+  <div class="unsaved-box">
+    <h3>&#9888;&#65039; Unsaved Update</h3>
+    <p>You've started writing an update. If you close now your text will be lost.</p>
+    <div class="ub-btns">
+      <button class="btn-save" onclick="confirmCloseUpdateModal()">Discard &amp; Close</button>
+      <button class="btn-cancel-edit" onclick="document.getElementById('updateUnsavedModal').style.display='none';">Go Back</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let ADMIN_PASSWORD = null;
 let isAdmin = false;
@@ -825,15 +914,19 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEF
 
 
 let allIssues = [];
+// Cached Residents-tab rows — used to populate both the address dropdown (report modal)
+// and the name dropdown (resident update modal). Same data, two consumers, one fetch.
+let allResidents = [];
 
 async function loadAddresses() {
   try {
     const res  = await fetch(SCRIPT_URL + '?action=read');
     const data = await res.json();
     if (data.status !== 'ok') throw new Error();
+    allResidents = data.rows || [];
     const sel = document.getElementById('addressSelect');
     while (sel.options.length > 1) sel.remove(1);
-    const addresses = [...new Set((data.rows||[]).map(r => r.address).filter(Boolean))].sort((a,b) => {
+    const addresses = [...new Set(allResidents.map(r => r.address).filter(Boolean))].sort((a,b) => {
       const am = a.match(/\d+/), bm = b.match(/\d+/);
       const na = am ? parseInt(am[0], 10) : Infinity;
       const nb = bm ? parseInt(bm[0], 10) : Infinity;
@@ -1087,6 +1180,144 @@ function closeReportModal() {
   btn.disabled = false; btn.textContent = 'Submit Issue';
 }
 
+// ── Resident Update Modal ──────────────────────────────────────────────────
+// Tracks which issue's update modal is open so the submit handler can write to
+// the right row. rowIndex is the sheet row (already stored on each issue);
+// issueNumber is for display in the modal header only.
+let activeUpdateIssue = null;
+
+function openUpdateModal(issueNumber, rowIndex) {
+  activeUpdateIssue = { issueNumber: issueNumber, rowIndex: rowIndex };
+  document.getElementById('updateModalIssueNum').textContent = '#' + issueNumber;
+  // Populate name dropdown from cached Residents tab — "First (HouseNumber)" format
+  // matches the existing assignee display, sorted by house number then first name.
+  const sel = document.getElementById('updateNameSelect');
+  while (sel.options.length > 1) sel.remove(1);
+  const names = allResidents
+    .filter(r => r.firstName && r.address)
+    .map(r => {
+      const m = (r.address || '').match(/\d+/);
+      const houseNum = m ? parseInt(m[0], 10) : 999;
+      return { label: r.firstName + ' (' + (m ? m[0] : r.address) + ')', sort: houseNum, name: r.firstName };
+    })
+    .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name));
+  // Dedupe — same display label can occur if a household has the same name twice
+  const seen = {};
+  names.forEach(n => {
+    if (seen[n.label]) return;
+    seen[n.label] = true;
+    const o = document.createElement('option');
+    o.value = o.textContent = n.label;
+    sel.appendChild(o);
+  });
+  // Reset other fields
+  document.getElementById('updateQuickPick').value = '';
+  document.getElementById('updateText').value = '';
+  const msg = document.getElementById('updateSubmitMsg');
+  msg.className = 'submit-msg';
+  const btn = document.getElementById('updateSubmitBtn');
+  // Start disabled — enabled once both name and text are filled (see updateSubmitState)
+  btn.disabled = true; btn.textContent = 'Submit Update';
+  document.getElementById('updateModal').classList.add('open');
+}
+
+// Enable Submit only when both the name dropdown and the textarea have values.
+// Wired up to input/change events at the bottom of the script.
+function updateSubmitState() {
+  const name = document.getElementById('updateNameSelect').value;
+  const text = document.getElementById('updateText').value.trim();
+  const btn  = document.getElementById('updateSubmitBtn');
+  if (!btn) return;
+  // Only update the disabled state if the button isn't mid-submission
+  // (which sets its text to "Submitting..." — leave it alone in that case).
+  if (btn.textContent === 'Submit Update') {
+    btn.disabled = !(name && text);
+  }
+}
+
+function onUpdateQuickPick() {
+  const pick = document.getElementById('updateQuickPick').value;
+  if (!pick) return;
+  // Drop the phrase into the textarea. If the textarea already has different
+  // content, append rather than overwrite — same friendly behaviour as the
+  // report-issue flow where re-selecting doesn't wipe what they've typed.
+  const ta = document.getElementById('updateText');
+  if (!ta.value.trim()) {
+    ta.value = pick;
+  } else if (ta.value.indexOf(pick) === -1) {
+    ta.value = pick + (ta.value ? ' — ' + ta.value : '');
+  }
+  ta.focus();
+}
+
+function updateFormIsDirty() {
+  // Only the textarea counts — picking a name or a quick-pick alone shouldn't
+  // trigger the warning, matching the report modal's dirty-check on the issue text.
+  return !!document.getElementById('updateText').value.trim();
+}
+
+function guardedCloseUpdateModal() {
+  if (updateFormIsDirty()) {
+    document.getElementById('updateUnsavedModal').style.display = 'flex';
+  } else {
+    closeUpdateModal();
+  }
+}
+
+function handleUpdateOverlayClick(e) {
+  if (e.target === document.getElementById('updateModal')) {
+    guardedCloseUpdateModal();
+  }
+}
+
+function confirmCloseUpdateModal() {
+  document.getElementById('updateUnsavedModal').style.display = 'none';
+  closeUpdateModal();
+}
+
+function closeUpdateModal() {
+  document.getElementById('updateModal').classList.remove('open');
+  activeUpdateIssue = null;
+}
+
+function showUpdateMsg(type, text) {
+  const m = document.getElementById('updateSubmitMsg');
+  m.className = 'submit-msg ' + type;
+  m.textContent = text;
+}
+
+async function submitUpdate() {
+  if (!activeUpdateIssue) return;
+  const name = document.getElementById('updateNameSelect').value;
+  const text = document.getElementById('updateText').value.trim();
+  if (!name) { showUpdateMsg('error', 'Please select your name.'); return; }
+  if (!text) { showUpdateMsg('error', 'Please write your update.'); return; }
+  const btn = document.getElementById('updateSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:    'appendMaintenanceUpdate',
+        rowIndex:  activeUpdateIssue.rowIndex,
+        name:      name,
+        text:      text
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      showUpdateMsg('success', 'Update submitted — thank you!');
+      setTimeout(closeUpdateModal, 1500);
+      setTimeout(loadIssues, 800);
+    } else {
+      throw new Error(data.message || '');
+    }
+  } catch(e) {
+    showUpdateMsg('error', 'Could not submit — please try again.');
+    btn.disabled = false; btn.textContent = 'Submit Update';
+  }
+}
+
 function updateFilterBtn() {
   const primary = [
     document.getElementById('filterStatus').value,
@@ -1149,6 +1380,50 @@ function priorityBadge(p) {
   if (v === 'medium') return '<span class="badge badge-pri-medium">Medium</span>';
   if (v === 'low')    return '<span class="badge badge-pri-low">Low</span>';
   return '<span class="badge badge-pri-none">' + p + '</span>';
+}
+
+// Render the Updates column body. New entries (added via the resident update modal)
+// are stored in the sheet as paired lines: "DD Mon YYYY — Name (N)\nUpdate text",
+// separated from earlier entries by a blank line. Newest at the top. Legacy
+// free-text updates (no structured format) render unchanged as a single block.
+function renderUpdatesBody(raw) {
+  if (!raw || !raw.toString().trim()) {
+    return '<div class="body no-updates">No updates yet</div>';
+  }
+  const text = raw.toString();
+  // Header pattern: starts with "DD Mon YYYY — " — em dash or hyphen, followed by name
+  const headerRe = /^\s*\d{1,2}\s+\w{3,}\s+\d{4}\s*[—\-–]\s*.+/;
+  // Split on blank line(s) — handles both \n\n and \r\n\r\n
+  const blocks = text.split(/\r?\n\s*\r?\n/).map(b => b.trim()).filter(Boolean);
+  // If no block starts with a date header, treat the whole field as legacy free text
+  const anyStructured = blocks.some(b => headerRe.test(b.split(/\r?\n/)[0] || ''));
+  if (!anyStructured) {
+    return '<div class="body">' + escHtml(text) + '</div>';
+  }
+  let html = '<div class="body">';
+  blocks.forEach(block => {
+    const lines = block.split(/\r?\n/);
+    const first = lines[0] || '';
+    if (headerRe.test(first)) {
+      const rest = lines.slice(1).join('\n').trim();
+      html += '<div class="update-entry">';
+      html += '<div class="update-meta">' + escHtml(first.trim()) + '</div>';
+      html += '<div class="update-text">' + escHtml(rest) + '</div>';
+      html += '</div>';
+    } else {
+      // Block doesn't match the header pattern — render as-is so legacy notes
+      // mixed in with new entries don't get hidden or mangled
+      html += '<div class="update-entry"><div class="update-text">' + escHtml(block) + '</div></div>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function renderIssues() {
@@ -1226,8 +1501,13 @@ function renderIssues() {
     html += '<div class="body">' + (r.description || '') + '</div>';
     html += '</div>';
     html += '<div class="content-col">';
-    html += '<div class="content-label-row"><span class="label">Updates</span></div>';
-    html += (r.updates ? '<div class="body">' + r.updates + '</div>' : '<div class="body no-updates">No updates yet</div>');
+    html += '<div class="content-label-row"><span class="label">Updates</span>';
+    // "+ Add update" pill — residents only (not admin), and only on non-resolved issues
+    if (!isAdmin && !isResolved) {
+      html += '<button class="btn-add-update" onclick="event.stopPropagation();openUpdateModal(' + (r.issueNumber || (i+1)) + ',' + r.rowIndex + ')"><span class="plus">+</span> Add update</button>';
+    }
+    html += '</div>';
+    html += renderUpdatesBody(r.updates);
     html += '</div>';
     html += '</div>';
 
