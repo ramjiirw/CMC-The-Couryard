@@ -550,14 +550,15 @@
     <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;"></span><span class="count-pill" style="letter-spacing:0.04em;background:rgba(255,255,255,0.12);color:var(--cream);">SHOWING · <span id="issueCount">-</span></span></div>
     <div class="filter-bar">
       <label>Filter:</label>
+      <select id="filterAssigned" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All Assignees</option>
+      </select>
       <select id="filterAddr" onchange="renderIssues();updateFilterBtn()">
-        <option value="">All Addresses</option>
+        <option value="">Submitter Address</option>
       </select>
       <select id="filterStatus" onchange="renderIssues();updateFilterBtn()">
-        <option value="">All Statuses</option>
-        <option value="new">New</option>
-        <option value="progress">In Progress</option>
-        <option value="resolv">Resolved</option>
+        <option value="open" selected>Open</option>
+        <option value="closed">Closed</option>
       </select>
       <input type="text" id="filterSearch" placeholder="Search..." oninput="renderIssues();updateFilterBtn()" style="padding:0.35rem 0.7rem;border:1px solid var(--border);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:white;color:var(--dark);width:160px;">
       <select id="sortSelect" onchange="renderIssues()" title="Sort order">
@@ -583,9 +584,6 @@
       </select>
       <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Categories</option>
-      </select>
-      <select id="filterAssigned" onchange="renderIssues();updateFilterBtn()">
-        <option value="">All Assignees</option>
       </select>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
@@ -692,9 +690,11 @@
             <option>Tradesperson has visited</option>
             <option>Tradesperson scheduled to visit</option>
             <option>Awaiting parts / materials</option>
-            <option>Please assign this issue to me</option>
-            <option>Thank you — now resolved</option>
-            <option>Other — see below</option>
+            <option value="Other">Other — enter details below</option>
+            <optgroup label="─────  Actions  ─────">
+              <option>Please assign this issue to me</option>
+              <option>Thank you — now resolved</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -1237,16 +1237,18 @@ function updateSubmitState() {
 }
 
 function onUpdateQuickPick() {
-  const pick = document.getElementById('updateQuickPick').value;
-  if (!pick) return;
-  // Drop the phrase into the textarea. If the textarea already has different
-  // content, append rather than overwrite — same friendly behaviour as the
-  // report-issue flow where re-selecting doesn't wipe what they've typed.
+  const pickEl = document.getElementById('updateQuickPick');
+  const pickValue = pickEl.value;
+  if (!pickValue) return;
+  // The dropdown's value is what gets dropped into the textarea — for most
+  // options it's identical to the display text, but for "Other" the display
+  // text is the hint "Other — enter details below" while the value is just
+  // "Other" so the textarea doesn't get a redundant phrase in it.
   const ta = document.getElementById('updateText');
   if (!ta.value.trim()) {
-    ta.value = pick;
-  } else if (ta.value.indexOf(pick) === -1) {
-    ta.value = pick + (ta.value ? ' — ' + ta.value : '');
+    ta.value = pickValue;
+  } else if (ta.value.indexOf(pickValue) === -1) {
+    ta.value = pickValue + (ta.value ? ' — ' + ta.value : '');
   }
   ta.focus();
 }
@@ -1320,15 +1322,18 @@ async function submitUpdate() {
 }
 
 function updateFilterBtn() {
-  const primary = [
-    document.getElementById('filterStatus').value,
+  // Status filter is always "open" or "closed" — count it only when it's been
+  // changed from the default ("open"), so the page on initial load doesn't
+  // show an active-filter indicator.
+  const statusActive = document.getElementById('filterStatus').value !== 'open' ? 1 : 0;
+  const primary = statusActive + [
     document.getElementById('filterAddr').value,
+    document.getElementById('filterAssigned').value,
     document.getElementById('filterSearch').value.trim()
   ].filter(Boolean).length;
   const secondary = [
     document.getElementById('filterPriority').value,
-    document.getElementById('filterCat').value,
-    document.getElementById('filterAssigned').value
+    document.getElementById('filterCat').value
   ].filter(Boolean).length;
   const count = primary + secondary;
 
@@ -1364,7 +1369,7 @@ function toggleMoreFilters() {
 }
 
 function clearFilters() {
-  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterStatus').value = 'open';
   document.getElementById('filterPriority').value = '';
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAssigned').value = '';
@@ -1436,7 +1441,10 @@ function renderIssues() {
   const sq = document.getElementById('filterSearch').value.trim().toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
-    const matchS = !sf || sv.includes(sf);
+    // Status filter is always either "open" (= new or progress) or "closed" (= resolved).
+    // The dropdown has no "all" option — open and closed are exclusive.
+    const isResolved = sv.includes('resolv') || !!r.dateResolved;
+    const matchS = sf === 'closed' ? isResolved : !isResolved;
     const matchP = !pf || (r.priority||'') === pf;
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
