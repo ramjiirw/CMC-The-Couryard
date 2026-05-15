@@ -47,6 +47,15 @@
   .count-pill { background: rgba(196,149,106,0.25); color: var(--accent2); border-radius: 10px; font-size: 0.78rem; padding: 0.15rem 0.55rem; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; }
   .filter-bar { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; padding: 0.6rem 1.25rem; background: var(--warm); border-bottom: 1px solid var(--border); }
+  /* Stats strip — sits between the dark issue-log header and the warm filter bar.
+     White background gives a clean break so the three bands read distinctly:
+     dark title strip → white stats strip → warm filter bar. */
+  .stats-strip {
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    padding: 0.55rem 1.25rem;
+    background: white;
+    border-bottom: 1px solid var(--border);
+  }
   .filter-bar label { font-size: 0.78rem; font-weight: 700; color: var(--mid); text-transform: uppercase; letter-spacing: 0.04em; }
   .filter-bar select { padding: 0.35rem 0.7rem; border: 1px solid var(--border); border-radius: 5px; font-family: Arial,sans-serif; font-size: 0.85rem; background: white; color: var(--dark); cursor: pointer; }
   .filter-bar select:focus { outline: none; border-color: var(--accent2); }
@@ -547,7 +556,11 @@
   </div>
 
   <div class="card" style="min-height:120px;">
-    <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">&#128203; Issue Log <span id="statusBadges" style="margin-left:auto;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;"></span><span class="count-pill" style="letter-spacing:0.04em;background:rgba(255,255,255,0.12);color:var(--cream);">SHOWING · <span id="issueCount">-</span></span></div>
+    <div class="card-header" style="gap:0.5rem;">&#128203; Issue Log <span id="assignmentCounts" style="font-weight:400;opacity:0.6;font-size:0.72rem;letter-spacing:0.03em;color:inherit;"></span></div>
+    <div class="stats-strip">
+      <span id="statusBadges" style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;"></span>
+      <span class="count-pill" style="margin-left:auto;letter-spacing:0.04em;background:rgba(30,26,22,0.08);color:var(--mid);">SHOWING &middot; <span id="issueCount">-</span></span>
+    </div>
     <div class="filter-bar">
       <label>Filter:</label>
       <select id="filterAssigned" onchange="renderIssues();updateFilterBtn()">
@@ -1461,16 +1474,22 @@ function renderIssues() {
     return !s.includes('resolv') && !r.dateResolved;
   });
   let pHigh = 0, pMed = 0, pLow = 0, pNone = 0;
+  let assignedCount = 0, unassignedCount = 0;
   openIssues.forEach(r => {
     const p = (r.priority||'').toLowerCase();
     if (p === 'high') pHigh++;
     else if (p === 'medium') pMed++;
     else if (p === 'low') pLow++;
     else pNone++;
+    if ((r.assignedTo||'').toString().trim()) assignedCount++;
+    else unassignedCount++;
   });
+  // Assigned / unassigned counts go beside the title in the dimmed AGM-counts style.
+  document.getElementById('assignmentCounts').textContent =
+    ' \u00b7 ' + assignedCount + ' ASSIGNED \u00b7 ' + unassignedCount + ' UNASSIGNED';
   document.getElementById('statusBadges').innerHTML =
     (pHigh ? '<span class="badge badge-pri-high">'   + pHigh + ' HIGH</span>'   : '') +
-    (pMed  ? '<span class="badge badge-pri-medium">' + pMed  + ' MEDIUM</span>' : '') +
+    (pMed  ? '<span class="badge badge-pri-medium">' + pMed  + ' MED</span>'    : '') +
     (pLow  ? '<span class="badge badge-pri-low">'    + pLow  + ' LOW</span>'    : '') +
     (pNone ? '<span class="badge badge-pri-none">'   + pNone + ' UNSET</span>'  : '');
   if (!list.length) {
