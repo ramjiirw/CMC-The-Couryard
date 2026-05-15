@@ -1385,6 +1385,7 @@
             <option>Maintenance In Progress</option>
             <option>Maintenance Resolved</option>
             <option>Maintenance Submitted</option>
+            <option>Maintenance Update</option>
             <option>Noticeboard Notify</option>
             <option>Farmhouse Rent Invoice - January</option>
             <option>Farmhouse Rent Invoice - July</option>
@@ -1392,6 +1393,9 @@
             <option>Farmhouse Smoke Check — Completed</option>
             <option>Farmhouse Smoke Check — Fault</option>
             <option>Scheduled</option>
+            <option>Water Reading Reminder</option>
+            <option>Water Readings</option>
+            <option>Water Readings Submitted</option>
           </select>
           <input id="bhFilterText" type="text" placeholder="Search subject / message…"
             oninput="bhApplyFilters()"
@@ -1576,6 +1580,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Selected residents</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC / CC</td>
             </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.3);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Readings to Liscombe Park</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to Liscombe Park via the Water Meter Readings panel<br><span style="font-size:0.72rem;color:var(--mid);">Intro and closing text are editable before sending. Includes a formatted table of property-level readings, water volumes, totals and the administration charge. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN".</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Liscombe Park (To/Cc/Bcc from cmcwater sheet defaults, overridable per send)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC / BCC</td>
+            </tr>
             <tr><td colspan="4" style="padding:1rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);border-top:2px solid rgba(184,173,158,0.4);">Automatic — triggered by Apps Script</td></tr>
             <tr style="background:rgba(122,92,62,0.06);">
               <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
@@ -1620,6 +1630,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(122,92,62,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.3);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Maintenance Update Added</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Resident or director adds an update to an existing maintenance issue via the resident portal<br><span style="font-size:0.72rem;color:var(--mid);">Quick-pick phrases (e.g. "Please assign this issue to me", "Thank you &mdash; now resolved") are bold-highlighted in the email body. Director updaters appear tagged as "Name (House) &middot; Director".</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors (To), updater + assignees (Cc)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO / CC</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.15);">
               <td style="padding:0.4rem 0.6rem;"><span style="background:rgba(70,100,160,0.12);color:#3a5a9a;border:1px solid rgba(70,100,160,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Noticeboard Notify</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin clicks Notify Residents on a noticeboard item</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents</td>
@@ -1653,6 +1669,18 @@
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(192,57,43,0.12);color:#9a2a1a;border:1px solid rgba(192,57,43,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Fault</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--dark);">A Fail result is recorded on a smoke alarm check</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Reading Reminder</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">1 January, 1 April, 1 July and 1 October at 8am &mdash; reminds directors to take this quarter's water meter readings<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer (acts only on quarter-start days) &rarr; <code>quarterlyWaterReminderTrigger()</code>. Includes a "Water Readings Portal" button linking to <code>cmcwater.html</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only (from cmcsettings)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Readings Submitted</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A bulk batch of quarterly water meter readings is submitted via the Water Readings Portal<br><span style="font-size:0.72rem;color:var(--mid);">Confirms the readings are in the system and prompts directors to send the quarterly summary to Liscombe Park via the admin portal.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only (from cmcsettings)</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
           </tbody>
@@ -1945,6 +1973,112 @@ Date Checked: [date]
 Entrance Hall: [Pass / ✘ FAIL]
 Landing: [Pass / ✘ FAIL]
 Checked By: [address]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(122,92,62,0.18);color:var(--accent);border:1px solid rgba(122,92,62,0.3);">Maintenance Update Added</span>
+              <span class="eref-label">Sent when a resident or director adds an update to a maintenance issue</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To directors (TO), updater + assignees (CC):</div>
+              <pre class="eref-pre">Dear Directors,
+
+An update has been added to maintenance issue #[issue number] by [updater name] on [date].
+
+THE NEW UPDATE
+[update text — quick-pick phrases bold-highlighted: "Please assign this issue to me", "Thank you — now resolved"]
+
+Issue #:      #[issue number]
+Category:     [category]
+Description:  [full issue description]
+Status:       [current status]
+Priority:     [priority]
+Assigned to:  [current assignees]
+
+Earlier updates on this issue can be viewed in the portal.
+
+[Visit the Portal button]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);">Water Readings to Liscombe Park</span>
+              <span class="eref-label">Sent manually by admin from the Water Meter Readings panel</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To Liscombe Park (TO/CC/BCC overridable per send):</div>
+              <pre class="eref-pre">Dear Liscombe Park,
+
+[Editable intro text — defaults to:
+Please find below the quarterly water meter readings for the properties at CMC The Courtyard, recorded on [reading date].]
+
+[Formatted table of property-by-property readings]
+  Property         Water Meter No.   Reading       Volume (m³)
+  1 The Courtyard  [number]          [reading]     [volume]
+  2 The Courtyard  [number]          [reading]     [volume]
+  …
+  Total CMC Water Meter Reading and Total Water Volume
+
+[Editable closing text — defaults to:
+When returning the bill, please indicate the total standing charge, how many users on site this is divided between, and the price per cubic metre for the bill that relates to these readings. The total administration charge is £2.50 per quarter.
+
+If you have any queries regarding the readings, please don't hesitate to get in touch.]
+
+Kind regards
+
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);">Water Reading Reminder</span>
+              <span class="eref-label">Quarterly automatic reminder to directors — 1 Jan, 1 Apr, 1 Jul, 1 Oct at 8am</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To directors only (TO):</div>
+              <pre class="eref-pre">Dear Ian and Simon,
+
+A new quarter has started (Q[N] [YYYY]). It's time to record the water meter readings for all properties at CMC The Courtyard.
+
+Please visit the Water Readings Portal to enter this quarter's readings.
+
+[Water Readings Portal button → https://cmcthecourtyard.com/cmcwater.html]
+
+Once all readings are submitted you'll receive a confirmation email, and the quarterly summary can be sent to Liscombe Park via the admin portal.
+
+Kind regards
+
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);">Water Readings Submitted</span>
+              <span class="eref-label">Sent immediately after a quarterly batch of readings is submitted</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To directors only (TO):</div>
+              <pre class="eref-pre">Dear Ian and Simon,
+
+[N] water meter readings have been submitted by [submitter name] for [YYYY QN].
+
+NEXT STEP
+The readings are now in the system and waiting to be sent to Liscombe Park via the admin portal.
+
+[Admin Portal button → https://cmcthecourtyard.com/admin.html]
+
+Kind regards
+
+CMC The Courtyard</pre>
             </div>
           </div>
         </div>
@@ -5608,7 +5742,11 @@ var BH_TYPE_CHIP_MAP = {
   'Farmhouse Rent Invoice - July':    { bg:'rgba(101,67,33,0.12)', color:'#6b4226', border:'rgba(101,67,33,0.25)' },
   'Farmhouse Smoke Check \u2014 Reminder':  { bg:'rgba(90,26,26,0.12)',  color:'#5a1a1a', border:'rgba(90,26,26,0.25)' },
   'Farmhouse Smoke Check \u2014 Completed': { bg:'rgba(61,107,74,0.12)',  color:'#3a6b4a', border:'rgba(61,107,74,0.25)' },
-  'Farmhouse Smoke Check \u2014 Fault':     { bg:'rgba(192,57,43,0.12)',  color:'#9a2a1a', border:'rgba(192,57,43,0.25)' }
+  'Farmhouse Smoke Check \u2014 Fault':     { bg:'rgba(192,57,43,0.12)',  color:'#9a2a1a', border:'rgba(192,57,43,0.25)' },
+  'Maintenance Update':       { bg:'rgba(122,92,62,0.18)',  color:'var(--accent)', border:'rgba(122,92,62,0.3)' },
+  'Water Reading Reminder':   { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
+  'Water Readings':           { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
+  'Water Readings Submitted': { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' }
 };
 
 function bhTypeChip(type) {
