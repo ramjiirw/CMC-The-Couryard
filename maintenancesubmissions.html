@@ -598,6 +598,11 @@
       <select id="filterCat" onchange="renderIssues();updateFilterBtn()">
         <option value="">All Categories</option>
       </select>
+      <select id="filterAssignState" onchange="renderIssues();updateFilterBtn()">
+        <option value="">All</option>
+        <option value="assigned">Assigned</option>
+        <option value="unassigned">Unassigned</option>
+      </select>
     </div>
     <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
   </div>
@@ -1346,7 +1351,8 @@ function updateFilterBtn() {
   ].filter(Boolean).length;
   const secondary = [
     document.getElementById('filterPriority').value,
-    document.getElementById('filterCat').value
+    document.getElementById('filterCat').value,
+    document.getElementById('filterAssignState').value
   ].filter(Boolean).length;
   const count = primary + secondary;
 
@@ -1386,6 +1392,7 @@ function clearFilters() {
   document.getElementById('filterPriority').value = '';
   document.getElementById('filterCat').value = '';
   document.getElementById('filterAssigned').value = '';
+  document.getElementById('filterAssignState').value = '';
   document.getElementById('filterAddr').value = '';
   document.getElementById('filterSearch').value = '';
   updateFilterBtn();
@@ -1451,6 +1458,7 @@ function renderIssues() {
   const cf = document.getElementById('filterCat').value.toLowerCase();
   const af = document.getElementById('filterAddr').value.toLowerCase();
   const tf = document.getElementById('filterAssigned').value.toLowerCase();
+  const xf = document.getElementById('filterAssignState').value;
   const sq = document.getElementById('filterSearch').value.trim().toLowerCase();
   let list = allIssues.filter(r => {
     const sv = (r.status||'').toLowerCase();
@@ -1462,8 +1470,12 @@ function renderIssues() {
     const matchC = !cf || (r.category||'').toLowerCase() === cf;
     const matchA = !af || (r.address||'').toLowerCase() === af;
     const matchT = !tf || (r.assignedTo||'').split(',').map(n => n.trim().toLowerCase()).includes(tf);
+    // Assignment-state filter — "assigned" matches issues with any assignee,
+    // "unassigned" matches issues with an empty assignedTo cell.
+    const hasAssignee = !!(r.assignedTo||'').toString().trim();
+    const matchX = !xf || (xf === 'assigned' ? hasAssignee : !hasAssignee);
     const matchQ = !sq || (r.description||'').toLowerCase().includes(sq) || (r.address||'').toLowerCase().includes(sq) || (r.category||'').toLowerCase().includes(sq) || (r.updates||'').toLowerCase().includes(sq) || (r.assignedTo||'').toLowerCase().includes(sq);
-    return matchS && matchP && matchC && matchA && matchT && matchQ;
+    return matchS && matchP && matchC && matchA && matchT && matchX && matchQ;
   });
   list = applySort(list);
   document.getElementById('issueCount').textContent = list.length;
