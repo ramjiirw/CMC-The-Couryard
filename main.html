@@ -374,6 +374,20 @@
   .mnt-pri-pill.low    { background: #eaf4ed;                  color: var(--green); }
   .mnt-pri-pill.none   { background: #ece6da;                  color: var(--accent); }
 
+  /* ── Maintenance: assigned/unassigned mini-bar (mirrors the occupancy bar pattern) ── */
+  .mnt-mini-bar { margin-top: 0.3rem; }
+  .mnt-mini-bar-track {
+    background: #e8e0d5; border-radius: 10px; height: 8px;
+    overflow: hidden; margin-bottom: 0.3rem; display: flex;
+  }
+  .mnt-mini-bar-assigned   { background: var(--green); height: 100%; transition: width 0.6s ease; }
+  .mnt-mini-bar-unassigned { background: #c0622a;     height: 100%; transition: width 0.6s ease; }
+  .mnt-mini-bar-legend { display: flex; gap: 1rem; font-size: 0.68rem; color: var(--mid); }
+  .mnt-mini-bar-legend .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 3px; vertical-align: middle;
+  }
+
   /* ── Occupancy bar ── */
   .occ-bar-wrap { margin-top: 0.5rem; }
   .occ-bar-track { background: #e8e0d5; border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: 0.3rem; display: flex; }
@@ -968,6 +982,16 @@
           <span class="agm-detail-label">Open issues</span>
           <span class="mnt-open-num" id="mntOpenNum"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
         </div>
+        <div class="mnt-mini-bar" id="mntAssignBar" style="display:none;">
+          <div class="mnt-mini-bar-track">
+            <div class="mnt-mini-bar-assigned"   id="mntBarAssigned"   style="width:0%"></div>
+            <div class="mnt-mini-bar-unassigned" id="mntBarUnassigned" style="width:0%"></div>
+          </div>
+          <div class="mnt-mini-bar-legend">
+            <span><span class="dot" style="background:var(--green);"></span><span id="mntAssignedCount">0</span> assigned</span>
+            <span><span class="dot" style="background:#c0622a;"></span><span id="mntUnassignedCount">0</span> unassigned</span>
+          </div>
+        </div>
         <div class="mnt-pri-pills" id="mntPriPills"></div>
         <div id="mntAllClear" style="display:none;" class="mnt-all-clear">✓ No open issues</div>
       </div>
@@ -1514,23 +1538,37 @@
       const openCount = openIssues.length;
       // Priority breakdown of OPEN issues only
       let highCount = 0, medCount = 0, lowCount = 0, noneCount = 0;
+      // Assigned / unassigned breakdown of OPEN issues only
+      let assignedCount = 0, unassignedCount = 0;
       openIssues.forEach(r => {
         const p = (r.priority || '').toLowerCase();
         if (p === 'high') highCount++;
         else if (p === 'medium') medCount++;
         else if (p === 'low') lowCount++;
         else noneCount++;
+        if ((r.assignedTo || '').toString().trim()) assignedCount++;
+        else unassignedCount++;
       });
       const openNumEl  = document.getElementById('mntOpenNum');
       const openRowEl  = document.getElementById('mntOpenRow');
       const pillsEl    = document.getElementById('mntPriPills');
       const allClearEl = document.getElementById('mntAllClear');
+      const assignBarEl = document.getElementById('mntAssignBar');
       if (openCount === 0) {
         openRowEl.style.display = 'none';
         pillsEl.style.display = 'none';
+        assignBarEl.style.display = 'none';
         allClearEl.style.display = 'inline-flex';
       } else {
         openNumEl.textContent = openCount;
+        // Populate the assigned/unassigned mini-bar
+        const assignedPct   = openCount > 0 ? (assignedCount   / openCount) * 100 : 0;
+        const unassignedPct = openCount > 0 ? (unassignedCount / openCount) * 100 : 0;
+        document.getElementById('mntBarAssigned').style.width   = assignedPct + '%';
+        document.getElementById('mntBarUnassigned').style.width = unassignedPct + '%';
+        document.getElementById('mntAssignedCount').textContent   = assignedCount;
+        document.getElementById('mntUnassignedCount').textContent = unassignedCount;
+        assignBarEl.style.display = '';
         // Build pills only for non-zero buckets so the card stays uncluttered
         const parts = [];
         if (highCount) parts.push('<span class="mnt-pri-pill high">'   + highCount + ' HIGH</span>');
