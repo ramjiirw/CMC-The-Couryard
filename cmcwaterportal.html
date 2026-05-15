@@ -452,6 +452,37 @@
       padding: 0 !important;
       min-width: 0 !important;
     }
+
+    /* ── Print-only: tighten the report to fit one page and stop logo bleeding
+          onto continuation pages. These rules only apply when printing — the
+          on-screen view is unchanged. ── */
+
+    /* Shrink the top header padding so it takes less vertical space */
+    #water-report-overlay-content > div:first-child {
+      padding-bottom: 0.5rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    /* Tighten the table — smaller padding only. Font sizes left at their
+       on-screen values. */
+    .water-rpt-table td { padding: 4px 8px !important; }
+    .water-rpt-table th { padding: 0 8px 4px 8px !important; }
+    .water-rpt-table th .qlabel { margin-bottom: 0 !important; }
+    .water-rpt-table tfoot td { padding-top: 6px !important; }
+
+    /* Tighten the reading-date sub-line */
+    #water-report-overlay-content > div:nth-child(2) {
+      margin-bottom: 0.5rem !important;
+    }
+
+    /* Safety net: keep the table together if at all possible — and if it ever
+       DOES spill onto a second page, kill any image element on that page
+       (so a broken icon never appears). */
+    .water-rpt-table { page-break-inside: auto; }
+    .water-rpt-table tr { page-break-inside: avoid; page-break-after: auto; }
+    .water-rpt-table thead { display: table-header-group; }
+    /* Hide any image inside the report header that ends up on a continuation page */
+    #water-report-overlay-content img { page-break-inside: avoid; }
   }
 
   /* Mobile horizontal scroll (matches BvA pattern).
@@ -1015,10 +1046,14 @@ function renderWaterReport() {
 
   var h = '';
 
-  // Header row
+  // Header row — logo image src is read from the on-page header logo (which is
+  // an embedded base64 image, so it always loads — no external fetch, no broken
+  // icon in the print preview if the website ever goes offline or the path changes).
+  var pageLogoEl = document.getElementById('headerLogo');
+  var pageLogoSrc = pageLogoEl ? pageLogoEl.src : '';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
   h += '<div style="display:flex;align-items:center;">';
-  h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+  h += '<img src="' + pageLogoSrc + '" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
   h += '<div style="margin-left:1rem;">';
   h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
   h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Water Meter Readings</div>';
