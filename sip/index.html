@@ -804,6 +804,19 @@ function loadQA() {
           if (row.question) row.question = sub(row.question);
           if (row.answer)   row.answer   = sub(row.answer);
         });
+        // qaid=17 (management charge history): bold the last non-empty line of the answer.
+        // Wraps it in **…** so the existing formatter renders it bold.
+        qaData.forEach(function(row){
+          if (row.qaid !== 17 || !row.answer) return;
+          var lines = row.answer.split(/\r?\n/);
+          for (var k = lines.length - 1; k >= 0; k--) {
+            if (lines[k].trim()) {
+              lines[k] = '**' + lines[k].trim() + '**';
+              break;
+            }
+          }
+          row.answer = lines.join('\n');
+        });
         renderQA();
         if (qaBtn) qaBtn.removeAttribute('disabled');
         if (qaHint) qaHint.textContent = 'Tap to expand & view';
