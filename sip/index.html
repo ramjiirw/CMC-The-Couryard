@@ -958,14 +958,16 @@ function loadBriefing() {
   var briefingP = fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect: 'follow' }).then(function(r){ return r.json(); });
   var balancesP = fetch(SCRIPT_URL + '?action=readAccountBalances', { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
   var sipPwP    = fetch(SCRIPT_URL + '?action=readSipPassword',    { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+  var mgmtChP   = fetch(SCRIPT_URL + '?action=readManagementChargeCurrent', { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
 
-  Promise.all([briefingP, balancesP, sipPwP])
+  Promise.all([briefingP, balancesP, sipPwP, mgmtChP])
     .then(function(results){
-      var d   = results[0];
-      var bal = results[1];
-      var sp  = results[2];
+      var d    = results[0];
+      var bal  = results[1];
+      var sp   = results[2];
+      var mgmt = results[3];
       briefingRows = (d && d.rows) ? d.rows : [];
-      applyBriefingMerges(bal, sp);
+      applyBriefingMerges(bal, sp, mgmt);
       renderBriefing();
       if (btn) btn.removeAttribute('disabled');
       if (hintOpen) hintOpen.textContent = 'Tap to expand & view';
@@ -981,7 +983,7 @@ function fmtBal(n) {
   return '£' + Number(n).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-function applyBriefingMerges(bal, sp) {
+function applyBriefingMerges(bal, sp, mgmt) {
   if (!briefingRows || !briefingRows.length) return;
   var sinkingStr = (bal && bal.status === 'ok' && bal.sinking && bal.sinking.balance != null)
     ? fmtBal(bal.sinking.balance) : '—';
@@ -994,11 +996,13 @@ function applyBriefingMerges(bal, sp) {
     if (any) cashTotalStr = fmtBal(total);
   }
   var sipPwStr = (sp && sp.status === 'ok' && sp.sipPassword) ? sp.sipPassword : '—';
+  var mgmtChStr = (mgmt && mgmt.status === 'ok' && mgmt.value) ? mgmt.value : '—';
   function sub(s) {
     if (!s) return s;
     return s.replace(/\[merge_sinking_fund\]/g, sinkingStr)
             .replace(/\[merge_cash_total\]/g, cashTotalStr)
-            .replace(/\[merge_sip_password\]/g, sipPwStr);
+            .replace(/\[merge_sip_password\]/g, sipPwStr)
+            .replace(/\[merge_current_management_charge\]/g, mgmtChStr);
   }
   briefingRows.forEach(function(row){
     if (row.body)  row.body  = sub(row.body);
