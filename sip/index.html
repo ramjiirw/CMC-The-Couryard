@@ -925,8 +925,8 @@ function renderQA() {
       ? '<span class="qa-q-ref">Q' + esc(String(r.qaid)) + '.</span> '
       : '';
     return '<tr>'
-      + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + hl(r.question, hlTerm) + '</span></td>'
-      + '<td>' + hl(r.answer, hlTerm).replace(/\n/g, '<br>') + '</td>'
+      + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + briefingFormatNoEscape(hl(r.question, hlTerm)) + '</span></td>'
+      + '<td>' + briefingFormatNoEscape(hl(r.answer, hlTerm)).replace(/\n/g, '<br>') + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -1017,6 +1017,24 @@ function briefingFormat(text) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+  // ***bold italic*** or **_bold italic_**
+  s = s.replace(/\*\*_([^_]+)_\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+  // **bold**
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // ++underline++
+  s = s.replace(/\+\+([^+\n]+)\+\+/g, '<u>$1</u>');
+  // _italic_
+  s = s.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
+  return s;
+}
+
+// Same as briefingFormat but skips the initial HTML-escape step.
+// Used when the input is already escaped (e.g. output of hl() in Q&A rendering,
+// which both escapes raw text AND inserts real <mark> tags we must preserve).
+function briefingFormatNoEscape(text) {
+  if (!text) return '';
+  var s = text;
   // ***bold italic*** or **_bold italic_**
   s = s.replace(/\*\*_([^_]+)_\*\*/g, '<strong><em>$1</em></strong>');
   s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
