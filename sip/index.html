@@ -163,10 +163,11 @@
   .qa-q-ref { color:var(--accent); font-weight:700; }
   /* qaid=17 banded year list — uses CSS grid, two columns each sized to content,
      so the list sits compact against the left of the answer cell with a faint
-     vertical divider between years and amounts. */
-  .qa-yearband { display:grid; grid-template-columns:max-content max-content; row-gap:0.18rem; margin:0.4rem 0; }
-  .qa-yearband > .yr  { padding:0 1.25rem 0 0; white-space:nowrap; color:var(--dark); }
-  .qa-yearband > .amt { padding:0 0 0 1.25rem; border-left:1px solid rgba(0,0,0,0.10); color:var(--dark); }
+     vertical divider between years and amounts. Row spacing is in cell padding
+     (not row-gap) so the dividers touch and form one continuous line. */
+  .qa-yearband { display:grid; grid-template-columns:max-content max-content; margin:0.4rem 0; }
+  .qa-yearband > .yr  { padding:0.18rem 1.25rem 0.18rem 0; white-space:nowrap; color:var(--dark); }
+  .qa-yearband > .amt { padding:0.18rem 0 0.18rem 1.25rem; border-left:1px solid rgba(0,0,0,0.10); color:var(--dark); }
   .qa-yearband > .curr { font-weight:700; }
   /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
   .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
