@@ -161,15 +161,13 @@
   .qa-q-topic { margin-bottom:0.45rem; }
   .qa-q-text { display:block; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
-  /* qaid=17 banded year table — isolated from global table/td rules.
-     display:inline-table makes the table size strictly to its content (like the mockup),
-     instead of stretching to fill the parent .qa-table answer cell. */
-  table.qa-yearband { display:inline-table; width:auto; border:none; border-collapse:collapse; margin:0.4rem 0; }
-  table.qa-yearband td { padding:0.18rem 0; font-size:0.95rem; border:none; background:transparent; color:var(--dark); vertical-align:baseline; line-height:1.5; }
-  table.qa-yearband td:first-child { padding-right:1.25rem; white-space:nowrap; width:auto; border-right:1px solid rgba(0,0,0,0.10); color:inherit; }
-  table.qa-yearband td:nth-child(2) { width:auto; padding-left:1.25rem; color:inherit; }
-  table.qa-yearband tbody tr:hover td { background:transparent; }
-  table.qa-yearband tr.curr td { font-weight:700; }
+  /* qaid=17 banded year list — uses CSS grid, two columns each sized to content,
+     so the list sits compact against the left of the answer cell with a faint
+     vertical divider between years and amounts. */
+  .qa-yearband { display:grid; grid-template-columns:max-content max-content; row-gap:0.18rem; margin:0.4rem 0; }
+  .qa-yearband > .yr  { padding:0 1.25rem 0 0; white-space:nowrap; color:var(--dark); }
+  .qa-yearband > .amt { padding:0 0 0 1.25rem; border-left:1px solid rgba(0,0,0,0.10); color:var(--dark); }
+  .qa-yearband > .curr { font-weight:700; }
   /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
   .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   /* Document search-term highlight — same blue accent as Q&A, kept separate for future divergence */
@@ -1006,10 +1004,8 @@ function renderQA() {
     return;
   }
 
-  // Highlight free-text search matches. Skip highlighting when the search is a
-  // Q-number shortcut (e.g. "q22"/"22") since that's an exact-id match, not a
-  // text match in any field.
-  var hlTerm = (q && qNum === null) ? q : '';
+  // Always highlight whatever the user has typed in the search box.
+  var hlTerm = q || '';
 
   body.innerHTML = filtered.map(function(r){
     var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + hl(r.topic, hlTerm) + '</span></div>' : '';
@@ -1023,11 +1019,12 @@ function renderQA() {
       var by = r.bandedYears;
       var rowsHtml = by.bands.map(function(b){
         var yLabel = (b.startYear === b.endYear) ? String(b.startYear) : (b.startYear + '\u2013' + b.endYear);
-        return '<tr><td>' + hl(yLabel, hlTerm) + '</td><td>' + hl(b.amount, hlTerm) + '</td></tr>';
+        return '<div class="yr">' + hl(yLabel, hlTerm) + '</div>'
+             + '<div class="amt">' + hl(b.amount, hlTerm) + '</div>';
       }).join('');
-      rowsHtml += '<tr class="curr"><td>' + hl(String(by.last.year), hlTerm) + '</td>'
-               + '<td>' + hl(by.last.amount, hlTerm) + '</td></tr>';
-      var tableHtml = '<table class="qa-yearband"><tbody>' + rowsHtml + '</tbody></table>';
+      rowsHtml += '<div class="yr curr">' + hl(String(by.last.year), hlTerm) + '</div>'
+               + '<div class="amt curr">' + hl(by.last.amount, hlTerm) + '</div>';
+      var tableHtml = '<div class="qa-yearband">' + rowsHtml + '</div>';
       var beforeHtml = by.beforeText ? briefingFormatNoEscape(hl(by.beforeText, hlTerm)).replace(/\n/g, '<br>') + '<br>' : '';
       var afterHtml  = by.afterText  ? '<br>' + briefingFormatNoEscape(hl(by.afterText, hlTerm)).replace(/\n/g, '<br>') : '';
       answerHtml = beforeHtml + tableHtml + afterHtml;
