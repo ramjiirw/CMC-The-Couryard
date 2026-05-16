@@ -161,13 +161,14 @@
   .qa-q-topic { margin-bottom:0.45rem; }
   .qa-q-text { display:block; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
-  /* qaid=17 banded year table — isolated from global table/td rules */
-  .qa-table .qa-yearband { width:auto; border:none; border-collapse:collapse; margin:0.4rem 0; }
-  .qa-table .qa-yearband td { padding:0.15rem 0; font-size:0.95rem; border:none; background:transparent; color:var(--dark); vertical-align:baseline; }
-  .qa-table .qa-yearband td:first-child { padding-right:1.5rem; white-space:nowrap; width:auto; border-right:none; color:inherit; }
-  .qa-table .qa-yearband td:nth-child(2) { width:auto; color:inherit; }
-  .qa-table .qa-yearband tbody tr:hover td { background:transparent; }
-  .qa-table .qa-yearband tr.curr td { font-weight:700; }
+  /* qaid=17 banded year table — isolated from global table/td rules.
+     High specificity to override the .qa-table tbody td rules (line 156–160). */
+  table.qa-yearband { width:auto !important; border:none; border-collapse:collapse; margin:0.4rem 0; }
+  table.qa-yearband td { padding:0.18rem 0 !important; font-size:0.95rem !important; border:none !important; background:transparent !important; color:var(--dark) !important; vertical-align:baseline !important; line-height:1.5 !important; }
+  table.qa-yearband td:first-child { padding-right:1.25rem !important; white-space:nowrap; width:auto !important; border-right:1px solid rgba(0,0,0,0.10) !important; color:inherit !important; }
+  table.qa-yearband td:nth-child(2) { width:auto !important; padding-left:1.25rem !important; color:inherit !important; }
+  table.qa-yearband tbody tr:hover td { background:transparent !important; }
+  table.qa-yearband tr.curr td { font-weight:700 !important; }
   /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
   .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   /* Document search-term highlight — same blue accent as Q&A, kept separate for future divergence */
