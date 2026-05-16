@@ -804,18 +804,47 @@ function loadQA() {
           if (row.question) row.question = sub(row.question);
           if (row.answer)   row.answer   = sub(row.answer);
         });
-        // qaid=17 (management charge history): bold the last non-empty line of the answer.
-        // Wraps it in **…** so the existing formatter renders it bold.
+        // qaid=17 (management charge history): replace year-by-year lines with a banded layout —
+        // consecutive years sharing the same amount collapse into a single 'YEAR1–YEAR2 £AMOUNT' line.
+        // The very last year-line is kept standalone and bolded so the current year stands out.
+        // Non-year lines (header prose, footer notes) are preserved exactly as written.
         qaData.forEach(function(row){
           if (row.qaid !== 17 || !row.answer) return;
           var lines = row.answer.split(/\r?\n/);
-          for (var k = lines.length - 1; k >= 0; k--) {
-            if (lines[k].trim()) {
-              lines[k] = '**' + lines[k].trim() + '**';
-              break;
+          // Identify year-lines and remember their positions.
+          // A year-line is: optional whitespace, 4-digit year, whitespace, then text starting with £.
+          var yearLineRe = /^\s*(\d{4})\s+(£.+?)\s*$/;
+          var yearEntries = []; // { idx, year, amount }
+          lines.forEach(function(line, idx){
+            var m = line.match(yearLineRe);
+            if (m) yearEntries.push({ idx: idx, year: parseInt(m[1],10), amount: m[2] });
+          });
+          if (yearEntries.length === 0) return; // nothing to band
+          // Last entry is the "current" — render standalone and bold.
+          var last = yearEntries[yearEntries.length - 1];
+          // Group the rest by consecutive years with matching amount.
+          var earlier = yearEntries.slice(0, -1);
+          var bands = []; // { startYear, endYear, amount }
+          earlier.forEach(function(e){
+            var b = bands[bands.length - 1];
+            if (b && b.amount === e.amount && e.year === b.endYear + 1) {
+              b.endYear = e.year;
+            } else {
+              bands.push({ startYear: e.year, endYear: e.year, amount: e.amount });
             }
-          }
-          row.answer = lines.join('\n');
+          });
+          // Build replacement lines for the year-block.
+          var newYearLines = bands.map(function(b){
+            var yLabel = (b.startYear === b.endYear) ? String(b.startYear) : (b.startYear + '\u2013' + b.endYear);
+            return yLabel + ' ' + b.amount;
+          });
+          newYearLines.push('**' + last.year + ' ' + last.amount + '**');
+          // Splice newYearLines into the original lines, replacing the range from first year-line to last.
+          var firstYearIdx = yearEntries[0].idx;
+          var lastYearIdx = yearEntries[yearEntries.length - 1].idx;
+          var before = lines.slice(0, firstYearIdx);
+          var after  = lines.slice(lastYearIdx + 1);
+          row.answer = before.concat(newYearLines).concat(after).join('\n');
         });
         renderQA();
         if (qaBtn) qaBtn.removeAttribute('disabled');
