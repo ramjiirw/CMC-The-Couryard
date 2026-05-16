@@ -161,6 +161,13 @@
   .qa-q-topic { margin-bottom:0.45rem; }
   .qa-q-text { display:block; }
   .qa-q-ref { color:var(--accent); font-weight:700; }
+  /* qaid=17 banded year table — isolated from global table/td rules */
+  .qa-table .qa-yearband { width:auto; border:none; border-collapse:collapse; margin:0.4rem 0; }
+  .qa-table .qa-yearband td { padding:0.15rem 0; font-size:0.95rem; border:none; background:transparent; color:var(--dark); vertical-align:baseline; }
+  .qa-table .qa-yearband td:first-child { padding-right:1.5rem; white-space:nowrap; width:auto; border-right:none; color:inherit; }
+  .qa-table .qa-yearband td:nth-child(2) { width:auto; color:inherit; }
+  .qa-table .qa-yearband tbody tr:hover td { background:transparent; }
+  .qa-table .qa-yearband tr.curr td { font-weight:700; }
   /* Q&A search-term highlight — uses the page's blue accent (matches login screen #6090b0) */
   .qa-hl { background:rgba(96,144,176,0.22); color:#2d5a78; font-weight:700; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   /* Document search-term highlight — same blue accent as Q&A, kept separate for future divergence */
@@ -804,10 +811,10 @@ function loadQA() {
           if (row.question) row.question = sub(row.question);
           if (row.answer)   row.answer   = sub(row.answer);
         });
-        // qaid=17 (management charge history): build a two-column HTML table for the year block,
-        // collapsing consecutive years with matching amounts into bands. The current year (last
-        // entry) is bold. The HTML override is stored on row.answerHtmlOverride; renderQA uses
-        // that for the answer cell while leaving row.answer as plain text so search still works.
+        // qaid=17 (management charge history): pre-compute the banded year-block structure so
+        // renderQA can build the two-column HTML table each render with the current search
+        // highlight applied. Storing structure rather than rendered HTML lets hl() run fresh
+        // on every keystroke. Plain text answer is preserved (for search matching).
         qaData.forEach(function(row){
           if (row.qaid !== 17 || !row.answer) return;
           var lines = row.answer.split(/\r?\n/);
@@ -829,25 +836,14 @@ function loadQA() {
               bands.push({ startYear: e.year, endYear: e.year, amount: e.amount });
             }
           });
-          // Build the two-column HTML table for the year block.
-          var rowsHtml = bands.map(function(b){
-            var yLabel = (b.startYear === b.endYear) ? String(b.startYear) : (b.startYear + '\u2013' + b.endYear);
-            return '<tr><td style="padding:0.15rem 1.5rem 0.15rem 0;white-space:nowrap;">' + esc(yLabel) + '</td>'
-                 + '<td style="padding:0.15rem 0;">' + esc(b.amount) + '</td></tr>';
-          }).join('');
-          rowsHtml += '<tr><td style="padding:0.15rem 1.5rem 0.15rem 0;white-space:nowrap;font-weight:700;">'
-                   + esc(String(last.year)) + '</td>'
-                   + '<td style="padding:0.15rem 0;font-weight:700;">' + esc(last.amount) + '</td></tr>';
-          var tableHtml = '<table style="border-collapse:collapse;margin:0.4rem 0;">' + rowsHtml + '</table>';
-          // Render the non-year prose around the table using the same formatter path as the
-          // normal Q&A render (escape then bold/italic/underline, preserving line breaks).
           var firstYearIdx = yearEntries[0].idx;
           var lastYearIdx = yearEntries[yearEntries.length - 1].idx;
-          var beforeText = lines.slice(0, firstYearIdx).join('\n').replace(/\s+$/,'');
-          var afterText  = lines.slice(lastYearIdx + 1).join('\n').replace(/^\s+/,'');
-          var beforeHtml = beforeText ? briefingFormatNoEscape(esc(beforeText)).replace(/\n/g, '<br>') + '<br>' : '';
-          var afterHtml  = afterText  ? '<br>' + briefingFormatNoEscape(esc(afterText)).replace(/\n/g, '<br>') : '';
-          row.answerHtmlOverride = beforeHtml + tableHtml + afterHtml;
+          row.bandedYears = {
+            bands: bands,
+            last:  { year: last.year, amount: last.amount },
+            beforeText: lines.slice(0, firstYearIdx).join('\n').replace(/\s+$/,''),
+            afterText:  lines.slice(lastYearIdx + 1).join('\n').replace(/^\s+/,'')
+          };
         });
         renderQA();
         if (qaBtn) qaBtn.removeAttribute('disabled');
@@ -1018,11 +1014,24 @@ function renderQA() {
     var qaidHtml = (r.qaid !== null && r.qaid !== undefined && r.qaid !== '')
       ? '<span class="qa-q-ref">Q' + esc(String(r.qaid)) + '.</span> '
       : '';
-    // qaid=17 uses a pre-built HTML answer with a two-column table for the year block.
-    // Search highlighting is skipped on that override since the structure is fixed.
-    var answerHtml = r.answerHtmlOverride
-      ? r.answerHtmlOverride
-      : briefingFormatNoEscape(hl(r.answer, hlTerm)).replace(/\n/g, '<br>');
+    // qaid=17 uses a pre-computed banded year structure. Build the two-column HTML table
+    // fresh each render so the current search term highlights inside the table cells too.
+    var answerHtml;
+    if (r.bandedYears) {
+      var by = r.bandedYears;
+      var rowsHtml = by.bands.map(function(b){
+        var yLabel = (b.startYear === b.endYear) ? String(b.startYear) : (b.startYear + '\u2013' + b.endYear);
+        return '<tr><td>' + hl(yLabel, hlTerm) + '</td><td>' + hl(b.amount, hlTerm) + '</td></tr>';
+      }).join('');
+      rowsHtml += '<tr class="curr"><td>' + hl(String(by.last.year), hlTerm) + '</td>'
+               + '<td>' + hl(by.last.amount, hlTerm) + '</td></tr>';
+      var tableHtml = '<table class="qa-yearband"><tbody>' + rowsHtml + '</tbody></table>';
+      var beforeHtml = by.beforeText ? briefingFormatNoEscape(hl(by.beforeText, hlTerm)).replace(/\n/g, '<br>') + '<br>' : '';
+      var afterHtml  = by.afterText  ? '<br>' + briefingFormatNoEscape(hl(by.afterText, hlTerm)).replace(/\n/g, '<br>') : '';
+      answerHtml = beforeHtml + tableHtml + afterHtml;
+    } else {
+      answerHtml = briefingFormatNoEscape(hl(r.answer, hlTerm)).replace(/\n/g, '<br>');
+    }
     return '<tr>'
       + '<td>' + topicHtml + '<span class="qa-q-text">' + qaidHtml + briefingFormatNoEscape(hl(r.question, hlTerm)) + '</span></td>'
       + '<td>' + answerHtml + '</td>'
