@@ -428,6 +428,12 @@ var allSortDir = 'asc';
  */
 var prefetchedQA = null;
 
+/* Q&A merge tokens: populated at page load by loadQAMerges (in init).
+ * applyQAData awaits qaMergeValuesPromise before substituting tokens into qaData.
+ * SIP password is deliberately not included — Q&A merges are sinking, cashTotal, mgmtCharge only. */
+var qaMergeValues = { sinking:'—', cashTotal:'—', mgmtCharge:'—' };
+var qaMergeValuesPromise = null;
+
 function init() {
   var inp = document.getElementById('pwInput');
   inp.placeholder = 'Loading…';
@@ -443,6 +449,33 @@ function init() {
       inp.placeholder = 'Enter access password';
       inp.disabled = false;
     });
+
+  /* Q&A merge values — fetch the three merge tokens used in Q&A (sinking,
+   * cashTotal, mgmtCharge). Runs in parallel with the QA prefetch so values
+   * are ready by the time applyQAData runs. SIP password is deliberately
+   * excluded from Q&A merges. */
+  qaMergeValuesPromise = (function(){
+    var balP  = fetch(SCRIPT_URL + '?action=readAccountBalances',         { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+    var mgmtP = fetch(SCRIPT_URL + '?action=readManagementChargeCurrent', { redirect: 'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; });
+    return Promise.all([balP, mgmtP]).then(function(results){
+      var bal  = results[0];
+      var mgmt = results[1];
+      if (bal && bal.status === 'ok' && bal.sinking && bal.sinking.balance != null) {
+        qaMergeValues.sinking = fmtBal(bal.sinking.balance);
+      }
+      if (bal && bal.status === 'ok') {
+        var total = 0, any = false;
+        ['current','sinking','contingency'].forEach(function(k){
+          if (bal[k] && bal[k].balance != null) { total += Number(bal[k].balance); any = true; }
+        });
+        if (any) qaMergeValues.cashTotal = fmtBal(total);
+      }
+      if (mgmt && mgmt.status === 'ok' && mgmt.value) {
+        qaMergeValues.mgmtCharge = mgmt.value;
+      }
+      return qaMergeValues;
+    });
+  })();
 
   /* Q&A prefetch — runs in parallel with the password fetch so by the time
    * the user logs in, the data is already in memory. Result is stashed in
@@ -756,9 +789,25 @@ function loadQA() {
       var qaTotalEl = document.getElementById('qaToggleCount');
       if (qaTotalEl) qaTotalEl.textContent = qaData.length;
       buildQaTopicFilter();
-      renderQA();
-      if (qaBtn) qaBtn.removeAttribute('disabled');
-      if (qaHint) qaHint.textContent = 'Tap to expand & view';
+      // Wait for merge values, substitute tokens into qaData, then render.
+      // If the merge fetches fail or are still pending past a reasonable time,
+      // the substitution falls back to '—' values already set in qaMergeValues.
+      var p = qaMergeValuesPromise || Promise.resolve(qaMergeValues);
+      p.then(function(){
+        function sub(s) {
+          if (!s) return s;
+          return s.replace(/\[merge_sinking_fund\]/g, qaMergeValues.sinking)
+                  .replace(/\[merge_cash_total\]/g, qaMergeValues.cashTotal)
+                  .replace(/\[merge_current_management_charge\]/g, qaMergeValues.mgmtCharge);
+        }
+        qaData.forEach(function(row){
+          if (row.question) row.question = sub(row.question);
+          if (row.answer)   row.answer   = sub(row.answer);
+        });
+        renderQA();
+        if (qaBtn) qaBtn.removeAttribute('disabled');
+        if (qaHint) qaHint.textContent = 'Tap to expand & view';
+      });
     } else {
       document.getElementById('qaBody').innerHTML = '<tr><td colspan="2" class="empty-msg">Could not load Q&amp;A.</td></tr>';
       if (qaHint) qaHint.textContent = 'Refresh page to retry';
