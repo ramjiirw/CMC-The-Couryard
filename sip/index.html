@@ -1010,7 +1010,7 @@ function renderQA() {
   body.innerHTML = filtered.map(function(r){
     var topicHtml = r.topic ? '<div class="qa-q-topic"><span class="qa-topic-pill">' + hl(r.topic, hlTerm) + '</span></div>' : '';
     var qaidHtml = (r.qaid !== null && r.qaid !== undefined && r.qaid !== '')
-      ? '<span class="qa-q-ref">Q' + esc(String(r.qaid)) + '.</span> '
+      ? '<span class="qa-q-ref">' + hl('Q' + r.qaid + '.', hlTerm) + '</span> '
       : '';
     // qaid=17 uses a pre-computed banded year structure. Build the two-column HTML table
     // fresh each render so the current search term highlights inside the table cells too.
