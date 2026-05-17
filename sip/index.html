@@ -107,6 +107,18 @@
 
   /* ── TIMEOUT WARNING ── */
   #timeoutOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; }
+  .cm-field { margin-bottom:0.55rem; }
+  .cm-label { display:block; font-size:0.7rem; font-weight:700; color:#6b5f52; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.2rem; }
+  .cm-input { width:100%; padding:0.4rem 0.6rem; border:1px solid #c8bfb4; border-radius:5px; font-family:Arial,sans-serif; font-size:0.85rem; background:#fff; color:#1e1a16; box-sizing:border-box; outline:none; }
+  .cm-input:focus { border-color:#6090b0; box-shadow:0 0 0 2px rgba(96,144,176,0.15); }
+  .cm-fill-link { font-size:0.7rem; color:#c0622a; font-weight:700; cursor:pointer; text-transform:none; letter-spacing:normal; margin-left:0.5rem; }
+  .cm-fill-link:hover { text-decoration:underline; }
+  .cm-btn { padding:0.4rem 0.9rem; font-size:0.82rem; border-radius:5px; border:1px solid #c8bfb4; background:#fff; color:#1e1a16; cursor:pointer; font-family:Arial,sans-serif; }
+  .cm-btn:hover { background:#f5f0e8; }
+  .cm-btn-primary { background:#c0622a; color:white; border-color:#c0622a; font-weight:600; }
+  .cm-btn-primary:hover { background:#a8531f; }
+  .cm-btn-primary:disabled { opacity:0.6; cursor:wait; }
+  #backToTopBtn:hover { background:#a8531f; }
   .timeout-box { background:white; border-radius:12px; padding:2rem 2.5rem; max-width:340px; width:90%; text-align:center; box-shadow:0 16px 48px rgba(0,0,0,0.4); }
   .timeout-box h3 { font-size:1rem; font-weight:700; color:var(--accent); margin-bottom:0.6rem; }
   .timeout-box p { font-size:0.82rem; color:var(--mid); margin-bottom:1rem; }
@@ -262,6 +274,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button class="lock-btn" onclick="openContactModal()">&#9993; Contact</button>
       <button class="lock-btn" onclick="doLock()">&#128274; Lock</button>
     </div>
   </header>
@@ -568,6 +581,94 @@ function doLock() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').textContent = '';
+}
+
+// ─── Contact modal ────────────────────────────────────────────────────────────
+
+function openContactModal() {
+  resetAutoLock();
+  document.getElementById('cmErr').textContent = '';
+  document.getElementById('contactModal').style.display = 'flex';
+}
+
+function closeContactModal() {
+  document.getElementById('contactModal').style.display = 'none';
+}
+
+function cmFillDirectors() {
+  document.getElementById('cmTo').value = 'cmcdirectors@hotmail.com';
+}
+
+function sendContactMessage() {
+  var btn = document.getElementById('cmSendBtn');
+  var err = document.getElementById('cmErr');
+  err.textContent = '';
+  var name    = document.getElementById('cmName').value.trim();
+  var email   = document.getElementById('cmEmail').value.trim();
+  var to      = document.getElementById('cmTo').value.trim();
+  var subject = document.getElementById('cmSubject').value.trim();
+  var message = document.getElementById('cmMessage').value;
+  var ccDirectors = document.getElementById('cmCc').checked;
+
+  if (!name) { err.textContent = 'Please enter your name.'; return; }
+  if (!email) { err.textContent = 'Please enter your email address.'; return; }
+  if (!to) { err.textContent = 'Please enter a recipient email address.'; return; }
+  if (!subject) { err.textContent = 'Please enter a subject.'; return; }
+  if (!message.trim()) { err.textContent = 'Please enter a message.'; return; }
+
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) { err.textContent = 'Your email address is not valid.'; return; }
+  if (!emailRe.test(to))    { err.textContent = 'The recipient email address is not valid.'; return; }
+
+  btn.disabled = true;
+  var originalLabel = btn.textContent;
+  btn.textContent = 'Sending…';
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'sendSIPContact',
+      name: name, email: email, to: to,
+      subject: subject, message: message,
+      ccDirectors: ccDirectors
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    if (d.status === 'ok') {
+      closeContactModal();
+      document.getElementById('cmName').value = '';
+      document.getElementById('cmEmail').value = '';
+      document.getElementById('cmTo').value = '';
+      document.getElementById('cmSubject').value = '';
+      document.getElementById('cmMessage').value = '';
+      document.getElementById('cmCc').checked = false;
+      alert('Message sent.');
+    } else {
+      err.textContent = d.message || 'Send failed.';
+    }
+  })
+  .catch(function(e){
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    err.textContent = 'Network error: ' + (e.message || 'unknown');
+  });
+}
+
+// ─── Back-to-top button ───────────────────────────────────────────────────────
+
+window.addEventListener('scroll', function(){
+  var btn = document.getElementById('backToTopBtn');
+  if (!btn) return;
+  var y = window.scrollY || document.documentElement.scrollTop;
+  btn.style.display = (y > 400) ? 'inline-flex' : 'none';
+}, { passive: true });
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showSip() {
@@ -1397,5 +1498,49 @@ init();
     <button class="timeout-btn" onclick="stayLoggedIn()">Stay Logged In</button>
   </div>
 </div>
+
+<div id="contactModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;">
+  <div style="background:#fff;border-radius:10px;width:100%;max-width:480px;margin-top:1.5rem;box-shadow:0 12px 32px rgba(0,0,0,0.25);">
+    <div style="background:#1e2a35;color:#f5f0e8;padding:0.7rem 1rem;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;font-weight:500;">
+      <span>&#9993;</span>
+      <span>Contact</span>
+      <span style="margin-left:auto;cursor:pointer;font-size:1.2rem;line-height:1;opacity:0.8;" onclick="closeContactModal()">&times;</span>
+    </div>
+    <div style="padding:1rem 1.1rem;">
+      <div class="cm-field">
+        <label class="cm-label">Your name</label>
+        <input type="text" id="cmName" class="cm-input" placeholder="e.g. Jane Smith">
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">Your email (for replies)</label>
+        <input type="email" id="cmEmail" class="cm-input" placeholder="e.g. jane.smith@example.co.uk">
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">To <span class="cm-fill-link" onclick="cmFillDirectors()">&#9993; Fill in CMC directors</span></label>
+        <input type="email" id="cmTo" class="cm-input" placeholder="recipient's email address">
+        <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0;font-size:0.82rem;color:#1e1a16;">
+          <input type="checkbox" id="cmCc" style="width:16px;height:16px;cursor:pointer;accent-color:#6090b0;">
+          <label for="cmCc" style="cursor:pointer;">CC CMC directors <span style="color:#6b5f52;font-size:0.76rem;">(cmcdirectors@hotmail.com)</span></label>
+        </div>
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">Subject</label>
+        <input type="text" id="cmSubject" class="cm-input" placeholder="Subject of your message">
+      </div>
+      <div class="cm-field">
+        <label class="cm-label">Message</label>
+        <textarea id="cmMessage" class="cm-input" style="min-height:90px;resize:vertical;" placeholder="Type your message here…"></textarea>
+      </div>
+      <div id="cmErr" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin:0.3rem 0;"></div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end;padding-top:0.6rem;border-top:1px solid #ddd5c8;">
+        <button class="cm-btn" onclick="closeContactModal()">Cancel</button>
+        <button class="cm-btn cm-btn-primary" id="cmSendBtn" onclick="sendContactMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button id="backToTopBtn" onclick="scrollToTop()" aria-label="Back to top" style="display:none;position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:8px;background:#c0622a;color:white;border:none;cursor:pointer;font-size:20px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.18);z-index:9000;">&#8593;</button>
+
 </body>
 </html>
