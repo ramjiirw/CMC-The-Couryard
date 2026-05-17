@@ -425,17 +425,40 @@
   .nb-header-row .nb-hm { flex:1; }
   .welcome-stats { display:flex; gap:0.75rem; margin-top:1.4rem; flex-wrap:wrap; justify-content:center; }
   .welcome-stats .stat-tile { flex:0 0 110px; width:110px; min-width:0; }
-  /* ── Dashboard domain cards (Maintenance / Water / Flagged for Review) ── */
+  /* ── Dashboard domain cards (Maintenance / Smoke / Water / Flagged for Review) ── */
   /* align-self:stretch fills the flex parent's cross-axis (overrides
      parent's align-items:center). max-width caps the row on big monitors;
      margin:0 auto then re-centres within the stretched space. */
-  .stat-domains { display:grid; grid-template-columns:2.4fr 1fr 1.2fr; gap:0.75rem; margin:1.4rem auto 0; align-self:stretch; max-width:980px; width:100%; box-sizing:border-box; }
+  .stat-domains { display:grid; grid-template-columns:2.4fr 1fr 1fr 1.2fr; gap:0.75rem; margin:1.4rem auto 0; align-self:stretch; max-width:1080px; width:100%; box-sizing:border-box; }
   .stat-domain { background:rgba(122,92,62,0.07); border:1px solid rgba(122,92,62,0.12); border-radius:12px; padding:0.7rem 0.85rem; display:flex; flex-direction:column; }
   .stat-domain-hdr { font-size:0.66rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--mid); font-weight:700; margin-bottom:0.55rem; }
   .stat-domain-tiles { display:grid; gap:0.5rem; flex:1; }
   .stat-domain-mnt  .stat-domain-tiles { grid-template-columns:repeat(var(--mnt-cols, 4), 1fr); }
   .stat-domain-flag .stat-domain-tiles { grid-template-columns:repeat(var(--flag-cols, 2), 1fr); }
   .stat-domain-wat  .stat-domain-tiles { grid-template-columns:1fr; }
+  .stat-domain-smk  .stat-domain-tiles { grid-template-columns:1fr; }
+  /* Smoke tile states: 'ok' (≤29 days, no fail), 'alert' (≥30 days OR fail),
+     'none' (no checks recorded yet). Not clickable — informational only. */
+  .stat-tile.stat-smoke-ok    { background:#e8f0e3; border-color:#b8d4a8; }
+  .stat-tile.stat-smoke-ok    .stat-num,
+  .stat-tile.stat-smoke-ok    .stat-lbl { color:#3a6b4a; }
+  .stat-tile.stat-smoke-alert { background:#f4d8c0; border-color:#e0a878; }
+  .stat-tile.stat-smoke-alert .stat-num,
+  .stat-tile.stat-smoke-alert .stat-lbl { color:#8a4a18; }
+  .stat-tile.stat-smoke-none  { background:rgba(122,92,62,0.08); border-color:rgba(122,92,62,0.18); }
+  .stat-tile.stat-smoke-none  .stat-num,
+  .stat-tile.stat-smoke-none  .stat-lbl { color:rgba(107,95,82,0.7); }
+  /* Shake animation — fires when welcome panel is shown AND smoke is overdue */
+  @keyframes smokeShake {
+    0%, 100% { transform:translateX(0); }
+    10%      { transform:translateX(-4px) rotate(-1deg); }
+    25%      { transform:translateX(5px)  rotate(1deg); }
+    40%      { transform:translateX(-4px) rotate(-1deg); }
+    55%      { transform:translateX(3px)  rotate(0.5deg); }
+    70%      { transform:translateX(-2px) rotate(-0.5deg); }
+    85%      { transform:translateX(1px); }
+  }
+  .stat-tile.stat-smoke-shake { animation:smokeShake 0.85s ease-in-out; }
   .stat-domain .stat-tile { min-width:0; padding:0.7rem 0.6rem; border-radius:8px; }
   .stat-domain .stat-tile .stat-num { font-size:1.6rem; }
   .stat-domain .stat-tile .stat-lbl { font-size:0.62rem; letter-spacing:0.06em; }
@@ -959,6 +982,14 @@
               <!-- All-clear placeholder (shown when zero open issues) -->
               <div class="stat-allclear" id="statMntAllClear" onclick="showPanel('maintenance')" title="Open maintenance log" style="display:none;">
                 <span class="stat-allclear-icon">&#10003;</span><span class="stat-allclear-text">All clear &mdash; no open issues</span>
+              </div>
+            </div>
+
+            <!-- Smoke domain (Farmhouse smoke alarm checks — informational only) -->
+            <div class="stat-domain stat-domain-smk">
+              <div class="stat-domain-hdr">Smoke</div>
+              <div class="stat-domain-tiles">
+                <div class="stat-tile" id="statSmokeTile" title="Farmhouse smoke alarm check status"><div class="stat-num" id="dcSmokeDays">—</div><div class="stat-lbl" id="dcSmokeLbl">Days since last check</div></div>
               </div>
             </div>
 
@@ -2697,6 +2728,7 @@ function showPanel(id) {
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'welcome' && typeof dcMaybeShakeSmoke === 'function') dcMaybeShakeSmoke();
   if (id === 'agmsubmissions') loadAgmSubmissions();
   if (id === 'agmminutes') adminLoadAGMMinutes();
   if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
@@ -3960,6 +3992,9 @@ function loadWelcomeStats() {
 
   // ── Next Water Reading Due tile (quarterly schedule) ────────────────────
   dcLoadWaterDue();
+
+  // ── Farmhouse Smoke Check tile (days since last check) ──────────────────
+  dcLoadSmokeCheck();
 }
 
 // ── Dashboard card helpers ──────────────────────────────────────────────────
@@ -4270,6 +4305,100 @@ function dcLoadWaterDue() {
     else                 band = 'stat-water-5';
     tile.classList.add(band);
   }
+}
+
+// ── Farmhouse Smoke Check tile ────────────────────────────────────────────────
+// Reads the most recent smoke alarm check from readFarmhouseSmokeChecks and
+// displays days since. Three states:
+//   • No checks recorded         → neutral grey, '—' shown, "No checks recorded"
+//   • ≤29 days, both detectors pass → green/calm, label "Days since last check"
+//   • ≥30 days OR any Fail on most-recent check → orange/red alert, AND shakes
+//     briefly each time the welcome panel is shown (see dcMaybeShakeSmoke)
+// Not clickable — informational only. Action is needed at the farmhouse, not
+// on screen.
+var _smokeIsAlert = false;
+function dcLoadSmokeCheck() {
+  var tile  = document.getElementById('statSmokeTile');
+  var numEl = document.getElementById('dcSmokeDays');
+  var lblEl = document.getElementById('dcSmokeLbl');
+  if (!tile || !numEl || !lblEl) return;
+
+  fetch(SCRIPT_URL + '?action=readFarmhouseSmokeChecks')
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      // Reset state classes before applying new one
+      tile.classList.remove('stat-smoke-ok','stat-smoke-alert','stat-smoke-none','stat-smoke-shake');
+      _smokeIsAlert = false;
+
+      var last = (d && d.status === 'ok') ? d.lastCheck : null;
+      if (!last) {
+        // No checks ever recorded
+        numEl.textContent = '—';
+        lblEl.textContent = 'No checks recorded';
+        tile.classList.add('stat-smoke-none');
+        tile.title = 'No farmhouse smoke checks recorded yet';
+        return;
+      }
+
+      // Parse dd/MM/yyyy from the check
+      var parts = (last.date || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (!parts) {
+        numEl.textContent = '?';
+        lblEl.textContent = 'Bad date format';
+        tile.classList.add('stat-smoke-none');
+        return;
+      }
+      var checkDate = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+      var today = new Date();
+      today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      var days = Math.floor((today - checkDate) / 86400000);
+
+      numEl.textContent = days;
+      lblEl.textContent = days === 1 ? 'Day since last check' : 'Days since last check';
+
+      var hasFail = last.entrance === 'Fail' || last.landing === 'Fail';
+      var overdue = days >= 30;
+
+      if (overdue || hasFail) {
+        tile.classList.add('stat-smoke-alert');
+        _smokeIsAlert = true;
+        var reason = hasFail
+          ? 'Most recent check has a Fail — needs attention'
+          : 'Last check was ' + days + ' days ago — overdue';
+        tile.title = reason + ' (' + last.date + ', ' + (last.checkedBy || 'unknown') + ')';
+        // If the welcome panel is currently shown, shake once now — without this
+        // the first-load shake would be missed because the data arrives after
+        // showPanel('welcome') has already fired.
+        var welcomeActive = document.getElementById('panel-welcome');
+        if (welcomeActive && welcomeActive.classList.contains('active')) {
+          dcMaybeShakeSmoke();
+        }
+      } else {
+        tile.classList.add('stat-smoke-ok');
+        tile.title = 'Last check ' + last.date + ' by ' + (last.checkedBy || 'unknown') + ' — both detectors passed';
+      }
+    })
+    .catch(function() {
+      numEl.textContent = '?';
+      lblEl.textContent = 'Could not load';
+      tile.classList.remove('stat-smoke-ok','stat-smoke-alert','stat-smoke-none','stat-smoke-shake');
+      tile.classList.add('stat-smoke-none');
+    });
+}
+
+// Trigger a brief shake on the smoke tile when the welcome/home panel is shown,
+// but only if the tile is in the alert state (overdue or has a Fail). Re-runs
+// each time the user returns to the home panel, so it acts as a recurring
+// reminder rather than a one-off on page load.
+function dcMaybeShakeSmoke() {
+  if (!_smokeIsAlert) return;
+  var tile = document.getElementById('statSmokeTile');
+  if (!tile) return;
+  // Toggle the class off-then-on so the animation restarts even if already present
+  tile.classList.remove('stat-smoke-shake');
+  // Force reflow so the browser re-applies the animation
+  void tile.offsetWidth;
+  tile.classList.add('stat-smoke-shake');
 }
 
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
