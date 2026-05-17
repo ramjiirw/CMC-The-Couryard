@@ -2335,11 +2335,11 @@ CMC The Courtyard</pre>
           </div>
           <div>
             <label>Question</label>
-            <textarea id="qaMobileQuestion" placeholder="Enter the question" style="min-height:80px;resize:vertical;"></textarea>
+            <textarea id="qaMobileQuestion" placeholder="Enter the question" style="min-height:100px;resize:vertical;"></textarea>
           </div>
           <div>
             <label>Answer</label>
-            <textarea id="qaMobileAnswer" placeholder="Enter the answer" style="min-height:120px;resize:vertical;"></textarea>
+            <textarea id="qaMobileAnswer" placeholder="Enter the answer" style="min-height:200px;resize:vertical;"></textarea>
           </div>
           <div id="qaMobileErr" style="color:#b05050;font-size:0.78rem;min-height:1rem;"></div>
           <div class="nb-mobile-btns">
@@ -6983,9 +6983,9 @@ function qaRenderTable() {
     html += '</label>';
     html += '</div>';
     html += '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>';
-    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.question) + '</textarea></div>';
+    html += '<textarea id="qa-edit-question-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:100px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.question) + '</textarea></div>';
     html += '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>';
-    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.answer) + '</textarea></div>';
+    html += '<textarea id="qa-edit-answer-' + i + '" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:200px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}">' + qaEsc(row.answer) + '</textarea></div>';
     html += '</div>';
     html += '<div id="qa-edit-err-' + i + '" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>';
     html += '<div style="display:flex;gap:0.5rem;">';
@@ -7070,9 +7070,9 @@ function qaOpenDesktopAddForm() {
     + '<span>&#9888; Flag for review</span></label>'
     + '</div>'
     + '<div style="flex:1;min-width:200px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Question</label>'
-    + '<textarea id="qa-add-question" placeholder="Enter the question" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:60px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
+    + '<textarea id="qa-add-question" placeholder="Enter the question" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:100px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
     + '<div style="flex:2;min-width:250px;"><label style="display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;">Answer</label>'
-    + '<textarea id="qa-add-answer" placeholder="Enter the answer" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:80px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
+    + '<textarea id="qa-add-answer" placeholder="Enter the answer" style="width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:200px;resize:vertical;" oninput="_qaEditingRow=_qaEditingRow||{}"></textarea></div>'
     + '</div>'
     + '<div id="qa-add-err" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin-bottom:0.5rem;"></div>'
     + '<div style="display:flex;gap:0.5rem;">'
