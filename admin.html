@@ -432,6 +432,22 @@
   .stat-domain .stat-tile { min-width:0; padding:0.7rem 0.6rem; border-radius:8px; }
   .stat-domain .stat-tile .stat-num { font-size:1.6rem; }
   .stat-domain .stat-tile .stat-lbl { font-size:0.62rem; letter-spacing:0.06em; }
+  /* iPad and up — when there's more room, give tiles more breathing space and
+     larger numbers. iPhone (≤480px) keeps the compact baseline above. */
+  @media (min-width: 481px) {
+    .stat-domain { padding:0.9rem 1rem; }
+    .stat-domain-hdr { font-size:0.72rem; margin-bottom:0.7rem; }
+    .stat-domain .stat-tile { padding:0.9rem 0.7rem; }
+    .stat-domain .stat-tile .stat-num { font-size:1.9rem; }
+    .stat-domain .stat-tile .stat-lbl { font-size:0.7rem; }
+    .stat-domain-tiles { gap:0.6rem; }
+  }
+  /* Desktop (>1100px) — give tiles the most room of all */
+  @media (min-width: 1101px) {
+    .stat-domain .stat-tile { padding:1rem 0.8rem; }
+    .stat-domain .stat-tile .stat-num { font-size:2.1rem; }
+    .stat-domain .stat-tile .stat-lbl { font-size:0.72rem; }
+  }
   /* Stack vertically on iPad and below — three cards full-width, maintenance 2x2 */
   @media (max-width: 1100px) {
     .stat-domains { grid-template-columns:1fr; }
@@ -1667,7 +1683,7 @@
           &#128196; SIP Briefing
           <span id="briefCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
           <span style="margin-left:auto;"></span>
-          <button class="abtn" id="briefRefreshBtn" onclick="briefLoad(true)" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
+          <button class="abtn" id="briefRefreshBtn" onclick="briefRefreshClean()" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
           <button class="abtn" id="briefAddBtn" onclick="briefOpenAdd()" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(61,107,74,0.7);border:1px solid rgba(61,107,74,0.5);color:#f5f0e8;">&#43; Add Section</button>
         </div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
@@ -7738,16 +7754,26 @@ function briefLoad(force) {
       // SAFEST: include row index in the read. For now, infer by index+2 of the sorted-and-filtered list, which is wrong if
       // section_num order doesn't match sheet order. So we instead query original sheet rows separately.
       briefFiltered = briefAllRows.slice();
-      _briefReviewFilterActive = false;
-      var revBtn = document.getElementById('briefReviewFilterBtn');
-      if (revBtn) { revBtn.style.background=''; revBtn.style.color=''; revBtn.style.borderColor=''; }
-      var fs = document.getElementById('briefFilterSearch');
-      if (fs) fs.value = '';
+      // NOTE: Do NOT reset _briefReviewFilterActive or search here — mirrors qaLoad's
+      // behaviour and lets deep-links (e.g. from the dashboard "Flagged for review"
+      // tile) survive the data load. Use briefRefreshClean() if a full reset is
+      // wanted (that's what the Refresh button calls).
       briefApplyFilter();
     })
     .catch(function(){
       wrap.innerHTML = '<div style="color:#b05050;font-size:0.84rem;padding:1.5rem;">Could not load briefing.</div>';
     });
+}
+
+// Explicit "clean slate" reload — used by the Refresh button. Clears filters
+// and search, then triggers a fresh fetch.
+function briefRefreshClean() {
+  _briefReviewFilterActive = false;
+  var revBtn = document.getElementById('briefReviewFilterBtn');
+  if (revBtn) { revBtn.style.background=''; revBtn.style.color=''; revBtn.style.borderColor=''; }
+  var fs = document.getElementById('briefFilterSearch');
+  if (fs) fs.value = '';
+  briefLoad(true);
 }
 
 function briefApplyFilter() {
