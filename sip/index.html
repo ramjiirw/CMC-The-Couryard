@@ -664,7 +664,14 @@ window.addEventListener('scroll', function(){
   var btn = document.getElementById('backToTopBtn');
   if (!btn) return;
   var y = window.scrollY || document.documentElement.scrollTop;
-  btn.style.display = (y > 400) ? 'inline-flex' : 'none';
+  if (y <= 400) { btn.style.display = 'none'; return; }
+  // Hide when the footer is in view so the button doesn't overlap it.
+  var footer = document.querySelector('footer');
+  if (footer) {
+    var rect = footer.getBoundingClientRect();
+    if (rect.top < window.innerHeight) { btn.style.display = 'none'; return; }
+  }
+  btn.style.display = 'flex';
 }, { passive: true });
 
 function scrollToTop() {
@@ -1540,7 +1547,7 @@ init();
   </div>
 </div>
 
-<button id="backToTopBtn" onclick="scrollToTop()" aria-label="Back to top" style="display:none;position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:8px;background:#c0622a;color:white;border:none;cursor:pointer;font-size:20px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.18);z-index:9000;">&#8593;</button>
+<button id="backToTopBtn" onclick="scrollToTop()" aria-label="Back to top" style="display:none;position:fixed;right:22px;bottom:24px;width:46px;height:46px;border-radius:8px;background:#c0622a;color:white;border:none;cursor:pointer;font-size:26px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.18);z-index:9000;align-items:center;justify-content:center;padding:0;">&#8593;</button>
 
 </body>
 </html>
