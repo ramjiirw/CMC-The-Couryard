@@ -875,6 +875,10 @@
           <div class="welcome-stats">
             <div class="stat-tile stat-clickable" id="statOpenTile" onclick="showMaintenanceFiltered('','',true)" title="View open issues"><div class="stat-num" id="statOpen">—</div><div class="stat-lbl">Open Issues</div></div>
             <div class="stat-tile stat-clickable" id="statHighPriTile" onclick="showMaintenanceFiltered('','High')" title="View high priority issues"><div class="stat-num" id="dcHighPriCount">—</div><div class="stat-lbl">High Priority</div></div>
+            <div class="stat-tile stat-clickable" id="statUnassignedTile" onclick="showMaintenanceFiltered('','',false,'unassigned')" title="View unassigned issues"><div class="stat-num" id="dcUnassignedCount">—</div><div class="stat-lbl">Unassigned</div></div>
+            <div class="stat-tile stat-clickable" id="statAssignedTile" onclick="showMaintenanceFiltered('','',false,'assigned')" title="View assigned issues"><div class="stat-num" id="dcAssignedCount">—</div><div class="stat-lbl">Assigned</div></div>
+            <div class="stat-tile stat-clickable" id="statReviewTile" onclick="showQAReviewFlagged()" title="View Q&amp;A entries flagged for review"><div class="stat-num" id="dcReviewCount">—</div><div class="stat-lbl">Flagged for Review</div></div>
+            <div class="stat-tile stat-clickable" id="statWaterTile" onclick="showPanel('wateremail')" title="Open Water Meter Readings"><div class="stat-num" id="dcWaterDays">—</div><div class="stat-lbl">Next Water Reading</div></div>
             <div class="stat-tile stat-clickable stat-green" onclick="showMaintenanceFiltered('Resolved','')" title="View resolved issues"><div class="stat-num" id="statClosed">—</div><div class="stat-lbl">Resolved</div></div>
           </div>
           <!-- Bottom row: 3 rich cards -->
@@ -1229,6 +1233,9 @@
             <option value="">Assigned: All</option>
             <option value="assigned">Assigned</option>
             <option value="unassigned">Unassigned</option>
+          </select>
+          <select id="mntFilterAssignee" onchange="mntApplyFilters()" style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;cursor:pointer;">
+            <option value="">All Assignees</option>
           </select>
           <input id="mntSearch" type="text" placeholder="Search description…" oninput="mntApplyFilters()"
             style="padding:0.3rem 0.6rem;border:1px solid #b8ad9e;border-radius:5px;font-family:Arial,sans-serif;font-size:0.82rem;background:#fff;color:#1e1a16;width:150px;outline:none;" />
@@ -2599,7 +2606,7 @@ function showPanel(id) {
     } else {
       // Data already preloaded — render instantly
       mntPopulateDropdowns();
-      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved) {
+      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved || _mntPendingAssigned) {
         mntApplyPendingFilter(); // applies filters and renders
       } else {
         renderMaintenanceTable();
@@ -2622,6 +2629,7 @@ function showPanel(id) {
       document.getElementById('mntFilterCat').value = '';
       document.getElementById('mntFilterAddr').value = '';
       if (document.getElementById('mntFilterAssigned')) document.getElementById('mntFilterAssigned').value = '';
+      if (document.getElementById('mntFilterAssignee')) document.getElementById('mntFilterAssignee').value = '';
       document.getElementById('mntDateFrom').value = '';
       document.getElementById('mntDateTo').value = '';
       mntHideResolvedOn = false;
@@ -2962,6 +2970,7 @@ function mntUpdateFilterBtn() {
   if (document.getElementById('mntFilterCat').value) count++;
   if (document.getElementById('mntFilterAddr').value) count++;
   if (document.getElementById('mntFilterAssigned') && document.getElementById('mntFilterAssigned').value) count++;
+  if (document.getElementById('mntFilterAssignee') && document.getElementById('mntFilterAssignee').value) count++;
   if (document.getElementById('mntDateFrom').value) count++;
   if (document.getElementById('mntDateTo').value) count++;
   if (mntHideResolvedOn) count++;
@@ -2990,6 +2999,7 @@ function mntClearFilters() {
   document.getElementById('mntFilterCat').value = '';
   document.getElementById('mntFilterAddr').value = '';
   if (document.getElementById('mntFilterAssigned')) document.getElementById('mntFilterAssigned').value = '';
+  if (document.getElementById('mntFilterAssignee')) document.getElementById('mntFilterAssignee').value = '';
   document.getElementById('mntDateFrom').value = '';
   document.getElementById('mntDateTo').value = '';
   mntHideResolvedOn = false;
@@ -3155,25 +3165,29 @@ function mobComboClose() {
   document.getElementById('mobComboTypeNewArea').classList.remove('open');
 }
 
-var _mntPendingStatus = null, _mntPendingPriority = null, _mntPendingHideResolved = false;
+var _mntPendingStatus = null, _mntPendingPriority = null, _mntPendingHideResolved = false, _mntPendingAssigned = null;
 
-function showMaintenanceFiltered(status, priority, hideResolved) {
+function showMaintenanceFiltered(status, priority, hideResolved, assigned) {
   _mntPendingStatus       = status       || null;
   _mntPendingPriority     = priority     || null;
   _mntPendingHideResolved = !!hideResolved;
+  _mntPendingAssigned     = assigned     || null;
   showPanel('maintenance');
 }
 
 function mntApplyPendingFilter() {
-  if (!_mntPendingStatus && !_mntPendingPriority && !_mntPendingHideResolved) return;
+  if (!_mntPendingStatus && !_mntPendingPriority && !_mntPendingHideResolved && !_mntPendingAssigned) return;
   if (_mntPendingStatus)   document.getElementById('mntFilterStatus').value   = _mntPendingStatus;
   if (_mntPendingPriority) document.getElementById('mntFilterPriority').value = _mntPendingPriority;
+  if (_mntPendingAssigned && document.getElementById('mntFilterAssigned')) {
+    document.getElementById('mntFilterAssigned').value = _mntPendingAssigned;
+  }
   if (_mntPendingHideResolved) {
     mntHideResolvedOn = true;
     var btn = document.getElementById('mntHideResolved');
     if (btn) { btn.style.background = '#2e7d52'; btn.style.color = 'white'; btn.style.borderColor = '#2e7d52'; }
   }
-  _mntPendingStatus = null; _mntPendingPriority = null; _mntPendingHideResolved = false;
+  _mntPendingStatus = null; _mntPendingPriority = null; _mntPendingHideResolved = false; _mntPendingAssigned = null;
   mntApplyFilters();
 }
 
@@ -3224,6 +3238,7 @@ function renderMaintenanceTable() {
   var addrFilter    = document.getElementById('mntFilterAddr').value.toLowerCase().trim();
   var priorityFilter = (document.getElementById('mntFilterPriority').value || '').toLowerCase().trim();
   var assignedFilter = (document.getElementById('mntFilterAssigned') ? document.getElementById('mntFilterAssigned').value : '').toLowerCase().trim();
+  var assigneeFilter = (document.getElementById('mntFilterAssignee') ? document.getElementById('mntFilterAssignee').value : '').toLowerCase().trim();
   var dateFrom     = document.getElementById('mntDateFrom').value;
   var dateTo       = document.getElementById('mntDateTo').value;
   var fromMs       = dateFrom ? new Date(dateFrom).setHours(0,0,0,0) : null;
@@ -3246,6 +3261,10 @@ function renderMaintenanceTable() {
       var hasAssignee = !!(r.assignedTo && r.assignedTo.toString().trim());
       if (assignedFilter === 'assigned'   && !hasAssignee) return false;
       if (assignedFilter === 'unassigned' &&  hasAssignee) return false;
+    }
+    if (assigneeFilter) {
+      var names = (r.assignedTo || '').toString().split(',').map(function(n){ return n.trim().toLowerCase(); });
+      if (names.indexOf(assigneeFilter) < 0) return false;
     }
     // Free-text search — description, updates, and assigned-to
     if (searchText) {
@@ -3554,6 +3573,31 @@ function mntPopulateDropdowns() {
     + '<option value="Resolved">Resolved</option>';
   if (curStatus) statusSel.value = curStatus;
 
+  /* Assignee names dropdown — populated from current issues, deduplicated and
+     sorted alphabetically. Multi-assignee strings like "Ian, Ramji" are split
+     so each name appears once. Matching in mntApplyFilters is case-insensitive
+     and tolerates spaces around commas. */
+  var assigneeSet = {};
+  mntAllIssues.forEach(function(r){
+    var raw = (r.assignedTo || '').toString();
+    if (!raw.trim()) return;
+    raw.split(',').forEach(function(n){
+      var trimmed = n.trim();
+      if (trimmed) assigneeSet[trimmed] = 1;
+    });
+  });
+  var assigneeSel = document.getElementById('mntFilterAssignee');
+  if (assigneeSel) {
+    var curAssignee = assigneeSel.value;
+    assigneeSel.innerHTML = '<option value="">All Assignees</option>';
+    Object.keys(assigneeSet).sort(function(a,b){
+      return a.localeCompare(b);
+    }).forEach(function(n){
+      assigneeSel.innerHTML += '<option value="' + escHtml(n) + '">' + escHtml(n) + '</option>';
+    });
+    if (curAssignee && assigneeSet[curAssignee]) assigneeSel.value = curAssignee;
+  }
+
   /* Datalists feeding the edit-panel comboboxes for Category and Assigned to.
      These elements are created once and live outside the table so they survive
      re-renders. Existing values appear as suggestions but free text is allowed,
@@ -3592,7 +3636,7 @@ function loadMaintenanceIssues(silent) {
       mntAllIssues = d.rows || d.issues || [];
       mntLoaded = true;
       mntPopulateDropdowns();
-      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved) {
+      if (_mntPendingStatus || _mntPendingPriority || _mntPendingHideResolved || _mntPendingAssigned) {
         mntApplyPendingFilter(); // applies filters and renders
       } else {
         renderMaintenanceTable();
@@ -3767,6 +3811,22 @@ function loadWelcomeStats() {
       var closed = rows.length - open;
       document.getElementById('statOpen').textContent = open;
       document.getElementById('statClosed').textContent = closed;
+      // Assigned / Unassigned counts — only count open issues to make the
+      // numbers actionable (no point showing 500 unassigned-but-resolved).
+      var openRows = rows.filter(function(r){ return (r.status || 'New') !== 'Resolved'; });
+      var assignedCount = openRows.filter(function(r){ return !!(r.assignedTo && r.assignedTo.toString().trim()); }).length;
+      var unassignedCount = openRows.length - assignedCount;
+      var unEl = document.getElementById('dcUnassignedCount');
+      var asEl = document.getElementById('dcAssignedCount');
+      if (unEl) unEl.textContent = unassignedCount;
+      if (asEl) asEl.textContent = assignedCount;
+      // Highlight Unassigned tile if any open issues are unassigned — same
+      // visual pattern as Open Issues (stat-alert class).
+      var unTile = document.getElementById('statUnassignedTile');
+      if (unTile) {
+        if (unassignedCount > 0) unTile.classList.add('stat-alert');
+        else unTile.classList.remove('stat-alert');
+      }
       if (open > 0) {
         document.getElementById('statOpenTile').classList.add('stat-alert');
       } else {
@@ -3779,6 +3839,10 @@ function loadWelcomeStats() {
       document.getElementById('statOpen').textContent = '?';
       document.getElementById('statClosed').textContent = '?';
       document.getElementById('dcHighPriCount').textContent = '?';
+      var unEl = document.getElementById('dcUnassignedCount');
+      var asEl = document.getElementById('dcAssignedCount');
+      if (unEl) unEl.textContent = '?';
+      if (asEl) asEl.textContent = '?';
       // dcHighPriList removed (now a stat tile)
     });
 
@@ -3787,6 +3851,12 @@ function loadWelcomeStats() {
 
   // ── Noticeboard card ───────────────────────────────────────────────────
   dcLoadNoticeboardCard();
+
+  // ── Flagged for Review tile (SIP Q&A) ───────────────────────────────────
+  dcLoadReviewCount();
+
+  // ── Next Water Reading Due tile (quarterly schedule) ────────────────────
+  dcLoadWaterDue();
 }
 
 // ── Dashboard card helpers ──────────────────────────────────────────────────
@@ -3924,6 +3994,81 @@ function dcLoadNoticeboardCard() {
       var countEl = document.getElementById('dcNoticeCount');
       if (countEl) countEl.textContent = '?';
     });
+}
+
+// ── Flagged for Review tile ───────────────────────────────────────────────────
+// Counts SIP Q&A entries with review === true. Click takes user to the SIP Q&A
+// panel and toggles its "Show Review Only" filter on.
+function dcLoadReviewCount() {
+  fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      var rows = (d && d.rows) || [];
+      var count = rows.filter(function(r){ return r.review === true; }).length;
+      var el = document.getElementById('dcReviewCount');
+      var tile = document.getElementById('statReviewTile');
+      if (el) el.textContent = count;
+      if (tile) {
+        if (count > 0) tile.classList.add('stat-alert');
+        else tile.classList.remove('stat-alert');
+      }
+    })
+    .catch(function(){
+      var el = document.getElementById('dcReviewCount');
+      if (el) el.textContent = '?';
+    });
+}
+
+// Switch to SIP Q&A panel and enable the review-only filter. We poll briefly
+// for the toggle function to exist (it's defined in the Q&A panel's own
+// scripts) before calling it.
+function showQAReviewFlagged() {
+  showPanel('sipqa');
+  var attempts = 0;
+  function tryEnable() {
+    attempts++;
+    if (typeof qaToggleReviewFilter === 'function' && typeof _qaReviewFilterActive !== 'undefined') {
+      if (!_qaReviewFilterActive) qaToggleReviewFilter();
+      return;
+    }
+    if (attempts < 20) setTimeout(tryEnable, 100);
+  }
+  tryEnable();
+}
+
+// ── Next Water Reading Due tile ───────────────────────────────────────────────
+// Quarterly schedule: readings due on 1 Jan / 1 Apr / 1 Jul / 1 Oct. Computes
+// the next of those dates from today and shows the days remaining.
+function dcLoadWaterDue() {
+  var el = document.getElementById('dcWaterDays');
+  var tile = document.getElementById('statWaterTile');
+  if (!el) return;
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var year = today.getFullYear();
+  var qStarts = [
+    new Date(year, 0, 1),   // 1 Jan
+    new Date(year, 3, 1),   // 1 Apr
+    new Date(year, 6, 1),   // 1 Jul
+    new Date(year, 9, 1)    // 1 Oct
+  ];
+  var next = null;
+  for (var i = 0; i < qStarts.length; i++) {
+    if (qStarts[i] > today) { next = qStarts[i]; break; }
+  }
+  if (!next) next = new Date(year + 1, 0, 1); // roll into next year
+  var msPerDay = 1000 * 60 * 60 * 24;
+  var days = Math.ceil((next - today) / msPerDay);
+  el.textContent = days;
+  // Tooltip on the tile shows the actual date so admins know which quarter.
+  if (tile) {
+    var dd = String(next.getDate()).padStart(2, '0');
+    var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    tile.title = 'Next reading due ' + dd + ' ' + monthNames[next.getMonth()] + ' ' + next.getFullYear();
+    // Highlight if very close (within 14 days)
+    if (days <= 14) tile.classList.add('stat-alert');
+    else tile.classList.remove('stat-alert');
+  }
 }
 
 document.getElementById('reloadBtn').addEventListener('click', reloadResidents);
