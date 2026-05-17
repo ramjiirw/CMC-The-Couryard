@@ -478,9 +478,13 @@
     .stat-domain .stat-tile .stat-num { font-size:2.1rem; }
     .stat-domain .stat-tile .stat-lbl { font-size:0.72rem; }
   }
-  /* Stack vertically on iPad and below — three cards full-width, maintenance 2x2 */
+  /* Stack vertically on iPad and below — Maintenance and Flagged take full
+     width on their own rows; Smoke and Water share a row side-by-side (they're
+     both property safety/compliance checks). Maintenance inner tiles wrap 2x2. */
   @media (max-width: 1100px) {
-    .stat-domains { grid-template-columns:1fr; }
+    .stat-domains { grid-template-columns:repeat(2, 1fr); }
+    .stat-domain-mnt,
+    .stat-domain-flag { grid-column:1 / -1; }
     .stat-domain-mnt .stat-domain-tiles { grid-template-columns:repeat(2, 1fr); }
   }
   /* All-clear state (replaces tiles when a domain has nothing to action) */
