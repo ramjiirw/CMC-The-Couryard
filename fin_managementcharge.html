@@ -4193,8 +4193,8 @@
       var allIPaid = getFH2InsAllYears(addr).reduce(function(s,p){ return s+p.amount; },0);
       var curRMcPaid = getFH2RentPayments(addr, currentYear).filter(function(p){ return !p.isArrears; }).reduce(function(s,p){ return s+p.amount; },0);
       var curIMcPaid = getFH2InsPayments(addr, currentYear).filter(function(p){ return !p.isArrears; }).reduce(function(s,p){ return s+p.amount; },0);
-      var pROut = Math.max(0, pRentDue - (allRPaid - curRMcPaid));
-      var pIOut = Math.max(0, pInsDue  - (allIPaid - curIMcPaid));
+      var pROut = Math.max(0, Math.round((pRentDue - (allRPaid - curRMcPaid)) * 100) / 100);
+      var pIOut = Math.max(0, Math.round((pInsDue  - (allIPaid - curIMcPaid)) * 100) / 100);
       if (pROut > 0 || pIOut > 0) prevBehind.push({ addr: addr, rentOut: pROut, insOut: pIOut, rentPaid: allRPaid - curRMcPaid, insPaid: allIPaid - curIMcPaid });
     });
 
