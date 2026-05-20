@@ -178,6 +178,7 @@
     font-size: 0.85rem; padding: 0.15rem 0.55rem;
     font-weight: 500;
   }
+  .issue-content-wrap { position: relative; }
   .issue-content {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
     padding-left: 42px; padding-right: 0.4rem;
@@ -189,12 +190,34 @@
     scrollbar-width: thin;
     scrollbar-color: #b4b2a9 transparent;
   }
-  .issue-content::-webkit-scrollbar { width: 8px; }
+  .issue-content::-webkit-scrollbar { width: 8px; -webkit-appearance: none; }
   .issue-content::-webkit-scrollbar-track { background: transparent; }
   .issue-content::-webkit-scrollbar-thumb {
     background: #b4b2a9; border-radius: 4px;
+    /* Force visibility on touch devices (iOS/iPadOS hides bars by default) */
+    -webkit-box-shadow: inset 0 0 0 1px rgba(180,178,169,0.5);
   }
   .issue-content::-webkit-scrollbar-thumb:hover { background: #888780; }
+  /* Fade gradient + down-chevron — both only shown when content overflows
+     (parent gets .has-overflow class via JS after render). pointer-events:none
+     so they don't block scrolling/clicks. */
+  .issue-content-wrap.has-overflow::before {
+    content: ''; position: absolute; left: 0; right: 8px; bottom: 0;
+    height: 36px; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95));
+    z-index: 2;
+  }
+  .issue-content-wrap.has-overflow::after {
+    content: '\25BE'; /* ▾ */
+    position: absolute; right: 16px; bottom: 4px;
+    font-size: 1rem; color: var(--accent); opacity: 0.7;
+    pointer-events: none; line-height: 1;
+    z-index: 3;
+  }
+  /* On resolved cards (warm background) the fade should match */
+  .is-resolved .issue-content-wrap.has-overflow::before {
+    background: linear-gradient(to bottom, rgba(245,239,227,0), rgba(245,239,227,0.95));
+  }
   /* Faint vertical divider between Description and Updates */
   .issue-content > .content-col:first-child {
     padding-right: 1.25rem;
@@ -1548,6 +1571,7 @@ function renderIssues() {
     html += '</div>';
 
     // ── Content row: Description (with category pill) | Updates ──
+    html += '<div class="issue-content-wrap">';
     html += '<div class="issue-content">';
     html += '<div class="content-col">';
     html += '<div class="content-label-row"><span class="label">Description</span>' + (r.category ? '<span class="category-tag">' + r.category + '</span>' : '') + '</div>';
@@ -1561,6 +1585,7 @@ function renderIssues() {
     }
     html += '</div>';
     html += renderUpdatesBody(r.updates);
+    html += '</div>';
     html += '</div>';
     html += '</div>';
 
@@ -1590,6 +1615,15 @@ function renderIssues() {
   });
   html += '</div>';
   document.getElementById('issuesBody').innerHTML = html;
+  // After paint, flag any .issue-content that overflows so its parent .wrap
+  // shows the bottom fade + chevron. Runs once per render; cheap.
+  requestAnimationFrame(function() {
+    document.querySelectorAll('.issue-content').forEach(function(el) {
+      if (el.scrollHeight > el.clientHeight + 1) {
+        if (el.parentElement) el.parentElement.classList.add('has-overflow');
+      }
+    });
+  });
 }
 
 // Admin: clicking inside the edit panel should not trigger card toggle.
