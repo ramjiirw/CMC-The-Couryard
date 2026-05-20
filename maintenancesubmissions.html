@@ -181,7 +181,20 @@
   .issue-content {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
     padding-left: 42px; padding-right: 0.4rem;
+    /* Cap the Description + Updates content area. Short cards stay short
+       (max-height is a ceiling, not a floor). When content exceeds the cap
+       the area scrolls internally so the issue list stays compact. */
+    max-height: 420px; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #b4b2a9 transparent;
   }
+  .issue-content::-webkit-scrollbar { width: 8px; }
+  .issue-content::-webkit-scrollbar-track { background: transparent; }
+  .issue-content::-webkit-scrollbar-thumb {
+    background: #b4b2a9; border-radius: 4px;
+  }
+  .issue-content::-webkit-scrollbar-thumb:hover { background: #888780; }
   /* Faint vertical divider between Description and Updates */
   .issue-content > .content-col:first-child {
     padding-right: 1.25rem;
