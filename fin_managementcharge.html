@@ -1943,6 +1943,15 @@
       : '<div class="sum-card sum-card-paid"><span class="sum-card-label">Outstanding</span><span class="sum-card-val">✓ Paid in full</span></div>';
     html += '</div>';
 
+    /* Small-print reconciliation note — only when forward credits have been
+     * applied to the active year. Explains why the Monthly Breakdown
+     * Outstanding figure (£7,000) differs from BvA's cash variance (£7,720). */
+    if (totalCreditsIn > 0) {
+      html += '<div style="text-align:right;font-size:0.72rem;font-style:italic;color:var(--mid);margin-top:0.4rem;padding:0 0.5rem;">'
+            + fmt(totalCreditsIn) + ' of ' + activeYear + ' charge covered by credit from prior years'
+            + '</div>';
+    }
+
     document.getElementById('tracker-inner').innerHTML = html;
     updateYearButtons();
   }
