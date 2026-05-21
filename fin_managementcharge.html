@@ -1872,27 +1872,45 @@
 
     /* Property rows */
     html += '<div id="tracker-rows">';
-    var totalDue = 0, totalPaid = 0;
+    var totalDue = 0, totalPaid = 0, totalCreditsIn = 0;
 
     PROPERTIES.forEach(function(addr) {
       var payments = getPayments(addr, activeYear).filter(function(p){ return !p.isArrears; });
       var mcPaid = payments.reduce(function(s,p){ return s + p.amount; }, 0);
-      /* Adjustments for this year reduce the property's Due figure and outstanding.
-       * Forward credits in/out are NOT applied here — this view is a single-year
-       * cash snapshot, and forward credits are an attribution shift across years. */
-      var adjustmentsThisYear = getCreditsToYear(addr, activeYear)
+      /* Adjustments (waivers, sourceYear===0) reduce the property's Due figure.
+       * Forward credits-in (sourceYear>0) are overpayments from other years
+       * being applied here — they reduce Outstanding but NOT the Paid figure
+       * (Paid stays a pure cash-in-this-year snapshot, mirroring Annual Overview). */
+      var creditsToHere = getCreditsToYear(addr, activeYear);
+      var adjustmentsThisYear = creditsToHere
         .filter(function(c){ return c.sourceYear === 0; })
         .reduce(function(s,c){ return s + c.amount; }, 0);
+      var forwardsIn = creditsToHere.filter(function(c){ return c.sourceYear > 0; });
+      var creditsInAmt = forwardsIn.reduce(function(s,c){ return s + c.amount; }, 0);
       var dueAdj = Math.round((due - adjustmentsThisYear) * 100) / 100;
-      var outstanding = Math.round((dueAdj - mcPaid) * 100) / 100;
+      var outstanding = Math.round((dueAdj - mcPaid - creditsInAmt) * 100) / 100;
       totalDue += dueAdj;
       totalPaid += mcPaid;
+      totalCreditsIn += creditsInAmt;
 
       var dotClass = outstanding > 0 ? 'dot-red' : outstanding < 0 ? 'dot-amber' : 'dot-green';
-      if (mcPaid === 0 && dueAdj > 0) dotClass = 'dot-red';
+      if (mcPaid === 0 && creditsInAmt === 0 && dueAdj > 0) dotClass = 'dot-red';
       var outClass = outstanding > 0 ? 'val-owed' : outstanding < 0 ? 'val-over' : 'val-clear';
       var outText = outstanding > 0 ? fmt(outstanding) :
                     outstanding < 0 ? '+' + fmt(Math.abs(outstanding)) + ' overpaid' : '\u2713 Paid in full';
+
+      /* Build credit-note text (matches Annual Overview phrasing) — only when
+       * forward credits-in have been applied to this property/year. */
+      var creditNoteHtml = '';
+      if (forwardsIn.length > 0) {
+        var sources = {};
+        forwardsIn.forEach(function(c) { sources[c.sourceYear] = (sources[c.sourceYear] || 0) + c.amount; });
+        var srcYrs = Object.keys(sources).sort();
+        var srcLabel = srcYrs.length === 1
+          ? srcYrs[0]
+          : srcYrs[0] + '\u2013' + srcYrs[srcYrs.length - 1];
+        creditNoteHtml = '<div class="credit-note">includes ' + fmt(creditsInAmt) + ' credit from ' + srcLabel + '</div>';
+      }
 
       var key = addr.replace(/ /g,'_');
       html += '<div class="prop-row" id="proprow-' + key + '">';
@@ -1907,14 +1925,16 @@
       html += '<span class="prop-val ' + outClass + '">' + outText + pillHtml + '</span>';
       html += '<span style="display:flex;align-items:center;justify-content:flex-end;"><span class="prop-chevron" id="chev-' + key + '"></span></span>';
       html += '</div>';
+      html += creditNoteHtml;
       html += '<div class="month-panel" id="months-' + key + '" data-addr="' + addr + '" data-built="false"></div>';
       html += '</div>';
     });
 
     html += '</div>';
 
-    /* Summary bar */
-    var totalOut = Math.round((totalDue - totalPaid) * 100) / 100;
+    /* Summary bar — Outstanding subtracts both cash paid and forward credits-in,
+     * to match per-property outstanding figures above. */
+    var totalOut = Math.round((totalDue - totalPaid - totalCreditsIn) * 100) / 100;
     html += '<div class="tracker-summary">';
     html += '<div class="sum-card sum-card-due"><span class="sum-card-label">Due</span><span class="sum-card-val">' + fmt(totalDue) + '</span></div>';
     html += '<div class="sum-card sum-card-paid"><span class="sum-card-label">Paid</span><span class="sum-card-val">' + fmt(totalPaid) + '</span></div>';
@@ -1968,6 +1988,52 @@
         html += '<div class="note-row">📝 ' + mPayments[0].notes + '</div>';
       }
     });
+
+    /* ── Net arrears & adjustments (informational only) ──────────────────
+     * Shows arrears payments and adjustments made during activeYear that
+     * relate to historic debt. Mirrors the Annual Overview footer pattern.
+     * Does NOT affect the property header's Paid total, Outstanding, or
+     * the year's summary cards — purely a "for your information" trail.
+     * Only renders if there is at least one arrears payment or adjustment. */
+    var arrearsAll = getPayments(addr, activeYear).filter(function(p){ return p.isArrears; });
+    var refundsAll = getPayments(addr, activeYear).filter(function(p){ return p.isRefund; });
+    if (arrearsAll.length > 0 || refundsAll.length > 0) {
+      html += '<div style="background:rgba(122,92,62,0.03);border-top:2px solid var(--border);">';
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.3rem 1.5rem;background:rgba(122,92,62,0.06);border-bottom:1px solid var(--border);">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);">Date</span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);text-align:right;">Amount</span>';
+      html += '<span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--mid);padding-left:12px;">Category</span>';
+      html += '</div>';
+
+      arrearsAll.forEach(function(p) {
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);align-items:start;">';
+        html += '<span></span>';
+        html += '<span style="font-size:0.82rem;color:var(--mid);display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;">' + fmtDate(p.date) + ' <span style="font-size:0.7rem;background:rgba(198,40,40,0.1);color:#c62828;border-radius:3px;padding:1px 5px;">Arrears</span>' + (p.notes ? '<span style="color:var(--mid);"> — ' + p.notes + '</span>' : '') + '</span>';
+        html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#2e7d32;">+' + fmt(p.amount) + '</span>';
+        html += '<span style="padding-left:12px;font-size:0.78rem;color:#8a7a65;font-style:italic;">Management Charge - Arrears</span>';
+        html += '</div>';
+      });
+
+      refundsAll.forEach(function(p) {
+        html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;border-bottom:1px solid var(--border);align-items:start;background:rgba(229,57,53,0.03);">';
+        html += '<span></span>';
+        html += '<span style="font-size:0.82rem;color:var(--mid);">' + fmtDate(p.date) + '</span>';
+        html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:#c62828;">' + fmt(p.amount) + '</span>';
+        html += '<span style="padding-left:12px;"><span style="font-size:0.78rem;color:#8a7a65;font-style:italic;">Management Charge Refund Overpayment</span>' + (p.notes ? '<br><span style="font-size:0.72rem;color:#9a8a75;">' + p.notes + '</span>' : '') + '</span>';
+        html += '</div>';
+      });
+
+      var netArrearsMC = arrearsAll.reduce(function(s,p){ return s+p.amount; }, 0) + refundsAll.reduce(function(s,p){ return s+p.amount; }, 0);
+      var netColMC = netArrearsMC >= 0 ? '#2e7d32' : '#c62828';
+      html += '<div style="display:grid;grid-template-columns:20px 1fr 150px 200px;padding:0.4rem 1.5rem;background:rgba(122,92,62,0.08);border-top:1px solid var(--border);">';
+      html += '<span></span>';
+      html += '<span style="font-size:0.78rem;font-weight:500;color:var(--mid);">Net arrears &amp; adjustments</span>';
+      html += '<span style="text-align:right;font-size:0.82rem;font-weight:500;color:' + netColMC + ';">' + (netArrearsMC >= 0 ? '+' : '') + fmt(netArrearsMC) + '</span>';
+      html += '<span></span></div>';
+      html += '</div>';
+    }
+
     return html;
   }
 
