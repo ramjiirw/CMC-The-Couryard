@@ -294,6 +294,18 @@
   }
   .btn-add-update:hover { background: #2d5238; }
   .btn-add-update .plus { font-size: 0.9rem; line-height: 1; }
+  /* ── Updates sort-order toggle — neutral outline pill, sits beside Add update.
+     Only rendered when an issue has 2+ updates spanning 2+ distinct dates. ── */
+  .btn-sort-updates {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: white; color: var(--mid); border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem; border-radius: 12px;
+    font-family: Arial, sans-serif; font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.02em; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn-sort-updates:hover { background: rgba(196,149,106,0.08); border-color: var(--accent2); color: var(--dark); }
+  .btn-sort-updates .arrow { font-size: 0.85rem; line-height: 1; }
   /* Each update entry — date+name row tight against its text, single-line gap between entries */
   .update-entry { margin: 0; padding: 0; }
   .update-entry + .update-entry { margin-top: 0.75rem; }
@@ -1448,34 +1460,127 @@ function priorityBadge(p) {
 // are stored in the sheet as paired lines: "DD Mon YYYY — Name (N)\nUpdate text",
 // separated from earlier entries by a blank line. Newest at the top. Legacy
 // free-text updates (no structured format) render unchanged as a single block.
-function renderUpdatesBody(raw) {
+// Header pattern: starts with "DD Mon YYYY — " — em dash or hyphen, followed by name
+const _updateHeaderRe = /^\s*\d{1,2}\s+\w{3,}\s+\d{4}\s*[—\-–]\s*.+/;
+const _updateDateRe = /^\s*(\d{1,2})\s+(\w{3,})\s+(\d{4})\b/;
+const _monthIndex = {
+  jan:0, feb:1, mar:2, apr:3, may:4, jun:5,
+  jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
+};
+
+// Per-card sort direction. Keyed by rowIndex. true = newest first (default).
+// Persists across renderIssues() calls so a card keeps its chosen order
+// through the 60s auto-refresh and any filter changes.
+const updateSortNewestFirst = {};
+
+// Parse the raw updates field into a structured shape used by both the
+// renderer and the "should we show the toggle?" check — one parser, two
+// consumers. Returns { structured: bool, entries: [...], legacy: string|null }.
+// Each entry: { meta, text, ts (epoch ms or null), order (stored index) }.
+function parseUpdates(raw) {
   if (!raw || !raw.toString().trim()) {
-    return '<div class="body no-updates">No updates yet</div>';
+    return { structured: false, entries: [], legacy: '' };
   }
   const text = raw.toString();
-  // Header pattern: starts with "DD Mon YYYY — " — em dash or hyphen, followed by name
-  const headerRe = /^\s*\d{1,2}\s+\w{3,}\s+\d{4}\s*[—\-–]\s*.+/;
-  // Split on blank line(s) — handles both \n\n and \r\n\r\n
   const blocks = text.split(/\r?\n\s*\r?\n/).map(b => b.trim()).filter(Boolean);
-  // If no block starts with a date header, treat the whole field as legacy free text
-  const anyStructured = blocks.some(b => headerRe.test(b.split(/\r?\n/)[0] || ''));
+  const anyStructured = blocks.some(b => _updateHeaderRe.test(b.split(/\r?\n/)[0] || ''));
   if (!anyStructured) {
-    return '<div class="body">' + escHtml(text) + '</div>';
+    return { structured: false, entries: [], legacy: text };
   }
-  let html = '<div class="body">';
-  blocks.forEach(block => {
+  const entries = blocks.map((block, idx) => {
     const lines = block.split(/\r?\n/);
     const first = lines[0] || '';
-    if (headerRe.test(first)) {
+    if (_updateHeaderRe.test(first)) {
       const rest = lines.slice(1).join('\n').trim();
+      let ts = null;
+      const m = first.match(_updateDateRe);
+      if (m) {
+        const mon = _monthIndex[m[2].slice(0,3).toLowerCase()];
+        if (mon !== undefined) {
+          const d = new Date(parseInt(m[3],10), mon, parseInt(m[1],10));
+          if (!isNaN(d.getTime())) ts = d.getTime();
+        }
+      }
+      return { meta: first.trim(), text: rest, ts: ts, order: idx, dated: true };
+    }
+    // Legacy / non-header block mixed in — keep as-is, no date.
+    return { meta: null, text: block, ts: null, order: idx, dated: false };
+  });
+  return { structured: true, entries: entries, legacy: null };
+}
+
+// True only when the toggle is useful: 2+ dated entries spanning 2+ distinct
+// calendar dates. Single update, all-same-date, and legacy-only fields → false.
+function updatesSortable(raw) {
+  const parsed = parseUpdates(raw);
+  if (!parsed.structured) return false;
+  const dated = parsed.entries.filter(e => e.dated && e.ts != null);
+  if (dated.length < 2) return false;
+  const distinct = new Set(dated.map(e => e.ts));
+  return distinct.size >= 2;
+}
+
+// The toggle pill markup for an issue's label row. Empty string when not
+// sortable, so the label row stays exactly as before for those cards.
+function updatesSortToggle(raw, rowIndex) {
+  if (!updatesSortable(raw)) return '';
+  const newest = updateSortNewestFirst[rowIndex] !== false;
+  const arrow = newest ? '\u2193' : '\u2191';
+  const label = newest ? 'Newest first' : 'Oldest first';
+  return '<button class="btn-sort-updates" onclick="event.stopPropagation();toggleUpdatesSort(' + rowIndex + ')">' +
+           '<span class="arrow">' + arrow + '</span> ' + label +
+         '</button>';
+}
+
+// Flip a single card's direction and re-render just that card's pieces —
+// no full renderIssues(), so other cards and scroll position are untouched.
+function toggleUpdatesSort(rowIndex) {
+  updateSortNewestFirst[rowIndex] = !(updateSortNewestFirst[rowIndex] !== false);
+  const body = document.getElementById('upd_' + rowIndex);
+  if (body) {
+    const raw = body.getAttribute('data-raw') || '';
+    body.outerHTML = renderUpdatesBody(decodeURIComponent(raw), rowIndex);
+  }
+  const btnWrap = document.getElementById('updlbl_' + rowIndex);
+  if (btnWrap) {
+    const raw = btnWrap.getAttribute('data-raw') || '';
+    const old = btnWrap.querySelector('.btn-sort-updates');
+    if (old) old.outerHTML = updatesSortToggle(decodeURIComponent(raw), rowIndex);
+  }
+}
+
+function renderUpdatesBody(raw, rowIndex) {
+  const idAttr = (rowIndex != null) ? ' id="upd_' + rowIndex + '" data-raw="' + encodeURIComponent(raw == null ? '' : raw) + '"' : '';
+  const parsed = parseUpdates(raw);
+  if (!parsed.structured && !parsed.legacy) {
+    return '<div class="body no-updates"' + idAttr + '>No updates yet</div>';
+  }
+  if (!parsed.structured) {
+    return '<div class="body"' + idAttr + '>' + escHtml(parsed.legacy) + '</div>';
+  }
+  // Sort by parsed date when this card is sortable; otherwise keep stored order.
+  // Stable: undated/legacy entries and same-date entries fall back to stored index.
+  let entries = parsed.entries;
+  if (updatesSortable(raw)) {
+    const newest = updateSortNewestFirst[rowIndex] !== false;
+    entries = entries.slice().sort((a, b) => {
+      const at = a.ts, bt = b.ts;
+      if (at == null && bt == null) return a.order - b.order;
+      if (at == null) return 1;   // undated sinks to the bottom
+      if (bt == null) return -1;
+      if (at !== bt) return newest ? (bt - at) : (at - bt);
+      return a.order - b.order;   // same date → stored order
+    });
+  }
+  let html = '<div class="body"' + idAttr + '>';
+  entries.forEach(e => {
+    if (e.dated) {
       html += '<div class="update-entry">';
-      html += '<div class="update-meta">' + escHtml(first.trim()) + '</div>';
-      html += '<div class="update-text">' + escHtml(rest) + '</div>';
+      html += '<div class="update-meta">' + escHtml(e.meta) + '</div>';
+      html += '<div class="update-text">' + escHtml(e.text) + '</div>';
       html += '</div>';
     } else {
-      // Block doesn't match the header pattern — render as-is so legacy notes
-      // mixed in with new entries don't get hidden or mangled
-      html += '<div class="update-entry"><div class="update-text">' + escHtml(block) + '</div></div>';
+      html += '<div class="update-entry"><div class="update-text">' + escHtml(e.text) + '</div></div>';
     }
   });
   html += '</div>';
@@ -1578,13 +1683,15 @@ function renderIssues() {
     html += '<div class="body">' + (r.description || '') + '</div>';
     html += '</div>';
     html += '<div class="content-col">';
-    html += '<div class="content-label-row"><span class="label">Updates</span>';
+    html += '<div class="content-label-row" id="updlbl_' + r.rowIndex + '" data-raw="' + encodeURIComponent(r.updates == null ? '' : r.updates) + '"><span class="label">Updates</span>';
+    // Sort-order toggle — everyone, only when 2+ updates span 2+ distinct dates
+    html += updatesSortToggle(r.updates, r.rowIndex);
     // "+ Add update" pill — residents only (not admin), and only on non-resolved issues
     if (!isAdmin && !isResolved) {
       html += '<button class="btn-add-update" onclick="event.stopPropagation();openUpdateModal(' + (r.issueNumber || (i+1)) + ',' + r.rowIndex + ')"><span class="plus">+</span> Add update</button>';
     }
     html += '</div>';
-    html += renderUpdatesBody(r.updates);
+    html += renderUpdatesBody(r.updates, r.rowIndex);
     html += '</div>';
     html += '</div>';
     html += '</div>';
