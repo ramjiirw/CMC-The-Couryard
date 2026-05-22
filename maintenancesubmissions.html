@@ -1483,18 +1483,33 @@ function parseUpdates(raw) {
     return { structured: false, entries: [], legacy: '' };
   }
   const text = raw.toString();
-  const blocks = text.split(/\r?\n\s*\r?\n/).map(b => b.trim()).filter(Boolean);
-  const anyStructured = blocks.some(b => _updateHeaderRe.test(b.split(/\r?\n/)[0] || ''));
+  // Walk line-by-line. A new entry begins ONLY at a date-header line; every line
+  // after it (including blank lines = paragraph breaks) belongs to that entry's
+  // body until the next header. This keeps a single multi-paragraph update whole
+  // rather than splitting it on its internal blank lines — which previously let
+  // the sort scatter the trailing paragraphs to the bottom as "undated" pieces.
+  const lines = text.split(/\r?\n/);
+  const anyStructured = lines.some(l => _updateHeaderRe.test(l));
   if (!anyStructured) {
     return { structured: false, entries: [], legacy: text };
   }
-  const entries = blocks.map((block, idx) => {
-    const lines = block.split(/\r?\n/);
-    const first = lines[0] || '';
-    if (_updateHeaderRe.test(first)) {
-      const rest = lines.slice(1).join('\n').trim();
+  const entries = [];
+  let leading = [];          // any text before the very first header → legacy
+  let cur = null;            // current entry being accumulated
+  let idx = 0;
+  function closeCur() {
+    if (cur) {
+      cur.text = cur.bodyLines.join('\n').trim();
+      delete cur.bodyLines;
+      entries.push(cur);
+      cur = null;
+    }
+  }
+  lines.forEach(line => {
+    if (_updateHeaderRe.test(line)) {
+      closeCur();
       let ts = null;
-      const m = first.match(_updateDateRe);
+      const m = line.match(_updateDateRe);
       if (m) {
         const mon = _monthIndex[m[2].slice(0,3).toLowerCase()];
         if (mon !== undefined) {
@@ -1502,11 +1517,19 @@ function parseUpdates(raw) {
           if (!isNaN(d.getTime())) ts = d.getTime();
         }
       }
-      return { meta: first.trim(), text: rest, ts: ts, order: idx, dated: true };
+      cur = { meta: line.trim(), bodyLines: [], ts: ts, order: idx++, dated: true };
+    } else if (cur) {
+      cur.bodyLines.push(line);
+    } else {
+      leading.push(line);
     }
-    // Legacy / non-header block mixed in — keep as-is, no date.
-    return { meta: null, text: block, ts: null, order: idx, dated: false };
   });
+  closeCur();
+  // Text before the first header (legacy notes) kept as one undated block on top.
+  const leadingText = leading.join('\n').trim();
+  if (leadingText) {
+    entries.unshift({ meta: null, text: leadingText, ts: null, order: -1, dated: false });
+  }
   return { structured: true, entries: entries, legacy: null };
 }
 
