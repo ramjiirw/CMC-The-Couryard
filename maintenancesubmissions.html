@@ -190,6 +190,10 @@
     scrollbar-width: thin;
     scrollbar-color: #b4b2a9 transparent;
   }
+  /* Only when the area actually scrolls: pad the bottom so the final line can
+     scroll up clear of the ~70px fade overlay instead of being trapped beneath
+     it. Short, non-overflowing cards get no class, so no dead gap. */
+  .issue-content.is-scrollable { padding-bottom: 64px; }
   .issue-content::-webkit-scrollbar { width: 8px; -webkit-appearance: none; }
   .issue-content::-webkit-scrollbar-track { background: transparent; }
   .issue-content::-webkit-scrollbar-thumb {
@@ -1748,9 +1752,13 @@ function renderIssues() {
   document.getElementById('issuesBody').innerHTML = html;
   // After paint, flag any .issue-content that overflows so its parent .wrap
   // shows the bottom fade + chevron. Runs once per render; cheap.
+  // Also tag the scroll element itself (.is-scrollable) so it can carry extra
+  // bottom padding — without that, the last line scrolls flush to the edge and
+  // gets trapped under the fade with no room to scroll clear (no overscroll on desktop).
   requestAnimationFrame(function() {
     document.querySelectorAll('.issue-content').forEach(function(el) {
       if (el.scrollHeight > el.clientHeight + 1) {
+        el.classList.add('is-scrollable');
         if (el.parentElement) el.parentElement.classList.add('has-overflow');
       }
     });
