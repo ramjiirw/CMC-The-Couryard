@@ -343,6 +343,39 @@
   .fh-smoke-alert { }
   .fh-smoke-alert .fh-shiver-inner { animation: fh-shiver 2.8s ease-in-out infinite; }
 
+  /* ── Farmhouse smoke overdue bar (shown above noticeboard when 30+ days overdue) ── */
+  .smoke-overdue-bar {
+    display: none;
+    width: 100%; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem;
+    background: #b84a00; color: #ffffff;
+    border-radius: 10px; box-shadow: var(--shadow);
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .smoke-overdue-bar.is-overdue { display: block; }
+  .smoke-overdue-bar:hover { background: #a04000; }
+  .smoke-overdue-bar .smoke-bar-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
+    animation: fh-shiver 2.8s ease-in-out infinite;
+  }
+  .smoke-overdue-bar .smoke-bar-left { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .smoke-overdue-bar .smoke-bar-pill {
+    font-weight: 400; opacity: 0.85; font-size: 0.72rem;
+    letter-spacing: 0.03em; text-transform: none;
+  }
+  .smoke-overdue-bar .smoke-bar-hint {
+    font-size: 0.72rem; font-weight: 400; opacity: 0.85;
+    letter-spacing: 0.03em; text-transform: none;
+    display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;
+  }
+  .smoke-overdue-bar .smoke-bar-chevron { font-size: 0.75rem; }
+  @media (max-width: 600px) {
+    .smoke-overdue-bar .smoke-bar-inner { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .smoke-overdue-bar .smoke-bar-hint { align-self: flex-end; }
+  }
+
   /* ── Maintenance all-clear ── */
   .mnt-all-clear {
     display: inline-flex; align-items: center; gap: 6px;
@@ -853,6 +886,20 @@
   <div class="offline-notice" id="offlineNotice">
     ⚠️ Some information could not be loaded — please check your connection and refresh.
   </div>
+
+  <!-- Farmhouse Smoke Overdue Bar — only shown when 30+ days overdue -->
+  <a class="smoke-overdue-bar" id="smokeOverdueBar" href="cmcfarmhouse.html#smoke">
+    <span class="smoke-bar-inner">
+      <span class="smoke-bar-left">
+        <span>&#128293; Farmhouse Fire Safety &middot; Smoke Alarm Checks</span>
+        <span class="smoke-bar-pill" id="smokeOverduePill"></span>
+      </span>
+      <span class="smoke-bar-hint">
+        <span>Tap to record now</span>
+        <span class="smoke-bar-chevron">&#9658;</span>
+      </span>
+    </span>
+  </a>
 
   <!-- Courtyard Noticeboard — hidden if no messages -->
   <div class="noticeboard" id="noticeboardCard">
@@ -2900,6 +2947,19 @@
     var days    = fhDaysAgo(last.date);
     var hasFail = last.entrance === 'Fail' || last.landing === 'Fail';
     var isAlert = hasFail || days >= 30;
+
+    // Show the overdue bar above the noticeboard when 30+ days overdue.
+    // Fails are excluded — directors get an email for those.
+    if (days >= 30) {
+      var bar  = document.getElementById('smokeOverdueBar');
+      var pill = document.getElementById('smokeOverduePill');
+      if (bar && pill) {
+        pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + fhFormatDate(last.date) +
+                           ' \u00b7 ' + (last.checkedBy || '—') +
+                           ' \u00b7 \u26a0\ufe0f \u00b7 ' + days + ' days overdue';
+        bar.classList.add('is-overdue');
+      }
+    }
 
     // Average days between checks
     var avg    = fhAvgDays(checks);
