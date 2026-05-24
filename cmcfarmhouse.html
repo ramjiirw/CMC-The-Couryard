@@ -827,7 +827,7 @@ function updateSmokePill(lastCheck) {
     if (btn) { btn.style.background = '#b84a00'; btn.classList.add('btn-shiver'); }
   } else {
     // State 3 — orange + shiver, warning triangle + days overdue
-    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' \u00b7 \u26a0\ufe0f \u00b7 ' + days + ' days overdue';
+    pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + smokeFormatDateShort(lastCheck.date) + ' \u00b7 ' + lastCheck.checkedBy + ' \u00b7 \u26a0\ufe0f \u00b7 ' + days + ' days ago \u2014 overdue';
     if (btn) { btn.style.background = '#b84a00'; btn.classList.add('btn-shiver'); }
   }
   pill.style.display = 'inline';
