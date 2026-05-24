@@ -943,6 +943,9 @@ async function saveSmokeCheck() {
     // Remove loading state — button becomes clickable
     btn.classList.remove('btn-loading');
 
+    // Auto-open the expander when arriving from the dashboard overdue bar (cmcfarmhouse.html#smoke)
+    if (location.hash === '#smoke') toggleSmokeChecks();
+
   } catch(err) {
     // Still remove loading so they can at least try
     btn.classList.remove('btn-loading');
