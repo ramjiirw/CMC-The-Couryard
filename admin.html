@@ -1854,7 +1854,7 @@
             </tr>
             <tr style="border-top:1px solid rgba(184,173,158,0.15);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;">Farmhouse Smoke Check — Reminder</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">30 days since last Farmhouse smoke alarm check<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Sent on day 30 and day 40 since last Farmhouse smoke alarm check (initial reminder + follow-up)<br><span style="font-size:0.72rem;color:var(--mid);">Triggered by daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Eligible checkers (non-tenanted 10–14 The Courtyard) + directors</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">BCC</td>
             </tr>
@@ -2115,12 +2115,14 @@ Visit the portal to read the full notice and any updates.</pre>
           <div class="eref-entry">
             <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
               <span class="eref-chip" style="background:rgba(90,26,26,0.12);color:#5a1a1a;border:1px solid rgba(90,26,26,0.25);">Farmhouse Smoke Check — Reminder</span>
-              <span class="eref-label">Sent automatically 30 days after the last check</span>
+              <span class="eref-label">Sent automatically on day 30 (initial) and day 40 (second reminder)</span>
               <span class="eref-arrow">&#9654;</span>
             </div>
             <div class="eref-body" style="display:none;">
-              <div class="eref-sub">To all eligible checkers + directors (BCC):</div>
-              <pre class="eref-pre">Dear Resident,
+              <div class="eref-sub">Day 30 — initial reminder — to all eligible checkers + directors (BCC):</div>
+              <pre class="eref-pre">Subject: CMC The Courtyard — Farmhouse Smoke Alarm Check Due
+
+Dear Resident,
 
 The monthly smoke alarm check for The Farmhouse is now due. The last check was carried out [N] days ago — please log in to the portal to record a new check at your earliest convenience.
 
@@ -2131,8 +2133,22 @@ Checked By: [address]
 Days Since: [N] days
 
 To record the check, visit the Farmhouse page on the portal, expand the Smoke Alarm Checks section, tap your property and tap Save Check.</pre>
+              <div class="eref-sub" style="margin-top:0.75rem;">Day 40 — second reminder — to all eligible checkers + directors (BCC):</div>
+              <pre class="eref-pre">Subject: CMC The Courtyard — Farmhouse Smoke Alarm Check Overdue (Reminder)
+
+Dear Resident,
+
+This is a second reminder that the monthly smoke alarm check for The Farmhouse is now 10 days overdue. The last check was carried out [N] days ago — please log in to the portal to record a new check as soon as possible.
+
+Last Check: [date]
+Entrance Hall: [Pass/Fail]
+Landing: [Pass/Fail]
+Checked By: [address]
+Days Since: [N] days
+
+To record the check, visit the Farmhouse page on the portal, expand the Smoke Alarm Checks section, tap your property and tap Save Check.</pre>
               <div class="eref-sub" style="margin-top:0.75rem;">Trigger:</div>
-              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>. Fires on exactly day 30 since last check. To add further reminders (day 60, 90 etc.) update the <code>REMINDER_DAYS</code> array in code.gs.</p>
+              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Daily Apps Script timer → <code>checkFarmhouseSmokeCheckReminder()</code>. Fires on day 30 (initial) and day 40 (second reminder), then stops — no further automatic chases.</p>
             </div>
           </div>
 
