@@ -1882,6 +1882,24 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Directors only (from cmcsettings)</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(122,31,58,0.12);color:#7a1f3a;border:1px solid rgba(122,31,58,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Spend Authorisation Requested</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A director submits a new spend authorisation request via the Finance Authorisation Tracker on the CMC Finance Tracker page<br><span style="font-size:0.72rem;color:var(--mid);">Sent immediately to all directors except the requestor; requestor CC&apos;d. → <code>submitDirectorRequest()</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All directors except the requestor (CC: requestor)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO + CC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(59,109,17,0.12);color:#3b6d11;border:1px solid rgba(59,109,17,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Spend Authorised</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A director authorises a pending spend request<br><span style="font-size:0.72rem;color:var(--mid);">Sent to the requestor confirming authorisation; actioning director CC&apos;d. → <code>actionDirectorRequest()</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Requestor (CC: actioning director)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO + CC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(163,45,45,0.12);color:#a32d2d;border:1px solid rgba(163,45,45,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Spend Authorisation Declined</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">A director rejects a pending spend request<br><span style="font-size:0.72rem;color:var(--mid);">Sent to the requestor with the rejection reason; actioning director CC&apos;d. → <code>actionDirectorRequest()</code>.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Requestor (CC: actioning director)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO + CC</td>
+            </tr>
           </tbody>
         </table>
 
@@ -2296,6 +2314,89 @@ Kind regards
 CMC The Courtyard</pre>
             </div>
           </div>
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(122,31,58,0.12);color:#7a1f3a;border:1px solid rgba(122,31,58,0.25);">Spend Authorisation Requested</span>
+              <span class="eref-label">Sent immediately when a director submits a new spend authorisation request</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To all directors except the requestor (TO); requestor CC'd:</div>
+              <pre class="eref-pre">Subject: CMC The Courtyard — Spend Authorisation Requested (£[amount])
+
+Dear Director,
+
+[Requestor name] has requested authorisation for a spend of £[amount]. Please log in to the resident portal to review and authorise (or reject) this request.
+
+Request ID:      [YYYY-NNN]
+Date Requested:  [date]
+Requested By:    [name]
+Amount:          £[amount]
+Reason:          [reason]
+Status:          Pending
+
+To action this request, visit the CMC Finance Tracker page, expand the Finance Authorisation Tracker section, tap Director actions, sign in with your name and password, then tap Authorise or Reject.</pre>
+              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Immediate trigger on submit → <code>submitDirectorRequest()</code>. Link to <code>fin_managementcharge.html#financeauth</code>.</p>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(59,109,17,0.12);color:#3b6d11;border:1px solid rgba(59,109,17,0.25);">Spend Authorised</span>
+              <span class="eref-label">Sent immediately when a director authorises a pending spend request</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To requestor (TO); actioning director CC'd:</div>
+              <pre class="eref-pre">Subject: CMC The Courtyard — Spend Authorised (£[amount])
+
+Dear [First name],
+
+Your spend authorisation request has been authorised by [Actioner name] on [date]. You may now proceed with this spend.
+
+Request ID:       [YYYY-NNN]
+Date Requested:   [date]
+Requested By:     [name]
+Amount:           £[amount]
+Reason:           [reason]
+Status:           Authorised
+Authorised By:    [name]
+Date Authorised:  [date]
+
+A record of this authorisation is held in the Finance Authorisation Tracker on the CMC Finance Tracker page.</pre>
+              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Immediate trigger on authorise → <code>actionDirectorRequest()</code>.</p>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(163,45,45,0.12);color:#a32d2d;border:1px solid rgba(163,45,45,0.25);">Spend Authorisation Declined</span>
+              <span class="eref-label">Sent immediately when a director rejects a pending spend request</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">To requestor (TO); actioning director CC'd:</div>
+              <pre class="eref-pre">Subject: CMC The Courtyard — Spend Authorisation Declined (£[amount])
+
+Dear [First name],
+
+Your spend authorisation request has been declined by [Actioner name] on [date].
+
+Request ID:        [YYYY-NNN]
+Date Requested:    [date]
+Requested By:      [name]
+Amount:            £[amount]
+Reason:            [reason]
+Status:            Rejected
+Rejected By:       [name]
+Date Rejected:     [date]
+Rejection Reason:  [why]
+
+If you wish to discuss this further, please contact [Actioner name] directly. A record of this decision is held in the Finance Authorisation Tracker on the CMC Finance Tracker page.</pre>
+              <p style="font-size:0.78rem;color:var(--mid);margin:0.25rem 0 0;">Immediate trigger on reject → <code>actionDirectorRequest()</code>.</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
