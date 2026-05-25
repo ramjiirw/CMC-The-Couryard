@@ -1074,7 +1074,7 @@
     <div style="height:4px;background:var(--cream);"></div>
 
     <button class="btn-toggle btn-loading" id="toggle-ietreport" onclick="openIETReport()" aria-expanded="false" style="background:#4a5e3a;">
-      <span class="toggle-left"><span>&#128196; Open Income &amp; Expenditure Report</span></span>
+      <span class="toggle-left"><span>&#128196; Open Income &amp; Expenditure Report</span><span id="ietreport-subtitle" style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">&middot; Loading&hellip;</span></span>
       <span class="toggle-hint">
         <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to open &amp; view</span>
@@ -1365,6 +1365,30 @@
       document.getElementById('toggle-ietreport').classList.remove('btn-loading');
       document.getElementById('toggle-bvareport').classList.remove('btn-loading');
       renderIET();
+      // Populate the "Open IET Report" subtitle with the latest transaction date.
+      // Transactions are dd/MM/yyyy strings — find the max, format as "18 MAY 2026".
+      try {
+        var sub = document.getElementById('ietreport-subtitle');
+        if (sub) {
+          var txns = (finSummaryData && finSummaryData.transactions) ? finSummaryData.transactions : [];
+          var maxMs = 0;
+          for (var i = 0; i < txns.length; i++) {
+            var d = txns[i] && txns[i].date;
+            if (!d) continue;
+            var p = d.split('/');
+            if (p.length !== 3) continue;
+            var ms = new Date(parseInt(p[2],10), parseInt(p[1],10)-1, parseInt(p[0],10)).getTime();
+            if (ms > maxMs) maxMs = ms;
+          }
+          if (maxMs > 0) {
+            var dt = new Date(maxMs);
+            var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+            sub.textContent = '\u00b7 LAST TRANSACTION \u00b7 ' + dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
+          } else {
+            sub.textContent = '\u00b7 NO TRANSACTIONS YET';
+          }
+        }
+      } catch(e) {}
     } catch(err) {
       document.getElementById('iet-inner').innerHTML =
         '<div class="state-error">⚠️ Could not load data.<br><small>' + err.message + '</small></div>';
