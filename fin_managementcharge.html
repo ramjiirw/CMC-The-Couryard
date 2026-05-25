@@ -822,7 +822,43 @@
       letter-spacing: 0.06em; color: var(--stone);
     }
     .balm-total-amt { font-size: 1rem; font-weight: 700; color: var(--accent2); white-space: nowrap; }
-  }</style>
+  }
+
+  /* ── Finance Authorisation Tracker ─────────────────────────────────────── */
+  @keyframes dirauth-shiver { 0%,100%{transform:translateX(0);} 15%{transform:translateX(-3px) rotate(-0.5deg);} 30%{transform:translateX(3px) rotate(0.5deg);} 45%{transform:translateX(-2px);} 60%{transform:translateX(2px);} 75%{transform:translateX(-1px);} }
+  #dirauth-alert-bar:hover { background: #621731 !important; }
+  table.dirauth-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  table.dirauth-table thead tr { background: #f5f0e8; }
+  table.dirauth-table th { text-align: left; padding: 10px 14px; font-weight: 500; color: #5f5e5a; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  table.dirauth-table th.right { text-align: right; }
+  table.dirauth-table td.id { font-family: monospace; font-size: 12px; }
+  table.dirauth-table td.amount { text-align: right; font-weight: 500; }
+  table.dirauth-table tr.req-top td { padding: 12px 14px 4px; border-top: 1px solid #f0e8d6; vertical-align: top; }
+  table.dirauth-table tr.req-bottom td { padding: 0 14px 12px; font-size: 12px; color: #5f5e5a; }
+  table.dirauth-table tr.req-bottom td .reason-label { color: #1e1a16; font-weight: 500; }
+  table.dirauth-table tr.req-reject td { padding: 0 14px 12px; font-size: 12px; color: #a32d2d; font-style: italic; }
+  table.dirauth-table tr.pending-tint { background: #FAEEDA; }
+  table.dirauth-table tr.pending-tint .awaiting { color: #854F0B; font-style: italic; }
+  .dirauth-pill { display: inline-block; font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: 500; color: white; }
+  .dirauth-pill.pending { background: #BA7517; }
+  .dirauth-pill.authorised { background: #3B6D11; }
+  .dirauth-pill.rejected { background: #A32D2D; }
+  .dirauth-empty { padding: 1.5rem; text-align: center; color: #5f5e5a; font-style: italic; font-size: 13px; }
+  /* Name pills in sign-in card */
+  .dirauth-name-pill { background: white; border: 1px solid #d3d1c7; color: #5f5e5a; padding: 6px 16px; border-radius: 16px; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; }
+  .dirauth-name-pill.selected { border: 1.5px solid #1e1a16; color: #1e1a16; font-weight: 500; }
+  /* Decision toggle buttons */
+  .dirauth-decision-btn { padding: 7px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; }
+  .dirauth-decision-btn.auth { background: white; color: #3B6D11; border: 1px solid #3B6D11; }
+  .dirauth-decision-btn.auth.selected { background: #3B6D11; color: white; border: 1.5px solid #3B6D11; font-weight: 500; }
+  .dirauth-decision-btn.reject { background: white; color: #A32D2D; border: 1px solid #A32D2D; }
+  .dirauth-decision-btn.reject.selected { background: #A32D2D; color: white; border: 1.5px solid #A32D2D; font-weight: 500; }
+  .dirauth-final-btn { padding: 8px 22px; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; border: none; }
+  .dirauth-final-btn.auth { background: #3B6D11; color: white; }
+  .dirauth-final-btn.reject { background: #A32D2D; color: white; }
+  .dirauth-final-btn.disabled { background: #d3d1c7; color: white; cursor: not-allowed; opacity: 0.6; }
+
+  </style>
 </head>
 <body>
 
@@ -844,8 +880,25 @@
 <main>
   <div class="page-header">
     <h2>Finance Tracker</h2>
-    <p>Financial tracking for CMC The Courtyard — management charges, income, expenditure and more.</p>
+    <p>Financial tracking for CMC The Courtyard &mdash; management charges, income, expenditure and more.</p>
   </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Finance Authorisation Alert Bar — only shown when one or more Pending    -->
+  <!-- requests sit in the cmcdirectors sheet. Burgundy + content-only shiver.  -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <a id="dirauth-alert-bar" href="#financeauth" onclick="dirAuthAlertClick(event)" style="display:none;width:100%;padding:0.75rem 1.25rem;margin-bottom:1.5rem;background:#7a1f3a;color:#ffffff;border-radius:10px;box-shadow:var(--shadow);font-family:Arial,sans-serif;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;cursor:pointer;box-sizing:border-box;">
+    <span id="dirauth-alert-inner" style="display:flex;align-items:center;justify-content:space-between;gap:0.7rem;animation:dirauth-shiver 2.8s ease-in-out infinite;">
+      <span style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;">
+        <span>&#128181; Finance Authorisation Tracker</span>
+        <span id="dirauth-alert-pill" style="font-weight:400;opacity:0.85;font-size:0.72rem;letter-spacing:0.03em;"></span>
+      </span>
+      <span style="font-size:0.72rem;font-weight:400;opacity:0.85;letter-spacing:0.03em;text-transform:none;display:flex;align-items:center;gap:0.4rem;white-space:nowrap;">
+        <span>Tap to review</span>
+        <span style="font-size:0.75rem;">&#9658;</span>
+      </span>
+    </span>
+  </a>
 
   <!-- Account Balances -->
   <div class="finance-section" id="section-balances">
@@ -1182,6 +1235,87 @@
     <div class="collapsible-panel" id="panel-farmhouse2">
       <div id="farmhouse2-inner">
         <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Finance Authorisation Tracker — director spend authorisation log         -->
+  <!-- Sheet: cmcdirectors · Password: cmcsettings!B2 · Hash anchor: #financeauth -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div style="margin-top: 3rem;">
+    <h3 class="section-heading" id="financeauth">Finance Authorisation Tracker</h3>
+    <button class="btn-toggle btn-loading" id="toggle-financeauth" onclick="toggleFinanceAuth()" aria-expanded="false">
+      <span class="toggle-left">
+        <span>&#128181; Finance Authorisation Tracker</span>
+        <span id="financeauth-subtitle" style="font-size:0.78rem;font-weight:400;opacity:0.75;letter-spacing:0.01em;">&middot; Loading&hellip;</span>
+      </span>
+      <span class="toggle-hint">
+        <span class="hint-loading">&#9203; Loading data&hellip;</span>
+        <span class="hint-open">Tap to open &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9658;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-financeauth">
+      <div id="financeauth-inner" style="background:white;">
+
+        <!-- TABLE -->
+        <div id="dirauth-table-wrap">
+          <div class="state-loading"><div class="spinner"></div><div>Loading&hellip;</div></div>
+        </div>
+
+        <!-- Small "Director actions" button bar -->
+        <div id="dirauth-actions-bar" style="display:none; padding:12px 14px; border-top:1px solid #f0e8d6; display:flex; justify-content:flex-end; align-items:center; gap:12px;">
+          <!-- when signed out: shows "Director actions" button -->
+          <button id="dirauth-actions-open-btn" type="button" onclick="dirAuthOpenActions()" style="background:white;color:#1e1a16;border:1px solid #b4b2a9;padding:5px 14px;border-radius:6px;font-size:12px;font-family:Arial,sans-serif;cursor:pointer;">&#128274; Director actions</button>
+          <!-- when signed in: shows signed-in pill + sign out -->
+          <span id="dirauth-signedin-strip" style="display:none;">
+            <span style="font-size:12px;color:#5f5e5a;">Signed in as <strong id="dirauth-signedin-name" style="font-weight:500;color:#1e1a16;"></strong></span>
+            &nbsp;&middot;&nbsp;
+            <button type="button" onclick="dirAuthSignOut()" style="background:none;border:none;color:#5f5e5a;text-decoration:underline;font-size:12px;cursor:pointer;padding:0;font-family:Arial,sans-serif;">sign out</button>
+          </span>
+        </div>
+
+        <!-- Sign-in card -->
+        <div id="dirauth-signin" style="display:none; background:#f5f0e8; border:1px solid #e0dcd0; border-radius:8px; padding:1.5rem 1.25rem; text-align:center; margin:14px;">
+          <div style="font-size:12px;font-weight:500;color:#1e1a16;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:1rem;">Sign in to continue</div>
+          <div style="font-size:12px;color:#5f5e5a;margin-bottom:8px;">Who are you?</div>
+          <div id="dirauth-name-pills" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;"></div>
+          <div style="font-size:12px;color:#5f5e5a;margin-bottom:8px;">Director password</div>
+          <input type="password" id="dirauth-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" style="width:200px;max-width:60%;border:1px solid #d3d1c7;border-radius:6px;padding:7px 12px;font-size:13px;font-family:Arial,sans-serif;">
+          <button type="button" onclick="dirAuthSignInSubmit()" id="dirauth-signin-btn" style="margin-left:6px;background:#1e1a16;color:#f5f0e8;border:none;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:Arial,sans-serif;">Sign in</button>
+          <div id="dirauth-signin-error" style="display:none;margin-top:10px;font-size:12px;color:#a32d2d;"></div>
+        </div>
+
+        <!-- Action panel (pending request awaiting me) -->
+        <div id="dirauth-action-panel" style="display:none; background:#FAEEDA; border:1px solid #FAC775; border-radius:8px; padding:1rem 1.25rem; margin:14px;">
+          <div style="font-size:12px;font-weight:500;color:#854F0B;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">&#9888; Awaiting your action &middot; <span id="dirauth-action-pendingcount">0</span> pending</div>
+          <div id="dirauth-action-card"></div>
+        </div>
+
+        <!-- Toggle for submit form (when action panel is shown) -->
+        <div id="dirauth-submit-toggle-bar" style="display:none; padding:8px 14px 0;">
+          <button type="button" onclick="dirAuthToggleSubmit()" id="dirauth-submit-toggle-btn" style="background:none;border:none;color:#1e1a16;font-size:12px;font-family:Arial,sans-serif;cursor:pointer;padding:6px 10px;border:1px dashed #b4b2a9;border-radius:6px;">+ Submit a new request</button>
+        </div>
+
+        <!-- Submit form -->
+        <div id="dirauth-submit-form" style="display:none; background:#EAF3DE; border:1px solid #c0dd97; border-radius:8px; padding:1rem 1.25rem; margin:14px;">
+          <div style="font-size:12px;font-weight:500;color:#3B6D11;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">Submit a new request</div>
+          <div style="display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;">
+            <span style="font-size:12px;color:#5f5e5a;">Date today</span>
+            <span id="dirauth-submit-date" style="font-size:13px;background:rgba(255,255,255,0.5);border:1px solid #c0dd97;border-radius:6px;padding:6px 12px;opacity:0.75;"></span>
+            <span style="font-size:12px;color:#5f5e5a;">Amount (&pound;)</span>
+            <input type="text" id="dirauth-submit-amount" placeholder="1250.00" inputmode="decimal" style="border:1px solid #c0dd97;border-radius:6px;padding:6px 12px;font-size:13px;font-family:Arial,sans-serif;">
+            <span style="font-size:12px;color:#5f5e5a;">Reason</span>
+            <textarea id="dirauth-submit-reason" rows="2" placeholder="What is this spend for?" style="border:1px solid #c0dd97;border-radius:6px;padding:6px 12px;font-size:13px;font-family:Arial,sans-serif;resize:vertical;"></textarea>
+          </div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;padding-top:10px;border-top:1px solid #c0dd97;">
+            <button type="button" id="dirauth-submit-btn" onclick="dirAuthSubmitRequest()" style="background:#3B6D11;color:white;border:none;padding:8px 22px;border-radius:6px;font-weight:500;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;">Submit Request</button>
+          </div>
+          <div id="dirauth-submit-error" style="display:none;margin-top:10px;font-size:12px;color:#a32d2d;"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -5443,6 +5577,515 @@
   <a href="admin.html" id="adminLink" title="Admin">🔒</a>
 </footer>
 <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">▲</button>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Finance Authorisation Tracker JS                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  // ── State ─────────────────────────────────────────────────────────────────
+  var dirAuthState = {
+    directors: [],          // [{name, email}]
+    requests: [],           // [{id, dateRequested, requestedBy, ...}]
+    signedInName: null,     // session-only, not persisted
+    signedInPassword: null, // session-only, not persisted
+    selectedSignInName: null,
+    decision: 'Authorised', // 'Authorised' (default) or 'Rejected'
+    currentActionRequestId: null,
+    submitFormManuallyShown: false
+  };
+  window.dirAuthState = dirAuthState;
+
+  // ── Money formatter ───────────────────────────────────────────────────────
+  function fmtMoney(n) {
+    var num = Number(n);
+    if (isNaN(num)) num = 0;
+    return '\u00a3' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // ── Date formatters ───────────────────────────────────────────────────────
+  function todayLong() {
+    var d = new Date();
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function shortDate(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split(' ')[0].split('/');
+    if (parts.length !== 3) return dateStr;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return parseInt(parts[0],10) + ' ' + months[parseInt(parts[1],10)-1] + ' ' + parts[2];
+  }
+  function longDate(dateStr) {
+    if (!dateStr) return '';
+    var parts = dateStr.split(' ')[0].split('/');
+    if (parts.length !== 3) return dateStr;
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return parseInt(parts[0],10) + ' ' + months[parseInt(parts[1],10)-1] + ' ' + parts[2];
+  }
+
+  // ── Bundle loader (consumes the shared finance promise) ───────────────────
+  if (window.financeBundlePromise) {
+    window.financeBundlePromise.then(function(data) {
+      if (data && data.status === 'ok') {
+        dirAuthState.directors = (data.directorList && data.directorList.directors) || [];
+        dirAuthState.requests  = (data.directorRequests && data.directorRequests.requests) || [];
+      }
+      renderDirAuth();
+    });
+  }
+
+  // ── Public functions wired to onclick ─────────────────────────────────────
+  window.toggleFinanceAuth = function() {
+    var btn   = document.getElementById('toggle-financeauth');
+    var panel = document.getElementById('panel-financeauth');
+    if (!btn || !panel) return;
+    if (btn.classList.contains('btn-loading')) return;
+    var isOpen = btn.classList.contains('open');
+    if (isOpen) {
+      btn.classList.remove('open');
+      panel.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    } else {
+      btn.classList.add('open');
+      panel.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      setTimeout(function() {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
+  window.dirAuthAlertClick = function(e) {
+    if (e) e.preventDefault();
+    var btn = document.getElementById('toggle-financeauth');
+    if (btn && !btn.classList.contains('open')) {
+      toggleFinanceAuth();
+    } else if (btn) {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  window.dirAuthOpenActions = function() {
+    document.getElementById('dirauth-actions-open-btn').style.display = 'none';
+    document.getElementById('dirauth-signin').style.display = 'block';
+    renderNamePills();
+  };
+
+  window.dirAuthSignOut = function() {
+    dirAuthState.signedInName = null;
+    dirAuthState.signedInPassword = null;
+    dirAuthState.selectedSignInName = null;
+    dirAuthState.submitFormManuallyShown = false;
+    document.getElementById('dirauth-password').value = '';
+    document.getElementById('dirauth-signin-error').style.display = 'none';
+    renderDirAuth();
+  };
+
+  window.dirAuthSelectName = function(name) {
+    dirAuthState.selectedSignInName = name;
+    renderNamePills();
+  };
+
+  window.dirAuthSignInSubmit = function() {
+    var nameSel = dirAuthState.selectedSignInName;
+    var pw = document.getElementById('dirauth-password').value;
+    var errEl = document.getElementById('dirauth-signin-error');
+    errEl.style.display = 'none';
+    if (!nameSel) { errEl.textContent = 'Please pick your name.'; errEl.style.display = 'block'; return; }
+    if (!pw) { errEl.textContent = 'Please enter the director password.'; errEl.style.display = 'block'; return; }
+    var btn = document.getElementById('dirauth-signin-btn');
+    btn.disabled = true; btn.textContent = 'Checking\u2026';
+    fetch(window.SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'verifyDirectorPassword', password: pw })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      btn.disabled = false; btn.textContent = 'Sign in';
+      if (res && res.status === 'ok' && res.valid) {
+        dirAuthState.signedInName = nameSel;
+        dirAuthState.signedInPassword = pw;
+        document.getElementById('dirauth-password').value = '';
+        renderDirAuth();
+      } else {
+        errEl.textContent = 'Incorrect password. Please try again.';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function() {
+      btn.disabled = false; btn.textContent = 'Sign in';
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+    });
+  };
+
+  window.dirAuthSetDecision = function(decision) {
+    dirAuthState.decision = decision;
+    var req = findRequestById(dirAuthState.currentActionRequestId);
+    if (req) renderActionPanel(req);
+  };
+
+  window.dirAuthToggleSubmit = function() {
+    dirAuthState.submitFormManuallyShown = !dirAuthState.submitFormManuallyShown;
+    renderDirAuth();
+  };
+
+  window.dirAuthSubmitRequest = function() {
+    var errEl = document.getElementById('dirauth-submit-error');
+    errEl.style.display = 'none';
+    var amount = parseFloat(document.getElementById('dirauth-submit-amount').value);
+    var reason = (document.getElementById('dirauth-submit-reason').value || '').trim();
+    if (isNaN(amount) || amount <= 0) { errEl.textContent = 'Please enter a valid amount.'; errEl.style.display = 'block'; return; }
+    if (!reason) { errEl.textContent = 'Please enter a reason.'; errEl.style.display = 'block'; return; }
+    var btn = document.getElementById('dirauth-submit-btn');
+    btn.disabled = true; btn.textContent = 'Submitting\u2026';
+    fetch(window.SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'submitDirectorRequest',
+        requestorName: dirAuthState.signedInName,
+        amount: amount,
+        reason: reason,
+        password: dirAuthState.signedInPassword
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      btn.disabled = false; btn.textContent = 'Submit Request';
+      if (res && res.status === 'ok') {
+        document.getElementById('dirauth-submit-amount').value = '';
+        document.getElementById('dirauth-submit-reason').value = '';
+        // Lock out — sign out
+        dirAuthState.signedInName = null;
+        dirAuthState.signedInPassword = null;
+        dirAuthState.selectedSignInName = null;
+        dirAuthState.submitFormManuallyShown = false;
+        try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
+        reloadDirAuthData();
+      } else {
+        errEl.textContent = (res && res.message) || 'Could not submit. Please try again.';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function() {
+      btn.disabled = false; btn.textContent = 'Submit Request';
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+    });
+  };
+
+  window.dirAuthFinalSubmit = function() {
+    var req = findRequestById(dirAuthState.currentActionRequestId);
+    if (!req) return;
+    var decision = dirAuthState.decision;
+    var rejectionReason = '';
+    if (decision === 'Rejected') {
+      var rrEl = document.getElementById('dirauth-action-rejection-reason');
+      rejectionReason = rrEl ? rrEl.value.trim() : '';
+      if (!rejectionReason) {
+        alert('Please enter a reason for rejection.');
+        return;
+      }
+    }
+    var btn = document.getElementById('dirauth-action-final-btn');
+    btn.disabled = true; btn.textContent = decision === 'Authorised' ? 'Submitting\u2026' : 'Submitting\u2026';
+    fetch(window.SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'actionDirectorRequest',
+        requestId: req.id,
+        actionerName: dirAuthState.signedInName,
+        action: decision,
+        rejectionReason: rejectionReason,
+        password: dirAuthState.signedInPassword
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      btn.disabled = false;
+      if (res && res.status === 'ok') {
+        // Lock out — sign out
+        dirAuthState.signedInName = null;
+        dirAuthState.signedInPassword = null;
+        dirAuthState.selectedSignInName = null;
+        dirAuthState.submitFormManuallyShown = false;
+        dirAuthState.currentActionRequestId = null;
+        dirAuthState.decision = 'Authorised';
+        try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
+        reloadDirAuthData();
+      } else {
+        alert((res && res.message) || 'Could not action. Please try again.');
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      alert('Network error. Please try again.');
+    });
+  };
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function findRequestById(id) {
+    for (var i = 0; i < dirAuthState.requests.length; i++) {
+      if (dirAuthState.requests[i].id === id) return dirAuthState.requests[i];
+    }
+    return null;
+  }
+  function reloadDirAuthData() {
+    return fetch(window.SCRIPT_URL + '?action=readDirectorRequests')
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res && res.status === 'ok') {
+          dirAuthState.requests = res.requests || [];
+        }
+        renderDirAuth();
+      })
+      .catch(function() { renderDirAuth(); });
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────────
+  function renderDirAuth() {
+    // Remove the loading state on the section button
+    var btn = document.getElementById('toggle-financeauth');
+    if (btn) btn.classList.remove('btn-loading');
+
+    renderTable();
+    renderSubtitle();
+    renderAlertBar();
+    renderActionArea();
+
+    // Handle hash auto-expand on first render
+    if (location.hash === '#financeauth' && btn && !btn.classList.contains('open') && !dirAuthState._hashHandled) {
+      dirAuthState._hashHandled = true;
+      setTimeout(function() { toggleFinanceAuth(); }, 200);
+    }
+  }
+
+  function renderSubtitle() {
+    var pendingCount   = dirAuthState.requests.filter(function(r) { return r.status === 'Pending'; }).length;
+    var authorisedCount = dirAuthState.requests.filter(function(r) { return r.status === 'Authorised'; }).length;
+    var sub = document.getElementById('financeauth-subtitle');
+    if (sub) sub.textContent = '\u00b7 ' + pendingCount + ' pending \u00b7 ' + authorisedCount + ' authorised';
+  }
+
+  function renderAlertBar() {
+    var bar = document.getElementById('dirauth-alert-bar');
+    if (!bar) return;
+    var pending = dirAuthState.requests.filter(function(r) { return r.status === 'Pending'; });
+    if (pending.length === 0) {
+      bar.style.display = 'none';
+      return;
+    }
+    var pill = document.getElementById('dirauth-alert-pill');
+    if (pill) {
+      var word = pending.length === 1 ? 'request' : 'requests';
+      pill.textContent = '\u00b7 ' + pending.length + ' ' + word + ' awaiting authorisation';
+    }
+    bar.style.display = 'block';
+  }
+
+  function renderTable() {
+    var wrap = document.getElementById('dirauth-table-wrap');
+    if (!wrap) return;
+    if (!dirAuthState.requests.length) {
+      wrap.innerHTML = '<div class="dirauth-empty">No authorisation requests yet.</div>';
+      return;
+    }
+    // Sort: latest dateRequested first
+    var sorted = dirAuthState.requests.slice().sort(function(a, b) {
+      return parseDirDate(b.dateRequested) - parseDirDate(a.dateRequested);
+    });
+
+    var html = '<table class="dirauth-table"><thead><tr>'
+      + '<th>ID</th><th>Date</th><th class="right">Amount</th><th>Requested by</th><th>Status</th>'
+      + '</tr></thead><tbody>';
+
+    sorted.forEach(function(r) {
+      var isPending = (r.status === 'Pending');
+      var isRejected = (r.status === 'Rejected');
+      var pillClass = isPending ? 'pending' : (isRejected ? 'rejected' : 'authorised');
+      var rowTopClass = 'req-top' + (isPending ? ' pending-tint' : '');
+      var rowBottomClass = 'req-bottom' + (isPending ? ' pending-tint' : '');
+      html += '<tr class="' + rowTopClass + '">'
+        + '<td class="id">' + escapeHtml(r.id) + '</td>'
+        + '<td>' + escapeHtml(shortDate(r.dateRequested)) + '</td>'
+        + '<td class="amount">' + fmtMoney(r.amount) + '</td>'
+        + '<td>' + escapeHtml(r.requestedBy) + '</td>'
+        + '<td><span class="dirauth-pill ' + pillClass + '">' + escapeHtml(r.status) + '</span></td>'
+        + '</tr>';
+      var line2 = '<span class="reason-label">Reason:</span> ' + escapeHtml(r.reason);
+      if (isPending) {
+        var awaiting = computeAwaitingText(r);
+        line2 += ' &nbsp;&middot;&nbsp; <span class="awaiting">' + awaiting + '</span>';
+      } else {
+        var actionVerb = isRejected ? 'Rejected' : 'Authorised';
+        line2 += ' &nbsp;&middot;&nbsp; ' + actionVerb + ' by ' + escapeHtml(r.actionedBy || '\u2014') + ' on ' + escapeHtml(shortDate(r.dateActioned));
+      }
+      html += '<tr class="' + rowBottomClass + '"><td colspan="5">' + line2 + '</td></tr>';
+      if (isRejected && r.rejectionReason) {
+        html += '<tr class="req-reject"><td colspan="5">Rejection reason: ' + escapeHtml(r.rejectionReason) + '</td></tr>';
+      }
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  function computeAwaitingText(req) {
+    var otherDirectors = dirAuthState.directors
+      .filter(function(d) { return d.name !== req.requestedBy; })
+      .map(function(d) { return d.name; });
+    if (otherDirectors.length === 1) return 'Awaiting ' + escapeHtml(otherDirectors[0]);
+    return 'Awaiting authorisation';
+  }
+
+  function parseDirDate(dateStr) {
+    if (!dateStr) return 0;
+    var parts = dateStr.split(' ');
+    var d = (parts[0] || '').split('/');
+    if (d.length !== 3) return 0;
+    var t = (parts[1] || '0:0').split(':');
+    return new Date(parseInt(d[2],10), parseInt(d[1],10)-1, parseInt(d[0],10), parseInt(t[0],10)||0, parseInt(t[1],10)||0).getTime();
+  }
+
+  function renderActionArea() {
+    var bar          = document.getElementById('dirauth-actions-bar');
+    var openBtn      = document.getElementById('dirauth-actions-open-btn');
+    var signedinStrip = document.getElementById('dirauth-signedin-strip');
+    var signedinName = document.getElementById('dirauth-signedin-name');
+    var signin       = document.getElementById('dirauth-signin');
+    var actionPanel  = document.getElementById('dirauth-action-panel');
+    var submitToggle = document.getElementById('dirauth-submit-toggle-bar');
+    var submitForm   = document.getElementById('dirauth-submit-form');
+
+    // Always show the actions bar
+    bar.style.display = 'flex';
+
+    if (!dirAuthState.signedInName) {
+      // Not signed in
+      openBtn.style.display = 'inline-block';
+      signedinStrip.style.display = 'none';
+      // signin shows when openBtn clicked (controlled by dirAuthOpenActions)
+      actionPanel.style.display = 'none';
+      submitToggle.style.display = 'none';
+      submitForm.style.display = 'none';
+      return;
+    }
+
+    // Signed in
+    openBtn.style.display = 'none';
+    signin.style.display = 'none';
+    signedinStrip.style.display = 'inline';
+    signedinName.textContent = dirAuthState.signedInName;
+
+    // Today's date for the submit form
+    var dateEl = document.getElementById('dirauth-submit-date');
+    if (dateEl) dateEl.innerHTML = todayLong() + ' <em style="color:#5f5e5a;font-style:italic;font-size:11px;">&middot; auto, not editable</em>';
+
+    // Is there a pending request awaiting me?
+    var pendingForMe = dirAuthState.requests.filter(function(r) {
+      return r.status === 'Pending' && r.requestedBy !== dirAuthState.signedInName;
+    });
+
+    if (pendingForMe.length > 0) {
+      // Action panel + collapsed submit
+      dirAuthState.currentActionRequestId = pendingForMe[0].id;
+      document.getElementById('dirauth-action-pendingcount').textContent = pendingForMe.length;
+      renderActionPanel(pendingForMe[0]);
+      actionPanel.style.display = 'block';
+      if (dirAuthState.submitFormManuallyShown) {
+        submitToggle.style.display = 'block';
+        submitForm.style.display = 'block';
+        document.getElementById('dirauth-submit-toggle-btn').textContent = '\u2212 Hide submit form';
+      } else {
+        submitToggle.style.display = 'block';
+        submitForm.style.display = 'none';
+        document.getElementById('dirauth-submit-toggle-btn').textContent = '+ Submit a new request';
+      }
+    } else {
+      // No action for me — submit form open by default
+      dirAuthState.currentActionRequestId = null;
+      actionPanel.style.display = 'none';
+      submitToggle.style.display = 'none';
+      submitForm.style.display = 'block';
+    }
+  }
+
+  function renderActionPanel(req) {
+    var card = document.getElementById('dirauth-action-card');
+    if (!card) return;
+    var decision = dirAuthState.decision;
+    var isAuth = (decision === 'Authorised');
+    var finalLabel = isAuth ? 'Submit Authorisation' : 'Submit Rejection';
+    var disabled = (!isAuth && (!document.getElementById('dirauth-action-rejection-reason') ||
+                                !document.getElementById('dirauth-action-rejection-reason').value.trim()));
+    // Note: on first render the textarea won't exist yet, so disabled stays false for Authorised path.
+    var html = ''
+      + '<div style="background:white;border:1px solid #FAC775;border-radius:6px;padding:12px 14px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      + '<span style="font-family:monospace;font-size:12px;color:#5f5e5a;">' + escapeHtml(req.id) + ' &middot; ' + escapeHtml(req.requestedBy) + ' &middot; Requested ' + escapeHtml(longDate(req.dateRequested)) + '</span>'
+      + '<span style="font-weight:500;font-size:15px;">' + fmtMoney(req.amount) + '</span>'
+      + '</div>'
+      + '<div style="font-size:13px;color:#1e1a16;"><strong style="color:#1e1a16;font-weight:500;">Reason:</strong> ' + escapeHtml(req.reason) + '</div>'
+      + '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #FAC775;">'
+      + '<div style="font-size:12px;color:#5f5e5a;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Your decision</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
+      + '<button type="button" class="dirauth-decision-btn auth' + (isAuth ? ' selected' : '') + '" onclick="dirAuthSetDecision(\'Authorised\')">' + (isAuth ? '\u2713 ' : '') + 'Authorise</button>'
+      + '<button type="button" class="dirauth-decision-btn reject' + (!isAuth ? ' selected' : '') + '" onclick="dirAuthSetDecision(\'Rejected\')">' + (!isAuth ? '\u2717 ' : '') + 'Reject</button>'
+      + '</div>';
+    if (!isAuth) {
+      html += '<div style="font-size:12px;color:#5f5e5a;margin-bottom:6px;">Reason for rejection <span style="color:#a32d2d;">*</span></div>'
+        + '<textarea id="dirauth-action-rejection-reason" rows="2" placeholder="Why are you rejecting this request?" oninput="dirAuthRejectionReasonInput()" style="width:100%;border:1px solid #a32d2d;border-radius:6px;padding:7px 12px;font-size:13px;font-family:Arial,sans-serif;resize:vertical;box-sizing:border-box;margin-bottom:12px;"></textarea>';
+    }
+    html += '<div style="font-size:12px;color:#5f5e5a;margin-bottom:12px;">Today: <strong style="color:#1e1a16;font-weight:500;">' + todayLong() + '</strong> <em style="color:#5f5e5a;font-style:italic;font-size:11px;">&middot; auto, not editable</em></div>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:4px;">'
+      + '<button type="button" id="dirauth-action-final-btn" class="dirauth-final-btn ' + (isAuth ? 'auth' : (disabled ? 'disabled' : 'reject')) + '" onclick="dirAuthFinalSubmit()"' + (!isAuth && disabled ? ' disabled' : '') + '>' + finalLabel + '</button>'
+      + '</div>'
+      + '</div>';
+    card.innerHTML = html;
+  }
+
+  window.dirAuthRejectionReasonInput = function() {
+    var rrEl = document.getElementById('dirauth-action-rejection-reason');
+    var btn = document.getElementById('dirauth-action-final-btn');
+    if (!rrEl || !btn) return;
+    if (rrEl.value.trim()) {
+      btn.classList.remove('disabled');
+      btn.classList.add('reject');
+      btn.disabled = false;
+    } else {
+      btn.classList.add('disabled');
+      btn.classList.remove('reject');
+      btn.disabled = true;
+    }
+  };
+
+  function renderNamePills() {
+    var holder = document.getElementById('dirauth-name-pills');
+    if (!holder) return;
+    holder.innerHTML = '';
+    dirAuthState.directors.forEach(function(d) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dirauth-name-pill' + (dirAuthState.selectedSignInName === d.name ? ' selected' : '');
+      btn.textContent = d.name;
+      btn.onclick = function() { dirAuthSelectName(d.name); };
+      holder.appendChild(btn);
+    });
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+})();
+</script>
+
 <script>document.getElementById('footerYear').textContent = new Date().getFullYear();
 window.addEventListener('scroll', function() {
   var btn = document.getElementById('scrollTopBtn');
