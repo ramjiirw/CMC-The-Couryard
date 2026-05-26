@@ -5674,18 +5674,23 @@
     var signin = document.getElementById('dirauth-signin');
     signin.style.display = 'block';
     renderNamePills();
-    // Add bottom padding so the card can scroll up. Value is computed:
-    // card height ~226px (incl. margin) + ~120px breathing room above + ~22px for the
-    // optional error message + the section's own existing padding/footer space.
+    // Clear any leftover padding from a previous open before we measure
     var inner = document.getElementById('financeauth-inner');
-    if (inner) inner.style.paddingBottom = '500px';
-    // Now scroll the card up
+    if (inner) inner.style.paddingBottom = '';
+    // Defer to next paint so the card's actual rendered position is measurable
     setTimeout(function() {
-      var rect = signin.getBoundingClientRect();
-      var targetTop = 120; // want the card 120px from the top of the viewport
-      var scrollAmt = rect.top - targetTop;
-      if (scrollAmt > 0) {
-        window.scrollBy({ top: scrollAmt, behavior: 'smooth' });
+      var rect       = signin.getBoundingClientRect();
+      var targetTop  = 100; // want the card's top 100px from top of viewport
+      var needScroll = Math.max(0, rect.top - targetTop);
+      // How much scrollable room exists below the current viewport position?
+      var roomBelow  = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      // Pad the section just enough to enable the needed scroll, plus a small cushion
+      var extraNeeded = needScroll - roomBelow;
+      if (extraNeeded > 0 && inner) {
+        inner.style.paddingBottom = (extraNeeded + 20) + 'px';
+      }
+      if (needScroll > 0) {
+        window.scrollBy({ top: needScroll, behavior: 'smooth' });
       }
       var pw = document.getElementById('dirauth-password');
       if (pw) pw.focus();
