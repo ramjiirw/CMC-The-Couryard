@@ -5674,13 +5674,17 @@
     var signin = document.getElementById('dirauth-signin');
     signin.style.display = 'block';
     renderNamePills();
-    // Gently nudge the sign-in card into view if it's below the fold
+    // Add bottom padding so the card can scroll up. Value is computed:
+    // card height ~226px (incl. margin) + ~120px breathing room above + ~22px for the
+    // optional error message + the section's own existing padding/footer space.
+    var inner = document.getElementById('financeauth-inner');
+    if (inner) inner.style.paddingBottom = '290px';
+    // Now scroll the card up
     setTimeout(function() {
       var rect = signin.getBoundingClientRect();
-      var vh = window.innerHeight || document.documentElement.clientHeight;
-      // Only scroll if the card is partly or fully below the visible area
-      if (rect.bottom > vh) {
-        var scrollAmt = rect.top - 100; // leave ~100px above the card
+      var targetTop = 120; // want the card 120px from the top of the viewport
+      var scrollAmt = rect.top - targetTop;
+      if (scrollAmt > 0) {
         window.scrollBy({ top: scrollAmt, behavior: 'smooth' });
       }
       var pw = document.getElementById('dirauth-password');
@@ -5713,9 +5717,14 @@
     dirAuthState.submitFormManuallyShown = false;
     document.getElementById('dirauth-password').value = '';
     document.getElementById('dirauth-signin-error').style.display = 'none';
-
+    resetDirAuthPadding();
     renderDirAuth();
   };
+
+  function resetDirAuthPadding() {
+    var inner = document.getElementById('financeauth-inner');
+    if (inner) inner.style.paddingBottom = '';
+  }
 
   window.dirAuthSelectName = function(name) {
     dirAuthState.selectedSignInName = name;
@@ -5819,7 +5828,7 @@
           if (ok) { ok.style.display = 'none'; ok.innerHTML = ''; }
           btn.textContent = 'Submit Request';
           lockSubmitForm(false);
-      
+          resetDirAuthPadding();
           reloadDirAuthData();
         }, 2500);
       } else {
@@ -5886,7 +5895,7 @@
           dirAuthState.currentActionRequestId = null;
           dirAuthState.decision = 'Authorised';
           lockActionPanel(false);
-      
+          resetDirAuthPadding();
           reloadDirAuthData();
         }, 2500);
       } else {
