@@ -5674,25 +5674,19 @@
     var signin = document.getElementById('dirauth-signin');
     signin.style.display = 'block';
     renderNamePills();
-    // Add temporary bottom spacer so the sign-in card can scroll high in the viewport
-    setDirAuthBottomSpacer(true);
-    // Scroll the sign-in card into view + focus password field for fast entry
+    // Gently nudge the sign-in card into view if it's below the fold
     setTimeout(function() {
-      signin.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Nudge up so the section header is visible at the top
-      setTimeout(function() {
-        window.scrollBy({ top: -80, behavior: 'smooth' });
-        var pw = document.getElementById('dirauth-password');
-        if (pw) pw.focus();
-      }, 350);
+      var rect = signin.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      // Only scroll if the card is partly or fully below the visible area
+      if (rect.bottom > vh) {
+        var scrollAmt = rect.top - 100; // leave ~100px above the card
+        window.scrollBy({ top: scrollAmt, behavior: 'smooth' });
+      }
+      var pw = document.getElementById('dirauth-password');
+      if (pw) pw.focus();
     }, 50);
   };
-
-  function setDirAuthBottomSpacer(on) {
-    var inner = document.getElementById('financeauth-inner');
-    if (!inner) return;
-    inner.style.paddingBottom = on ? '60vh' : '';
-  }
 
   function lockSubmitForm(locked) {
     var form = document.getElementById('dirauth-submit-form');
@@ -5719,7 +5713,7 @@
     dirAuthState.submitFormManuallyShown = false;
     document.getElementById('dirauth-password').value = '';
     document.getElementById('dirauth-signin-error').style.display = 'none';
-    setDirAuthBottomSpacer(false);
+
     renderDirAuth();
   };
 
@@ -5825,7 +5819,7 @@
           if (ok) { ok.style.display = 'none'; ok.innerHTML = ''; }
           btn.textContent = 'Submit Request';
           lockSubmitForm(false);
-          setDirAuthBottomSpacer(false);
+      
           reloadDirAuthData();
         }, 2500);
       } else {
@@ -5892,7 +5886,7 @@
           dirAuthState.currentActionRequestId = null;
           dirAuthState.decision = 'Authorised';
           lockActionPanel(false);
-          setDirAuthBottomSpacer(false);
+      
           reloadDirAuthData();
         }, 2500);
       } else {
