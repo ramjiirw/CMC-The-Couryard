@@ -845,8 +845,9 @@
   .dirauth-pill.rejected { background: #A32D2D; }
   .dirauth-empty { padding: 1.5rem; text-align: center; color: #5f5e5a; font-style: italic; font-size: 13px; }
   /* Name pills in sign-in card */
-  .dirauth-name-pill { background: white; border: 1px solid #d3d1c7; color: #5f5e5a; padding: 6px 16px; border-radius: 16px; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; }
-  .dirauth-name-pill.selected { border: 1.5px solid #1e1a16; color: #1e1a16; font-weight: 500; }
+  .dirauth-name-pill { background: white; border: 1px solid #d3d1c7; color: #5f5e5a; padding: 6px 16px; border-radius: 16px; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; transition: all 0.15s; }
+  .dirauth-name-pill:hover { border-color: #1e1a16; color: #1e1a16; }
+  .dirauth-name-pill.selected { background: #1e1a16; border: 1px solid #1e1a16; color: white; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
   /* Decision toggle buttons */
   .dirauth-decision-btn { padding: 7px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif; }
   .dirauth-decision-btn.auth { background: white; color: #3B6D11; border: 1px solid #3B6D11; }
@@ -1252,7 +1253,7 @@
       </span>
       <span class="toggle-hint">
         <span class="hint-loading">&#9203; Loading data&hellip;</span>
-        <span class="hint-open">Tap to open &amp; view</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
         <span class="hint-close">Tap to close</span>
         <span class="chevron">&#9658;</span>
       </span>
@@ -1283,7 +1284,7 @@
           <div style="font-size:12px;color:#5f5e5a;margin-bottom:8px;">Who are you?</div>
           <div id="dirauth-name-pills" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;"></div>
           <div style="font-size:12px;color:#5f5e5a;margin-bottom:8px;">Director password</div>
-          <input type="password" id="dirauth-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" style="width:200px;max-width:60%;border:1px solid #d3d1c7;border-radius:6px;padding:7px 12px;font-size:13px;font-family:Arial,sans-serif;">
+          <input type="password" id="dirauth-password" placeholder="" onkeydown="if(event.key==='Enter'){event.preventDefault();dirAuthSignInSubmit();}" style="width:200px;max-width:60%;border:1px solid #d3d1c7;border-radius:6px;padding:7px 12px;font-size:13px;font-family:Arial,sans-serif;">
           <button type="button" onclick="dirAuthSignInSubmit()" id="dirauth-signin-btn" style="margin-left:6px;background:#1e1a16;color:#f5f0e8;border:none;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:Arial,sans-serif;">Sign in</button>
           <div id="dirauth-signin-error" style="display:none;margin-top:10px;font-size:12px;color:#a32d2d;"></div>
         </div>
@@ -1314,6 +1315,7 @@
             <button type="button" id="dirauth-submit-btn" onclick="dirAuthSubmitRequest()" style="background:#3B6D11;color:white;border:none;padding:8px 22px;border-radius:6px;font-weight:500;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;">Submit Request</button>
           </div>
           <div id="dirauth-submit-error" style="display:none;margin-top:10px;font-size:12px;color:#a32d2d;"></div>
+          <div id="dirauth-submit-success" style="display:none;margin-top:10px;font-size:13px;color:#3B6D11;font-weight:500;"></div>
         </div>
 
       </div>
@@ -5669,8 +5671,15 @@
 
   window.dirAuthOpenActions = function() {
     document.getElementById('dirauth-actions-open-btn').style.display = 'none';
-    document.getElementById('dirauth-signin').style.display = 'block';
+    var signin = document.getElementById('dirauth-signin');
+    signin.style.display = 'block';
     renderNamePills();
+    // Scroll the sign-in card into view + focus password field for fast entry
+    setTimeout(function() {
+      signin.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var pw = document.getElementById('dirauth-password');
+      if (pw) pw.focus();
+    }, 100);
   };
 
   window.dirAuthSignOut = function() {
@@ -5710,6 +5719,13 @@
         dirAuthState.signedInPassword = pw;
         document.getElementById('dirauth-password').value = '';
         renderDirAuth();
+        // Scroll to whichever panel is now showing
+        setTimeout(function() {
+          var actionPanel = document.getElementById('dirauth-action-panel');
+          var submitForm  = document.getElementById('dirauth-submit-form');
+          var target = (actionPanel.style.display !== 'none') ? actionPanel : submitForm;
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
       } else {
         errEl.textContent = 'Incorrect password. Please try again.';
         errEl.style.display = 'block';
@@ -5759,13 +5775,26 @@
       if (res && res.status === 'ok') {
         document.getElementById('dirauth-submit-amount').value = '';
         document.getElementById('dirauth-submit-reason').value = '';
-        // Lock out — sign out
-        dirAuthState.signedInName = null;
-        dirAuthState.signedInPassword = null;
-        dirAuthState.selectedSignInName = null;
-        dirAuthState.submitFormManuallyShown = false;
+        // Show success message before locking out
+        var ok = document.getElementById('dirauth-submit-success');
+        if (ok) {
+          ok.innerHTML = '\u2713 Request submitted (' + res.id + '). The other director has been emailed. Signing out\u2026';
+          ok.style.display = 'block';
+        }
+        btn.textContent = '\u2713 Submitted';
+        btn.disabled = true;
         try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
-        reloadDirAuthData();
+        // Give the user 2.5s to read the success message before locking out
+        setTimeout(function() {
+          dirAuthState.signedInName = null;
+          dirAuthState.signedInPassword = null;
+          dirAuthState.selectedSignInName = null;
+          dirAuthState.submitFormManuallyShown = false;
+          if (ok) { ok.style.display = 'none'; ok.innerHTML = ''; }
+          btn.textContent = 'Submit Request';
+          btn.disabled = false;
+          reloadDirAuthData();
+        }, 2500);
       } else {
         errEl.textContent = (res && res.message) || 'Could not submit. Please try again.';
         errEl.style.display = 'block';
@@ -5800,7 +5829,7 @@
         action: 'actionDirectorRequest',
         requestId: req.id,
         actionerName: dirAuthState.signedInName,
-        action: decision,
+        decision: decision,
         rejectionReason: rejectionReason,
         password: dirAuthState.signedInPassword
       })
@@ -5809,15 +5838,26 @@
     .then(function(res) {
       btn.disabled = false;
       if (res && res.status === 'ok') {
-        // Lock out — sign out
-        dirAuthState.signedInName = null;
-        dirAuthState.signedInPassword = null;
-        dirAuthState.selectedSignInName = null;
-        dirAuthState.submitFormManuallyShown = false;
-        dirAuthState.currentActionRequestId = null;
-        dirAuthState.decision = 'Authorised';
+        var actionLabel = decision === 'Authorised' ? 'authorised' : 'rejected';
+        // Replace the action card with a success message in place
+        var card = document.getElementById('dirauth-action-card');
+        if (card) {
+          card.innerHTML = '<div style="background:white;border:1px solid #c0dd97;border-radius:6px;padding:14px;text-align:center;">'
+            + '<div style="font-size:14px;font-weight:500;color:#3B6D11;margin-bottom:4px;">\u2713 Request ' + actionLabel + '</div>'
+            + '<div style="font-size:12px;color:#5f5e5a;">The requestor has been emailed. Signing out\u2026</div>'
+            + '</div>';
+        }
         try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
-        reloadDirAuthData();
+        // Give 2.5s to read the message before locking out
+        setTimeout(function() {
+          dirAuthState.signedInName = null;
+          dirAuthState.signedInPassword = null;
+          dirAuthState.selectedSignInName = null;
+          dirAuthState.submitFormManuallyShown = false;
+          dirAuthState.currentActionRequestId = null;
+          dirAuthState.decision = 'Authorised';
+          reloadDirAuthData();
+        }, 2500);
       } else {
         alert((res && res.message) || 'Could not action. Please try again.');
       }
