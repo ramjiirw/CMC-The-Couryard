@@ -1285,7 +1285,7 @@
           <div id="dirauth-name-pills" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;"></div>
           <div style="font-size:12px;color:#5f5e5a;margin-bottom:8px;">Director password</div>
           <input type="password" id="dirauth-password" placeholder="" onkeydown="if(event.key==='Enter'){event.preventDefault();dirAuthSignInSubmit();}" style="width:200px;max-width:60%;border:1px solid #d3d1c7;border-radius:6px;padding:7px 12px;font-size:13px;font-family:Arial,sans-serif;">
-          <button type="button" onclick="dirAuthSignInSubmit()" id="dirauth-signin-btn" style="margin-left:6px;background:#1e1a16;color:#f5f0e8;border:none;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:Arial,sans-serif;">Sign in</button>
+          <button type="button" onclick="dirAuthSignInSubmit()" id="dirauth-signin-btn" style="margin-left:6px;background:#1e1a16;color:#f5f0e8;border:none;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:Arial,sans-serif;min-width:96px;">Sign in</button>
           <div id="dirauth-signin-error" style="display:none;margin-top:10px;font-size:12px;color:#a32d2d;"></div>
         </div>
 
@@ -5674,13 +5674,43 @@
     var signin = document.getElementById('dirauth-signin');
     signin.style.display = 'block';
     renderNamePills();
+    // Add temporary bottom spacer so the sign-in card can scroll high in the viewport
+    setDirAuthBottomSpacer(true);
     // Scroll the sign-in card into view + focus password field for fast entry
     setTimeout(function() {
-      signin.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      var pw = document.getElementById('dirauth-password');
-      if (pw) pw.focus();
-    }, 100);
+      signin.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Nudge up so the section header is visible at the top
+      setTimeout(function() {
+        window.scrollBy({ top: -80, behavior: 'smooth' });
+        var pw = document.getElementById('dirauth-password');
+        if (pw) pw.focus();
+      }, 350);
+    }, 50);
   };
+
+  function setDirAuthBottomSpacer(on) {
+    var inner = document.getElementById('financeauth-inner');
+    if (!inner) return;
+    inner.style.paddingBottom = on ? '60vh' : '';
+  }
+
+  function lockSubmitForm(locked) {
+    var form = document.getElementById('dirauth-submit-form');
+    if (!form) return;
+    form.style.opacity = locked ? '0.5' : '';
+    form.style.pointerEvents = locked ? 'none' : '';
+    var inputs = form.querySelectorAll('input, textarea, button');
+    inputs.forEach(function(el) { el.disabled = !!locked; });
+  }
+
+  function lockActionPanel(locked) {
+    var panel = document.getElementById('dirauth-action-panel');
+    if (!panel) return;
+    panel.style.opacity = locked ? '0.5' : '';
+    panel.style.pointerEvents = locked ? 'none' : '';
+    var inputs = panel.querySelectorAll('input, textarea, button');
+    inputs.forEach(function(el) { el.disabled = !!locked; });
+  }
 
   window.dirAuthSignOut = function() {
     dirAuthState.signedInName = null;
@@ -5689,6 +5719,7 @@
     dirAuthState.submitFormManuallyShown = false;
     document.getElementById('dirauth-password').value = '';
     document.getElementById('dirauth-signin-error').style.display = 'none';
+    setDirAuthBottomSpacer(false);
     renderDirAuth();
   };
 
@@ -5775,16 +5806,17 @@
       if (res && res.status === 'ok') {
         document.getElementById('dirauth-submit-amount').value = '';
         document.getElementById('dirauth-submit-reason').value = '';
+        // Lock the entire submit form so nothing can be touched during logout
+        lockSubmitForm(true);
         // Show success message before locking out
         var ok = document.getElementById('dirauth-submit-success');
         if (ok) {
-          ok.innerHTML = '\u2713 Request submitted (' + res.id + '). The other director has been emailed. Signing out\u2026';
+          ok.innerHTML = '\u2713 Request submitted (' + res.id + '). The other director has been emailed. Logging out\u2026';
           ok.style.display = 'block';
         }
-        btn.textContent = '\u2713 Submitted';
-        btn.disabled = true;
+        btn.textContent = 'Logging out\u2026';
         try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
-        // Give the user 2.5s to read the success message before locking out
+        // Hold the locked state for 2.5s so the user sees clearly what's happening
         setTimeout(function() {
           dirAuthState.signedInName = null;
           dirAuthState.signedInPassword = null;
@@ -5792,7 +5824,8 @@
           dirAuthState.submitFormManuallyShown = false;
           if (ok) { ok.style.display = 'none'; ok.innerHTML = ''; }
           btn.textContent = 'Submit Request';
-          btn.disabled = false;
+          lockSubmitForm(false);
+          setDirAuthBottomSpacer(false);
           reloadDirAuthData();
         }, 2500);
       } else {
@@ -5839,16 +5872,18 @@
       btn.disabled = false;
       if (res && res.status === 'ok') {
         var actionLabel = decision === 'Authorised' ? 'authorised' : 'rejected';
+        // Lock the action panel — no one can mess with it during the logout window
+        lockActionPanel(true);
         // Replace the action card with a success message in place
         var card = document.getElementById('dirauth-action-card');
         if (card) {
           card.innerHTML = '<div style="background:white;border:1px solid #c0dd97;border-radius:6px;padding:14px;text-align:center;">'
             + '<div style="font-size:14px;font-weight:500;color:#3B6D11;margin-bottom:4px;">\u2713 Request ' + actionLabel + '</div>'
-            + '<div style="font-size:12px;color:#5f5e5a;">The requestor has been emailed. Signing out\u2026</div>'
+            + '<div style="font-size:12px;color:#5f5e5a;">The requestor has been emailed. Logging out\u2026</div>'
             + '</div>';
         }
         try { localStorage.removeItem(window.FIN_CACHE_KEY); } catch(e) {}
-        // Give 2.5s to read the message before locking out
+        // Hold for 2.5s so the user sees clearly what's happening
         setTimeout(function() {
           dirAuthState.signedInName = null;
           dirAuthState.signedInPassword = null;
@@ -5856,6 +5891,8 @@
           dirAuthState.submitFormManuallyShown = false;
           dirAuthState.currentActionRequestId = null;
           dirAuthState.decision = 'Authorised';
+          lockActionPanel(false);
+          setDirAuthBottomSpacer(false);
           reloadDirAuthData();
         }, 2500);
       } else {
@@ -6082,6 +6119,7 @@
     }
     html += '<div style="font-size:12px;color:#5f5e5a;margin-bottom:12px;">Today: <strong style="color:#1e1a16;font-weight:500;">' + todayLong() + '</strong> <em style="color:#5f5e5a;font-style:italic;font-size:11px;">&middot; auto, not editable</em></div>'
       + '</div>'
+      + '<div style="font-size:12px;color:#854F0B;font-style:italic;text-align:right;margin-top:8px;margin-bottom:4px;">When ready, tap <strong style="font-style:normal;">' + finalLabel + '</strong> below to confirm and send.</div>'
       + '<div style="display:flex;justify-content:flex-end;margin-top:4px;">'
       + '<button type="button" id="dirauth-action-final-btn" class="dirauth-final-btn ' + (isAuth ? 'auth' : (disabled ? 'disabled' : 'reject')) + '" onclick="dirAuthFinalSubmit()"' + (!isAuth && disabled ? ' disabled' : '') + '>' + finalLabel + '</button>'
       + '</div>'
