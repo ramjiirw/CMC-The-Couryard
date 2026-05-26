@@ -5674,24 +5674,17 @@
     var signin = document.getElementById('dirauth-signin');
     signin.style.display = 'block';
     renderNamePills();
-    // Clear any leftover padding from a previous open before we measure
+    // Clear any leftover padding from a previous open
     var inner = document.getElementById('financeauth-inner');
     if (inner) inner.style.paddingBottom = '';
-    // Defer to next paint so the card's actual rendered position is measurable
     setTimeout(function() {
-      var rect       = signin.getBoundingClientRect();
-      var targetTop  = 100; // want the card's top 100px from top of viewport
-      var needScroll = Math.max(0, rect.top - targetTop);
-      // How much scrollable room exists below the current viewport position?
-      var roomBelow  = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-      // Pad the section just enough to enable the needed scroll, plus a small cushion
-      var extraNeeded = needScroll - roomBelow;
-      if (extraNeeded > 0 && inner) {
-        inner.style.paddingBottom = (extraNeeded + 20) + 'px';
+      // Desktop screens need extra room below to scroll into; phones/tablets don't
+      var isDesktop = window.innerWidth > 768;
+      if (isDesktop && inner) {
+        inner.style.paddingBottom = '300px';
       }
-      if (needScroll > 0) {
-        window.scrollBy({ top: needScroll, behavior: 'smooth' });
-      }
+      // Scroll up by 200px on every device — small, predictable nudge
+      window.scrollBy({ top: 200, behavior: 'smooth' });
       var pw = document.getElementById('dirauth-password');
       if (pw) pw.focus();
     }, 50);
