@@ -1052,6 +1052,16 @@
       var total = 0;
       ['current','sinking','contingency'].forEach(function(k) {
         var d = json[k];
+        // Contingency only: hide its rows entirely if balance is null/missing/zero.
+        // Will re-appear automatically if a balance is ever recorded.
+        if (k === 'contingency') {
+          var hideC = !d || d.balance == null || Number(d.balance) === 0;
+          var desktopRow = document.querySelector('.bal-row-contingency');
+          var mobileRow  = document.querySelector('.balm-row-contingency');
+          if (desktopRow) desktopRow.style.display = hideC ? 'none' : '';
+          if (mobileRow)  mobileRow.style.display  = hideC ? 'none' : '';
+          if (hideC) return; // skip populating values
+        }
         if (d) {
           var amt  = fmtBal(d.balance);
           var date = fmtDate(d.date);
@@ -5683,8 +5693,10 @@
       if (isDesktop && inner) {
         inner.style.paddingBottom = '300px';
       }
-      // Scroll up by 200px on every device — small, predictable nudge
-      window.scrollBy({ top: 200, behavior: 'smooth' });
+      // Scroll up by 200px. On desktop we MUST use instant because the smooth scroll
+      // gets cancelled by the padding-reflow we just triggered. On phone/tablet
+      // smooth is fine because no padding is added.
+      window.scrollBy({ top: 200, behavior: isDesktop ? 'instant' : 'smooth' });
       var pw = document.getElementById('dirauth-password');
       if (pw) pw.focus();
     }, 50);
