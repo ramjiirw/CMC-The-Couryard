@@ -66,6 +66,12 @@
   .btn-toggle:hover { background: #2a2520; }
   .btn-toggle:disabled { opacity: 1; cursor: default; pointer-events: none; background: var(--dark); }
   .btn-loading { pointer-events: none; opacity: 0.6; }
+  .hint-loading { display: none; }
+  .btn-loading .hint-loading { display: inline; }
+  .btn-loading .hint-open { display: none !important; }
+  .btn-loading .hint-close { display: none !important; }
+  @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+  .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
   .btn-toggle .toggle-left { display: flex; align-items: center; gap: 0.7rem; }
   .btn-toggle .toggle-hint { font-size: 0.72rem; font-weight: 400; opacity: 0.6; letter-spacing: 0.03em; text-transform: none; display: flex; align-items: center; gap: 0.4rem; }
   .btn-toggle .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.75rem; }
@@ -434,10 +440,11 @@
   <div class="finance-section">
     <h3 class="section-heading">CMC Yearly Accounts</h3>
 
-    <!-- Live year-end accounts -->
-    <button class="btn-toggle" id="toggle-yearend" onclick="openYearEndAccounts()" aria-expanded="false">
+    <!-- Live year-end accounts (starts locked; unlocked at page-load like BVA) -->
+    <button class="btn-toggle btn-loading" id="toggle-yearend" onclick="openYearEndAccounts()" aria-expanded="false">
       <span class="toggle-left"><span>📊 View Year-End Accounts</span><span id="yea-hint" style="font-weight:400;opacity:0.65;font-size:0.72rem;margin-left:0.5rem;"></span></span>
       <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to open</span>
         <span class="chevron">▶</span>
       </span>
@@ -864,19 +871,18 @@ window.addEventListener('scroll', function() {
   </div>
   <div id="yea-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
   <div id="yea-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
-    <div class="spinner" style="width:2rem;height:2rem;border-width:3px;"></div>
-    <div id="yea-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Reading the ledger…</div>
+    <div class="spinner"></div>
+    <div id="yea-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Loading…</div>
   </div>
 </div>
 
-<!-- ===== Year-End Accounts script (mirrors BVA: lazy-load, default latest, fetch-on-switch) ===== -->
+<!-- ===== Year-End Accounts script — copies BVA: page-load fetch unlocks the button, instant open ===== -->
 <script>
 (function () {
   var YEA_URL = (typeof SCRIPT_URL !== 'undefined') ? SCRIPT_URL
-    : (typeof window.SCRIPT_URL !== 'undefined' ? window.SCRIPT_URL
-    : 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec');
+    : 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 
-  var yeaData = {};            // fy -> data (in-memory cache, like BVA's finSummaryData)
+  var yeaData = {};       // fy -> data (in-memory cache, like BVA's finSummaryData)
   var yeaCurrentYear = null;
 
   function latestCompletedFY() {
@@ -886,26 +892,30 @@ window.addEventListener('scroll', function() {
   function yeaYears() { var l = latestCompletedFY(); return [l, l - 1]; }
   function gbp(n) { return Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  // Live hint on the page button (computed, like BVA's last-transaction hint)
-  function yeaInitHint() {
-    var hint = document.getElementById('yea-hint');
-    if (hint) hint.textContent = 'Latest completed year \u00b7 Year Ending 31 May ' + latestCompletedFY();
-  }
-
   function yeaFetch(fy) {
     return fetch(YEA_URL + '?action=readYearEndAccounts&fy=' + fy)
       .then(function (r) { return r.json(); })
       .then(function (d) { if (d && d.status === 'ok') yeaData[fy] = d; return d; });
   }
 
-  window.openYearEndAccounts = async function () {
+  // PAGE-LOAD: fetch latest year, then unlock the button (copies BVA's loadData -> classList.remove('btn-loading'))
+  async function yeaPageLoad() {
+    var btn = document.getElementById('toggle-yearend');
+    var hint = document.getElementById('yea-hint');
+    var latest = latestCompletedFY();
+    try {
+      var d = await yeaFetch(latest);
+      if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'load failed');
+      if (hint) hint.textContent = 'Latest completed year \u00b7 Year Ending 31 May ' + latest;
+    } catch (e) {
+      if (hint) hint.textContent = '\u26a0\ufe0f Could not load — check the Apps Script is deployed';
+    }
+    if (btn) btn.classList.remove('btn-loading'); // unlock either way, like BVA
+  }
+
+  window.openYearEndAccounts = function () {
     var latest = latestCompletedFY();
     yeaCurrentYear = latest;
-    var ov = document.getElementById('yea-overlay');
-    var lo = document.getElementById('yea-loading-overlay');
-    var lt = document.getElementById('yea-loading-text');
-
-    // Build the year dropdown
     var sel = document.getElementById('yea-rpt-year-select');
     if (sel) {
       sel.innerHTML = yeaYears().map(function (y) {
@@ -913,17 +923,9 @@ window.addEventListener('scroll', function() {
       }).join('');
       sel.value = String(latest);
     }
-
-    ov.style.display = 'block';
+    document.getElementById('yea-overlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
-
-    if (!yeaData[latest]) {
-      if (lo) lo.style.display = 'flex';
-      if (lt) lt.textContent = 'Loading ' + latest + ' accounts\u2026';
-      try { await yeaFetch(latest); } catch (e) {}
-      if (lo) lo.style.display = 'none';
-    }
-    yeaRender(yeaData[latest]);
+    yeaRender(yeaData[latest]); // data already loaded at page-load — instant, no spinner
   };
 
   window.closeYearEndAccounts = function () {
@@ -938,12 +940,13 @@ window.addEventListener('scroll', function() {
     document.title = orig;
   };
 
+  // Year switch inside the overlay — fetch on demand (like BVA's bvaRptChangeYear)
   window.yeaChangeYear = async function (fy) {
     if (!fy || isNaN(fy)) return;
     yeaCurrentYear = fy;
-    var lo = document.getElementById('yea-loading-overlay');
-    var lt = document.getElementById('yea-loading-text');
     if (!yeaData[fy]) {
+      var lo = document.getElementById('yea-loading-overlay');
+      var lt = document.getElementById('yea-loading-text');
       if (lo) lo.style.display = 'flex';
       if (lt) lt.textContent = 'Loading ' + fy + ' accounts\u2026';
       try { await yeaFetch(fy); } catch (e) {}
@@ -961,7 +964,7 @@ window.addEventListener('scroll', function() {
   function yeaRender(d) {
     if (!d) {
       document.getElementById('yea-overlay-content').innerHTML =
-        '<p style="color:#b34;font-family:Arial,sans-serif;">Could not load accounts. Please try again.</p>';
+        '<p style="color:#b34;font-family:Arial,sans-serif;">Could not load accounts. Please close and try again.</p>';
       return;
     }
     var r = d.reconciliation;
@@ -1013,8 +1016,8 @@ window.addEventListener('scroll', function() {
     document.getElementById('yea-overlay-content').innerHTML = pl + bs + ch + recon;
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', yeaInitHint);
-  else yeaInitHint();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', yeaPageLoad);
+  else yeaPageLoad();
 })();
 </script>
 
