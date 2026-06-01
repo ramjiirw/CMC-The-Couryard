@@ -852,6 +852,9 @@ window.addEventListener('scroll', function() {
   #yea-overlay-content .yea-recon.bad { background:#fcecec; border:1px solid #b34; }
   #yea-overlay-content .yea-recon h4 { margin:0 0 0.5rem; font-size:0.95rem; }
   #yea-rpt-year-select option { color:#1e1a16; background:#fff; }
+  @keyframes yeaRptPulse { 0%{opacity:1} 30%{opacity:0.3;color:#4a5e3a} 70%{opacity:0.3;color:#4a5e3a} 100%{opacity:1} }
+  #yea-rpt-meta.rpt-meta-pulse { animation:yeaRptPulse 0.6s ease; }
+  #yea-rpt-meta.rpt-meta-pulse .rpt-year { color:#4a5e3a; }
   @media print {
     @page { size:landscape; }
     body > *:not(#yea-overlay) { display:none !important; }
@@ -941,11 +944,12 @@ window.addEventListener('scroll', function() {
     document.title = orig;
   };
 
-  // Year switch inside the overlay — fetch on demand (like BVA's bvaRptChangeYear)
+  // Year switch inside the overlay — mirrors the I&E's rptChangeYear exactly
   window.yeaChangeYear = async function (fy) {
     if (!fy || isNaN(fy)) return;
     yeaCurrentYear = fy;
-    if (!yeaData[fy]) {
+    var needsFetch = !yeaData[fy];
+    if (needsFetch) {
       var lo = document.getElementById('yea-loading-overlay');
       var lt = document.getElementById('yea-loading-text');
       if (lo) lo.style.display = 'flex';
@@ -953,7 +957,30 @@ window.addEventListener('scroll', function() {
       try { await yeaFetch(fy); } catch (e) {}
       if (lo) lo.style.display = 'none';
     }
+    // Always rebuild the year dropdown so all years stay visible, current selected
+    var sel = document.getElementById('yea-rpt-year-select');
+    if (sel) {
+      sel.innerHTML = yeaYears().map(function (y) {
+        return '<option value="' + y + '">Year Ending 31 May ' + y + '</option>';
+      }).join('');
+      sel.value = String(fy);
+    }
+    // Snap to top before swapping content so the swap is clean (no shudder)
+    var ov = document.getElementById('yea-overlay');
+    if (ov) ov.scrollTop = 0;
     yeaRender(yeaData[fy]);
+    // Already-loaded path gets the gentle header pulse, same as the I&E
+    if (!needsFetch) {
+      setTimeout(function () {
+        var meta = document.getElementById('yea-rpt-meta');
+        if (meta) {
+          meta.classList.remove('rpt-meta-pulse');
+          void meta.offsetWidth;
+          meta.classList.add('rpt-meta-pulse');
+          setTimeout(function () { meta.classList.remove('rpt-meta-pulse'); }, 650);
+        }
+      }, 30);
+    }
   };
 
   function lineRows(lines) {
@@ -974,7 +1001,7 @@ window.addEventListener('scroll', function() {
         '<img class="rpt-logo" src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo">' +
         '<div style="margin-left:1rem;"><div class="rpt-org">CMC The Courtyard</div>' +
         '<div class="rpt-title">Year-End Accounts</div></div></div>' +
-        '<div><div class="rpt-year">Year Ending 31 May ' + d.fy + '</div>' +
+        '<div id="yea-rpt-meta"><div class="rpt-year">Year Ending 31 May ' + d.fy + '</div>' +
         '<div class="rpt-gen">' + d.period.from + ' to ' + d.period.to + '</div></div></div>' +
       '<div class="yea-section-label">Profit and Loss - Income</div>' +
       '<table class="yea">' + lineRows(d.income) +
