@@ -430,34 +430,18 @@
     </div>
   </div>
 
-  <!-- CMC Yearly Accounts (live generator + filed PDFs) -->
+  <!-- CMC Yearly Accounts (live year-end generator + filed PDFs) -->
   <div class="finance-section">
     <h3 class="section-heading">CMC Yearly Accounts</h3>
 
-    <!-- Live year-end accounts generator -->
-    <button class="btn-toggle" id="toggle-yearend" onclick="togglePanel('yearend')" aria-expanded="false">
+    <!-- Live year-end accounts -->
+    <button class="btn-toggle" id="toggle-yearend" onclick="openYearEndAccounts()" aria-expanded="false">
       <span class="toggle-left"><span>📊 View Year-End Accounts</span><span id="yea-hint" style="font-weight:400;opacity:0.65;font-size:0.72rem;margin-left:0.5rem;"></span></span>
       <span class="toggle-hint">
-        <span class="hint-open">Tap to expand &amp; view</span>
-        <span class="hint-close">Tap to close</span>
+        <span class="hint-open">Tap to open</span>
         <span class="chevron">▶</span>
       </span>
     </button>
-    <div class="collapsible-panel" id="panel-yearend">
-      <div class="doc-card">
-        <div style="padding:1rem 1.25rem;">
-          <p style="font-size:0.85rem;color:var(--mid);margin-bottom:0.9rem;line-height:1.55;">
-            Generates the statutory Profit &amp; Loss and Balance Sheet for the chosen
-            financial year (1&nbsp;June&nbsp;–&nbsp;31&nbsp;May), live from the ledger.
-            Read-only — nothing is written back to the sheet.
-          </p>
-          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-            <select id="yea-year-select" style="padding:0.4rem 0.7rem;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--dark);font-family:Arial,sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;"></select>
-            <button onclick="openYearEndAccounts()" style="padding:0.45rem 1.1rem;background:var(--dark);color:#fff;border:none;border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">View accounts →</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Filed accounts (PDFs) -->
     <button class="btn-toggle btn-loading" id="toggle-receipts" onclick="togglePanel('receipts')" aria-expanded="false" style="margin-top:0.5rem;">
@@ -881,52 +865,65 @@ window.addEventListener('scroll', function() {
   <div id="yea-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
   <div id="yea-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
     <div class="spinner" style="width:2rem;height:2rem;border-width:3px;"></div>
-    <div style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Reading the ledger…</div>
+    <div id="yea-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Reading the ledger…</div>
   </div>
 </div>
 
-<!-- ===== Year-End Accounts script ===== -->
+<!-- ===== Year-End Accounts script (mirrors BVA: lazy-load, default latest, fetch-on-switch) ===== -->
 <script>
 (function () {
-  var YEA_SCRIPT_URL = (typeof SCRIPT_URL !== 'undefined')
-    ? SCRIPT_URL
-    : 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+  var YEA_URL = (typeof SCRIPT_URL !== 'undefined') ? SCRIPT_URL
+    : (typeof window.SCRIPT_URL !== 'undefined' ? window.SCRIPT_URL
+    : 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec');
 
-  var yeaCache = {};
+  var yeaData = {};            // fy -> data (in-memory cache, like BVA's finSummaryData)
   var yeaCurrentYear = null;
 
-  function gbp(n) {
-    return Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  // Latest completed financial year: if today >= 1 June, it's this year's 31 May; else last year's.
   function latestCompletedFY() {
     var now = new Date();
-    return (now.getMonth() >= 5) ? now.getFullYear() : now.getFullYear() - 1; // month 5 = June
+    return (now.getMonth() >= 5) ? now.getFullYear() : now.getFullYear() - 1; // 5 = June
   }
+  function yeaYears() { var l = latestCompletedFY(); return [l, l - 1]; }
+  function gbp(n) { return Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-  // Populate both year dropdowns (latest completed year + the one before it) and the live hint.
-  function yeaInit() {
-    var latest = latestCompletedFY();
-    var years = [latest, latest - 1];
-    var opts = years.map(function (y) {
-      return '<option value="' + y + '">Year Ending 31 May ' + y + '</option>';
-    }).join('');
-    var sel1 = document.getElementById('yea-year-select');
-    var sel2 = document.getElementById('yea-rpt-year-select');
-    if (sel1) sel1.innerHTML = opts;
-    if (sel2) sel2.innerHTML = opts;
+  // Live hint on the page button (computed, like BVA's last-transaction hint)
+  function yeaInitHint() {
     var hint = document.getElementById('yea-hint');
-    if (hint) hint.textContent = 'Latest completed year · Year Ending 31 May ' + latest;
+    if (hint) hint.textContent = 'Latest completed year \u00b7 Year Ending 31 May ' + latestCompletedFY();
   }
 
-  window.openYearEndAccounts = function () {
-    var sel = document.getElementById('yea-year-select');
-    var fy = parseInt(sel ? sel.value : latestCompletedFY(), 10);
-    document.getElementById('yea-rpt-year-select').value = String(fy);
-    document.getElementById('yea-overlay').style.display = 'block';
+  function yeaFetch(fy) {
+    return fetch(YEA_URL + '?action=readYearEndAccounts&fy=' + fy)
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.status === 'ok') yeaData[fy] = d; return d; });
+  }
+
+  window.openYearEndAccounts = async function () {
+    var latest = latestCompletedFY();
+    yeaCurrentYear = latest;
+    var ov = document.getElementById('yea-overlay');
+    var lo = document.getElementById('yea-loading-overlay');
+    var lt = document.getElementById('yea-loading-text');
+
+    // Build the year dropdown
+    var sel = document.getElementById('yea-rpt-year-select');
+    if (sel) {
+      sel.innerHTML = yeaYears().map(function (y) {
+        return '<option value="' + y + '">Year Ending 31 May ' + y + '</option>';
+      }).join('');
+      sel.value = String(latest);
+    }
+
+    ov.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    yeaChangeYear(fy);
+
+    if (!yeaData[latest]) {
+      if (lo) lo.style.display = 'flex';
+      if (lt) lt.textContent = 'Loading ' + latest + ' accounts\u2026';
+      try { await yeaFetch(latest); } catch (e) {}
+      if (lo) lo.style.display = 'none';
+    }
+    yeaRender(yeaData[latest]);
   };
 
   window.closeYearEndAccounts = function () {
@@ -941,29 +938,32 @@ window.addEventListener('scroll', function() {
     document.title = orig;
   };
 
-  window.yeaChangeYear = function (fy) {
+  window.yeaChangeYear = async function (fy) {
+    if (!fy || isNaN(fy)) return;
     yeaCurrentYear = fy;
-    if (yeaCache[fy]) { yeaRender(yeaCache[fy]); return; }
-    var load = document.getElementById('yea-loading-overlay');
-    load.style.display = 'flex';
-    fetch(YEA_SCRIPT_URL + '?action=readYearEndAccounts&fy=' + fy)
-      .then(function (r) { return r.json(); })
-      .then(function (data) { yeaCache[fy] = data; load.style.display = 'none'; yeaRender(data); })
-      .catch(function (err) {
-        load.style.display = 'none';
-        document.getElementById('yea-overlay-content').innerHTML =
-          '<p style="color:#b34;font-family:Arial,sans-serif;">Could not load accounts: ' + err + '</p>';
-      });
+    var lo = document.getElementById('yea-loading-overlay');
+    var lt = document.getElementById('yea-loading-text');
+    if (!yeaData[fy]) {
+      if (lo) lo.style.display = 'flex';
+      if (lt) lt.textContent = 'Loading ' + fy + ' accounts\u2026';
+      try { await yeaFetch(fy); } catch (e) {}
+      if (lo) lo.style.display = 'none';
+    }
+    yeaRender(yeaData[fy]);
   };
 
   function lineRows(lines) {
     return lines.map(function (l) {
-      return '<tr><td class="yea-cat">' + l.label.replace(/^[IE]-/, '') + '</td>' +
-             '<td class="yea-num">' + gbp(l.amount) + '</td></tr>';
+      return '<tr><td class="yea-cat">' + l.label.replace(/^[IE]-/, '') + '</td><td class="yea-num">' + gbp(l.amount) + '</td></tr>';
     }).join('');
   }
 
   function yeaRender(d) {
+    if (!d) {
+      document.getElementById('yea-overlay-content').innerHTML =
+        '<p style="color:#b34;font-family:Arial,sans-serif;">Could not load accounts. Please try again.</p>';
+      return;
+    }
     var r = d.reconciliation;
     var pl =
       '<div class="rpt-hdr"><div style="display:flex;align-items:center;">' +
@@ -979,7 +979,6 @@ window.addEventListener('scroll', function() {
       '<table class="yea">' + lineRows(d.expenditure) +
         '<tr class="yea-total"><td>Total Expenditure</td><td class="yea-num">( ' + gbp(d.totalExpenditure) + ' )</td></tr>' +
         '<tr class="yea-grand"><td>Net Profit</td><td class="yea-num">' + gbp(d.netProfit) + '</td></tr></table>';
-
     var bs =
       '<div class="yea-section-label">Balance Sheet</div>' +
       '<table class="yea">' +
@@ -994,37 +993,28 @@ window.addEventListener('scroll', function() {
         '<tr><td class="yea-cat">Net Profit / Loss for the Year</td><td class="yea-num">' + gbp(d.netProfit) + '</td></tr>' +
         '<tr class="yea-grand"><td>Balance as at end of year</td><td class="yea-num">' + gbp(d.closingCapital) + '</td></tr>' +
       '</table>';
-
     var ch =
       '<div class="yea-section-label">Companies House - Micro-entity Figures</div>' +
       '<table class="yea"><tr><td>Total current assets (whole £)</td><td class="yea-num">' + d.companiesHouse.totalCurrentAssets + '</td></tr>' +
       '<tr><td>Capital and reserves (whole £)</td><td class="yea-num">' + d.companiesHouse.capitalAndReserves + '</td></tr></table>';
-
     var recon;
     if (r.reconciles) {
-      recon =
-        '<div class="yea-recon ok"><h4>&#10003; Reconciliation: balanced (£0.00)</h4>' +
+      recon = '<div class="yea-recon ok"><h4>&#10003; Reconciliation: balanced (£0.00)</h4>' +
         '<div>Opening capital £' + gbp(r.openingCapital) + ' + net profit £' + gbp(r.netProfit) +
-        ' = £' + gbp(r.expectedClosing) + ', which matches the total held across all three accounts (£' +
-        gbp(r.actualClosing) + ').</div></div>';
+        ' = £' + gbp(r.expectedClosing) + ', which matches the total held across all three accounts (£' + gbp(r.actualClosing) + ').</div></div>';
     } else {
-      var diag = r.diagnosis && r.diagnosis.message ? r.diagnosis.message : 'Cause not yet identified.';
-      recon =
-        '<div class="yea-recon bad"><h4>&#9888; Reconciliation: out by £' + gbp(r.difference) + '</h4>' +
+      var diag = (r.diagnosis && r.diagnosis.message) ? r.diagnosis.message : 'Cause not yet identified.';
+      recon = '<div class="yea-recon bad"><h4>&#9888; Reconciliation: out by £' + gbp(r.difference) + '</h4>' +
         '<div>Opening capital £' + gbp(r.openingCapital) + ' + net profit £' + gbp(r.netProfit) +
         ' = £' + gbp(r.expectedClosing) + ', but the accounts actually hold £' + gbp(r.actualClosing) +
         '.<br><br><strong>Where to look:</strong> ' + diag +
         '<br><br>Resolve this at source (correct the cell) rather than adjusting, so the books match the bank.</div></div>';
     }
-
     document.getElementById('yea-overlay-content').innerHTML = pl + bs + ch + recon;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', yeaInit);
-  } else {
-    yeaInit();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', yeaInitHint);
+  else yeaInitHint();
 })();
 </script>
 
