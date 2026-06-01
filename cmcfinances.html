@@ -840,7 +840,7 @@ window.addEventListener('scroll', function() {
   #yea-overlay-content .yea-section-label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#6b5f52; padding-bottom:6px; border-bottom:2px solid #ddd5c8; margin:1.6rem 0 0.4rem; }
   #yea-overlay-content table.yea { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; }
   #yea-overlay-content table.yea td { padding:0.2rem 0.5rem; vertical-align:top; border-bottom:1px solid #ede8e0; font-size:15.5px; }
-  #yea-overlay-content .yea-num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  #yea-overlay-content .yea-num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; width:120px; }
   #yea-overlay-content table.yea td.yea-num { font-size:15.5px; font-weight:normal; }
   #yea-overlay-content .yea-cat { padding-left:24px !important; font-size:15.5px; color:#333; }
   #yea-overlay-content .yea-shade { background:#e7e1d6; }
@@ -1006,7 +1006,7 @@ window.addEventListener('scroll', function() {
       '<div class="yea-section-label">Profit and Loss - Income</div>' +
       '<table class="yea">' + lineRows(d.income) +
         '<tr class="yea-total"><td>Gross Profit</td><td class="yea-num">' + gbp(d.grossProfit) + '</td></tr></table>' +
-      '<div class="yea-section-label">Expenditure</div>' +
+      '<div class="yea-section-label">Profit and Loss - Expenditure</div>' +
       '<table class="yea">' + lineRows(d.expenditure) +
         '<tr class="yea-total"><td>Total Expenditure</td><td class="yea-num">( ' + gbp(d.totalExpenditure) + ' )</td></tr>' +
         '<tr><td colspan="2" style="height:0.8rem;border:none;"></td></tr>' +
