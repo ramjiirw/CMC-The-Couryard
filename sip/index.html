@@ -1447,7 +1447,8 @@ function renderBriefing() {
     }
     // Regular section
     if (row.title) {
-      html += '<h3 style="font-size:1.15rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;">' + briefingFormat(row.title) + '</h3>';
+      var secDisplay = (row.section_num === null || row.section_num === undefined) ? '\u2014' : row.section_num;
+      html += '<h3 style="font-size:1.15rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;"><span style="color:#7a5c3e;">' + secDisplay + '</span>&nbsp;&nbsp;' + briefingFormat(row.title) + '</h3>';
     }
     if (row.body) {
       html += briefingParagraphs(row.body);
