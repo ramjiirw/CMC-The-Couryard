@@ -525,8 +525,9 @@
 
   /* ── Directors' Meetings ─────────────────────────────────────────────────── */
   #panel-dirmeet.open { max-height: 20000px; }
-  #dirmeet-subtitle { font-weight: 400; opacity: 0.9; letter-spacing: 0.06em; margin-left: 0.4rem; }
-  #dirmeet-subtitle .dm-overdue { color: #e8a94e; font-weight: 700; }
+  #dirmeet-subtitle { font-weight: 400; font-size: 0.72rem; letter-spacing: 0.03em; color: rgba(245,240,232,0.6); }
+  #dirmeet-subtitle .dm-overdue { color: #e8a94e; font-weight: 600; }
+  #dirmeet-subtitle .dm-open-count { color: #e8a94e; font-weight: 600; }
   #dirmeet-subtitle .dm-open-count { color: #e8a94e; font-weight: 600; }
   .dm-inner { background: #fff; padding: 1.25rem; }
   .dm-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
@@ -598,8 +599,10 @@
   .dm-empty { font-size: 0.82rem; color: var(--mid); font-style: italic; padding: 0.4rem 0; }
 
   .dm-prev-bar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--cream); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.9rem; font-size: 0.8rem; font-weight: 600; color: var(--dark); cursor: pointer; font-family: Arial,sans-serif; margin-top: 1rem; }
-  .dm-tri { display: inline-block; transition: transform 0.2s; font-size: 0.72rem; }
-  .dm-tri.open { transform: rotate(90deg); }
+  .dm-prev-right { display: inline-flex; align-items: center; gap: 0.6rem; }
+  .dm-prev-summ { font-size: 0.72rem; color: var(--mid); }
+  .dm-prev-bar .chevron, .dm-prev-row .chevron { display: inline-block; transition: transform 0.25s; font-size: 0.72rem; }
+  .dm-prev-bar.open .chevron, .dm-prev-row.open .chevron { transform: rotate(90deg); }
   .dm-prev-meeting { border: 1px solid var(--border); border-radius: 6px; margin-top: 0.5rem; overflow: hidden; }
   .dm-prev-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; background: #fff; border: none; padding: 0.6rem 0.9rem; font-size: 0.82rem; cursor: pointer; font-family: Arial,sans-serif; color: var(--dark); }
   .dm-prev-row .summ { font-size: 0.72rem; }
@@ -2516,14 +2519,16 @@ function dmRender() {
         prevOpenTotal += (dmState.meetings[pi].actions || []).filter(function(a) { return a.isOpen; }).length;
       }
       var prevSummary = prevOpenTotal > 0
-        ? ' &middot; ' + prevOpenTotal + ' open action' + (prevOpenTotal === 1 ? '' : 's')
-        : ' &middot; all complete';
-      html += '<button class="dm-prev-bar" onclick="dmTogglePrev()"><span>Previous meetings (' + (dmState.meetings.length - 1) + ')' + prevSummary + '</span><span class="dm-tri' + (dmState.prevOpen ? ' open' : '') + '">&#9658;</span></button>';
-      if (dmState.prevOpen) {
-        for (var i = 1; i < dmState.meetings.length; i++) {
-          html += dmBuildPrevMeeting(dmState.meetings[i], signedIn);
-        }
+        ? prevOpenTotal + ' open action' + (prevOpenTotal === 1 ? '' : 's')
+        : 'all complete';
+      html += '<button class="dm-prev-bar' + (dmState.prevOpen ? ' open' : '') + '" id="dm-prevbar" onclick="dmTogglePrev()">'
+        + '<span>Previous meetings (' + (dmState.meetings.length - 1) + ')</span>'
+        + '<span class="dm-prev-right"><span class="dm-prev-summ">' + prevSummary + '</span><span class="chevron">&#9658;</span></span></button>';
+      html += '<div class="collapsible-panel' + (dmState.prevOpen ? ' open' : '') + '" id="dm-prevpanel">';
+      for (var i = 1; i < dmState.meetings.length; i++) {
+        html += dmBuildPrevMeeting(dmState.meetings[i], signedIn);
       }
+      html += '</div>';
     }
   }
 
@@ -2733,25 +2738,22 @@ function dmBuildPrevMeeting(m, signedIn) {
   var isOpen = !!dmState.openPrev[m.id];
 
   var html = '<div class="dm-prev-meeting">';
-  html += '<button class="dm-prev-row" onclick="dmTogglePrevMeeting(\'' + m.id + '\')">'
+  html += '<button class="dm-prev-row' + (isOpen ? ' open' : '') + '" id="dm-prow-' + m.id + '" onclick="dmTogglePrevMeeting(\'' + m.id + '\')">'
     + '<span style="font-weight:600;">' + dmEsc(m.date) + '</span>'
-    + '<span style="display:flex;align-items:center;gap:0.6rem;">' + summ + '<span class="dm-tri' + (isOpen ? ' open' : '') + '">&#9658;</span></span></button>';
-  if (isOpen) {
-    html += '<div class="dm-prev-body">';
-    if (signedIn && dmState.editingId === m.id) {
-      html += dmBuildEditForm(m);
-    } else {
-      if (signedIn) html += '<div style="text-align:right;margin-bottom:0.2rem;"><span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span></div>';
-      html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
-    }
-    if (actions.length || signedIn) html += '<hr class="dm-divider">';
-    html += '<div class="dm-actions-wrap">';
-    actions.forEach(function(a, i) { html += dmBuildActionRow(a, signedIn, i + 1); });
-    if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
-    else if (signedIn) html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
-    html += '</div></div>';
+    + '<span class="dm-prev-right">' + summ + '<span class="chevron">&#9658;</span></span></button>';
+  html += '<div class="collapsible-panel' + (isOpen ? ' open' : '') + '" id="dm-ppanel-' + m.id + '"><div class="dm-prev-body">';
+  if (signedIn && dmState.editingId === m.id) {
+    html += dmBuildEditForm(m);
+  } else {
+    if (signedIn) html += '<div style="text-align:right;margin-bottom:0.2rem;"><span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span></div>';
+    html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
   }
-  html += '</div>';
+  if (actions.length || signedIn) html += '<hr class="dm-divider">';
+  html += '<div class="dm-actions-wrap">';
+  actions.forEach(function(a, i) { html += dmBuildActionRow(a, signedIn, i + 1); });
+  if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
+  else if (signedIn) html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
+  html += '</div></div></div></div>';
   return html;
 }
 
@@ -3040,8 +3042,20 @@ function dmPostAction(payload) {
     .catch(function() { dmRender(); });
 }
 
-function dmTogglePrev() { dmState.prevOpen = !dmState.prevOpen; dmRender(); }
-function dmTogglePrevMeeting(id) { dmState.openPrev[id] = !dmState.openPrev[id]; dmRender(); }
+function dmTogglePrev() {
+  dmState.prevOpen = !dmState.prevOpen;
+  var bar = document.getElementById('dm-prevbar');
+  var panel = document.getElementById('dm-prevpanel');
+  if (bar) bar.classList.toggle('open', dmState.prevOpen);
+  if (panel) panel.classList.toggle('open', dmState.prevOpen);
+}
+function dmTogglePrevMeeting(id) {
+  dmState.openPrev[id] = !dmState.openPrev[id];
+  var row = document.getElementById('dm-prow-' + id);
+  var panel = document.getElementById('dm-ppanel-' + id);
+  if (row) row.classList.toggle('open', dmState.openPrev[id]);
+  if (panel) panel.classList.toggle('open', dmState.openPrev[id]);
+}
 
 loadAddresses();
 loadIssues();
