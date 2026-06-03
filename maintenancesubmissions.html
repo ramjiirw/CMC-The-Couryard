@@ -571,6 +571,7 @@
 
   .dm-latest-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #854F0B; margin-bottom: 0.3rem; }
   .dm-meeting-date { font-size: 0.95rem; font-weight: 600; color: var(--dark); }
+  .dm-countdown { font-size: 0.78rem; font-weight: 600; color: #BA7517; margin-left: 0.5rem; }
   .dm-meeting-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
   .dm-edit { font-size: 0.75rem; color: var(--mid); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; }
   .dm-notes { font-size: 0.85rem; color: var(--mid); line-height: 1.6; margin-top: 0.25rem; white-space: pre-wrap; }
@@ -2366,6 +2367,33 @@ function dmDaysAgo(iso) {
   return Math.round((today - d) / 86400000);
 }
 
+function dmCountdownText(days) {
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  return 'in ' + days + ' days';
+}
+
+// Pick the headline meeting: the soonest upcoming one if any meeting is today
+// or in the future, otherwise the most recent past meeting (index 0).
+function dmHeadline() {
+  var todayISO = dmTodayISO();
+  var idx = 0, soonest = -1;
+  for (var k = 0; k < dmState.meetings.length; k++) {
+    var ds = dmState.meetings[k].dateSort;
+    if (ds && ds >= todayISO) {
+      if (soonest === -1 || ds < dmState.meetings[soonest].dateSort) soonest = k;
+    }
+  }
+  if (soonest !== -1) idx = soonest;
+  var m = dmState.meetings[idx];
+  return {
+    idx: idx,
+    meeting: m,
+    isUpcoming: soonest !== -1,
+    daysUntil: (m && m.dateSort) ? -dmDaysAgo(m.dateSort) : null
+  };
+}
+
 function dmOpenPicker(el) {
   try { if (el && el.showPicker) el.showPicker(); } catch(e) {}
 }
@@ -2464,15 +2492,20 @@ function dmRenderSubtitle() {
   var mc = dmState.summary.meetingCount || 0;
   var oa = dmState.summary.openActions || 0;
   if (mc === 0) { sub.innerHTML = '&middot; No meetings logged yet'; return; }
-  var m0 = dmState.meetings[0];
-  var latest = m0 ? (m0.dateShort || m0.date) : '';
-  var days = m0 ? dmDaysAgo(m0.dateSort) : null;
+  var hd = dmHeadline();
+  var m0 = hd.meeting;
+  var dShort = m0 ? (m0.dateShort || m0.date) : '';
   var txt = '&middot; ' + mc + ' meeting' + (mc === 1 ? '' : 's');
-  if (latest) {
-    if (days !== null && days >= 30) {
-      txt += ' &middot; latest <span class="dm-overdue">' + dmEsc(latest) + ' (' + days + ' days ago)</span>';
+  if (dShort) {
+    if (hd.isUpcoming) {
+      txt += ' &middot; next ' + dmEsc(dShort) + ' (' + dmCountdownText(hd.daysUntil) + ')';
     } else {
-      txt += ' &middot; latest ' + dmEsc(latest);
+      var days = dmDaysAgo(m0.dateSort);
+      if (days !== null && days >= 30) {
+        txt += ' &middot; latest <span class="dm-overdue">' + dmEsc(dShort) + ' (' + days + ' days ago)</span>';
+      } else {
+        txt += ' &middot; latest ' + dmEsc(dShort);
+      }
     }
   }
   if (oa === 0) {
@@ -2511,23 +2544,23 @@ function dmRender() {
   if (!dmState.meetings.length) {
     if (!(dmState.logOpen && signedIn)) html += '<div class="dm-empty">No meetings have been logged yet.</div>';
   } else {
-    html += '<div class="dm-latest-label">Latest meeting</div>';
-    html += dmBuildMeeting(dmState.meetings[0], signedIn);
-    if (dmState.meetings.length > 1) {
+    var hd = dmHeadline();
+    var countdown = hd.isUpcoming ? ' <span class="dm-countdown">' + dmCountdownText(hd.daysUntil) + '</span>' : '';
+    html += '<div class="dm-latest-label">' + (hd.isUpcoming ? 'Next meeting' : 'Latest meeting') + '</div>';
+    html += dmBuildMeeting(dmState.meetings[hd.idx], signedIn, countdown);
+    var rest = [];
+    for (var r = 0; r < dmState.meetings.length; r++) { if (r !== hd.idx) rest.push(dmState.meetings[r]); }
+    if (rest.length) {
       var prevOpenTotal = 0;
-      for (var pi = 1; pi < dmState.meetings.length; pi++) {
-        prevOpenTotal += (dmState.meetings[pi].actions || []).filter(function(a) { return a.isOpen; }).length;
-      }
+      rest.forEach(function(mm) { prevOpenTotal += (mm.actions || []).filter(function(a) { return a.isOpen; }).length; });
       var prevSummary = prevOpenTotal > 0
         ? prevOpenTotal + ' open action' + (prevOpenTotal === 1 ? '' : 's')
         : 'all complete';
       html += '<button class="dm-prev-bar' + (dmState.prevOpen ? ' open' : '') + '" id="dm-prevbar" onclick="dmTogglePrev()">'
-        + '<span>Previous meetings (' + (dmState.meetings.length - 1) + ')</span>'
+        + '<span>Previous meetings (' + rest.length + ')</span>'
         + '<span class="dm-prev-right"><span class="dm-prev-summ">' + prevSummary + '</span><span class="chevron">&#9658;</span></span></button>';
       html += '<div class="collapsible-panel' + (dmState.prevOpen ? ' open' : '') + '" id="dm-prevpanel">';
-      for (var i = 1; i < dmState.meetings.length; i++) {
-        html += dmBuildPrevMeeting(dmState.meetings[i], signedIn);
-      }
+      rest.forEach(function(mm) { html += dmBuildPrevMeeting(mm, signedIn); });
       html += '</div>';
     }
   }
@@ -2632,12 +2665,12 @@ function dmBuildLogActionRow(idx) {
     + '</div>';
 }
 
-function dmBuildMeeting(m, signedIn) {
+function dmBuildMeeting(m, signedIn, countdown) {
   var html = '<div class="dm-meeting">';
   if (signedIn && dmState.editingId === m.id) {
     html += dmBuildEditForm(m);
   } else {
-    html += '<div class="dm-meeting-head"><span class="dm-meeting-date">' + dmEsc(m.date) + '</span>';
+    html += '<div class="dm-meeting-head"><span class="dm-meeting-date">' + dmEsc(m.date) + (countdown || '') + '</span>';
     if (signedIn) html += '<span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span>';
     html += '</div>';
     html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
