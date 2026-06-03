@@ -572,6 +572,9 @@
   .dm-latest-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #854F0B; margin-bottom: 0.3rem; }
   .dm-meeting-date { font-size: 0.95rem; font-weight: 600; color: var(--dark); }
   .dm-countdown { font-size: 0.78rem; font-weight: 600; color: #BA7517; margin-left: 0.5rem; }
+  .dm-section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #854F0B; margin: 0 0 0.4rem; }
+  .dm-none { font-size: 0.82rem; color: var(--stone); font-style: italic; padding: 0.2rem 0; }
+  .dm-del-link { color: #a32d2d; font-size: 0.78rem; text-decoration: underline; cursor: pointer; }
   .dm-meeting-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
   .dm-edit { font-size: 0.75rem; color: var(--mid); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; }
   .dm-notes { font-size: 0.85rem; color: var(--mid); line-height: 1.6; margin-top: 0.25rem; white-space: pre-wrap; }
@@ -2348,6 +2351,7 @@ var dmState = {
   addingId: null,
   editingActionId: null,
   deletingActionId: null,
+  confirmDeleteMeeting: null,
   busyActionId: null
 };
 
@@ -2660,7 +2664,7 @@ function dmBuildLogActionRow(idx) {
   });
   return '<div class="dm-actrow" data-logrow="' + idx + '">'
     + '<input type="text" class="dm-input dm-log-action-text" placeholder="Action\u2026">'
-    + '<div class="dm-owner-row"><span class="lbl">Owner:</span>' + ownerPills
+    + '<div class="dm-owner-row"><span class="lbl">Owner(s):</span>' + ownerPills
     + '<button class="dm-trash" title="Remove" onclick="dmRemoveLogRow(this)">&#128465;</button></div>'
     + '</div>';
 }
@@ -2673,17 +2677,30 @@ function dmBuildMeeting(m, signedIn, countdown) {
     html += '<div class="dm-meeting-head"><span class="dm-meeting-date">' + dmEsc(m.date) + (countdown || '') + '</span>';
     if (signedIn) html += '<span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span>';
     html += '</div>';
+    html += '<div class="dm-section-label" style="margin-top:0.85rem;">Notes</div>';
     html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
   }
-  if ((m.actions && m.actions.length) || signedIn) html += '<hr class="dm-divider">';
+  html += '<hr class="dm-divider">';
+  html += dmBuildActionsSection(m, signedIn);
+  html += '</div>';
+  return html;
+}
+
+function dmBuildActionsSection(m, signedIn) {
+  var actions = m.actions || [];
+  var openA = actions.filter(function(a) { return a.isOpen; }).length;
+  var countTxt = '';
+  if (actions.length) countTxt = openA > 0 ? ' &middot; ' + openA + ' open' : ' &middot; all done';
+  var html = '<div class="dm-section-label">Actions' + countTxt + '</div>';
   html += '<div class="dm-actions-wrap">';
-  (m.actions || []).forEach(function(a, i) { html += dmBuildActionRow(a, signedIn, i + 1); });
-  if (signedIn && dmState.addingId === m.id) {
-    html += dmBuildAddActionForm(m);
-  } else if (signedIn) {
-    html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
+  if (!actions.length) {
+    html += '<div class="dm-none">None yet.</div>';
+  } else {
+    actions.forEach(function(a, i) { html += dmBuildActionRow(a, signedIn, i + 1); });
   }
-  html += '</div></div>';
+  if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
+  else if (signedIn) html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
+  html += '</div>';
   return html;
 }
 
@@ -2721,15 +2738,16 @@ function dmBuildActionRow(a, signedIn, num) {
 }
 
 function dmBuildActionEditForm(a) {
+  var owners = (a.owner || '').split(',').map(function(s) { return s.trim(); });
   var ownerPills = '';
   (dmState.directors || []).forEach(function(d) {
-    var selCls = (d.name === a.owner) ? ' sel' : '';
+    var selCls = (owners.indexOf(d.name) !== -1) ? ' sel' : '';
     ownerPills += '<span class="dm-owner-pill' + selCls + '" data-owner="' + dmEsc(d.name) + '" onclick="dmPickOwner(this)">' + dmEsc(d.name) + '</span>';
   });
   return '<div class="dm-panel" style="margin:0.4rem 0;">'
     + '<div class="dm-panel-title">Edit action</div>'
     + '<input type="text" id="dm-actedit-text" class="dm-input" value="' + dmEsc(a.text) + '">'
-    + '<div class="dm-owner-row" id="dm-actedit-owners" style="margin-top:0.5rem;"><span class="lbl">Owner:</span>' + ownerPills + '</div>'
+    + '<div class="dm-owner-row" id="dm-actedit-owners" style="margin-top:0.5rem;"><span class="lbl">Owner(s):</span>' + ownerPills + '</div>'
     + '<div class="dm-err" id="dm-actedit-err"></div>'
     + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelActionEdit()">Cancel</button><button class="dm-save" id="dm-actedit-save" onclick="dmSaveActionEdit(\'' + a.id + '\')">Save action</button></div>'
     + '</div>';
@@ -2737,12 +2755,18 @@ function dmBuildActionEditForm(a) {
 
 function dmBuildEditForm(m) {
   var iso = m.dateSort || dmTodayISO();
+  var nA = (m.actions || []).length;
+  var delBlock = (dmState.confirmDeleteMeeting === m.id)
+    ? '<div class="dm-delconfirm" style="margin-top:0.75rem;"><span class="msg">Delete this meeting and its ' + nA + ' action' + (nA === 1 ? '' : 's') + '? This cannot be undone.</span>'
+      + '<span><button class="dm-del-yes" onclick="dmConfirmDeleteMeeting(\'' + m.id + '\')">Delete</button> <button class="dm-del-no" onclick="dmCancelDeleteMeeting()">Keep</button></span></div>'
+    : '<div style="margin-top:0.75rem;"><span class="dm-del-link" onclick="dmAskDeleteMeeting(\'' + m.id + '\')">&#128465; Delete this meeting</span></div>';
   return '<div class="dm-panel" style="margin-bottom:0.6rem;">'
     + '<div class="dm-panel-title">Edit meeting</div>'
     + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input dm-date" value="' + iso + '" onclick="dmOpenPicker(this)" onkeydown="event.preventDefault();"></div>'
     + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-edit-notes" class="dm-textarea">' + dmEsc(m.notes) + '</textarea></div>'
     + '<div class="dm-err" id="dm-edit-err"></div>'
     + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelEdit()">Cancel</button><button class="dm-save" id="dm-edit-save" onclick="dmSaveNotes(\'' + m.id + '\')">Save changes</button></div>'
+    + delBlock
     + '</div>';
 }
 
@@ -2754,7 +2778,7 @@ function dmBuildAddActionForm(m) {
   return '<div class="dm-panel" style="margin:0.5rem 0;">'
     + '<div class="dm-panel-title">New action</div>'
     + '<input type="text" id="dm-add-text" class="dm-input" placeholder="Action\u2026">'
-    + '<div class="dm-owner-row" id="dm-add-owners" style="margin-top:0.5rem;"><span class="lbl">Owner:</span>' + ownerPills + '</div>'
+    + '<div class="dm-owner-row" id="dm-add-owners" style="margin-top:0.5rem;"><span class="lbl">Owner(s):</span>' + ownerPills + '</div>'
     + '<div class="dm-err" id="dm-add-err"></div>'
     + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelAdd()">Cancel</button><button class="dm-save" id="dm-add-save" onclick="dmSaveAction(\'' + m.id + '\')">Add action</button></div>'
     + '</div>';
@@ -2779,14 +2803,12 @@ function dmBuildPrevMeeting(m, signedIn) {
     html += dmBuildEditForm(m);
   } else {
     if (signedIn) html += '<div style="text-align:right;margin-bottom:0.2rem;"><span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span></div>';
+    html += '<div class="dm-section-label">Notes</div>';
     html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
   }
-  if (actions.length || signedIn) html += '<hr class="dm-divider">';
-  html += '<div class="dm-actions-wrap">';
-  actions.forEach(function(a, i) { html += dmBuildActionRow(a, signedIn, i + 1); });
-  if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
-  else if (signedIn) html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
-  html += '</div></div></div></div>';
+  html += '<hr class="dm-divider">';
+  html += dmBuildActionsSection(m, signedIn);
+  html += '</div></div></div>';
   return html;
 }
 
@@ -2874,11 +2896,16 @@ function dmRemoveLogRow(btn) {
 }
 
 function dmPickOwner(el) {
-  var row = el.parentNode;
-  row.querySelectorAll('.dm-owner-pill').forEach(function(p) { p.classList.remove('sel'); });
-  el.classList.add('sel');
+  el.classList.toggle('sel');
   var panel = el.closest('.dm-panel');
   if (panel) { var err = panel.querySelector('.dm-err'); if (err) err.textContent = ''; }
+}
+
+function dmSelectedOwners(scopeSelector) {
+  var sels = document.querySelectorAll(scopeSelector + ' .dm-owner-pill.sel');
+  var names = [];
+  for (var i = 0; i < sels.length; i++) names.push(sels[i].getAttribute('data-owner'));
+  return names;
 }
 
 function dmSaveMeeting() {
@@ -2892,9 +2919,11 @@ function dmSaveMeeting() {
     var t = row.querySelector('.dm-log-action-text');
     var text = t ? t.value.trim() : '';
     if (!text) return;                       // blank lines are ignored
-    var sel = row.querySelector('.dm-owner-pill.sel');
-    if (!sel) { missingOwner = true; return; }
-    actions.push({ text: text, owner: sel.getAttribute('data-owner') });
+    var sels = row.querySelectorAll('.dm-owner-pill.sel');
+    if (!sels.length) { missingOwner = true; return; }
+    var names = [];
+    for (var i = 0; i < sels.length; i++) names.push(sels[i].getAttribute('data-owner'));
+    actions.push({ text: text, owner: names.join(', ') });
   });
   if (missingOwner) {
     dmShowInlineErr('dm-log-err', 'Every action needs an owner \u2014 tap a name, or clear the action text, before saving. Actions without an owner are not saved.');
@@ -2922,8 +2951,35 @@ function dmSaveMeeting() {
     .catch(function() { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', 'Could not save \u2014 please try again.'); });
 }
 
-function dmEditNotes(id) { dmState.editingId = id; dmState.addingId = null; dmState.deletingActionId = null; dmRender(); }
-function dmCancelEdit() { dmState.editingId = null; dmRender(); }
+function dmEditNotes(id) { dmState.editingId = id; dmState.addingId = null; dmState.deletingActionId = null; dmState.confirmDeleteMeeting = null; dmRender(); }
+function dmCancelEdit() { dmState.editingId = null; dmState.confirmDeleteMeeting = null; dmRender(); }
+
+function dmAskDeleteMeeting(id) { dmState.confirmDeleteMeeting = id; dmRender(); }
+function dmCancelDeleteMeeting() { dmState.confirmDeleteMeeting = null; dmRender(); }
+function dmConfirmDeleteMeeting(id) {
+  dmState.confirmDeleteMeeting = null;
+  dmState.editingId = null;
+  // optimistic: drop the meeting and its actions now, save quietly behind it
+  var removedOpen = 0;
+  for (var i = 0; i < dmState.meetings.length; i++) {
+    if (dmState.meetings[i].id === id) {
+      removedOpen = (dmState.meetings[i].actions || []).filter(function(a) { return a.isOpen; }).length;
+      dmState.meetings.splice(i, 1);
+      break;
+    }
+  }
+  dmState.summary.meetingCount = Math.max(0, (dmState.summary.meetingCount || 0) - 1);
+  dmState.summary.openActions = Math.max(0, (dmState.summary.openActions || 0) - removedOpen);
+  dmRender();
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'deleteDirectorMeeting', meetingId: id, password: dmState.signedInPassword })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) { if (res && res.status === 'ok') dmClearCacheAndReload(); else dmFetch(); })
+    .catch(function() { dmFetch(); });
+}
 
 function dmSaveNotes(id) {
   var d = document.getElementById('dm-edit-date');
@@ -2955,9 +3011,9 @@ function dmSaveAction(id) {
   var t = document.getElementById('dm-add-text');
   var text = t ? t.value.trim() : '';
   if (!text) { dmShowInlineErr('dm-add-err', 'Please type the action first.'); return; }
-  var sel = document.querySelector('#dm-add-owners .dm-owner-pill.sel');
-  if (!sel) { dmShowInlineErr('dm-add-err', 'Please tap an owner for this action before saving.'); return; }
-  var owner = sel.getAttribute('data-owner');
+  var ownerNames = dmSelectedOwners('#dm-add-owners');
+  if (!ownerNames.length) { dmShowInlineErr('dm-add-err', 'Please tap at least one owner before saving.'); return; }
+  var owner = ownerNames.join(', ');
   dmShowInlineErr('dm-add-err', '');
   var btn = document.getElementById('dm-add-save');
   var panel = btn ? btn.closest('.dm-panel') : null;
@@ -3040,9 +3096,9 @@ function dmSaveActionEdit(id) {
   var t = document.getElementById('dm-actedit-text');
   var text = t ? t.value.trim() : '';
   if (!text) { dmShowInlineErr('dm-actedit-err', 'Please type the action.'); return; }
-  var sel = document.querySelector('#dm-actedit-owners .dm-owner-pill.sel');
-  if (!sel) { dmShowInlineErr('dm-actedit-err', 'Please tap an owner before saving.'); return; }
-  var owner = sel.getAttribute('data-owner');
+  var ownerNames = dmSelectedOwners('#dm-actedit-owners');
+  if (!ownerNames.length) { dmShowInlineErr('dm-actedit-err', 'Please tap at least one owner before saving.'); return; }
+  var owner = ownerNames.join(', ');
   dmShowInlineErr('dm-actedit-err', '');
   var btn = document.getElementById('dm-actedit-save');
   var panel = btn ? btn.closest('.dm-panel') : null;
