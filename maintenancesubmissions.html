@@ -542,9 +542,10 @@
   .dm-signin-label { font-size: 0.75rem; font-weight: 700; color: var(--dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
   .dm-q { font-size: 0.78rem; color: var(--mid); margin-bottom: 0.5rem; }
   .dm-name-pill { background: #fff; border: 1px solid var(--border); color: var(--mid); padding: 0.35rem 1rem; border-radius: 16px; font-size: 0.8rem; cursor: pointer; margin: 0 0.2rem 0.4rem; display: inline-block; }
-  .dm-name-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; font-weight: 600; }
+  .dm-name-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; }
   .dm-pw { width: 200px; max-width: 60%; border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.82rem; font-family: Arial,sans-serif; }
-  .dm-signin-btn { margin-left: 0.4rem; background: var(--dark); color: var(--cream); border: none; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-signin-btn { margin-left: 0.4rem; background: var(--dark); color: var(--cream); border: none; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: Arial,sans-serif; min-width: 104px; }
+  .dm-signin-btn:disabled, .dm-pw:disabled { opacity: 0.7; cursor: default; }
   .dm-err { color: #a32d2d; font-size: 0.78rem; margin-top: 0.6rem; min-height: 0.5rem; }
 
   .dm-panel { background: #EAF3DE; border: 1px solid #c0dd97; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
@@ -553,13 +554,13 @@
   .dm-field label { font-size: 0.88rem; font-weight: 600; color: var(--dark); padding-top: 0.5rem; }
   .dm-input, .dm-textarea { width: 100%; border: 1px solid #c0dd97; border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.9rem; font-family: Arial,sans-serif; background: #fff; color: var(--dark); }
   .dm-textarea { resize: vertical; min-height: 9rem; }
-  .dm-date { width: auto !important; min-width: 180px; }
+  .dm-date { width: auto !important; min-width: 150px; justify-self: start; cursor: pointer; }
   .dm-subhead { font-size: 0.9rem; font-weight: 600; color: var(--dark); margin: 0.9rem 0 0.5rem; border-top: 1px solid #c0dd97; padding-top: 0.75rem; }
   .dm-actrow { margin-bottom: 0.6rem; }
   .dm-owner-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.35rem; }
   .dm-owner-row .lbl { font-size: 0.75rem; color: var(--mid); }
   .dm-owner-pill { background: #fff; border: 1px solid #c0dd97; color: var(--mid); padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.75rem; cursor: pointer; }
-  .dm-owner-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; font-weight: 600; }
+  .dm-owner-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; }
   .dm-addrow { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: #3B6D11; border: 1px dashed #97C459; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
   .dm-trash { color: #a32d2d; cursor: pointer; font-size: 1rem; background: none; border: none; padding: 0; line-height: 1; }
   .dm-panel-foot { display: flex; justify-content: flex-end; gap: 0.7rem; align-items: center; border-top: 1px solid #c0dd97; padding-top: 0.75rem; margin-top: 0.9rem; }
@@ -604,6 +605,9 @@
   .dm-prev-body { padding: 0 0.9rem 0.75rem 1.8rem; }
   .dm-state-error { padding: 1.2rem; text-align: center; color: #a32d2d; font-size: 0.82rem; }
   .dm-retry { margin-top: 0.5rem; background: var(--dark); color: var(--cream); border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-divider { border: 0; border-top: 1px solid var(--border); margin: 0.85rem 0; }
+  .dm-busy { opacity: 0.5; pointer-events: none; transition: opacity 0.2s; }
+  .dm-updating { font-size: 0.72rem; color: var(--mid); font-style: italic; margin-left: 0.3rem; }
 </style>
 </head>
 <body>
@@ -657,7 +661,7 @@
 <main>
   <div class="page-title">
     <h2>&#128295; Maintenance &amp; Site Issues</h2>
-    <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents.</p>
+    <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents. Directors&rsquo; meeting notes and actions are published below for residents to review.</p>
   </div>
 
   <!-- Directors' Meetings -->
@@ -2336,8 +2340,19 @@ var dmState = {
   openPrev: {},
   editingId: null,
   addingId: null,
-  deletingActionId: null
+  deletingActionId: null,
+  busyActionId: null
 };
+
+function dmShortToday() {
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var d = new Date();
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function dmOpenPicker(el) {
+  try { if (el && el.showPicker) el.showPicker(); } catch(e) {}
+}
 
 function dmEsc(s) { return escHtml(s); }
 
@@ -2486,6 +2501,10 @@ function dmRender() {
 
   body.innerHTML = html;
 
+  // hide the floating "Report an Issue" button while a director is signed in
+  var fab = document.querySelector('.fab');
+  if (fab) fab.style.display = signedIn ? 'none' : '';
+
   // put the cursor straight into a freshly opened "add action" line
   if (signedIn && dmState.addingId) {
     var addEl = document.getElementById('dm-add-text');
@@ -2554,7 +2573,7 @@ function dmBuildLogPanel() {
   dmLogRowSeq = 0;
   return '<div class="dm-panel">'
     + '<div class="dm-panel-title">New meeting</div>'
-    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-log-date" class="dm-input dm-date" value="' + dmTodayISO() + '"></div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-log-date" class="dm-input dm-date" value="' + dmTodayISO() + '" onclick="dmOpenPicker(this)" onkeydown="event.preventDefault();"></div>'
     + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-log-notes" class="dm-textarea" placeholder="Type the meeting notes here\u2026"></textarea></div>'
     + '<div class="dm-subhead">Actions from this meeting</div>'
     + '<div id="dm-log-actions">' + dmBuildLogActionRow(0) + '</div>'
@@ -2586,6 +2605,7 @@ function dmBuildMeeting(m, signedIn) {
     html += '</div>';
     html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
   }
+  if ((m.actions && m.actions.length) || signedIn) html += '<hr class="dm-divider">';
   html += '<div class="dm-actions-wrap">';
   (m.actions || []).forEach(function(a) { html += dmBuildActionRow(a, signedIn); });
   if (signedIn && dmState.addingId === m.id) {
@@ -2604,6 +2624,12 @@ function dmBuildActionRow(a, signedIn) {
       + '<button class="dm-del-no" onclick="dmCancelDelete()">Keep</button></span></div>';
   }
   var left = '<span>' + dmEsc(a.text) + ' <span class="who">&middot; ' + dmEsc(a.owner || 'Unassigned') + '</span></span>';
+  if (signedIn && dmState.busyActionId === a.id) {
+    var pillB = a.isOpen
+      ? '<span class="dm-pill dm-pill-open">Open</span>'
+      : '<span class="dm-pill dm-pill-done">Done ' + dmEsc(a.completed) + '</span>';
+    return '<div class="dm-action">' + left + '<span class="dm-act-ctrls">' + pillB + '<span class="dm-updating">updating\u2026</span></span></div>';
+  }
   var right;
   if (a.isOpen) {
     right = signedIn
@@ -2624,7 +2650,7 @@ function dmBuildEditForm(m) {
   var iso = m.dateSort || dmTodayISO();
   return '<div class="dm-panel" style="margin-bottom:0.6rem;">'
     + '<div class="dm-panel-title">Edit meeting</div>'
-    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input dm-date" value="' + iso + '"></div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input dm-date" value="' + iso + '" onclick="dmOpenPicker(this)" onkeydown="event.preventDefault();"></div>'
     + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-edit-notes" class="dm-textarea">' + dmEsc(m.notes) + '</textarea></div>'
     + '<div class="dm-err" id="dm-edit-err"></div>'
     + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelEdit()">Cancel</button><button class="dm-save" id="dm-edit-save" onclick="dmSaveNotes(\'' + m.id + '\')">Save changes</button></div>'
@@ -2667,6 +2693,7 @@ function dmBuildPrevMeeting(m, signedIn) {
       if (signedIn) html += '<div style="text-align:right;margin-bottom:0.2rem;"><span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span></div>';
       html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
     }
+    if (actions.length || signedIn) html += '<hr class="dm-divider">';
     html += '<div class="dm-actions-wrap">';
     actions.forEach(function(a) { html += dmBuildActionRow(a, signedIn); });
     if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
@@ -2703,6 +2730,7 @@ function dmSignIn() {
   if (!pw) { dmShowInlineErr('dm-signin-err', 'Please enter the director password.'); return; }
   var btn = document.getElementById('dm-signin-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Checking\u2026'; }
+  if (pwEl) pwEl.disabled = true;
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2711,6 +2739,7 @@ function dmSignIn() {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+      if (pwEl) pwEl.disabled = false;
       if (res && res.status === 'ok' && res.valid) {
         dmState.signedInName = dmState.signInPick;
         dmState.signedInPassword = pw;
@@ -2722,6 +2751,7 @@ function dmSignIn() {
     })
     .catch(function() {
       if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+      if (pwEl) pwEl.disabled = false;
       dmShowInlineErr('dm-signin-err', 'Network error. Please try again.');
     });
 }
@@ -2788,7 +2818,9 @@ function dmSaveMeeting() {
   }
   dmShowInlineErr('dm-log-err', '');
   var btn = document.getElementById('dm-log-save');
+  var panel = btn ? btn.closest('.dm-panel') : null;
   if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+  if (panel) panel.classList.add('dm-busy');
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2797,9 +2829,9 @@ function dmSaveMeeting() {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.logOpen = false; dmClearCacheAndReload(); }
-      else { if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', (res && res.message) || 'Could not save the meeting.'); }
+      else { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', (res && res.message) || 'Could not save the meeting.'); }
     })
-    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', 'Could not save \u2014 please try again.'); });
+    .catch(function() { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', 'Could not save \u2014 please try again.'); });
 }
 
 function dmEditNotes(id) { dmState.editingId = id; dmState.addingId = null; dmState.deletingActionId = null; dmRender(); }
@@ -2812,7 +2844,9 @@ function dmSaveNotes(id) {
   var notes = n ? n.value : '';
   dmShowInlineErr('dm-edit-err', '');
   var btn = document.getElementById('dm-edit-save');
+  var panel = btn ? btn.closest('.dm-panel') : null;
   if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+  if (panel) panel.classList.add('dm-busy');
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2821,9 +2855,9 @@ function dmSaveNotes(id) {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.editingId = null; dmClearCacheAndReload(); }
-      else { if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', (res && res.message) || 'Could not save the changes.'); }
+      else { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', (res && res.message) || 'Could not save the changes.'); }
     })
-    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', 'Could not save \u2014 please try again.'); });
+    .catch(function() { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', 'Could not save \u2014 please try again.'); });
 }
 
 function dmStartAddAction(id) { dmState.addingId = id; dmState.editingId = null; dmState.deletingActionId = null; dmRender(); }
@@ -2838,7 +2872,9 @@ function dmSaveAction(id) {
   var owner = sel.getAttribute('data-owner');
   dmShowInlineErr('dm-add-err', '');
   var btn = document.getElementById('dm-add-save');
+  var panel = btn ? btn.closest('.dm-panel') : null;
   if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
+  if (panel) panel.classList.add('dm-busy');
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2847,13 +2883,41 @@ function dmSaveAction(id) {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.addingId = null; dmClearCacheAndReload(); }
-      else { if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', (res && res.message) || 'Could not add the action.'); }
+      else { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', (res && res.message) || 'Could not add the action.'); }
     })
-    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', 'Could not save \u2014 please try again.'); });
+    .catch(function() { if (panel) panel.classList.remove('dm-busy'); if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', 'Could not save \u2014 please try again.'); });
 }
 
-function dmComplete(id) { dmPostAction({ action: 'completeDirectorAction', actionId: id, complete: true, password: dmState.signedInPassword }); }
-function dmReopen(id) { dmPostAction({ action: 'completeDirectorAction', actionId: id, complete: false, password: dmState.signedInPassword }); }
+function dmComplete(id) { dmToggleActionState(id, true); }
+function dmReopen(id) { dmToggleActionState(id, false); }
+
+function dmToggleActionState(id, complete) {
+  // optimistic: update the screen now, save quietly behind it
+  var found = null;
+  dmState.meetings.forEach(function(m) {
+    (m.actions || []).forEach(function(a) { if (a.id === id) found = a; });
+  });
+  if (found) {
+    found.isOpen = !complete;
+    found.completed = complete ? dmShortToday() : '';
+    var oa = dmState.summary.openActions || 0;
+    dmState.summary.openActions = Math.max(0, oa + (complete ? -1 : 1));
+  }
+  dmState.busyActionId = id;
+  dmRender();
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'completeDirectorAction', actionId: id, complete: complete, password: dmState.signedInPassword })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      dmState.busyActionId = null;
+      if (res && res.status === 'ok') { dmClearCacheAndReload(); }
+      else { dmFetch(); }   // revert to the true server state
+    })
+    .catch(function() { dmState.busyActionId = null; dmFetch(); });
+}
 function dmAskDelete(id) { dmState.deletingActionId = id; dmRender(); }
 function dmCancelDelete() { dmState.deletingActionId = null; dmRender(); }
 function dmConfirmDelete(id) { dmState.deletingActionId = null; dmPostAction({ action: 'deleteDirectorAction', actionId: id, password: dmState.signedInPassword }); }
