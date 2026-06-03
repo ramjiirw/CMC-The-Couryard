@@ -2495,25 +2495,25 @@ function dmRenderSubtitle() {
   var hd = dmHeadline();
   var m0 = hd.meeting;
   var dShort = m0 ? (m0.dateShort || m0.date) : '';
-  var txt = '&middot; ' + mc + ' meeting' + (mc === 1 ? '' : 's');
+  var parts = [];
   if (dShort) {
     if (hd.isUpcoming) {
-      txt += ' &middot; next ' + dmEsc(dShort) + ' (' + dmCountdownText(hd.daysUntil) + ')';
+      parts.push('next ' + dmEsc(dShort) + ' (' + dmCountdownText(hd.daysUntil) + ')');
     } else {
       var days = dmDaysAgo(m0.dateSort);
       if (days !== null && days >= 30) {
-        txt += ' &middot; latest <span class="dm-overdue">' + dmEsc(dShort) + ' (' + days + ' days ago)</span>';
+        parts.push('latest <span class="dm-overdue">' + dmEsc(dShort) + ' (' + days + ' days ago)</span>');
       } else {
-        txt += ' &middot; latest ' + dmEsc(dShort);
+        parts.push('latest ' + dmEsc(dShort));
       }
     }
   }
   if (oa === 0) {
-    txt += ' &middot; all actions complete';
+    parts.push('all actions complete');
   } else {
-    txt += ' &middot; <span class="dm-open-count">' + oa + ' open action' + (oa === 1 ? '' : 's') + '</span>';
+    parts.push('<span class="dm-open-count">' + oa + ' open action' + (oa === 1 ? '' : 's') + '</span>');
   }
-  sub.innerHTML = txt;
+  sub.innerHTML = '&middot; ' + parts.join(' &middot; ');
 }
 
 // ── main render ─────────────────────────────────────────────────────────────
