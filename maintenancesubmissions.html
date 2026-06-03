@@ -548,12 +548,13 @@
   .dm-err { color: #a32d2d; font-size: 0.78rem; margin-top: 0.6rem; min-height: 0.5rem; }
 
   .dm-panel { background: #EAF3DE; border: 1px solid #c0dd97; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-  .dm-panel-title { font-size: 0.75rem; font-weight: 700; color: #3B6D11; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+  .dm-panel-title { font-size: 0.82rem; font-weight: 700; color: #3B6D11; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
   .dm-field { display: grid; grid-template-columns: 80px 1fr; gap: 0.6rem 0.75rem; align-items: start; }
-  .dm-field label { font-size: 0.78rem; color: var(--mid); padding-top: 0.5rem; }
-  .dm-input, .dm-textarea { width: 100%; border: 1px solid #c0dd97; border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.85rem; font-family: Arial,sans-serif; background: #fff; color: var(--dark); }
-  .dm-textarea { resize: vertical; min-height: 3rem; }
-  .dm-subhead { font-size: 0.78rem; color: var(--mid); margin: 0.9rem 0 0.5rem; border-top: 1px solid #c0dd97; padding-top: 0.75rem; }
+  .dm-field label { font-size: 0.88rem; font-weight: 600; color: var(--dark); padding-top: 0.5rem; }
+  .dm-input, .dm-textarea { width: 100%; border: 1px solid #c0dd97; border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.9rem; font-family: Arial,sans-serif; background: #fff; color: var(--dark); }
+  .dm-textarea { resize: vertical; min-height: 9rem; }
+  .dm-date { width: auto !important; min-width: 180px; }
+  .dm-subhead { font-size: 0.9rem; font-weight: 600; color: var(--dark); margin: 0.9rem 0 0.5rem; border-top: 1px solid #c0dd97; padding-top: 0.75rem; }
   .dm-actrow { margin-bottom: 0.6rem; }
   .dm-owner-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.35rem; }
   .dm-owner-row .lbl { font-size: 0.75rem; color: var(--mid); }
@@ -2310,8 +2311,9 @@ document.addEventListener('keydown', function(e) {
 // ═══════════════════════════════════════════════════════════════════════════
 // DIRECTORS' MEETINGS  (read-only for residents; editing for signed-in directors)
 // Sign-in reuses the Finance Authorisation password. Session only — signing out
-// or leaving the page clears it. No keyboard shortcuts and no click-away:
-// saving and cancelling are always an explicit tap on the button.
+// or leaving the page clears it. No keyboard shortcuts and no click-away on the
+// editing forms: saving and cancelling are always an explicit tap on the button.
+// (The sign-in password field allows Enter, matching the authorisation tracker.)
 // ═══════════════════════════════════════════════════════════════════════════
 var DM_CACHE_KEY = 'cyard_directors_meetings';
 var DM_TTL_MS = 5 * 60 * 1000;
@@ -2322,6 +2324,7 @@ var dmState = {
   summary: { meetingCount: 0, openActions: 0 },
   loaded: false,
   directors: [],
+  directorsLoaded: false,
   signedInName: null,
   signedInPassword: null,   // session-only, never persisted
   showSignIn: false,
@@ -2368,6 +2371,21 @@ function loadDirectorMeetings() {
     }
   } catch(e) {}
   dmFetch();
+  dmLoadDirectors();   // pre-fetch names so sign-in is instant
+}
+
+function dmLoadDirectors() {
+  fetch(SCRIPT_URL + '?action=readDirectorList')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok') dmState.directors = res.directors || [];
+      dmState.directorsLoaded = true;
+      if (dmState.showSignIn) dmRender();
+    })
+    .catch(function() {
+      dmState.directorsLoaded = true;
+      if (dmState.showSignIn) dmRender();
+    });
 }
 
 function dmFetch() {
@@ -2406,7 +2424,7 @@ function dmShowError() {
   if (body) body.innerHTML = '<div class="dm-state-error">Could not load the meetings.<br><button class="dm-retry" onclick="dmClearCacheAndReload()">Try again</button></div>';
 }
 
-// ── subtitle smart text ───────────────────────────────────────────────────────
+// ── subtitle smart text (now includes the latest meeting date) ─────────────────
 function dmRenderSubtitle() {
   var btn = document.getElementById('toggle-dirmeet');
   if (btn) btn.classList.remove('btn-loading');
@@ -2415,12 +2433,15 @@ function dmRenderSubtitle() {
   var mc = dmState.summary.meetingCount || 0;
   var oa = dmState.summary.openActions || 0;
   if (mc === 0) { sub.innerHTML = '&middot; No meetings logged yet'; return; }
-  var mtxt = mc + ' meeting' + (mc === 1 ? '' : 's');
+  var latest = dmState.meetings[0] ? (dmState.meetings[0].dateShort || dmState.meetings[0].date) : '';
+  var txt = '&middot; ' + mc + ' meeting' + (mc === 1 ? '' : 's');
+  if (latest) txt += ' &middot; latest ' + dmEsc(latest);
   if (oa === 0) {
-    sub.innerHTML = '&middot; ' + mtxt + ' &middot; all actions complete';
+    txt += ' &middot; all actions complete';
   } else {
-    sub.innerHTML = '&middot; ' + mtxt + ' &middot; <span class="dm-open-count">' + oa + ' open action' + (oa === 1 ? '' : 's') + '</span>';
+    txt += ' &middot; <span class="dm-open-count">' + oa + ' open action' + (oa === 1 ? '' : 's') + '</span>';
   }
+  sub.innerHTML = txt;
 }
 
 // ── main render ─────────────────────────────────────────────────────────────
@@ -2464,22 +2485,36 @@ function dmRender() {
   }
 
   body.innerHTML = html;
+
+  // put the cursor straight into a freshly opened "add action" line
+  if (signedIn && dmState.addingId) {
+    var addEl = document.getElementById('dm-add-text');
+    if (addEl) addEl.focus();
+  }
 }
 
 // ── builders ──────────────────────────────────────────────────────────────────
 function dmBuildSignIn() {
-  var pills = '';
-  (dmState.directors || []).forEach(function(d, i) {
-    pills += '<span class="dm-name-pill' + (dmState.signInPick === d.name ? ' sel' : '') + '" onclick="dmPickName(' + i + ')">' + dmEsc(d.name) + '</span>';
-  });
-  if (!pills) pills = '<span class="dm-empty">No directors found.</span>';
+  var pillsHtml;
+  if (!dmState.directorsLoaded) {
+    pillsHtml = '<div class="dm-empty">Loading directors\u2026</div>';
+  } else if (!dmState.directors.length) {
+    pillsHtml = '<div class="dm-empty">No directors found.</div>';
+  } else {
+    pillsHtml = '';
+    dmState.directors.forEach(function(d, i) {
+      pillsHtml += '<span class="dm-name-pill' + (dmState.signInPick === d.name ? ' sel' : '') + '" onclick="dmPickName(' + i + ')">' + dmEsc(d.name) + '</span>';
+    });
+  }
+  var ready = dmState.directorsLoaded && dmState.directors.length > 0;
+  var dis = ready ? '' : ' disabled';
   return '<div class="dm-signin">'
     + '<div class="dm-signin-label">Sign in to continue</div>'
     + '<div class="dm-q">Who are you?</div>'
-    + '<div style="margin-bottom:0.8rem;">' + pills + '</div>'
+    + '<div style="margin-bottom:0.8rem;">' + pillsHtml + '</div>'
     + '<div class="dm-q">Director password</div>'
-    + '<input type="password" id="dm-pw" class="dm-pw" autocomplete="off">'
-    + '<button class="dm-signin-btn" onclick="dmSignIn()">Sign in</button>'
+    + '<input type="password" id="dm-pw" class="dm-pw" autocomplete="off"' + dis + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();dmSignIn();}">'
+    + '<button class="dm-signin-btn" id="dm-signin-btn" onclick="dmSignIn()"' + dis + '>Sign in</button>'
     + '<div class="dm-err" id="dm-signin-err"></div>'
     + '<div style="margin-top:0.6rem;"><span class="dm-link" style="font-size:0.75rem;" onclick="dmHideSignIn()">Cancel</span></div>'
     + '</div>';
@@ -2519,13 +2554,13 @@ function dmBuildLogPanel() {
   dmLogRowSeq = 0;
   return '<div class="dm-panel">'
     + '<div class="dm-panel-title">New meeting</div>'
-    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-log-date" class="dm-input" value="' + dmTodayISO() + '"></div>'
-    + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-log-notes" class="dm-textarea" placeholder="What was discussed&hellip;"></textarea></div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-log-date" class="dm-input dm-date" value="' + dmTodayISO() + '"></div>'
+    + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-log-notes" class="dm-textarea" placeholder="Type the meeting notes here\u2026"></textarea></div>'
     + '<div class="dm-subhead">Actions from this meeting</div>'
     + '<div id="dm-log-actions">' + dmBuildLogActionRow(0) + '</div>'
     + '<span class="dm-addrow" onclick="dmAddLogActionRow()">&#43; Add another action</span>'
     + '<div class="dm-err" id="dm-log-err"></div>'
-    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCloseLog()">Cancel</button><button class="dm-save" onclick="dmSaveMeeting()">Save meeting</button></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCloseLog()">Cancel</button><button class="dm-save" id="dm-log-save" onclick="dmSaveMeeting()">Save meeting</button></div>'
     + '</div>';
 }
 
@@ -2535,7 +2570,7 @@ function dmBuildLogActionRow(idx) {
     ownerPills += '<span class="dm-owner-pill" data-owner="' + dmEsc(d.name) + '" onclick="dmPickOwner(this)">' + dmEsc(d.name) + '</span>';
   });
   return '<div class="dm-actrow" data-logrow="' + idx + '">'
-    + '<input type="text" class="dm-input dm-log-action-text" placeholder="Action&hellip;">'
+    + '<input type="text" class="dm-input dm-log-action-text" placeholder="Action\u2026">'
     + '<div class="dm-owner-row"><span class="lbl">Owner:</span>' + ownerPills
     + '<button class="dm-trash" title="Remove" onclick="dmRemoveLogRow(this)">&#128465;</button></div>'
     + '</div>';
@@ -2589,10 +2624,10 @@ function dmBuildEditForm(m) {
   var iso = m.dateSort || dmTodayISO();
   return '<div class="dm-panel" style="margin-bottom:0.6rem;">'
     + '<div class="dm-panel-title">Edit meeting</div>'
-    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input" value="' + iso + '"></div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input dm-date" value="' + iso + '"></div>'
     + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-edit-notes" class="dm-textarea">' + dmEsc(m.notes) + '</textarea></div>'
     + '<div class="dm-err" id="dm-edit-err"></div>'
-    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelEdit()">Cancel</button><button class="dm-save" onclick="dmSaveNotes(\'' + m.id + '\')">Save changes</button></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelEdit()">Cancel</button><button class="dm-save" id="dm-edit-save" onclick="dmSaveNotes(\'' + m.id + '\')">Save changes</button></div>'
     + '</div>';
 }
 
@@ -2603,10 +2638,10 @@ function dmBuildAddActionForm(m) {
   });
   return '<div class="dm-panel" style="margin:0.5rem 0;">'
     + '<div class="dm-panel-title">New action</div>'
-    + '<input type="text" id="dm-add-text" class="dm-input" placeholder="Action&hellip;">'
+    + '<input type="text" id="dm-add-text" class="dm-input" placeholder="Action\u2026">'
     + '<div class="dm-owner-row" id="dm-add-owners" style="margin-top:0.5rem;"><span class="lbl">Owner:</span>' + ownerPills + '</div>'
     + '<div class="dm-err" id="dm-add-err"></div>'
-    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelAdd()">Cancel</button><button class="dm-save" onclick="dmSaveAction(\'' + m.id + '\')">Add action</button></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelAdd()">Cancel</button><button class="dm-save" id="dm-add-save" onclick="dmSaveAction(\'' + m.id + '\')">Add action</button></div>'
     + '</div>';
 }
 
@@ -2642,7 +2677,7 @@ function dmBuildPrevMeeting(m, signedIn) {
   return html;
 }
 
-// ── interactions (no keyboard, no click-away; explicit taps only) ──────────────
+// ── interactions (forms: explicit taps only; sign-in allows Enter) ─────────────
 function dmShowInlineErr(id, msg) { var e = document.getElementById(id); if (e) e.textContent = msg; }
 
 function dmPickName(i) {
@@ -2653,23 +2688,21 @@ function dmPickName(i) {
 
 function dmShowSignIn() {
   dmState.showSignIn = true;
-  if (!dmState.directors.length) {
-    fetch(SCRIPT_URL + '?action=readDirectorList')
-      .then(function(r) { return r.json(); })
-      .then(function(res) { if (res && res.status === 'ok') dmState.directors = res.directors || []; dmRender(); })
-      .catch(function() { dmRender(); });
-  }
+  if (!dmState.directorsLoaded) dmLoadDirectors();
   dmRender();
 }
 
 function dmHideSignIn() { dmState.showSignIn = false; dmState.signInPick = null; dmRender(); }
 
 function dmSignIn() {
+  var errEl = document.getElementById('dm-signin-err');
+  if (errEl) errEl.textContent = '';
+  if (!dmState.signInPick) { dmShowInlineErr('dm-signin-err', 'Please pick your name.'); return; }
   var pwEl = document.getElementById('dm-pw');
   var pw = pwEl ? pwEl.value : '';
-  if (!dmState.signInPick) { dmShowInlineErr('dm-signin-err', 'Please tap your name first.'); return; }
   if (!pw) { dmShowInlineErr('dm-signin-err', 'Please enter the director password.'); return; }
-  dmShowInlineErr('dm-signin-err', 'Checking&hellip;');
+  var btn = document.getElementById('dm-signin-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking\u2026'; }
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2677,16 +2710,20 @@ function dmSignIn() {
   })
     .then(function(r) { return r.json(); })
     .then(function(res) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
       if (res && res.status === 'ok' && res.valid) {
         dmState.signedInName = dmState.signInPick;
         dmState.signedInPassword = pw;
         dmState.showSignIn = false;
         dmRender();
       } else {
-        dmShowInlineErr('dm-signin-err', 'Incorrect password.');
+        dmShowInlineErr('dm-signin-err', 'Incorrect password. Please try again.');
       }
     })
-    .catch(function() { dmShowInlineErr('dm-signin-err', 'Could not sign in &mdash; please try again.'); });
+    .catch(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+      dmShowInlineErr('dm-signin-err', 'Network error. Please try again.');
+    });
 }
 
 function dmSignOut() {
@@ -2710,6 +2747,8 @@ function dmAddLogActionRow() {
   if (!wrap) return;
   dmLogRowSeq++;
   wrap.insertAdjacentHTML('beforeend', dmBuildLogActionRow(dmLogRowSeq));
+  var rows = wrap.querySelectorAll('.dm-actrow .dm-log-action-text');
+  if (rows.length) rows[rows.length - 1].focus();
 }
 
 function dmRemoveLogRow(btn) {
@@ -2730,15 +2769,26 @@ function dmSaveMeeting() {
   var date = dateEl ? dateEl.value : dmTodayISO();
   var notes = notesEl ? notesEl.value : '';
   var actions = [];
+  var missingOwner = false;
   document.querySelectorAll('#dm-log-actions .dm-actrow').forEach(function(row) {
     var t = row.querySelector('.dm-log-action-text');
     var text = t ? t.value.trim() : '';
-    if (!text) return;
+    if (!text) return;                       // blank lines are ignored
     var sel = row.querySelector('.dm-owner-pill.sel');
-    actions.push({ text: text, owner: sel ? sel.getAttribute('data-owner') : '' });
+    if (!sel) { missingOwner = true; return; }
+    actions.push({ text: text, owner: sel.getAttribute('data-owner') });
   });
-  if (!notes.trim() && !actions.length) { dmShowInlineErr('dm-log-err', 'Add some notes or at least one action before saving.'); return; }
-  dmShowInlineErr('dm-log-err', 'Saving&hellip;');
+  if (missingOwner) {
+    dmShowInlineErr('dm-log-err', 'Every action needs an owner \u2014 tap a name, or clear the action text, before saving. Actions without an owner are not saved.');
+    return;
+  }
+  if (!notes.trim() && !actions.length) {
+    dmShowInlineErr('dm-log-err', 'Add some notes or at least one action before saving.');
+    return;
+  }
+  dmShowInlineErr('dm-log-err', '');
+  var btn = document.getElementById('dm-log-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2747,9 +2797,9 @@ function dmSaveMeeting() {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.logOpen = false; dmClearCacheAndReload(); }
-      else { dmShowInlineErr('dm-log-err', (res && res.message) || 'Could not save the meeting.'); }
+      else { if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', (res && res.message) || 'Could not save the meeting.'); }
     })
-    .catch(function() { dmShowInlineErr('dm-log-err', 'Could not save &mdash; please try again.'); });
+    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Save meeting'; } dmShowInlineErr('dm-log-err', 'Could not save \u2014 please try again.'); });
 }
 
 function dmEditNotes(id) { dmState.editingId = id; dmState.addingId = null; dmState.deletingActionId = null; dmRender(); }
@@ -2760,7 +2810,9 @@ function dmSaveNotes(id) {
   var n = document.getElementById('dm-edit-notes');
   var date = d ? d.value : '';
   var notes = n ? n.value : '';
-  dmShowInlineErr('dm-edit-err', 'Saving&hellip;');
+  dmShowInlineErr('dm-edit-err', '');
+  var btn = document.getElementById('dm-edit-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2769,9 +2821,9 @@ function dmSaveNotes(id) {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.editingId = null; dmClearCacheAndReload(); }
-      else { dmShowInlineErr('dm-edit-err', (res && res.message) || 'Could not save the changes.'); }
+      else { if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', (res && res.message) || 'Could not save the changes.'); }
     })
-    .catch(function() { dmShowInlineErr('dm-edit-err', 'Could not save &mdash; please try again.'); });
+    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Save changes'; } dmShowInlineErr('dm-edit-err', 'Could not save \u2014 please try again.'); });
 }
 
 function dmStartAddAction(id) { dmState.addingId = id; dmState.editingId = null; dmState.deletingActionId = null; dmRender(); }
@@ -2782,8 +2834,11 @@ function dmSaveAction(id) {
   var text = t ? t.value.trim() : '';
   if (!text) { dmShowInlineErr('dm-add-err', 'Please type the action first.'); return; }
   var sel = document.querySelector('#dm-add-owners .dm-owner-pill.sel');
-  var owner = sel ? sel.getAttribute('data-owner') : '';
-  dmShowInlineErr('dm-add-err', 'Saving&hellip;');
+  if (!sel) { dmShowInlineErr('dm-add-err', 'Please tap an owner for this action before saving.'); return; }
+  var owner = sel.getAttribute('data-owner');
+  dmShowInlineErr('dm-add-err', '');
+  var btn = document.getElementById('dm-add-save');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving\u2026'; }
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2792,9 +2847,9 @@ function dmSaveAction(id) {
     .then(function(r) { return r.json(); })
     .then(function(res) {
       if (res && res.status === 'ok') { dmState.addingId = null; dmClearCacheAndReload(); }
-      else { dmShowInlineErr('dm-add-err', (res && res.message) || 'Could not add the action.'); }
+      else { if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', (res && res.message) || 'Could not add the action.'); }
     })
-    .catch(function() { dmShowInlineErr('dm-add-err', 'Could not save &mdash; please try again.'); });
+    .catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Add action'; } dmShowInlineErr('dm-add-err', 'Could not save \u2014 please try again.'); });
 }
 
 function dmComplete(id) { dmPostAction({ action: 'completeDirectorAction', actionId: id, complete: true, password: dmState.signedInPassword }); }
