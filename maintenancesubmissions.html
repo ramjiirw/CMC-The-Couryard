@@ -511,6 +511,98 @@
     .img-modal-img { cursor:default; }
     .img-modal-img:active { cursor:default; }
   }
+  /* ── Loading states (spinner + pulsing toggle) — Issue Log + Directors' Meetings ── */
+  @keyframes dm-spin { to { transform: rotate(360deg); } }
+  @keyframes dm-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .spinner { width: 22px; height: 22px; border: 3px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: dm-spin 0.8s linear infinite; margin: 0 auto 0.6rem; }
+  .state-loading { padding: 1.5rem; text-align: center; color: var(--stone); font-size: 0.85rem; }
+  .btn-toggle.btn-loading { pointer-events: none; opacity: 0.85; }
+  .btn-toggle .hint-loading { display: none; }
+  .btn-toggle.btn-loading .hint-loading { display: inline-flex; align-items: center; gap: 0.4rem; animation: dm-pulse 1.2s ease-in-out infinite; }
+  .btn-toggle.btn-loading .hint-open,
+  .btn-toggle.btn-loading .hint-close,
+  .btn-toggle.btn-loading .chevron { display: none !important; }
+
+  /* ── Directors' Meetings ─────────────────────────────────────────────────── */
+  #panel-dirmeet.open { max-height: 20000px; }
+  #dirmeet-subtitle { font-size: 0.72rem; font-weight: 400; opacity: 0.85; letter-spacing: 0.02em; text-transform: none; margin-left: 0.5rem; }
+  #dirmeet-subtitle .dm-open-count { color: #e8a94e; font-weight: 600; }
+  .dm-inner { background: #fff; padding: 1.25rem; }
+  .dm-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .dm-btn { font-family: Arial,sans-serif; font-size: 0.8rem; font-weight: 600; border-radius: 6px; padding: 0.5rem 0.9rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .dm-btn-view { background: var(--cream); border: 1px solid var(--border); color: var(--dark); }
+  .dm-btn-view.active { background: #BA7517; color: #fff; }
+  .dm-btn-log { background: #3B6D11; color: #fff; }
+  .dm-btn-lock { background: var(--cream); border: 1px solid var(--border); color: var(--dark); }
+  .dm-signedin { font-size: 0.78rem; color: var(--mid); margin-bottom: 0.75rem; }
+  .dm-signedin strong { color: var(--dark); font-weight: 600; }
+  .dm-link { color: var(--mid); text-decoration: underline; cursor: pointer; }
+
+  .dm-signin { background: var(--cream); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 1.25rem; text-align: center; margin-bottom: 1rem; }
+  .dm-signin-label { font-size: 0.75rem; font-weight: 700; color: var(--dark); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .dm-q { font-size: 0.78rem; color: var(--mid); margin-bottom: 0.5rem; }
+  .dm-name-pill { background: #fff; border: 1px solid var(--border); color: var(--mid); padding: 0.35rem 1rem; border-radius: 16px; font-size: 0.8rem; cursor: pointer; margin: 0 0.2rem 0.4rem; display: inline-block; }
+  .dm-name-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; font-weight: 600; }
+  .dm-pw { width: 200px; max-width: 60%; border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.82rem; font-family: Arial,sans-serif; }
+  .dm-signin-btn { margin-left: 0.4rem; background: var(--dark); color: var(--cream); border: none; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-err { color: #a32d2d; font-size: 0.78rem; margin-top: 0.6rem; min-height: 0.5rem; }
+
+  .dm-panel { background: #EAF3DE; border: 1px solid #c0dd97; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .dm-panel-title { font-size: 0.75rem; font-weight: 700; color: #3B6D11; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+  .dm-field { display: grid; grid-template-columns: 80px 1fr; gap: 0.6rem 0.75rem; align-items: start; }
+  .dm-field label { font-size: 0.78rem; color: var(--mid); padding-top: 0.5rem; }
+  .dm-input, .dm-textarea { width: 100%; border: 1px solid #c0dd97; border-radius: 6px; padding: 0.45rem 0.75rem; font-size: 0.85rem; font-family: Arial,sans-serif; background: #fff; color: var(--dark); }
+  .dm-textarea { resize: vertical; min-height: 3rem; }
+  .dm-subhead { font-size: 0.78rem; color: var(--mid); margin: 0.9rem 0 0.5rem; border-top: 1px solid #c0dd97; padding-top: 0.75rem; }
+  .dm-actrow { margin-bottom: 0.6rem; }
+  .dm-owner-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.35rem; }
+  .dm-owner-row .lbl { font-size: 0.75rem; color: var(--mid); }
+  .dm-owner-pill { background: #fff; border: 1px solid #c0dd97; color: var(--mid); padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.75rem; cursor: pointer; }
+  .dm-owner-pill.sel { background: var(--dark); border-color: var(--dark); color: #fff; font-weight: 600; }
+  .dm-addrow { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: #3B6D11; border: 1px dashed #97C459; padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; }
+  .dm-trash { color: #a32d2d; cursor: pointer; font-size: 1rem; background: none; border: none; padding: 0; line-height: 1; }
+  .dm-panel-foot { display: flex; justify-content: flex-end; gap: 0.7rem; align-items: center; border-top: 1px solid #c0dd97; padding-top: 0.75rem; margin-top: 0.9rem; }
+  .dm-cancel { background: none; border: none; color: var(--mid); font-size: 0.82rem; text-decoration: underline; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-save { background: #3B6D11; color: #fff; border: none; padding: 0.5rem 1.4rem; border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer; font-family: Arial,sans-serif; }
+
+  .dm-latest-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #854F0B; margin-bottom: 0.3rem; }
+  .dm-meeting-date { font-size: 0.95rem; font-weight: 600; color: var(--dark); }
+  .dm-meeting-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .dm-edit { font-size: 0.75rem; color: var(--mid); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .dm-notes { font-size: 0.85rem; color: var(--mid); line-height: 1.6; margin-top: 0.25rem; white-space: pre-wrap; }
+  .dm-action { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; font-size: 0.85rem; padding: 0.15rem 0; }
+  .dm-action .who { color: var(--stone); }
+  .dm-pill { font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.6rem; border-radius: 10px; white-space: nowrap; }
+  .dm-pill-open { background: #FAEEDA; border: 1px solid #EF9F27; color: #854F0B; }
+  .dm-pill-done { background: #EAF3DE; border: 1px solid #97C459; color: #3B6D11; }
+  .dm-act-ctrls { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .dm-complete { background: #3B6D11; color: #fff; border: none; padding: 0.25rem 0.7rem; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-reopen { font-size: 0.75rem; color: var(--mid); text-decoration: underline; cursor: pointer; }
+  .dm-actions-wrap { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .dm-delconfirm { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; font-size: 0.82rem; background: #FCEBEB; border: 1px solid #F09595; border-radius: 6px; padding: 0.5rem 0.75rem; }
+  .dm-delconfirm .msg { color: #a32d2d; }
+  .dm-del-yes { background: #a32d2d; color: #fff; border: none; padding: 0.25rem 0.8rem; border-radius: 5px; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: Arial,sans-serif; }
+  .dm-del-no { border: 1px solid var(--border); background: #fff; padding: 0.25rem 0.8rem; border-radius: 5px; font-size: 0.72rem; cursor: pointer; font-family: Arial,sans-serif; }
+
+  .dm-drawer { background: #FAEEDA; border: 1px solid #FAC775; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .dm-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .dm-drawer-title { font-size: 0.75rem; font-weight: 700; color: #854F0B; text-transform: uppercase; letter-spacing: 0.05em; }
+  .dm-seg { display: inline-flex; border: 1px solid #EF9F27; border-radius: 6px; overflow: hidden; }
+  .dm-seg button { border: none; padding: 0.3rem 0.9rem; font-size: 0.75rem; cursor: pointer; font-family: Arial,sans-serif; background: #fff; color: #854F0B; }
+  .dm-seg button.active { background: var(--dark); color: var(--cream); font-weight: 600; }
+  .dm-drawer-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding: 0.35rem 0; font-size: 0.85rem; }
+  .dm-drawer-item .meta { font-size: 0.72rem; color: #854F0B; margin-top: 0.15rem; }
+  .dm-empty { font-size: 0.82rem; color: var(--mid); font-style: italic; padding: 0.4rem 0; }
+
+  .dm-prev-bar { width: 100%; display: flex; align-items: center; gap: 0.5rem; background: var(--cream); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.9rem; font-size: 0.8rem; font-weight: 600; color: var(--dark); cursor: pointer; font-family: Arial,sans-serif; margin-top: 1rem; }
+  .dm-tri { display: inline-block; transition: transform 0.2s; font-size: 0.72rem; }
+  .dm-tri.open { transform: rotate(90deg); }
+  .dm-prev-meeting { border: 1px solid var(--border); border-radius: 6px; margin-top: 0.5rem; overflow: hidden; }
+  .dm-prev-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; background: #fff; border: none; padding: 0.6rem 0.9rem; font-size: 0.82rem; cursor: pointer; font-family: Arial,sans-serif; color: var(--dark); }
+  .dm-prev-row .summ { font-size: 0.72rem; }
+  .dm-prev-body { padding: 0 0.9rem 0.75rem 1.8rem; }
+  .dm-state-error { padding: 1.2rem; text-align: center; color: #a32d2d; font-size: 0.82rem; }
+  .dm-retry { margin-top: 0.5rem; background: var(--dark); color: var(--cream); border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-family: Arial,sans-serif; }
 </style>
 </head>
 <body>
@@ -565,6 +657,24 @@
   <div class="page-title">
     <h2>&#128295; Maintenance &amp; Site Issues</h2>
     <p>Report issues with communal areas, car parks, lighting, grounds and more. All submitted issues are visible to residents.</p>
+  </div>
+
+  <!-- Directors' Meetings -->
+  <div class="doc-card-wrapper">
+    <button class="btn-toggle btn-loading" id="toggle-dirmeet" onclick="toggleDirMeet()" aria-expanded="false">
+      <span>&#128221; Directors' Meetings <span id="dirmeet-subtitle">&middot; Loading&hellip;</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">&#9203; Loading data&hellip;</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9658;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-dirmeet">
+      <div class="dm-inner" id="dirmeet-body">
+        <div class="state-loading"><div class="spinner"></div><div>Loading&hellip;</div></div>
+      </div>
+    </div>
   </div>
 
   <!-- Maintenance Documents -->
@@ -656,7 +766,7 @@
         <option value="unassigned">Unassigned</option>
       </select>
     </div>
-    <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-msg">Loading issues...</div></div></div>
+    <div style="overflow-x:auto;"><div id="issuesBody" style="min-height:80px;"><div class="state-loading"><div class="spinner"></div><div>Loading issues&hellip;</div></div></div></div>
   </div>
 
 <!-- Unsaved changes modal -->
@@ -2197,9 +2307,523 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DIRECTORS' MEETINGS  (read-only for residents; editing for signed-in directors)
+// Sign-in reuses the Finance Authorisation password. Session only — signing out
+// or leaving the page clears it. No keyboard shortcuts and no click-away:
+// saving and cancelling are always an explicit tap on the button.
+// ═══════════════════════════════════════════════════════════════════════════
+var DM_CACHE_KEY = 'cyard_directors_meetings';
+var DM_TTL_MS = 5 * 60 * 1000;
+var dmLogRowSeq = 0;
+
+var dmState = {
+  meetings: [],
+  summary: { meetingCount: 0, openActions: 0 },
+  loaded: false,
+  directors: [],
+  signedInName: null,
+  signedInPassword: null,   // session-only, never persisted
+  showSignIn: false,
+  signInPick: null,
+  drawerOpen: false,
+  actTab: 'open',
+  logOpen: false,
+  prevOpen: false,
+  openPrev: {},
+  editingId: null,
+  addingId: null,
+  deletingActionId: null
+};
+
+function dmEsc(s) { return escHtml(s); }
+
+function toggleDirMeet() {
+  var btn = document.getElementById('toggle-dirmeet');
+  var panel = document.getElementById('panel-dirmeet');
+  var open = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+
+function dmTodayISO() {
+  var d = new Date();
+  var m = ('0' + (d.getMonth() + 1)).slice(-2);
+  var day = ('0' + d.getDate()).slice(-2);
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+// ── load (cache first, then refresh) ──────────────────────────────────────────
+function loadDirectorMeetings() {
+  try {
+    var raw = localStorage.getItem(DM_CACHE_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.data) {
+        dmState.meetings = parsed.data.meetings || [];
+        dmState.summary = parsed.data.summary || dmState.summary;
+        dmState.loaded = true;
+        dmRender();
+      }
+    }
+  } catch(e) {}
+  dmFetch();
+}
+
+function dmFetch() {
+  fetch(SCRIPT_URL + '?action=readDirectorMeetings')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.status === 'ok') {
+        dmState.meetings = data.meetings || [];
+        dmState.summary = data.summary || { meetingCount: 0, openActions: 0 };
+        dmState.loaded = true;
+        try {
+          localStorage.setItem(DM_CACHE_KEY, JSON.stringify({
+            ts: Date.now(),
+            data: { meetings: dmState.meetings, summary: dmState.summary }
+          }));
+        } catch(e) {}
+        dmRender();
+      } else if (!dmState.loaded) {
+        dmShowError();
+      }
+    })
+    .catch(function() { if (!dmState.loaded) dmShowError(); });
+}
+
+function dmClearCacheAndReload() {
+  try { localStorage.removeItem(DM_CACHE_KEY); } catch(e) {}
+  dmFetch();
+}
+
+function dmShowError() {
+  var btn = document.getElementById('toggle-dirmeet');
+  if (btn) btn.classList.remove('btn-loading');
+  var sub = document.getElementById('dirmeet-subtitle');
+  if (sub) sub.innerHTML = '&middot; couldn&rsquo;t load';
+  var body = document.getElementById('dirmeet-body');
+  if (body) body.innerHTML = '<div class="dm-state-error">Could not load the meetings.<br><button class="dm-retry" onclick="dmClearCacheAndReload()">Try again</button></div>';
+}
+
+// ── subtitle smart text ───────────────────────────────────────────────────────
+function dmRenderSubtitle() {
+  var btn = document.getElementById('toggle-dirmeet');
+  if (btn) btn.classList.remove('btn-loading');
+  var sub = document.getElementById('dirmeet-subtitle');
+  if (!sub) return;
+  var mc = dmState.summary.meetingCount || 0;
+  var oa = dmState.summary.openActions || 0;
+  if (mc === 0) { sub.innerHTML = '&middot; No meetings logged yet'; return; }
+  var mtxt = mc + ' meeting' + (mc === 1 ? '' : 's');
+  if (oa === 0) {
+    sub.innerHTML = '&middot; ' + mtxt + ' &middot; all actions complete';
+  } else {
+    sub.innerHTML = '&middot; ' + mtxt + ' &middot; <span class="dm-open-count">' + oa + ' open action' + (oa === 1 ? '' : 's') + '</span>';
+  }
+}
+
+// ── main render ─────────────────────────────────────────────────────────────
+function dmRender() {
+  dmRenderSubtitle();
+  var body = document.getElementById('dirmeet-body');
+  if (!body) return;
+  var signedIn = !!dmState.signedInPassword;
+  var html = '';
+
+  if (signedIn) {
+    html += '<div class="dm-signedin">Signed in as <strong>' + dmEsc(dmState.signedInName) + '</strong> &middot; <span class="dm-link" onclick="dmSignOut()">sign out</span></div>';
+  }
+
+  html += '<div class="dm-controls">';
+  html += '<button class="dm-btn dm-btn-view' + (dmState.drawerOpen ? ' active' : '') + '" onclick="dmToggleDrawer()">&#9776; View Actions</button>';
+  if (signedIn) {
+    html += '<button class="dm-btn dm-btn-log" onclick="dmOpenLog()">&#43; Log a meeting</button>';
+  } else {
+    html += '<button class="dm-btn dm-btn-lock" onclick="dmShowSignIn()">&#128274; Director actions</button>';
+  }
+  html += '</div>';
+
+  if (dmState.showSignIn && !signedIn) html += dmBuildSignIn();
+  if (dmState.drawerOpen) html += dmBuildDrawer();
+  if (dmState.logOpen && signedIn) html += dmBuildLogPanel();
+
+  if (!dmState.meetings.length) {
+    if (!(dmState.logOpen && signedIn)) html += '<div class="dm-empty">No meetings have been logged yet.</div>';
+  } else {
+    html += '<div class="dm-latest-label">Latest meeting</div>';
+    html += dmBuildMeeting(dmState.meetings[0], signedIn);
+    if (dmState.meetings.length > 1) {
+      html += '<button class="dm-prev-bar" onclick="dmTogglePrev()"><span class="dm-tri' + (dmState.prevOpen ? ' open' : '') + '">&#9658;</span> Previous meetings (' + (dmState.meetings.length - 1) + ')</button>';
+      if (dmState.prevOpen) {
+        for (var i = 1; i < dmState.meetings.length; i++) {
+          html += dmBuildPrevMeeting(dmState.meetings[i], signedIn);
+        }
+      }
+    }
+  }
+
+  body.innerHTML = html;
+}
+
+// ── builders ──────────────────────────────────────────────────────────────────
+function dmBuildSignIn() {
+  var pills = '';
+  (dmState.directors || []).forEach(function(d, i) {
+    pills += '<span class="dm-name-pill' + (dmState.signInPick === d.name ? ' sel' : '') + '" onclick="dmPickName(' + i + ')">' + dmEsc(d.name) + '</span>';
+  });
+  if (!pills) pills = '<span class="dm-empty">No directors found.</span>';
+  return '<div class="dm-signin">'
+    + '<div class="dm-signin-label">Sign in to continue</div>'
+    + '<div class="dm-q">Who are you?</div>'
+    + '<div style="margin-bottom:0.8rem;">' + pills + '</div>'
+    + '<div class="dm-q">Director password</div>'
+    + '<input type="password" id="dm-pw" class="dm-pw" autocomplete="off">'
+    + '<button class="dm-signin-btn" onclick="dmSignIn()">Sign in</button>'
+    + '<div class="dm-err" id="dm-signin-err"></div>'
+    + '<div style="margin-top:0.6rem;"><span class="dm-link" style="font-size:0.75rem;" onclick="dmHideSignIn()">Cancel</span></div>'
+    + '</div>';
+}
+
+function dmBuildDrawer() {
+  var open = [], closed = [];
+  dmState.meetings.forEach(function(m) {
+    (m.actions || []).forEach(function(a) {
+      if (a.isOpen) open.push({ a: a, m: m }); else closed.push({ a: a, m: m });
+    });
+  });
+  var list = dmState.actTab === 'open' ? open : closed;
+  var rows = '';
+  if (!list.length) {
+    rows = '<div class="dm-empty">' + (dmState.actTab === 'open' ? 'Nothing outstanding &mdash; all actions are complete.' : 'No completed actions yet.') + '</div>';
+  } else {
+    list.forEach(function(it) {
+      var pill = it.a.isOpen
+        ? '<span class="dm-pill dm-pill-open">Open</span>'
+        : '<span class="dm-pill dm-pill-done">Done ' + dmEsc(it.a.completed) + '</span>';
+      rows += '<div class="dm-drawer-item"><div><div>' + dmEsc(it.a.text) + '</div>'
+        + '<div class="meta">' + dmEsc(it.a.owner || 'Unassigned') + ' &middot; from ' + dmEsc(it.m.date) + '</div></div>'
+        + pill + '</div>';
+    });
+  }
+  return '<div class="dm-drawer">'
+    + '<div class="dm-drawer-head"><span class="dm-drawer-title">All actions</span>'
+    + '<span class="dm-seg">'
+    + '<button class="' + (dmState.actTab === 'open' ? 'active' : '') + '" onclick="dmActTab(\'open\')">Open</button>'
+    + '<button class="' + (dmState.actTab === 'closed' ? 'active' : '') + '" onclick="dmActTab(\'closed\')">Closed</button>'
+    + '</span></div>'
+    + rows + '</div>';
+}
+
+function dmBuildLogPanel() {
+  dmLogRowSeq = 0;
+  return '<div class="dm-panel">'
+    + '<div class="dm-panel-title">New meeting</div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-log-date" class="dm-input" value="' + dmTodayISO() + '"></div>'
+    + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-log-notes" class="dm-textarea" placeholder="What was discussed&hellip;"></textarea></div>'
+    + '<div class="dm-subhead">Actions from this meeting</div>'
+    + '<div id="dm-log-actions">' + dmBuildLogActionRow(0) + '</div>'
+    + '<span class="dm-addrow" onclick="dmAddLogActionRow()">&#43; Add another action</span>'
+    + '<div class="dm-err" id="dm-log-err"></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCloseLog()">Cancel</button><button class="dm-save" onclick="dmSaveMeeting()">Save meeting</button></div>'
+    + '</div>';
+}
+
+function dmBuildLogActionRow(idx) {
+  var ownerPills = '';
+  (dmState.directors || []).forEach(function(d) {
+    ownerPills += '<span class="dm-owner-pill" data-owner="' + dmEsc(d.name) + '" onclick="dmPickOwner(this)">' + dmEsc(d.name) + '</span>';
+  });
+  return '<div class="dm-actrow" data-logrow="' + idx + '">'
+    + '<input type="text" class="dm-input dm-log-action-text" placeholder="Action&hellip;">'
+    + '<div class="dm-owner-row"><span class="lbl">Owner:</span>' + ownerPills
+    + '<button class="dm-trash" title="Remove" onclick="dmRemoveLogRow(this)">&#128465;</button></div>'
+    + '</div>';
+}
+
+function dmBuildMeeting(m, signedIn) {
+  var html = '<div class="dm-meeting">';
+  if (signedIn && dmState.editingId === m.id) {
+    html += dmBuildEditForm(m);
+  } else {
+    html += '<div class="dm-meeting-head"><span class="dm-meeting-date">' + dmEsc(m.date) + '</span>';
+    if (signedIn) html += '<span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span>';
+    html += '</div>';
+    html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
+  }
+  html += '<div class="dm-actions-wrap">';
+  (m.actions || []).forEach(function(a) { html += dmBuildActionRow(a, signedIn); });
+  if (signedIn && dmState.addingId === m.id) {
+    html += dmBuildAddActionForm(m);
+  } else if (signedIn) {
+    html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function dmBuildActionRow(a, signedIn) {
+  if (signedIn && dmState.deletingActionId === a.id) {
+    return '<div class="dm-delconfirm"><span class="msg">Delete this action?</span>'
+      + '<span><button class="dm-del-yes" onclick="dmConfirmDelete(\'' + a.id + '\')">Delete</button> '
+      + '<button class="dm-del-no" onclick="dmCancelDelete()">Keep</button></span></div>';
+  }
+  var left = '<span>' + dmEsc(a.text) + ' <span class="who">&middot; ' + dmEsc(a.owner || 'Unassigned') + '</span></span>';
+  var right;
+  if (a.isOpen) {
+    right = signedIn
+      ? '<span class="dm-act-ctrls"><button class="dm-complete" onclick="dmComplete(\'' + a.id + '\')">Mark complete</button>'
+        + '<button class="dm-trash" title="Delete" onclick="dmAskDelete(\'' + a.id + '\')">&#128465;</button></span>'
+      : '<span class="dm-pill dm-pill-open">Open</span>';
+  } else {
+    right = signedIn
+      ? '<span class="dm-act-ctrls"><span class="dm-pill dm-pill-done">Done ' + dmEsc(a.completed) + '</span>'
+        + '<span class="dm-reopen" onclick="dmReopen(\'' + a.id + '\')">reopen</span>'
+        + '<button class="dm-trash" title="Delete" onclick="dmAskDelete(\'' + a.id + '\')">&#128465;</button></span>'
+      : '<span class="dm-pill dm-pill-done">Done ' + dmEsc(a.completed) + '</span>';
+  }
+  return '<div class="dm-action">' + left + right + '</div>';
+}
+
+function dmBuildEditForm(m) {
+  var iso = m.dateSort || dmTodayISO();
+  return '<div class="dm-panel" style="margin-bottom:0.6rem;">'
+    + '<div class="dm-panel-title">Edit meeting</div>'
+    + '<div class="dm-field"><label>Date</label><input type="date" id="dm-edit-date" class="dm-input" value="' + iso + '"></div>'
+    + '<div class="dm-field" style="margin-top:0.6rem;"><label>Notes</label><textarea id="dm-edit-notes" class="dm-textarea">' + dmEsc(m.notes) + '</textarea></div>'
+    + '<div class="dm-err" id="dm-edit-err"></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelEdit()">Cancel</button><button class="dm-save" onclick="dmSaveNotes(\'' + m.id + '\')">Save changes</button></div>'
+    + '</div>';
+}
+
+function dmBuildAddActionForm(m) {
+  var ownerPills = '';
+  (dmState.directors || []).forEach(function(d) {
+    ownerPills += '<span class="dm-owner-pill" data-owner="' + dmEsc(d.name) + '" onclick="dmPickOwner(this)">' + dmEsc(d.name) + '</span>';
+  });
+  return '<div class="dm-panel" style="margin:0.5rem 0;">'
+    + '<div class="dm-panel-title">New action</div>'
+    + '<input type="text" id="dm-add-text" class="dm-input" placeholder="Action&hellip;">'
+    + '<div class="dm-owner-row" id="dm-add-owners" style="margin-top:0.5rem;"><span class="lbl">Owner:</span>' + ownerPills + '</div>'
+    + '<div class="dm-err" id="dm-add-err"></div>'
+    + '<div class="dm-panel-foot"><button class="dm-cancel" onclick="dmCancelAdd()">Cancel</button><button class="dm-save" onclick="dmSaveAction(\'' + m.id + '\')">Add action</button></div>'
+    + '</div>';
+}
+
+function dmBuildPrevMeeting(m, signedIn) {
+  var actions = m.actions || [];
+  var total = actions.length;
+  var openA = actions.filter(function(a) { return a.isOpen; }).length;
+  var summ;
+  if (total === 0) summ = '<span class="summ" style="color:var(--stone);">No actions</span>';
+  else if (openA === 0) summ = '<span class="summ" style="color:#3B6D11;">' + total + ' action' + (total === 1 ? '' : 's') + ' &middot; all done</span>';
+  else summ = '<span class="summ" style="color:#854F0B;">' + openA + ' open</span>';
+  var isOpen = !!dmState.openPrev[m.id];
+
+  var html = '<div class="dm-prev-meeting">';
+  html += '<button class="dm-prev-row" onclick="dmTogglePrevMeeting(\'' + m.id + '\')">'
+    + '<span style="display:flex;align-items:center;gap:0.5rem;"><span class="dm-tri' + (isOpen ? ' open' : '') + '">&#9658;</span>'
+    + '<span style="font-weight:600;">' + dmEsc(m.date) + '</span></span>' + summ + '</button>';
+  if (isOpen) {
+    html += '<div class="dm-prev-body">';
+    if (signedIn && dmState.editingId === m.id) {
+      html += dmBuildEditForm(m);
+    } else {
+      if (signedIn) html += '<div style="text-align:right;margin-bottom:0.2rem;"><span class="dm-edit" onclick="dmEditNotes(\'' + m.id + '\')">&#9998; Edit notes</span></div>';
+      html += '<div class="dm-notes">' + (m.notes ? dmEsc(m.notes) : '<span style="color:var(--stone);font-style:italic;">No notes recorded.</span>') + '</div>';
+    }
+    html += '<div class="dm-actions-wrap">';
+    actions.forEach(function(a) { html += dmBuildActionRow(a, signedIn); });
+    if (signedIn && dmState.addingId === m.id) html += dmBuildAddActionForm(m);
+    else if (signedIn) html += '<div><span class="dm-addrow" onclick="dmStartAddAction(\'' + m.id + '\')">&#43; Add action</span></div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── interactions (no keyboard, no click-away; explicit taps only) ──────────────
+function dmShowInlineErr(id, msg) { var e = document.getElementById(id); if (e) e.textContent = msg; }
+
+function dmPickName(i) {
+  dmState.signInPick = dmState.directors[i] ? dmState.directors[i].name : null;
+  var pills = document.querySelectorAll('#dirmeet-body .dm-name-pill');
+  pills.forEach(function(p, idx) { p.classList.toggle('sel', idx === i); });
+}
+
+function dmShowSignIn() {
+  dmState.showSignIn = true;
+  if (!dmState.directors.length) {
+    fetch(SCRIPT_URL + '?action=readDirectorList')
+      .then(function(r) { return r.json(); })
+      .then(function(res) { if (res && res.status === 'ok') dmState.directors = res.directors || []; dmRender(); })
+      .catch(function() { dmRender(); });
+  }
+  dmRender();
+}
+
+function dmHideSignIn() { dmState.showSignIn = false; dmState.signInPick = null; dmRender(); }
+
+function dmSignIn() {
+  var pwEl = document.getElementById('dm-pw');
+  var pw = pwEl ? pwEl.value : '';
+  if (!dmState.signInPick) { dmShowInlineErr('dm-signin-err', 'Please tap your name first.'); return; }
+  if (!pw) { dmShowInlineErr('dm-signin-err', 'Please enter the director password.'); return; }
+  dmShowInlineErr('dm-signin-err', 'Checking&hellip;');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'verifyDirectorPassword', password: pw })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok' && res.valid) {
+        dmState.signedInName = dmState.signInPick;
+        dmState.signedInPassword = pw;
+        dmState.showSignIn = false;
+        dmRender();
+      } else {
+        dmShowInlineErr('dm-signin-err', 'Incorrect password.');
+      }
+    })
+    .catch(function() { dmShowInlineErr('dm-signin-err', 'Could not sign in &mdash; please try again.'); });
+}
+
+function dmSignOut() {
+  dmState.signedInName = null;
+  dmState.signedInPassword = null;
+  dmState.logOpen = false;
+  dmState.editingId = null;
+  dmState.addingId = null;
+  dmState.deletingActionId = null;
+  dmRender();
+}
+
+function dmToggleDrawer() { dmState.drawerOpen = !dmState.drawerOpen; dmRender(); }
+function dmActTab(tab) { dmState.actTab = tab; dmRender(); }
+
+function dmOpenLog() { dmState.logOpen = true; dmState.editingId = null; dmState.addingId = null; dmState.deletingActionId = null; dmRender(); }
+function dmCloseLog() { dmState.logOpen = false; dmRender(); }
+
+function dmAddLogActionRow() {
+  var wrap = document.getElementById('dm-log-actions');
+  if (!wrap) return;
+  dmLogRowSeq++;
+  wrap.insertAdjacentHTML('beforeend', dmBuildLogActionRow(dmLogRowSeq));
+}
+
+function dmRemoveLogRow(btn) {
+  var wrap = document.getElementById('dm-log-actions');
+  var row = btn.closest('.dm-actrow');
+  if (row && wrap && wrap.querySelectorAll('.dm-actrow').length > 1) row.remove();
+}
+
+function dmPickOwner(el) {
+  var row = el.parentNode;
+  row.querySelectorAll('.dm-owner-pill').forEach(function(p) { p.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+function dmSaveMeeting() {
+  var dateEl = document.getElementById('dm-log-date');
+  var notesEl = document.getElementById('dm-log-notes');
+  var date = dateEl ? dateEl.value : dmTodayISO();
+  var notes = notesEl ? notesEl.value : '';
+  var actions = [];
+  document.querySelectorAll('#dm-log-actions .dm-actrow').forEach(function(row) {
+    var t = row.querySelector('.dm-log-action-text');
+    var text = t ? t.value.trim() : '';
+    if (!text) return;
+    var sel = row.querySelector('.dm-owner-pill.sel');
+    actions.push({ text: text, owner: sel ? sel.getAttribute('data-owner') : '' });
+  });
+  if (!notes.trim() && !actions.length) { dmShowInlineErr('dm-log-err', 'Add some notes or at least one action before saving.'); return; }
+  dmShowInlineErr('dm-log-err', 'Saving&hellip;');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'saveDirectorMeeting', date: date, notes: notes, actions: actions, password: dmState.signedInPassword })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok') { dmState.logOpen = false; dmClearCacheAndReload(); }
+      else { dmShowInlineErr('dm-log-err', (res && res.message) || 'Could not save the meeting.'); }
+    })
+    .catch(function() { dmShowInlineErr('dm-log-err', 'Could not save &mdash; please try again.'); });
+}
+
+function dmEditNotes(id) { dmState.editingId = id; dmState.addingId = null; dmState.deletingActionId = null; dmRender(); }
+function dmCancelEdit() { dmState.editingId = null; dmRender(); }
+
+function dmSaveNotes(id) {
+  var d = document.getElementById('dm-edit-date');
+  var n = document.getElementById('dm-edit-notes');
+  var date = d ? d.value : '';
+  var notes = n ? n.value : '';
+  dmShowInlineErr('dm-edit-err', 'Saving&hellip;');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'updateDirectorMeetingNotes', meetingId: id, date: date, notes: notes, password: dmState.signedInPassword })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok') { dmState.editingId = null; dmClearCacheAndReload(); }
+      else { dmShowInlineErr('dm-edit-err', (res && res.message) || 'Could not save the changes.'); }
+    })
+    .catch(function() { dmShowInlineErr('dm-edit-err', 'Could not save &mdash; please try again.'); });
+}
+
+function dmStartAddAction(id) { dmState.addingId = id; dmState.editingId = null; dmState.deletingActionId = null; dmRender(); }
+function dmCancelAdd() { dmState.addingId = null; dmRender(); }
+
+function dmSaveAction(id) {
+  var t = document.getElementById('dm-add-text');
+  var text = t ? t.value.trim() : '';
+  if (!text) { dmShowInlineErr('dm-add-err', 'Please type the action first.'); return; }
+  var sel = document.querySelector('#dm-add-owners .dm-owner-pill.sel');
+  var owner = sel ? sel.getAttribute('data-owner') : '';
+  dmShowInlineErr('dm-add-err', 'Saving&hellip;');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'addDirectorAction', meetingId: id, text: text, owner: owner, password: dmState.signedInPassword })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok') { dmState.addingId = null; dmClearCacheAndReload(); }
+      else { dmShowInlineErr('dm-add-err', (res && res.message) || 'Could not add the action.'); }
+    })
+    .catch(function() { dmShowInlineErr('dm-add-err', 'Could not save &mdash; please try again.'); });
+}
+
+function dmComplete(id) { dmPostAction({ action: 'completeDirectorAction', actionId: id, complete: true, password: dmState.signedInPassword }); }
+function dmReopen(id) { dmPostAction({ action: 'completeDirectorAction', actionId: id, complete: false, password: dmState.signedInPassword }); }
+function dmAskDelete(id) { dmState.deletingActionId = id; dmRender(); }
+function dmCancelDelete() { dmState.deletingActionId = null; dmRender(); }
+function dmConfirmDelete(id) { dmState.deletingActionId = null; dmPostAction({ action: 'deleteDirectorAction', actionId: id, password: dmState.signedInPassword }); }
+
+function dmPostAction(payload) {
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res && res.status === 'ok') dmClearCacheAndReload();
+      else dmRender();
+    })
+    .catch(function() { dmRender(); });
+}
+
+function dmTogglePrev() { dmState.prevOpen = !dmState.prevOpen; dmRender(); }
+function dmTogglePrevMeeting(id) { dmState.openPrev[id] = !dmState.openPrev[id]; dmRender(); }
+
 loadAddresses();
 loadIssues();
 setInterval(() => { loadIssues(); }, 60000);
+loadDirectorMeetings();
 </script>
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; RESIDENT PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
