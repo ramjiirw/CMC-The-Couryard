@@ -1819,7 +1819,7 @@ function renderMaintDocs() {
     var res = await fetch(INDEX_URL + '?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var idx = await res.json();
-    var folder = (idx.folders || []).find(function(f) { return f.key === 'cmcmaintenance'; });
+    var folder = (idx.folders || []).find(function(f) { return f.key === 'cmcwater'; });
     maintDocState.files = folder ? (folder.files || []) : [];
     if (totalCountEl) totalCountEl.textContent = maintDocState.files.length;
     renderMaintDocs();
