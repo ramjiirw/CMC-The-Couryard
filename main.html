@@ -830,6 +830,30 @@
   #adminLink:hover { color:var(--accent2); }
   #waterLink { position:absolute; left:1.2rem; bottom:50%; transform:translateY(50%); font-size:0.85rem; color:rgba(78,175,214,0.3); text-decoration:none; line-height:1; transition:color 0.2s; }
   #waterLink:hover { color:#4eafd6; }
+  /* ── Upcoming directors' meeting bar (mirrors the smoke-overdue bar, calm green) ── */
+  .dm-next-bar {
+    display: none;
+    width: 100%; padding: 0.75rem 1.25rem; margin-bottom: 1.5rem;
+    background: #3d6b4a; color: #ffffff;
+    border-radius: 10px; box-shadow: var(--shadow);
+    font-family: Arial, sans-serif; font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer; transition: background 0.2s;
+  }
+  .dm-next-bar.show { display: block; }
+  .dm-next-bar:hover { background: #345d40; }
+  .dm-next-bar .dm-next-inner { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; }
+  .dm-next-bar .dm-next-left { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .dm-next-bar .dm-next-detail { font-weight: 400; opacity: 0.9; font-size: 0.72rem; letter-spacing: 0.03em; }
+  .dm-next-bar .dm-next-btn {
+    background: #fff; color: #3d6b4a; border: none; border-radius: 6px;
+    padding: 0.38rem 1rem; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.03em; white-space: nowrap; text-transform: none;
+  }
+  @media (max-width: 600px) {
+    .dm-next-bar .dm-next-inner { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .dm-next-bar .dm-next-btn { align-self: flex-end; }
+  }
 </style>
 <body>
 
@@ -898,6 +922,17 @@
         <span>Tap to record now</span>
         <span class="smoke-bar-chevron">&#9658;</span>
       </span>
+    </span>
+  </a>
+
+  <!-- Upcoming Directors' Meeting Bar — only shown when the next meeting is within 7 days -->
+  <a class="dm-next-bar" id="dmNextBar" href="maintenancesubmissions.html#directors-meetings">
+    <span class="dm-next-inner">
+      <span class="dm-next-left">
+        <span>&#128197; Next directors&rsquo; meeting</span>
+        <span class="dm-next-detail" id="dmNextDetail"></span>
+      </span>
+      <span class="dm-next-btn">View details</span>
     </span>
   </a>
 
@@ -1042,7 +1077,7 @@
         <div class="mnt-pri-pills" id="mntPriPills"></div>
         <div id="mntAllClear" style="display:none;" class="mnt-all-clear">✓ No open issues</div>
       </div>
-      <p class="agm-cta">View site documents &amp; report/monitor site issues →</p>
+      <p class="agm-cta">View site documents &amp; directors&rsquo; meeting notes<br>Report &amp; monitor site issues <span style="white-space:nowrap;">&#8594;</span></p>
     </a>
 
     <!-- Resident Map -->
@@ -3062,7 +3097,35 @@
   ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(function(e) {
     document.addEventListener(e, function(){ hideSessionWarning(); scheduleWarning(); }, { passive:true });
   });
-  </script>
+  
+  (async function loadNextMeetingBar() {
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=readDirectorMeetings', { redirect: 'follow' });
+      const data = await res.json();
+      if (!data || data.status !== 'ok' || !data.meetings || !data.meetings.length) return;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const todayISO = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
+      let soonest = null;
+      data.meetings.forEach(function(mm) {
+        if (mm.dateSort && mm.dateSort >= todayISO) {
+          if (!soonest || mm.dateSort < soonest.dateSort) soonest = mm;
+        }
+      });
+      if (!soonest) return;
+      const p = soonest.dateSort.split('-');
+      const md = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10)); md.setHours(0, 0, 0, 0);
+      const days = Math.round((md - today) / 86400000);
+      if (days < 0 || days > 7) return;
+      const countdown = days === 0 ? 'today' : (days === 1 ? 'tomorrow' : 'in ' + days + ' days');
+      const detail = document.getElementById('dmNextDetail');
+      const bar = document.getElementById('dmNextBar');
+      if (detail && bar) {
+        detail.textContent = (soonest.date || soonest.dateShort || '') + ' \u00b7 ' + countdown;
+        bar.classList.add('show');
+      }
+    } catch (e) {}
+  })();
+</script>
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
 <div id="sessionWarningToast">
   <div class="sw-msg">&#9200; Session expiring soon</div>
