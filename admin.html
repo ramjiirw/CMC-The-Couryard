@@ -1775,9 +1775,9 @@
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.3);background:rgba(122,92,62,0.03);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Readings to Liscombe Park</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to Liscombe Park via the Water Meter Readings panel<br><span style="font-size:0.72rem;color:var(--mid);">Intro and closing text are editable before sending. Includes a formatted table of property-level readings, water volumes, totals and the administration charge. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN".</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Liscombe Park (To/Cc/Bcc from cmcwater sheet defaults, overridable per send)</td>
-              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC / BCC</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to Liscombe Park via the Water Meter Readings panel<br><span style="font-size:0.72rem;color:var(--mid);">Intro and closing text are editable before sending. Includes a formatted table of property-level readings, water volumes, totals and the administration charge, plus a CSV of the readings as an attachment. Directors are CC&#39;d (visible to Liscombe Park); replies are addressed to cmcdirectors@hotmail.com and iwoodland@hotmail.com. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN".</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Liscombe Park (TO, from cmcwater R1); directors CC&#39;d (from cmcsettings col A); overridable per send</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC</td>
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(96,144,176,0.18);color:#2d5a78;border:1px solid rgba(96,144,176,0.3);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">SIP Contact</span></td>
@@ -2244,7 +2244,7 @@ Earlier updates on this issue can be viewed in the portal.
               <span class="eref-arrow">&#9654;</span>
             </div>
             <div class="eref-body" style="display:none;">
-              <div class="eref-sub">To Liscombe Park (TO/CC/BCC overridable per send):</div>
+              <div class="eref-sub">To Liscombe Park (TO). Directors CC&#39;d (visible). Reply-To: cmcdirectors@hotmail.com, iwoodland@hotmail.com. A CSV of the readings is attached.</div>
               <pre class="eref-pre">Dear Liscombe Park,
 
 [Editable intro text — defaults to:
@@ -2258,7 +2258,13 @@ Please find below the quarterly water meter readings for the properties at CMC T
   Total CMC Water Meter Reading and Total Water Volume
 
 [Editable closing text — defaults to:
-When returning the bill, please indicate the total standing charge, how many users on site this is divided between, and the price per cubic metre for the bill that relates to these readings. The total administration charge is £2.50 per quarter.
+When returning the bill, please indicate:
+
+• The total standing charge
+• How many users on site the standing charge is divided between
+• The price per cubic metre for the bill that relates to these readings
+
+The total administration charge is £2.50 per quarter.
 
 If you have any queries regarding the readings, please don't hesitate to get in touch.]
 
@@ -2438,8 +2444,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <!-- CC -->
           <div style="margin-bottom:0.55rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— visible to the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Clear CC">&#10005; Clear</button>
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — visible to the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Reload directors from sheet">&#8635; Reset to sheet</button>
             </div>
             <input type="text" id="weCcField" placeholder="(empty)" oninput="weMarkTouched('cc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -2447,8 +2453,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <!-- BCC -->
           <div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — hidden from the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Reload directors from sheet">&#8635; Reset to sheet</button>
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— hidden from the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Clear BCC">&#10005; Clear</button>
             </div>
             <input type="text" id="weBccField" placeholder="(empty)" oninput="weMarkTouched('bcc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -9506,10 +9512,10 @@ var weState = {
   // and by the initial population of the editable fields.
   sheetDefaults: {
     to:  [],   // cmcwater R1
-    bcc: []    // cmcsettings col A (directors) — default into BCC
+    cc:  []    // cmcsettings col A (directors) — default into CC
   },
   defaultIntro:     'Please find below the quarterly water meter readings for the properties at CMC The Courtyard, recorded on [reading date].',
-  defaultClosing:   'When returning the bill, please indicate the total standing charge, how many users on site this is divided between, and the price per cubic metre for the bill that relates to these readings. The total administration charge is \u00a32.50 per quarter.\n\nIf you have any queries regarding the readings, please don\'t hesitate to get in touch.'
+  defaultClosing:   'When returning the bill, please indicate:\n\n\u2022 The total standing charge\n\u2022 How many users on site the standing charge is divided between\n\u2022 The price per cubic metre for the bill that relates to these readings\n\nThe total administration charge is \u00a32.50 per quarter.\n\nIf you have any queries regarding the readings, please don\'t hesitate to get in touch.'
 };
 
 async function weInit() {
@@ -9687,16 +9693,16 @@ function weRenderPreview() {
 
   // Stash sheet defaults so the reset buttons can recall them later
   weState.sheetDefaults.to  = (p.recipients && p.recipients.to)  ? p.recipients.to.slice()  : [];
-  weState.sheetDefaults.bcc = (p.recipients && p.recipients.bcc) ? p.recipients.bcc.slice() : [];
+  weState.sheetDefaults.cc  = (p.recipients && p.recipients.cc)  ? p.recipients.cc.slice()  : [];
 
   // Populate fields if blank (first load), preserve user edits otherwise
   const toEl  = document.getElementById('weToField');
-  const bccEl = document.getElementById('weBccField');
+  const ccEl  = document.getElementById('weCcField');
   if (!toEl.dataset.touched) {
     toEl.value = weState.sheetDefaults.to.join(', ');
   }
-  if (!bccEl.dataset.touched) {
-    bccEl.value = weState.sheetDefaults.bcc.join(', ');
+  if (!ccEl.dataset.touched) {
+    ccEl.value = weState.sheetDefaults.cc.join(', ');
   }
 
   // Readings count + warning banner
@@ -9761,11 +9767,11 @@ function weResetField(which) {
     delete el.dataset.touched;
   } else if (which === 'bcc') {
     const el = document.getElementById('weBccField');
-    el.value = weState.sheetDefaults.bcc.join(', ');
+    el.value = '';
     delete el.dataset.touched;
   } else if (which === 'cc') {
     const el = document.getElementById('weCcField');
-    el.value = '';
+    el.value = weState.sheetDefaults.cc.join(', ');
     delete el.dataset.touched;
   }
   weUpdatePreview();
