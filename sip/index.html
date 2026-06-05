@@ -156,6 +156,17 @@
   .btn-toggle-briefing .briefing-title { font-size:0.92rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--cream); }
   .btn-toggle-briefing .briefing-alert { margin-top:0.55rem; padding-top:0.5rem; border-top:1px solid rgba(200,149,52,0.35); font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:#c89534; font-weight:700; display:flex; align-items:center; gap:0.5rem; }
   .btn-toggle-briefing .briefing-warn { font-size:0.8rem; }
+  /* ── BRIEFING JUMP-TO-SECTION (tappable two-column boxes + back link) ── */
+  .brief-jump-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0.55rem; margin-top:0.2rem; }
+  .brief-jump-chip { display:flex; align-items:center; gap:0.6rem; border:1px solid var(--border); border-radius:8px; padding:0.6rem 0.75rem; cursor:pointer; background:#fff; text-align:left; width:100%; }
+  .brief-jump-chip:hover { background:var(--warm); border-color:var(--accent2); }
+  .brief-jump-chip .bjc-num { color:var(--accent); font-weight:700; font-size:0.9rem; min-width:1.1rem; }
+  .brief-jump-chip .bjc-title { color:var(--dark); font-size:0.88rem; line-height:1.3; flex:1; }
+  .brief-jump-chip .bjc-arrow { color:var(--accent2); font-size:0.85rem; flex-shrink:0; }
+  .brief-jump-chip:hover .bjc-arrow { color:#6090b0; }
+  .brief-back-link { display:inline-flex; align-items:center; gap:0.3rem; margin:0.2rem 0 1.4rem; color:#3a5a70; font-size:0.82rem; cursor:pointer; }
+  .brief-back-link:hover { color:#6090b0; text-decoration:underline; }
+  @media(min-width:1025px) { .brief-jump-target { scroll-margin-top:150px; } }
   .collapsible-panel { overflow:hidden; max-height:0; transition:max-height 0.35s ease; }
   .collapsible-panel.open { max-height:none; }
   .doc-filter-clear { padding:0.28rem 0.7rem; border-radius:5px; border:none; background:#c0622a; color:white; font-family:Arial,sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; display:none; align-items:center; gap:0.3rem; transition:background 0.2s; }
@@ -1430,17 +1441,20 @@ function renderBriefing() {
   });
   var previewHtml = '';
   if (previewSections.length) {
-    previewHtml += '<div style="margin-bottom:1.6rem;">';
+    previewHtml += '<div id="sip-brief-toc" class="brief-jump-target" style="margin-bottom:1.6rem;">';
     previewHtml += '<p style="margin:0 0 0.7rem;color:#6b5f52;font-size:0.98rem;">This briefing covers the following:</p>';
-    previewSections.forEach(function(r){
+    previewHtml += '<div class="brief-jump-grid">';
+    previewSections.forEach(function(r, k){
       var sd = (r.section_num === null || r.section_num === undefined) ? '\u2014' : r.section_num;
-      previewHtml += '<div style="display:flex;line-height:1.85;"><span style="color:#7a5c3e;min-width:2.4rem;">' + sd + '</span><span>' + briefingFormat(r.title) + '</span></div>';
+      previewHtml += '<div class="brief-jump-chip" onclick="jumpToBriefingSection(\'sip-brief-sec-' + k + '\')">' + '<span class="bjc-num">' + sd + '</span>' + '<span class="bjc-title">' + briefingFormat(r.title) + '</span>' + '<span class="bjc-arrow">&#8595;</span>' + '</div>';
     });
+    previewHtml += '</div>';
     previewHtml += '</div>';
   }
   var previewInserted = false;
 
   var html = '';
+  var secCounter = 0;
   var i = 0;
   while (i < briefingRows.length) {
     var row = briefingRows[i];
@@ -1468,15 +1482,25 @@ function renderBriefing() {
     if (!previewInserted) { html += previewHtml; previewInserted = true; }
     if (row.title) {
       var secDisplay = (row.section_num === null || row.section_num === undefined) ? '\u2014' : row.section_num;
-      html += '<h3 style="font-size:1.15rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;"><span style="color:#7a5c3e;">' + secDisplay + '</span>&nbsp;&nbsp;' + briefingFormat(row.title) + '</h3>';
+      html += '<h3 id="sip-brief-sec-' + secCounter + '" class="brief-jump-target" style="font-size:1.15rem;font-weight:700;color:#1e1a16;margin:1.6rem 0 0.7rem;padding-bottom:0.35rem;border-bottom:1px solid #ddd5c8;"><span style="color:#7a5c3e;">' + secDisplay + '</span>&nbsp;&nbsp;' + briefingFormat(row.title) + '</h3>';
+      secCounter++;
     }
     if (row.body) {
       html += briefingParagraphs(row.body);
+    }
+    if (previewSections.length && row.title) {
+      html += '<div class="brief-back-link" onclick="jumpToBriefingSection(\'sip-brief-toc\')"><span>&#8593;</span>Back to top of briefing</div>';
     }
     i++;
   }
 
   container.innerHTML = html;
+}
+
+function jumpToBriefingSection(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 
