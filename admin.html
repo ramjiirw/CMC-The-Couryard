@@ -2412,8 +2412,13 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
 
       <!-- Water Meter Readings Email Panel -->
       <div class="admin-panel" id="panel-wateremail">
-        <div class="panel-title">&#128167; Water Meter Readings &mdash; Email to Liscombe Park</div>
-        <div class="panel-desc">Send the quarterly water meter readings to the water company. The intro and closing text are editable below before sending. The preview updates live.</div>
+        <div class="panel-title" id="wePanelTitle">&#128167; Water Meter Readings &mdash; Email to Liscombe Park</div>
+        <div class="panel-desc" id="wePanelDesc">Send the quarterly water meter readings to the water company. The intro and closing text are editable below before sending. The preview updates live.</div>
+        <!-- Recipient mode toggle: Liscombe Park vs all residents -->
+        <div style="display:inline-flex;gap:4px;margin-bottom:0.9rem;background:#f5f0e8;border:1px solid rgba(122,92,62,0.28);border-radius:7px;padding:3px;">
+          <button id="weModeLiscombe" onclick="weSetMode('liscombe')" style="padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;">To Liscombe Park</button>
+          <button id="weModeResidents" onclick="weSetMode('residents')" style="padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);">To Residents</button>
+        </div>
         <div id="weMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
 
         <!-- Quarter selector -->
@@ -2439,8 +2444,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <!-- TO -->
           <div style="margin-bottom:0.55rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">TO <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— water company (from cmcwater R1)</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('to')" title="Reload from sheet">&#8635; Reset to sheet</button>
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">TO <span id="weToLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— water company (from cmcwater R1)</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('to')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weToField" placeholder="email@example.com, another@example.com" oninput="weMarkTouched('to');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -2448,8 +2453,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <!-- CC -->
           <div style="margin-bottom:0.55rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — visible to the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Reload directors from sheet">&#8635; Reset to sheet</button>
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span id="weCcLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — visible to the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weCcField" placeholder="(empty)" oninput="weMarkTouched('cc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -2457,8 +2462,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <!-- BCC -->
           <div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— hidden from the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Clear BCC">&#10005; Clear</button>
+              <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span id="weBccLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— hidden from the water company</span></label>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weBccField" placeholder="(empty)" oninput="weMarkTouched('bcc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -9507,6 +9512,7 @@ function briefMobileDelete(actualIndex) {
 
 var weState = {
   loaded:           false,
+  mode:             'liscombe',   // 'liscombe' | 'residents'
   availableYears:   [],
   quartersByYear:   {},
   selectedYear:     null,
@@ -9515,11 +9521,14 @@ var weState = {
   // Canonical recipient lists from the sheets — never mutated, used by reset buttons
   // and by the initial population of the editable fields.
   sheetDefaults: {
-    to:  [],   // cmcwater R1
-    cc:  []    // cmcsettings col A (directors) — default into CC
+    to:  [],   // mode-dependent: water company (Liscombe) or directors box (residents)
+    cc:  [],   // directors (Liscombe) or empty (residents)
+    bcc: []    // empty (Liscombe) or all residents (residents)
   },
   defaultIntro:     'Please find below the quarterly water meter readings for the properties at CMC The Courtyard.',
-  defaultClosing:   'When returning the bill, please indicate:\n\n\u2022 The total standing charge\n\u2022 How many users on site the standing charge is divided between\n\u2022 The price per cubic metre for the bill that relates to these readings\n\nThe total administration charge is \u00a32.50 per quarter.\n\nIf you have any queries regarding the readings, please don\'t hesitate to get in touch.'
+  defaultClosing:   'When returning the bill, please indicate:\n\n\u2022 The total standing charge\n\u2022 How many users on site the standing charge is divided between\n\u2022 The price per cubic metre for the bill that relates to these readings\n\nThe total administration charge is \u00a32.50 per quarter.\n\nIf you have any queries regarding the readings, please don\'t hesitate to get in touch.',
+  residentIntro:    'Your water meters have been read for this quarter. Below are the latest readings, so you can see your usage for the period.',
+  residentClosing:  'You can view these readings \u2014 and every previous quarter \u2014 any time on the water page.\n\nFrom the main portal, tap the CMC Water card, then \u2018Open Water Meter Readings Report\u2019.\n\nIf you have any questions, just get in touch.'
 };
 
 async function weInit() {
@@ -9528,9 +9537,11 @@ async function weInit() {
   weState.preview = null;
   document.getElementById('weMsg').textContent = '';
 
-  // Default the editable text fields if they're empty
-  if (!document.getElementById('weIntro').value)   document.getElementById('weIntro').value   = weState.defaultIntro;
-  if (!document.getElementById('weClosing').value) document.getElementById('weClosing').value = weState.defaultClosing;
+  // Fresh open always starts in Liscombe Park mode with that mode's wording
+  weState.mode = 'liscombe';
+  document.getElementById('weIntro').value   = weState.defaultIntro;
+  document.getElementById('weClosing').value = weState.defaultClosing;
+  weApplyModeUI();
 
   // Clear recipient field "touched" flags so this fresh visit re-loads sheet
   // defaults into the fields once the preview returns. (User can still edit
@@ -9646,6 +9657,42 @@ function weClearPreview() {
 // Debounced fetch so typing in textareas doesn't hammer the API. The actual
 // preview HTML re-render is local-only after the first fetch — only year/quarter
 // changes trigger a network call.
+// Switch the panel between the Liscombe Park email and the all-residents email.
+// Swaps wording, clears the recipient fields so the new mode's defaults load,
+// and re-fetches the preview (recipients differ per mode).
+function weSetMode(mode) {
+  if (mode !== 'liscombe' && mode !== 'residents') return;
+  if (weState.mode === mode) return;
+  weState.mode = mode;
+  document.getElementById('weIntro').value   = (mode === 'residents') ? weState.residentIntro   : weState.defaultIntro;
+  document.getElementById('weClosing').value = (mode === 'residents') ? weState.residentClosing : weState.defaultClosing;
+  ['weToField','weCcField','weBccField'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (el) { delete el.dataset.touched; el.value = ''; }
+  });
+  weApplyModeUI();
+  _weLastFetchKey = null;   // force a re-fetch for the new mode's recipients
+  document.getElementById('weMsg').textContent = '';
+  weUpdatePreview();
+}
+
+// Update the toggle buttons, title, description and recipient-label notes to
+// match the current mode. Does not touch data or trigger a fetch.
+function weApplyModeUI() {
+  const isRes  = weState.mode === 'residents';
+  const onCss  = 'padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;';
+  const offCss = 'padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);';
+  document.getElementById('weModeLiscombe').style.cssText = isRes ? offCss : onCss;
+  document.getElementById('weModeResidents').style.cssText = isRes ? onCss : offCss;
+  document.getElementById('wePanelTitle').innerHTML = '&#128167; Water Meter Readings &mdash; Email to ' + (isRes ? 'Residents' : 'Liscombe Park');
+  document.getElementById('wePanelDesc').textContent = isRes
+    ? 'Send the quarterly water meter readings to all residents. Residents are BCC\u2019d so no one sees another\u2019s address. The intro and closing text are editable below; the preview updates live.'
+    : 'Send the quarterly water meter readings to the water company. The intro and closing text are editable below before sending. The preview updates live.';
+  document.getElementById('weToLabelNote').textContent  = isRes ? '\u2014 directors\u2019 shared box (so directors get a copy)' : '\u2014 water company (from cmcwater R1)';
+  document.getElementById('weCcLabelNote').textContent  = isRes ? '\u2014 (empty)' : '\u2014 directors (from cmcsettings col A) \u2014 visible to the water company';
+  document.getElementById('weBccLabelNote').textContent = isRes ? '\u2014 all residents (from the Residents sheet) \u2014 hidden from each other' : '\u2014 hidden from the water company';
+}
+
 var _wePreviewFetchTimer = null;
 var _weLastFetchKey = null;
 function weUpdatePreview() {
@@ -9655,7 +9702,7 @@ function weUpdatePreview() {
     weClearPreview();
     return;
   }
-  const key = yr + '_' + q;
+  const key = weState.mode + '_' + yr + '_' + q;
 
   if (_weLastFetchKey === key && weState.preview) {
     // Already have the data; just re-render with current text
@@ -9667,7 +9714,8 @@ function weUpdatePreview() {
   clearTimeout(_wePreviewFetchTimer);
   _wePreviewFetchTimer = setTimeout(async function() {
     try {
-      const url = SCRIPT_URL + '?action=previewWaterReadingsEmail&year=' + yr + '&quarter=' + q;
+      const action = (weState.mode === 'residents') ? 'previewWaterReadingsResidentEmail' : 'previewWaterReadingsEmail';
+      const url = SCRIPT_URL + '?action=' + action + '&year=' + yr + '&quarter=' + q;
       const res = await fetch(url);
       const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Preview failed');
@@ -9698,15 +9746,20 @@ function weRenderPreview() {
   // Stash sheet defaults so the reset buttons can recall them later
   weState.sheetDefaults.to  = (p.recipients && p.recipients.to)  ? p.recipients.to.slice()  : [];
   weState.sheetDefaults.cc  = (p.recipients && p.recipients.cc)  ? p.recipients.cc.slice()  : [];
+  weState.sheetDefaults.bcc = (p.recipients && p.recipients.bcc) ? p.recipients.bcc.slice() : [];
 
   // Populate fields if blank (first load), preserve user edits otherwise
   const toEl  = document.getElementById('weToField');
   const ccEl  = document.getElementById('weCcField');
+  const bccEl = document.getElementById('weBccField');
   if (!toEl.dataset.touched) {
     toEl.value = weState.sheetDefaults.to.join(', ');
   }
   if (!ccEl.dataset.touched) {
     ccEl.value = weState.sheetDefaults.cc.join(', ');
+  }
+  if (!bccEl.dataset.touched) {
+    bccEl.value = weState.sheetDefaults.bcc.join(', ');
   }
 
   // Readings count + warning banner
@@ -9731,7 +9784,8 @@ function weRenderPreview() {
   // values from the editable fields so changes show live.
   const intro   = document.getElementById('weIntro').value   || '';
   const closing = document.getElementById('weClosing').value || '';
-  document.getElementById('wePreview').innerHTML = weBuildPreviewHtml(yr, q, intro, closing, p);
+  const greeting = (weState.mode === 'residents') ? 'Dear Resident,' : 'Dear Liscombe Park,';
+  document.getElementById('wePreview').innerHTML = weBuildPreviewHtml(yr, q, intro, closing, p, greeting);
 }
 
 function weEscHtml(s) {
@@ -9765,17 +9819,10 @@ function weParseRecipientField(raw) {
 // Reset a single recipient field to its sheet default (or clear it for CC,
 // which has no sheet source). Wired to the small reset buttons next to each.
 function weResetField(which) {
-  if (which === 'to') {
-    const el = document.getElementById('weToField');
-    el.value = weState.sheetDefaults.to.join(', ');
-    delete el.dataset.touched;
-  } else if (which === 'bcc') {
-    const el = document.getElementById('weBccField');
-    el.value = '';
-    delete el.dataset.touched;
-  } else if (which === 'cc') {
-    const el = document.getElementById('weCcField');
-    el.value = weState.sheetDefaults.cc.join(', ');
+  const id = which === 'to' ? 'weToField' : (which === 'cc' ? 'weCcField' : 'weBccField');
+  const el = document.getElementById(id);
+  if (el) {
+    el.value = (weState.sheetDefaults[which] || []).join(', ');
     delete el.dataset.touched;
   }
   weUpdatePreview();
@@ -9816,8 +9863,21 @@ function weFormatDateLong(ddmmyyyy) {
   return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-function weBuildPreviewHtml(year, quarter, intro, closing, p) {
+function weFmtDateShort(ddmmyyyy) {
+  if (!ddmmyyyy) return '';
+  const m = ddmmyyyy.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m) return ddmmyyyy;
+  let yr = parseInt(m[3], 10); if (yr < 100) yr += 2000;
+  const d = new Date(yr, parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+  if (isNaN(d.getTime())) return ddmmyyyy;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function weBuildPreviewHtml(year, quarter, intro, closing, p, greeting) {
+  greeting = greeting || 'Dear Liscombe Park,';
   const dateLong = p.majorityDate ? weFormatDateLong(p.majorityDate) : '';
+  const dateShort = p.majorityDate ? weFmtDateShort(p.majorityDate) : '';
   const introWithDate = intro
     .replace(/\[date\]/gi, dateLong)
     .replace(/\[reading date\]/gi, dateLong);
@@ -9882,8 +9942,10 @@ function weBuildPreviewHtml(year, quarter, intro, closing, p) {
     + '</td></tr></table>'
     + '</div>'
     + '<div style="padding:32px;">'
-    + '<p style="margin:0 0 20px;font-size:18px;color:#333333;">Dear Liscombe Park,</p>'
+    + '<p style="margin:0 0 20px;font-size:18px;color:#333333;">' + weEscHtml(greeting) + '</p>'
     + '<p style="margin:0 0 28px;font-size:18px;color:#555555;line-height:1.6;">' + weEscBr(introWithDate) + '</p>'
+    + (dateShort ? '<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 4px;border-collapse:collapse;"><tr><td><p style="margin:0 0 20px;font-size:17px;color:#1e1a16;line-height:1.4;"><strong>Water meter reading date:</strong> ' + weEscHtml(dateShort) + '</p></td></tr></table>' : '')
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px;border-collapse:collapse;"><tr><td style="vertical-align:bottom;"><p style="margin:0;line-height:1.2;font-size:13px;font-weight:600;color:#6b5f52;text-transform:uppercase;letter-spacing:0.08em;">Quarterly Readings</p></td><td style="vertical-align:bottom;text-align:right;"><p style="margin:0;line-height:1.2;font-size:15px;font-weight:700;color:#2a7896;">' + year + ' Q' + quarter + ' &middot; ' + weQtrMonthLabel(quarter).replace(/–/g, ' – ') + '</p></td></tr></table>'
     + '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border-collapse:collapse;font-family:Arial,sans-serif;">'
     + '<thead><tr>' + headerCells + '</tr></thead>'
     + '<tbody>' + rowsHtml + '</tbody>'
@@ -9899,8 +9961,8 @@ function weBuildPreviewHtml(year, quarter, intro, closing, p) {
 }
 
 function weClear() {
-  document.getElementById('weIntro').value   = weState.defaultIntro;
-  document.getElementById('weClosing').value = weState.defaultClosing;
+  document.getElementById('weIntro').value   = (weState.mode === 'residents') ? weState.residentIntro   : weState.defaultIntro;
+  document.getElementById('weClosing').value = (weState.mode === 'residents') ? weState.residentClosing : weState.defaultClosing;
   if (weState.selectedYear && weState.selectedQuarter) {
     document.getElementById('weSubject').value = 'CMC The Courtyard \u2014 Water Meter Readings \u2014 ' + weState.selectedYear + ' Q' + weState.selectedQuarter;
   } else {
@@ -9977,7 +10039,7 @@ async function weSend() {
 
   try {
     const payload = {
-      action:  'sendWaterReadingsEmail',
+      action:  (weState.mode === 'residents') ? 'sendWaterReadingsResidentEmail' : 'sendWaterReadingsEmail',
       year:    yr,
       quarter: q,
       subject: subject,
