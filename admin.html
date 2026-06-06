@@ -2490,7 +2490,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <div style="margin-bottom:0.55rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
               <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">TO <span id="weToLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— water company (from cmcwater R1)</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('to')" title="Reset to the default for this email">&#8635; Reset</button>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" id="weToReset" onclick="weResetField('to')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weToField" placeholder="email@example.com, another@example.com" oninput="weMarkTouched('to');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -2499,7 +2499,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <div style="margin-bottom:0.55rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
               <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">CC <span id="weCcLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— directors (from cmcsettings col A) — visible to the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('cc')" title="Reset to the default for this email">&#8635; Reset</button>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" id="weCcReset" onclick="weResetField('cc')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weCcField" placeholder="(empty)" oninput="weMarkTouched('cc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -2508,7 +2508,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
               <label style="font-size:0.72rem;font-weight:700;color:var(--mid);letter-spacing:0.06em;">BCC <span id="weBccLabelNote" style="font-weight:400;color:var(--stone);text-transform:none;letter-spacing:0;">— hidden from the water company</span></label>
-              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" onclick="weResetField('bcc')" title="Reset to the default for this email">&#8635; Reset</button>
+              <button class="abtn abtn-muted" style="font-size:0.7rem;padding:0.18rem 0.5rem;" id="weBccReset" onclick="weResetField('bcc')" title="Reset to the default for this email">&#8635; Reset</button>
             </div>
             <input type="text" id="weBccField" placeholder="(empty)" oninput="weMarkTouched('bcc');weUpdatePreview()" style="width:100%;box-sizing:border-box;padding:0.5rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.84rem;background:#fff;color:var(--dark);outline:none;">
           </div>
@@ -9596,6 +9596,9 @@ async function weInit() {
     if (el) { delete el.dataset.touched; el.value = ''; }
   });
 
+  // Lock the recipient boxes until the sheet data arrives
+  weSetRecipientsLoading(true);
+
   // Reset success/button areas
   document.getElementById('weButtonArea').style.display  = 'flex';
   document.getElementById('weSuccessArea').style.display = 'none';
@@ -9632,8 +9635,10 @@ async function weInit() {
       }
     }
 
+    if (!weState.selectedQuarter) weSetRecipientsLoading(false);
     weState.loaded = true;
   } catch(e) {
+    weSetRecipientsLoading(false);
     document.getElementById('weMsg').style.color = '#b05050';
     document.getElementById('weMsg').textContent = '\u2717 Could not load water readings — ' + e.message;
   }
@@ -9740,6 +9745,47 @@ function weApplyModeUI() {
 
 var _wePreviewFetchTimer = null;
 var _weLastFetchKey = null;
+// While the recipient addresses are being fetched from the sheet, lock the
+// To/Cc/Bcc boxes (greyed + read-only + "Loading…") so it's clear they're
+// loading and can't be typed into mid-fetch. Also disables their Reset buttons
+// and the Send button, and shows a small status note. Applies to both modes.
+function weSetRecipientsLoading(isLoading) {
+  ['weToField','weCcField','weBccField'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (isLoading) {
+      if (el.dataset.ph === undefined) el.dataset.ph = el.placeholder;
+      el.placeholder = 'Loading…';
+      el.disabled = true;
+      el.style.background = '#efeae1';
+      el.style.color = '#9a9183';
+      el.style.cursor = 'not-allowed';
+    } else {
+      el.disabled = false;
+      el.style.background = '#fff';
+      el.style.color = 'var(--dark)';
+      el.style.cursor = '';
+      if (el.dataset.ph !== undefined) { el.placeholder = el.dataset.ph; delete el.dataset.ph; }
+    }
+  });
+  ['weToReset','weCcReset','weBccReset'].forEach(function(id){
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.disabled = isLoading;
+    b.style.opacity = isLoading ? '0.5' : '';
+    b.style.pointerEvents = isLoading ? 'none' : '';
+  });
+  const msg = document.getElementById('weMsg');
+  if (isLoading) {
+    const send = document.getElementById('weSendBtn');
+    if (send) send.disabled = true;
+    msg.style.color = 'var(--mid)';
+    msg.textContent = 'Loading recipients from the sheet…';
+  } else if (msg.textContent.indexOf('Loading recipients') !== -1) {
+    msg.textContent = '';
+  }
+}
+
 function weUpdatePreview() {
   const yr = weState.selectedYear;
   const q  = weState.selectedQuarter;
@@ -9756,6 +9802,7 @@ function weUpdatePreview() {
   }
 
   // New year/quarter → fetch
+  weSetRecipientsLoading(true);
   clearTimeout(_wePreviewFetchTimer);
   _wePreviewFetchTimer = setTimeout(async function() {
     try {
@@ -9775,6 +9822,7 @@ function weUpdatePreview() {
 
       weRenderPreview();
     } catch(e) {
+      weSetRecipientsLoading(false);
       document.getElementById('weMsg').style.color = '#b05050';
       document.getElementById('weMsg').textContent = '\u2717 Could not load preview — ' + e.message;
       weClearPreview();
@@ -9785,6 +9833,7 @@ function weUpdatePreview() {
 function weRenderPreview() {
   const p = weState.preview;
   if (!p) return;
+  weSetRecipientsLoading(false);
   const yr = p.year;
   const q  = p.quarter;
 
