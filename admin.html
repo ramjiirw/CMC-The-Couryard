@@ -9591,7 +9591,7 @@ async function weInit() {
   // Clear recipient field "touched" flags so this fresh visit re-loads sheet
   // defaults into the fields once the preview returns. (User can still edit
   // afterwards; the touched flag is per-visit only.)
-  ['weToField', 'weCcField', 'weBccField'].forEach(function(id) {
+  ['weSubject', 'weToField', 'weCcField', 'weBccField'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) { delete el.dataset.touched; el.value = ''; }
   });
@@ -9750,7 +9750,7 @@ var _weLastFetchKey = null;
 // loading and can't be typed into mid-fetch. Also disables their Reset buttons
 // and the Send button, and shows a small status note. Applies to both modes.
 function weSetRecipientsLoading(isLoading) {
-  ['weToField','weCcField','weBccField'].forEach(function(id){
+  ['weSubject','weToField','weCcField','weBccField'].forEach(function(id){
     const el = document.getElementById(id);
     if (!el) return;
     if (isLoading) {
@@ -9970,7 +9970,7 @@ function weFmtDateShort(ddmmyyyy) {
 
 function weBuildPreviewHtml(year, quarter, intro, closing, p, greeting, includePortalButton) {
   greeting = greeting || 'Dear Liscombe Park,';
-  const portalButtonHtml = includePortalButton ? '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;"><tr><td align="center"><a href="https://cmcthecourtyard.com" style="display:inline-block;background:#2c2c2c;color:#c8a96e;font-size:18px;font-weight:bold;text-decoration:none;letter-spacing:0.5px;padding:14px 38px;border-radius:6px;">Visit the Portal</a></td></tr></table>' : '';
+  const portalButtonHtml = includePortalButton ? '<table align="center" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;"><tr><td align="center" bgcolor="#2c2c2c" style="background:#2c2c2c;border-radius:6px;mso-padding-alt:14px 38px;"><a href="https://cmcthecourtyard.com" style="display:inline-block;background:#2c2c2c;color:#c8a96e;font-size:18px;font-weight:bold;text-decoration:none;letter-spacing:0.5px;padding:14px 38px;border-radius:6px;">Visit the Portal</a></td></tr></table>' : '';
   const dateLong = p.majorityDate ? weFormatDateLong(p.majorityDate) : '';
   const dateShort = p.majorityDate ? weFmtDateShort(p.majorityDate) : '';
   const introWithDate = intro
