@@ -1780,6 +1780,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC</td>
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Readings to Residents</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to all residents via the Water Meter Readings panel (Residents toggle)<br><span style="font-size:0.72rem;color:var(--mid);">Same readings table, reading date and quarter heading as the Liscombe Park email, with resident-facing wording and a pointer to the resident portal. Residents are BCC&#39;d so no one sees another&#39;s address; the directors&#39; shared box sits in TO so directors get a copy. Replies are addressed to cmcdirectors@hotmail.com and iwoodland@hotmail.com. No CSV attachment. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN". Logged to Send History as "Water Readings (Residents)".</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents BCC&#39;d (from the Residents sheet, Email column); directors&#39; shared box in TO (cmcdirectors@hotmail.com); overridable per send</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(96,144,176,0.18);color:#2d5a78;border:1px solid rgba(96,144,176,0.3);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">SIP Contact</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--dark);">Visitor uses the Contact form in the Seller&rsquo;s Information Portal header<br><span style="font-size:0.72rem;color:var(--mid);">Visitor enters their name and email, a recipient (often the seller&rsquo;s solicitor), optionally CCs CMC directors, plus a subject and message. The portal forwards the message; the Reply-To header is set to the visitor&rsquo;s email so recipients reply directly to them. Logged to Broadcast History as <code>SIP Contact</code> with the sender&rsquo;s name and email in the Sent By column.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Address entered by visitor; optionally CC cmcdirectors@hotmail.com</td>
@@ -2271,6 +2277,43 @@ When returning the bill, please indicate:
 The total administration charge is £2.50 per quarter.
 
 If you have any queries regarding the readings, please don't hesitate to get in touch.]
+
+Kind regards
+
+CMC The Courtyard</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);">Water Readings to Residents</span>
+              <span class="eref-label">Sent manually by admin from the Water Meter Readings panel (Residents toggle)</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <div class="eref-sub">BCC to all residents (from the Residents sheet) — hidden from each other. Directors&#39; shared box in TO. Reply-To: cmcdirectors@hotmail.com, iwoodland@hotmail.com. No attachment.</div>
+              <pre class="eref-pre">Dear Resident,
+
+[Editable intro text — defaults to:
+Your water meters have been read for this quarter. Below are the latest readings, so you can see your usage for the period. These readings have been sent to our water supplier, Liscombe Park. Once we receive the bill back from them, a bill for each residence will be prepared and sent out. All water bills will also be viewable any time on the resident portal.]
+
+Water meter reading date: [date]
+
+Quarterly Readings                                    YYYY QN · [month range]
+
+[Formatted table of property-by-property readings]
+  Property         Water Meter No.   Reading       Volume (m³)
+  1 The Courtyard  [number]          [reading]     [volume]
+  2 The Courtyard  [number]          [reading]     [volume]
+  …
+  Total CMC Water Meter Reading and Total Water Volume
+
+[Editable closing text — defaults to:
+You can view these readings — and every previous quarter — any time on the water page.
+
+From the main portal, tap the CMC Water card, then ‘Open Water Meter Readings Report’.
+
+If you have any questions, just get in touch.]
 
 Kind regards
 
