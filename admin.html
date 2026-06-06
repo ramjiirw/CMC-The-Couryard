@@ -1781,7 +1781,7 @@
             </tr>
             <tr style="border-bottom:1px solid rgba(184,173,158,0.3);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(60,140,180,0.12);color:#1f6680;border:1px solid rgba(60,140,180,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Readings to Residents</span></td>
-              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to all residents via the Water Meter Readings panel (Residents toggle)<br><span style="font-size:0.72rem;color:var(--mid);">Same readings table, reading date and quarter heading as the Liscombe Park email, with resident-facing wording and a pointer to the resident portal. Residents are BCC&#39;d so no one sees another&#39;s address; the directors&#39; shared box sits in TO so directors get a copy. Replies are addressed to cmcdirectors@hotmail.com and iwoodland@hotmail.com. No CSV attachment. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN". Logged to Send History as "Water Readings (Residents)".</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water meter readings to all residents via the Water Meter Readings panel (Residents toggle)<br><span style="font-size:0.72rem;color:var(--mid);">Same readings table, reading date and quarter heading as the Liscombe Park email, with resident-facing wording, a &quot;Visit the Portal&quot; button (to cmcthecourtyard.com) and a pointer to the CMC Water card. Residents are BCC&#39;d so no one sees another&#39;s address; the directors&#39; shared box sits in TO so directors get a copy. Replies are addressed to cmcdirectors@hotmail.com and iwoodland@hotmail.com. No CSV attachment. Subject defaults to "CMC The Courtyard &mdash; Water Meter Readings &mdash; YYYY QN". Logged to Send History as "Water Readings (Residents)".</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">All residents BCC&#39;d (from the Residents sheet, Email column); directors&#39; shared box in TO (cmcdirectors@hotmail.com); overridable per send</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / BCC</td>
             </tr>
@@ -2314,6 +2314,8 @@ You can view these readings — and every previous quarter — any time on the w
 From the main portal, tap the CMC Water card, then ‘Open Water Meter Readings Report’.
 
 If you have any questions, just get in touch.]
+
+[Visit the Portal button → https://cmcthecourtyard.com]
 
 Kind regards
 
@@ -9828,7 +9830,7 @@ function weRenderPreview() {
   const intro   = document.getElementById('weIntro').value   || '';
   const closing = document.getElementById('weClosing').value || '';
   const greeting = (weState.mode === 'residents') ? 'Dear Resident,' : 'Dear Liscombe Park,';
-  document.getElementById('wePreview').innerHTML = weBuildPreviewHtml(yr, q, intro, closing, p, greeting);
+  document.getElementById('wePreview').innerHTML = weBuildPreviewHtml(yr, q, intro, closing, p, greeting, (weState.mode === 'residents'));
 }
 
 function weEscHtml(s) {
@@ -9917,8 +9919,9 @@ function weFmtDateShort(ddmmyyyy) {
   return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-function weBuildPreviewHtml(year, quarter, intro, closing, p, greeting) {
+function weBuildPreviewHtml(year, quarter, intro, closing, p, greeting, includePortalButton) {
   greeting = greeting || 'Dear Liscombe Park,';
+  const portalButtonHtml = includePortalButton ? '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;"><tr><td align="center" style="background:#2c2c2c;border-radius:4px;padding:14px 24px;"><a href="https://cmcthecourtyard.com" style="color:#c8a96e;font-size:18px;font-weight:bold;text-decoration:none;letter-spacing:0.5px;">Visit the Portal</a></td></tr></table>' : '';
   const dateLong = p.majorityDate ? weFormatDateLong(p.majorityDate) : '';
   const dateShort = p.majorityDate ? weFmtDateShort(p.majorityDate) : '';
   const introWithDate = intro
@@ -9995,6 +9998,7 @@ function weBuildPreviewHtml(year, quarter, intro, closing, p, greeting) {
     + '<tfoot>' + totalsHtml + '</tfoot>'
     + '</table>'
     + '<p style="margin:28px 0 28px;font-size:18px;color:#555555;line-height:1.6;">' + weEscBr(closing) + '</p>'
+    + portalButtonHtml
     + '</div>'
     + '<div style="background:#f9f9f9;border-top:1px solid #eeeeee;padding:16px 32px;">'
     + '<p style="margin:0;font-size:18px;color:#999999;">Kind regards<br><br><strong style="color:#555555;">CMC The Courtyard</strong></p>'
