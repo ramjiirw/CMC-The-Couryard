@@ -2052,12 +2052,13 @@ function renderMaintDocs() {
   var sortState = renderMaintDocs._sort;
 
   // Categorise files by prefix — HIDE_ silently dropped
-  var pinned = [], site = [], legal = [], general = [];
+  var pinned = [], site = [], legal = [], quote = [], general = [];
   state.files.forEach(function(f) {
     if (f.name.startsWith('HIDE_'))  { return; }
     if (f.name.startsWith('PIN_'))   { pinned.push(f);   return; }
     if (f.name.startsWith('SITE_'))  { site.push(f);     return; }
     if (f.name.startsWith('LEGAL_')) { legal.push(f);    return; }
+    if (f.name.startsWith('QUOTE_')) { quote.push(f);    return; }
     if (f.name.startsWith('GEN_'))   { general.push(f);  return; }
     general.push(f);
   });
@@ -2087,8 +2088,9 @@ function renderMaintDocs() {
   }
   var filteredSite    = applyFilter(site,    'SITE_');
   var filteredLegal   = applyFilter(legal,   'LEGAL_');
+  var filteredQuote   = applyFilter(quote,   'QUOTE_');
   var filteredGeneral = applyFilter(general, '');
-  var totalFiltered   = filteredSite.length + filteredLegal.length + filteredGeneral.length;
+  var totalFiltered   = filteredSite.length + filteredLegal.length + filteredQuote.length + filteredGeneral.length;
 
   // Update count pill and clear button
   var docCountEl = document.getElementById('maintDocCount');
@@ -2131,6 +2133,7 @@ function renderMaintDocs() {
 
   var html = buildGroup('CMC Site',    filteredSite,    'SITE_',  'site')
            + buildGroup('CMC Legal',   filteredLegal,   'LEGAL_', 'legal')
+           + buildGroup('CMC Quotes',  filteredQuote,   'QUOTE_', 'quote')
            + buildGroup('CMC General', filteredGeneral, '',       'general');
 
   wrap.innerHTML = html || '<div class="doc-state-empty">No documents match your filter.</div>';
