@@ -2256,7 +2256,7 @@
     var clean = str.replace(/\[IL\]/g, '').replace(/\s{2,}/g, ' ').trim();
     var out = esc(clean);
     if (highlighted) out = '<strong>' + out + '</strong>';
-    if (hasIL) out += ' <span class="agm-il-pill">&rarr; Issue Log</span>';
+    if (hasIL) out += ' <span class="agm-il-pill">&#10148; Issue Log</span>';
     return out;
   }
 
