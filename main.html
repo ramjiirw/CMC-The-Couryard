@@ -736,6 +736,7 @@
   .agm-action-card-ref { font-size: 13px; color: #6b5f52; line-height: 1.4; }
   .agm-badge-outstanding { font-size: 11px; background: #fdf0e4; color: #a06020; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
   .agm-badge-complete { font-size: 11px; background: #eaf3e0; color: #2e7d32; border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .agm-il-pill { display: inline-block; font-size: 11px; background: #eef2f6; color: #3a566e; border: 1px solid #d3e0ea; border-radius: 10px; padding: 2px 9px; white-space: nowrap; margin-left: 4px; vertical-align: 1px; }
   .agm-actions-hint { font-size: 12px; color: #b8ad9e; font-style: italic; margin-bottom: 10px; padding: 0 8px; }
   .agm-actions-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 10px; padding: 0 8px; flex-wrap: wrap; }
   .agm-filter-group { display: flex; gap: 6px; flex-shrink: 0; }
@@ -2246,6 +2247,19 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // Render an action's display text: strip the exact [IL] marker and, if present,
+  // append the "→ Issue Log" pill. Does not change the underlying a.text value,
+  // so action numbering, highlighting and modal lookups are unaffected.
+  function renderActionText(raw, highlighted) {
+    var str = String(raw || '');
+    var hasIL = str.indexOf('[IL]') !== -1;
+    var clean = str.replace(/\[IL\]/g, '').replace(/\s{2,}/g, ' ').trim();
+    var out = esc(clean);
+    if (highlighted) out = '<strong>' + out + '</strong>';
+    if (hasIL) out += ' <span class="agm-il-pill">&rarr; Issue Log</span>';
+    return out;
+  }
+
   function formatAGMDate(raw) {
     if (!raw) return '';
     var d = new Date(raw);
@@ -2437,10 +2451,10 @@
         h += '<div class="agm-agenda-action-row"' + highlightStyle + '>';
         if (isMobile) {
           if (actionNum) h += '<div style="display:flex;align-items:center;gap:8px;">' + '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>' + badge + '</div>';
-          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
+          h += '<span class="agm-agenda-action-text">' + renderActionText(a.text, isHighlighted) + '</span>';
         } else {
           if (actionNum) h += '<span class="agm-agenda-action-label">' + esc(actionNum) + '</span>';
-          h += '<span class="agm-agenda-action-text">' + (isHighlighted ? '<strong>' + esc(a.text) + '</strong>' : esc(a.text)) + '</span>';
+          h += '<span class="agm-agenda-action-text">' + renderActionText(a.text, isHighlighted) + '</span>';
           h += badge;
         }
         h += '</div>';
@@ -2466,7 +2480,7 @@
     var h = '<div class="agm-section-subhead">' + esc(sectionLabel) + '</div>';
     filtered.forEach(function(item) {
       item.actions.forEach(function(a) {
-        var actionText = esc(a.text);
+        var actionText = renderActionText(a.text, false);
         var itemRef = item.item ? esc(item.item) : (item.number ? esc(item.number) : '');
         var dataKey = JSON.stringify({ sectionKey: sectionKey, itemItem: item.item || '', itemNumber: item.number || '', itemRaisedBy: item.raisedBy || '', itemNote: item.note || '', actions: item.actions });
 
@@ -2550,10 +2564,10 @@
         h += '<div class="agm-action-card-top">';
         if (isMobile) {
           h += '<div style="display:flex;align-items:center;gap:8px;width:100%;">' + '<span class="agm-action-card-num">' + esc(num) + '</span>' + badge + '</div>';
-          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+          h += '<span class="agm-action-card-text">' + renderActionText(a.text, false) + '</span>';
         } else {
           h += '<span class="agm-action-card-num">' + esc(num) + '</span>';
-          h += '<span class="agm-action-card-text">' + esc(a.text) + '</span>';
+          h += '<span class="agm-action-card-text">' + renderActionText(a.text, false) + '</span>';
           h += badge;
         }
         h += '</div>';
