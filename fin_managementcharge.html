@@ -251,12 +251,15 @@
     #statement-overlay { overflow-x: auto; }
     #statement-overlay-content { min-width: 700px; }
     #statement-overlay > div:first-child { min-width: 700px; }
+    #bio-report-overlay { overflow-x: auto; }
+    #bio-report-overlay-content { min-width: 700px; }
+    #bio-report-overlay > div:first-child { min-width: 700px; }
   }
 
   @media print {
-    body > *:not(#iet-report-overlay):not(#bva-report-overlay):not(#statement-overlay) { display: none !important; }
-    #iet-report-overlay, #bva-report-overlay, #statement-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
-    #iet-report-overlay > div:first-child, #bva-report-overlay > div:first-child, #statement-overlay > div:first-child { display: none !important; }
+    body > *:not(#iet-report-overlay):not(#bva-report-overlay):not(#statement-overlay):not(#bio-report-overlay) { display: none !important; }
+    #iet-report-overlay, #bva-report-overlay, #statement-overlay, #bio-report-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
+    #iet-report-overlay > div:first-child, #bva-report-overlay > div:first-child, #statement-overlay > div:first-child, #bio-report-overlay > div:first-child { display: none !important; }
     .rpt-actions { display: none !important; }
     .rpt-net { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -1259,6 +1262,23 @@
   <!-- Finance Authorisation Tracker — director spend authorisation log         -->
   <!-- Sheet: cmcdirectors · Password: cmcsettings!B2 · Hash anchor: #financeauth -->
   <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Bio Filter Cottages Tracker — RLF cottages recharge (Due / Paid / Outstanding) -->
+  <!-- Mirrors the Budget vs Actual report. Reader: code.gs action=readBioFilter         -->
+  <div class="finance-section" id="biofilter-section">
+    <h3 class="section-heading">Bio Filter Cottages Tracker</h3>
+    <div style="height:4px;background:var(--cream);"></div>
+    <button class="btn-toggle btn-loading" id="toggle-bioreport" onclick="openBioReport()" style="background:#4a5e3a;">
+      <span class="toggle-left"><span>&#128196; Open Bio Filter Cottages Report</span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">&#9203; Loading data&hellip;</span>
+        <span class="hint-open">Tap to open &amp; view</span>
+      </span>
+    </button>
+    <div id="biofilter-coming-soon" style="display:none;padding:0.9rem 1.5rem;color:var(--stone);font-size:0.88rem;font-style:italic;border-top:1px solid var(--border);">
+      No bio filter recharge years have been set up yet — directors will populate the RLFBiofilter sheet.
+    </div>
+  </div>
+
   <div style="margin-top: 3rem;">
     <h3 class="section-heading" id="financeauth">Finance Authorisation Tracker</h3>
     <button class="btn-toggle btn-loading" id="toggle-financeauth" onclick="toggleFinanceAuth()" aria-expanded="false">
@@ -1358,6 +1378,22 @@
   </div>
 </div>
 
+<!-- Bio Filter Cottages Report Overlay -->
+<div id="bio-report-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+  <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+    <select id="bio-rpt-year-select" onchange="bioRptChangeYear(parseInt(this.value))" style="width:90px;padding:0.35rem 0.6rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
+    <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+      <button onclick="printReport('bio')" style="padding:0.4rem 1rem;background:#fff;color:#4a5e3a;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+      <button onclick="closeBioReportOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">✕ Close</button>
+    </div>
+  </div>
+  <div id="bio-report-overlay-content" style="padding:2rem 3rem;max-width:1000px;margin:0 auto;"></div>
+  <div id="bio-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div class="spinner" style="width:2rem;height:2rem;border-width:3px;"></div>
+    <div id="bio-loading-text" style="font-family:Arial,sans-serif;font-size:1rem;font-weight:600;color:#4a5e3a;">Loading data…</div>
+  </div>
+</div>
+
 <!-- Property Statement Overlay -->
 <div id="statement-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
   <div style="position:sticky;top:0;z-index:10;background:#4a5e3a;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -1420,6 +1456,8 @@
       document.title = 'CMC The Courtyard \u2014 Income & Expenditure ' + ietReportYear;
     } else if (type === 'stmt') {
       document.title = 'CMC The Courtyard \u2014 Property Statement ' + (stmtAddr || '');
+    } else if (type === 'bio') {
+      document.title = 'CMC The Courtyard \u2014 Bio Filter Cottages ' + bioReportYear;
     } else {
       document.title = 'CMC The Courtyard \u2014 Budget vs Actual ' + bvaReportYear;
     }
@@ -1587,6 +1625,7 @@
       try { renderIET(); } catch(e) {}
     }
     document.getElementById('toggle-bvareport').classList.remove('btn-loading');
+    var bioBtnLoad = document.getElementById('toggle-bioreport'); if (bioBtnLoad) bioBtnLoad.classList.remove('btn-loading');
     // Show/hide section and set button state based on enabled years
     var hasEnabledYears = bvaData && bvaData.years && bvaData.years.length > 0;
     var bvaSection = document.getElementById('bva-section');
@@ -4764,6 +4803,154 @@
     if (overlay) overlay.style.display = 'none';
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
+  }
+
+  // ── Bio Filter Cottages Report (mirrors the Budget vs Actual report) ─────────
+  var bioData = null;
+  var bioReportYear = currentYear;
+
+  function bioMoney(n) {
+    n = n || 0;
+    return '£' + Math.abs(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function bioOut(n) {
+    var s = '£' + Math.abs(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (n > 0.005)  return '<span style="color:#c62828;font-weight:700;">' + s + '</span>';   // still owed
+    if (n < -0.005) return '<span style="color:#2e7d32;font-weight:700;">(' + s + ')</span>'; // overpaid / credit
+    return '<span style="color:#2e7d32;font-weight:700;">£0.00</span>';                       // cleared
+  }
+
+  async function openBioReport() {
+    if (!bioData) {
+      try {
+        var res = await fetch(SCRIPT_URL + '?action=readBioFilter');
+        var json = await res.json();
+        if (json.status === 'ok') { bioData = json; }
+        else throw new Error(json.message || 'Error');
+      } catch(e) {
+        alert('Could not load bio filter data: ' + e.message);
+        return;
+      }
+    }
+
+    var ys = (bioData && bioData.years) ? bioData.years.slice().sort(function(a, b){ return b - a; }) : [];
+    if (ys.length === 0) {
+      var cs = document.getElementById('biofilter-coming-soon');
+      if (cs) cs.style.display = '';
+      return;
+    }
+    if (ys.indexOf(bioReportYear) === -1) bioReportYear = ys[0];
+
+    var sel = document.getElementById('bio-rpt-year-select');
+    if (sel) {
+      sel.innerHTML = '';
+      ys.forEach(function(y) {
+        var o = document.createElement('option');
+        o.value = y; o.textContent = y;
+        o.style.background = '#4a5e3a'; o.style.color = '#fff';
+        if (y === bioReportYear) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+
+    renderBioReport();
+
+    var overlay = document.getElementById('bio-report-overlay');
+    if (overlay) { overlay.style.display = 'block'; overlay.scrollTop = 0; document.body.style.overflow = 'hidden'; document.documentElement.style.overflow = 'hidden'; }
+  }
+
+  function closeBioReportOverlay() {
+    var overlay = document.getElementById('bio-report-overlay');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  }
+
+  function bioRptChangeYear(y) {
+    bioReportYear = y;
+    renderBioReport();
+  }
+
+  function renderBioReport() {
+    var cottages = (bioData && bioData.cottages) ? bioData.cottages : [];
+    var due      = (bioData && bioData.duePerProperty && bioData.duePerProperty[bioReportYear]) ? bioData.duePerProperty[bioReportYear] : 0;
+    var paidMap  = (bioData && bioData.paid && bioData.paid[bioReportYear]) ? bioData.paid[bioReportYear] : {};
+
+    var now = new Date();
+    var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+    var totalDue = 0, totalPaid = 0, totalOut = 0;
+
+    var h = '';
+    h += '<style>@media print{@page{size:portrait;}}</style>';
+
+    // Header — identical layout to the BVA / I&E reports
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+    h += '<div style="display:flex;align-items:center;">';
+    h += '<img src="https://cmcthecourtyard.com/cmcemaillogo.png" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+    h += '<div style="margin-left:1rem;">';
+    h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+    h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Bio Filter Cottages Summary</div>';
+    h += '</div></div>';
+    h += '<div style="text-align:right;">';
+    h += '<div style="font-size:20px;font-weight:700;color:#7a5c3e;">' + bioReportYear + ' &middot; Recharge</div>';
+    h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+    h += '</div></div>';
+
+    // Column header row
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:0;">';
+    h += '<div class="bva-col-head" style="flex:1;">Rock Lane Farm Cottages</div>';
+    h += '<div style="display:flex;">';
+    h += '<div style="width:130px;text-align:right;" class="bva-col-head">Due</div>';
+    h += '<div style="width:130px;text-align:right;" class="bva-col-head">Paid</div>';
+    h += '<div style="width:130px;text-align:right;" class="bva-col-head">Outstanding</div>';
+    h += '</div></div>';
+
+    // One flat row per cottage (no chevrons — the all-years history view will carry the detail)
+    cottages.forEach(function(ct) {
+      var paid = paidMap[ct] || 0;
+      var out  = due - paid;
+      totalDue += due; totalPaid += paid; totalOut += out;
+      h += '<div class="bva-group-row" style="cursor:default;">';
+      h += '<span class="bva-group-name">No. ' + ct + '</span>';
+      h += '<div class="bva-group-cols">';
+      h += '<div class="bva-gcol bva-budget-val">' + bioMoney(due) + '</div>';
+      h += '<div class="bva-gcol" style="color:#6b5f52;font-weight:700;">' + bioMoney(paid) + '</div>';
+      h += '<div class="bva-gcol">' + bioOut(out) + '</div>';
+      h += '</div></div>';
+    });
+
+    // Total row
+    h += '<div class="bva-section-total">';
+    h += '<span class="bva-section-total-name">Total (' + cottages.length + ' cottages)</span>';
+    h += '<div style="display:flex;">';
+    h += '<div class="bva-stcol bva-budget-val">' + bioMoney(totalDue) + '</div>';
+    h += '<div class="bva-stcol bva-actual-val">' + bioMoney(totalPaid) + '</div>';
+    h += '<div class="bva-stcol">' + bioOut(totalOut) + '</div>';
+    h += '</div></div>';
+
+    h += '<div style="height:24px;"></div>';
+
+    // Summary block — mirrors the BVA summary
+    h += '<div class="bva-summary-block">';
+    h += '<div class="bva-sum-row bva-sum-head">';
+    h += '<div style="flex:1;">Summary</div>';
+    h += '<div class="bva-sum-cols"><div class="bva-scol">Due</div><div class="bva-scol">Paid</div><div class="bva-scol">Outstanding</div></div>';
+    h += '</div>';
+    h += '<div>';
+    h += '<div class="bva-sum-row">';
+    h += '<div class="bva-sum-label">Total Recharge ' + bioReportYear + '</div>';
+    h += '<div class="bva-sum-cols">';
+    h += '<div class="bva-scol bva-budget-val">' + bioMoney(totalDue) + '</div>';
+    h += '<div class="bva-scol" style="color:#6b5f52;font-weight:700;">' + bioMoney(totalPaid) + '</div>';
+    h += '<div class="bva-scol">' + bioOut(totalOut) + '</div>';
+    h += '</div></div>';
+    h += '</div>';
+    h += '</div>'; // end summary block
+
+    var content = document.getElementById('bio-report-overlay-content');
+    if (content) content.innerHTML = h;
   }
 
   function bvaToggleActuals() {
