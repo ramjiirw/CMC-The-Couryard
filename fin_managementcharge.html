@@ -257,6 +257,7 @@
   }
 
   @media print {
+    html, body { background: #fff !important; }
     body > *:not(#iet-report-overlay):not(#bva-report-overlay):not(#statement-overlay):not(#bio-report-overlay) { display: none !important; }
     #iet-report-overlay, #bva-report-overlay, #statement-overlay, #bio-report-overlay { position: absolute !important; overflow: visible !important; height: auto !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: auto !important; }
     #iet-report-overlay > div:first-child, #bva-report-overlay > div:first-child, #statement-overlay > div:first-child, #bio-report-overlay > div:first-child { display: none !important; }
@@ -4901,7 +4902,7 @@
     // Column header row
     h += '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:0;">';
     h += '<div class="bva-col-head" style="flex:1;">Rock Lane Farm Cottages</div>';
-    h += '<div style="display:flex;">';
+    h += '<div style="display:flex;padding-right:8px;">';
     h += '<div style="width:130px;text-align:right;" class="bva-col-head">Due</div>';
     h += '<div style="width:130px;text-align:right;" class="bva-col-head">Paid</div>';
     h += '<div style="width:130px;text-align:right;" class="bva-col-head">Outstanding</div>';
@@ -4913,7 +4914,8 @@
       var out  = due - paid;
       totalDue += due; totalPaid += paid; totalOut += out;
       h += '<div class="bva-group-row" style="cursor:default;">';
-      h += '<span class="bva-group-name">' + ct + '</span>';
+      var _sp = ct.indexOf(' '); var _num = _sp > -1 ? ct.substring(0, _sp) : ct; var _rest = _sp > -1 ? ct.substring(_sp + 1) : '';
+      h += '<span class="bva-group-name"><span style="display:inline-block;width:1.6em;text-align:right;">' + _num + '</span>' + _rest + '</span>';
       h += '<div class="bva-group-cols">';
       h += '<div class="bva-gcol bva-budget-val">' + bioMoney(due) + '</div>';
       h += '<div class="bva-gcol" style="color:#6b5f52;font-weight:700;">' + bioMoney(paid) + '</div>';
@@ -4934,12 +4936,12 @@
 
     // Summary block — mirrors the BVA summary
     h += '<div class="bva-summary-block">';
-    h += '<div class="bva-sum-row bva-sum-head">';
+    h += '<div class="bva-sum-row bva-sum-head" style="padding-left:16px;padding-right:6px;">';
     h += '<div style="flex:1;">Summary</div>';
     h += '<div class="bva-sum-cols"><div class="bva-scol" style="font-size:12px;">Due</div><div class="bva-scol" style="font-size:12px;">Paid</div><div class="bva-scol" style="font-size:12px;">Outstanding</div></div>';
     h += '</div>';
     h += '<div>';
-    h += '<div class="bva-sum-row">';
+    h += '<div class="bva-sum-row" style="padding-left:16px;padding-right:6px;">';
     h += '<div class="bva-sum-label">Total Recharge ' + bioReportYear + '</div>';
     h += '<div class="bva-sum-cols">';
     h += '<div class="bva-scol bva-budget-val">' + bioMoney(totalDue) + '</div>';
