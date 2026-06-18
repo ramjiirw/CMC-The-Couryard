@@ -956,6 +956,8 @@
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Water</div>
       <div class="sidebar-link" data-panel="wateremail" id="nav-wateremail">&#128167; Water Meter Readings</div>
+      <div class="sidebar-label">Bio Filter</div>
+      <div class="sidebar-link" data-panel="biofilter" id="nav-biofilter">&#127969; RLF Cottages</div>
       <div class="sidebar-label">Finance</div>
       <div class="sidebar-link" data-panel="categoryref" id="nav-categoryref">&#128181; Category Reference</div>
       <div class="sidebar-label">Settings</div>
@@ -1657,6 +1659,74 @@
               <button onclick="uiMobileSave()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;">Done</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="panel-biofilter">
+        <div class="panel-title">Bio Filter &mdash; RLF Cottages</div>
+        <div class="panel-desc">Enter the yearly costs for the Rock Lane Farm bio filter recharge. The totals and <strong>Due per Property</strong> are worked out for you and saved back to the <strong>RLFBiofilter</strong> sheet &mdash; the same figure the resident report reads. Electricity is recharged at a fixed 95%.</div>
+
+        <style>
+          #bfTable { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:0.8rem; }
+          #bfTable th { text-align:right; font-weight:600; color:var(--mid); padding:0.45rem 0.3rem; font-size:0.71rem; white-space:nowrap; }
+          #bfTable th.bf-yr-h { text-align:left; }
+          #bfTable th.bf-calc-h { color:var(--stone); }
+          #bfTable td { padding:0.3rem 0.25rem; border-top:1px solid rgba(122,92,62,0.15); text-align:right; vertical-align:middle; }
+          #bfTable td.bf-yr { text-align:left; font-weight:700; color:var(--dark); padding-left:0.2rem; }
+          #bfTable input.bf-in { width:100%; box-sizing:border-box; text-align:right; padding:0.32rem 0.4rem; border:1px solid rgba(122,92,62,0.28); border-radius:5px; font-family:Arial,sans-serif; font-size:0.78rem; color:var(--dark); background:#fff; outline:none; }
+          #bfTable input.bf-in:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(122,92,62,0.12); }
+          #bfTable td.bf-calc { background:rgba(122,92,62,0.06); color:var(--mid); white-space:nowrap; }
+          #bfTable td.bf-due { font-weight:700; color:var(--dark); }
+          #bfTable .bf-sep { border-left:1px solid rgba(122,92,62,0.28); }
+          .bf-count-box { background:var(--cream); border-radius:8px; padding:0.5rem 0.85rem; }
+          .bf-count-box label { display:block; font-size:0.66rem; color:var(--mid); margin-bottom:0.25rem; letter-spacing:0.03em; }
+          .bf-count-box input { width:72px; padding:0.32rem 0.45rem; border:1px solid rgba(122,92,62,0.28); border-radius:5px; font-family:Arial,sans-serif; font-size:0.9rem; text-align:right; color:var(--dark); background:#fff; outline:none; }
+          .bf-count-fixed { font-size:0.9rem; font-weight:700; color:var(--dark); padding-top:0.15rem; }
+          .bf-cottage-chip { display:inline-block; font-size:0.75rem; background:var(--cream); color:var(--mid); padding:0.28rem 0.65rem; border-radius:5px; margin:0 0.35rem 0.35rem 0; }
+          .bf-legend { font-size:0.72rem; color:var(--stone); margin-bottom:0.5rem; display:flex; gap:1.4rem; flex-wrap:wrap; }
+        </style>
+
+        <div id="bfMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.1rem;color:var(--mid);"></div>
+
+        <!-- Counts strip -->
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.1rem;align-items:flex-end;">
+          <div class="bf-count-box"><label>BIO FILTER PROPERTIES</label><input type="text" id="bfBioProps" oninput="bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>RLF COTTAGES</label><input type="text" id="bfRlf" oninput="bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>CMC PROPERTIES</label><input type="text" id="bfCmc" oninput="bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>ELECTRICITY CHARGED</label><div class="bf-count-fixed">95% <span style="font-weight:400;color:var(--stone);font-size:0.72rem;">(fixed)</span></div></div>
+        </div>
+
+        <div class="bf-legend">
+          <span>&#9998; white = you type</span>
+          <span>&#128202; shaded = worked out &amp; saved</span>
+        </div>
+
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table id="bfTable">
+            <thead>
+              <tr>
+                <th class="bf-yr-h">Year</th>
+                <th>Bio Filter Cost</th>
+                <th>Discharge</th>
+                <th>Electric 100%</th>
+                <th class="bf-calc-h bf-sep">Elec 95%</th>
+                <th class="bf-calc-h">Total</th>
+                <th class="bf-calc-h">Due / Prop</th>
+                <th class="bf-calc-h">RLF Total</th>
+              </tr>
+            </thead>
+            <tbody id="bfTbody"></tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:1rem;">
+          <div style="font-size:0.72rem;color:var(--stone);line-height:1.6;">Elec 95% = 95% of Electric 100% &nbsp;&middot;&nbsp; Total = Bio Filter + Discharge + Elec 95% &nbsp;&middot;&nbsp; Due / Prop = Total &divide; properties</div>
+          <button class="abtn abtn-primary" id="bfSaveBtn" onclick="bfSave()">&#128190; Save changes</button>
+        </div>
+
+        <div style="margin-top:1.4rem;border-top:1px solid rgba(122,92,62,0.18);padding-top:1rem;">
+          <div style="font-size:0.76rem;color:var(--mid);margin-bottom:0.55rem;">Cottages on the recharge <span style="color:var(--stone);">(read-only, from column Q)</span></div>
+          <div id="bfCottages"></div>
         </div>
       </div>
 
@@ -2903,6 +2973,173 @@ function stayLoggedIn() {
 document.addEventListener('click', resetAutoLock);
 document.addEventListener('keydown', resetAutoLock);
 
+// ─── BIO FILTER · RLF COTTAGES ────────────────────────────────────────────────
+var _bfData   = null;
+var _bfLoaded = false;
+var BF_ELEC_PCT = 0.95;   // electricity recharged at a fixed 95%
+
+function bfParse(v) {
+  if (v === null || v === undefined) return null;
+  var s = String(v).replace(/[^0-9.\-]/g, '');
+  if (s === '') return null;
+  var n = Number(s);
+  return isNaN(n) ? null : n;
+}
+function bfRound(x) { return Math.round(x * 100) / 100; }
+function bfMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return '\u2014';
+  return '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function bfInputVal(n) {
+  return (n === null || n === undefined || isNaN(n)) ? '' : Number(n).toFixed(2);
+}
+
+function bfLoad() {
+  if (_bfLoaded) { bfRender(); return; }
+  var msg = document.getElementById('bfMsg');
+  if (msg) { msg.style.color = 'var(--mid)'; msg.textContent = 'Loading\u2026'; }
+  fetch(SCRIPT_URL + '?action=readBioFilterAdmin', { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'Could not load data');
+      _bfData = d; _bfLoaded = true;
+      if (msg) msg.textContent = '';
+      bfRender();
+    })
+    .catch(function(e){
+      if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Error loading: ' + e.message; }
+    });
+}
+
+function bfRender() {
+  if (!_bfData) return;
+  document.getElementById('bfBioProps').value = _bfData.counts.bioProps;
+  document.getElementById('bfRlf').value      = _bfData.counts.rlf;
+  document.getElementById('bfCmc').value      = _bfData.counts.cmc;
+
+  var html = '';
+  (_bfData.rows || []).forEach(function(row){
+    html +=
+      '<tr data-year="' + row.year + '">' +
+        '<td class="bf-yr">' + row.year + '</td>' +
+        '<td><input class="bf-in" data-f="bioCost"   inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.bioCost)   + '"></td>' +
+        '<td><input class="bf-in" data-f="discharge" inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.discharge) + '"></td>' +
+        '<td><input class="bf-in" data-f="elec100"   inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.elec100)   + '"></td>' +
+        '<td class="bf-calc bf-sep bf-elec95">\u2014</td>' +
+        '<td class="bf-calc bf-total">\u2014</td>' +
+        '<td class="bf-calc bf-due">\u2014</td>' +
+        '<td class="bf-calc bf-rlftot">\u2014</td>' +
+      '</tr>';
+  });
+  document.getElementById('bfTbody').innerHTML = html;
+  bfRecalcAll();
+  bfRenderCottages();
+}
+
+function bfRenderCottages() {
+  var box = document.getElementById('bfCottages');
+  if (!box) return;
+  var list = (_bfData && _bfData.cottages) || [];
+  if (!list.length) { box.innerHTML = '<span style="color:var(--stone);font-size:0.78rem;">None found.</span>'; return; }
+  box.innerHTML = list.map(function(c){
+    return '<span class="bf-cottage-chip">' + String(c).replace(/</g,'&lt;') + '</span>';
+  }).join('');
+}
+
+function bfRecalcRow(el) {
+  var tr = el.closest('tr');
+  if (tr) bfRecalcTr(tr);
+}
+
+function bfRecalcTr(tr) {
+  var bioProps = bfParse(document.getElementById('bfBioProps').value) || 0;
+  var rlf      = bfParse(document.getElementById('bfRlf').value) || 0;
+
+  var bioCost   = bfParse(tr.querySelector('input[data-f="bioCost"]').value);
+  var discharge = bfParse(tr.querySelector('input[data-f="discharge"]').value);
+  var elec100   = bfParse(tr.querySelector('input[data-f="elec100"]').value);
+
+  var elecCell = tr.querySelector('.bf-elec95');
+  var totCell  = tr.querySelector('.bf-total');
+  var dueCell  = tr.querySelector('.bf-due');
+  var rlfCell  = tr.querySelector('.bf-rlftot');
+
+  if (bioCost === null && discharge === null && elec100 === null) {
+    elecCell.textContent = '\u2014';
+    totCell.textContent  = '\u2014';
+    dueCell.textContent  = '\u2014';
+    rlfCell.textContent  = '\u2014';
+    return;
+  }
+
+  var elec95 = bfRound((elec100 || 0) * BF_ELEC_PCT);
+  var total  = bfRound((bioCost || 0) + (discharge || 0) + elec95);
+  var due    = bioProps > 0 ? bfRound(total / bioProps) : null;
+  var rlfTot = (due !== null) ? bfRound(due * rlf) : null;
+
+  elecCell.textContent = bfMoney(elec95);
+  totCell.textContent  = bfMoney(total);
+  dueCell.textContent  = (due !== null) ? bfMoney(due) : '\u2014';
+  rlfCell.textContent  = (rlfTot !== null) ? bfMoney(rlfTot) : '\u2014';
+}
+
+function bfRecalcAll() {
+  var rows = document.querySelectorAll('#bfTbody tr');
+  for (var i = 0; i < rows.length; i++) bfRecalcTr(rows[i]);
+}
+
+function bfSave() {
+  var btn = document.getElementById('bfSaveBtn');
+  var msg = document.getElementById('bfMsg');
+
+  var bioProps = bfParse(document.getElementById('bfBioProps').value);
+  if (!bioProps || bioProps <= 0) {
+    if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Bio filter properties must be a number greater than zero.'; }
+    return;
+  }
+  var rlf = bfParse(document.getElementById('bfRlf').value) || 0;
+  var cmc = bfParse(document.getElementById('bfCmc').value) || 0;
+
+  var rows = [];
+  document.querySelectorAll('#bfTbody tr').forEach(function(tr){
+    rows.push({
+      year:      Number(tr.getAttribute('data-year')),
+      bioCost:   bfParse(tr.querySelector('input[data-f="bioCost"]').value),
+      discharge: bfParse(tr.querySelector('input[data-f="discharge"]').value),
+      elec100:   bfParse(tr.querySelector('input[data-f="elec100"]').value)
+    });
+  });
+
+  btn.disabled = true;
+  var oldLabel = btn.innerHTML;
+  btn.innerHTML = 'Saving\u2026';
+  if (msg) { msg.style.color = 'var(--mid)'; msg.textContent = 'Saving\u2026'; }
+
+  fetch(SCRIPT_URL, {
+    method: 'POST', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'writeBioFilter',
+      counts: { bioProps: bioProps, rlf: rlf, cmc: cmc },
+      rows: rows
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'Save failed');
+    btn.disabled = false; btn.innerHTML = oldLabel;
+    if (msg) msg.textContent = '';
+    if (typeof showToast === 'function') showToast('Bio filter saved', 'success');
+    _bfLoaded = false;   // force a fresh reload so the screen mirrors the sheet
+    bfLoad();
+  })
+  .catch(function(e){
+    btn.disabled = false; btn.innerHTML = oldLabel;
+    if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Error saving: ' + e.message; }
+    if (typeof showToast === 'function') showToast('Save failed', 'error');
+  });
+}
+
 function showPanel(id) {
   if (id === 'contacttools') ctPreload();
   document.querySelectorAll('.admin-panel').forEach(function(p){ p.classList.remove('active'); });
@@ -2914,6 +3151,7 @@ function showPanel(id) {
   if (id === 'agmminutes') adminLoadAGMMinutes();
   if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
   if (id === 'wateremail') weInit();
+  if (id === 'biofilter') bfLoad();
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
