@@ -4915,7 +4915,7 @@
       totalDue += due; totalPaid += paid; totalOut += out;
       h += '<div class="bva-group-row" style="cursor:default;">';
       var _sp = ct.indexOf(' '); var _num = _sp > -1 ? ct.substring(0, _sp) : ct; var _rest = _sp > -1 ? ct.substring(_sp + 1) : '';
-      h += '<span class="bva-group-name"><span style="display:inline-block;width:1.6em;text-align:right;">' + _num + '</span>' + _rest + '</span>';
+      h += '<span class="bva-group-name"><span style="display:inline-block;width:1.6em;text-align:left;">' + _num + '</span>' + _rest + '</span>';
       h += '<div class="bva-group-cols">';
       h += '<div class="bva-gcol bva-budget-val">' + bioMoney(due) + '</div>';
       h += '<div class="bva-gcol" style="color:#6b5f52;font-weight:700;">' + bioMoney(paid) + '</div>';
