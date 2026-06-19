@@ -1508,9 +1508,10 @@
    * which runs in parallel with the bundle. */
   async function loadData() {
     // Fire the bundle wait and the year-specific finance summary in parallel.
-    var [bundleResult, resSummary] = await Promise.allSettled([
+    var [bundleResult, resSummary, resBio] = await Promise.allSettled([
       window.financeBundlePromise,
-      fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear)
+      fetch(SCRIPT_URL + '?action=readFinanceSummary&year=' + currentYear),
+      fetch(SCRIPT_URL + '?action=readBioFilter')
     ]);
 
     var bundle = (bundleResult.status === 'fulfilled') ? bundleResult.value : null;
@@ -1626,7 +1627,20 @@
       try { renderIET(); } catch(e) {}
     }
     document.getElementById('toggle-bvareport').classList.remove('btn-loading');
-    var bioBtnLoad = document.getElementById('toggle-bioreport'); if (bioBtnLoad) bioBtnLoad.classList.remove('btn-loading');
+
+    // Bio filter recharge data is prefetched here (it is NOT part of the finance
+    // bundle) so the report opens instantly, like every other report. The button
+    // only drops its "loading" state once the data is genuinely ready.
+    try {
+      if (resBio.status === 'rejected') throw new Error(resBio.reason);
+      if (!resBio.value.ok) throw new Error('HTTP ' + resBio.value.status);
+      var jsonBio = await resBio.value.json();
+      if (jsonBio.status === 'ok') { bioData = jsonBio; }
+    } catch(e) {
+      // Prefetch failed - openBioReport() still fetches on demand as a fallback.
+    }
+    var bioBtnLoad = document.getElementById('toggle-bioreport');
+    if (bioBtnLoad) bioBtnLoad.classList.remove('btn-loading');
     // Show/hide section and set button state based on enabled years
     var hasEnabledYears = bvaData && bvaData.years && bvaData.years.length > 0;
     var bvaSection = document.getElementById('bva-section');
