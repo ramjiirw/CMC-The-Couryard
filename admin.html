@@ -1687,15 +1687,23 @@
           .bf-count-fixed { font-size:0.9rem; font-weight:700; color:var(--dark); padding-top:0.15rem; }
           .bf-cottage-chip { display:inline-block; font-size:0.75rem; background:var(--cream); color:var(--mid); padding:0.28rem 0.65rem; border-radius:5px; margin:0 0.35rem 0.35rem 0; }
           .bf-legend { font-size:0.72rem; color:var(--stone); margin-bottom:0.5rem; display:flex; gap:1.4rem; flex-wrap:wrap; }
+          #panel-biofilter { position:relative; }
+          #bfOverlay { display:none; position:absolute; inset:0; background:rgba(245,240,232,0.85); z-index:5; align-items:center; justify-content:center; flex-direction:column; gap:0.8rem; border-radius:10px; }
+          @keyframes bfspin { to { transform:rotate(360deg); } }
+          #bfSpinner { width:34px; height:34px; border:3px solid rgba(122,92,62,0.25); border-top-color:var(--accent); border-radius:50%; animation:bfspin 0.8s linear infinite; }
+          #bfOverlayText { font-size:0.95rem; font-weight:700; color:var(--accent); }
+          #bfTable input.bf-in:disabled, .bf-count-box input:disabled { background:#efe9e0; color:var(--stone); cursor:not-allowed; }
         </style>
 
         <div id="bfMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.1rem;color:var(--mid);"></div>
 
+        <div id="bfOverlay"><div id="bfSpinner"></div><div id="bfOverlayText">Loading&hellip;</div></div>
+
         <!-- Counts strip -->
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.1rem;align-items:flex-end;">
-          <div class="bf-count-box"><label>BIO FILTER PROPERTIES</label><input type="text" id="bfBioProps" oninput="bfRecalcAll()"></div>
-          <div class="bf-count-box"><label>RLF COTTAGES</label><input type="text" id="bfRlf" oninput="bfRecalcAll()"></div>
-          <div class="bf-count-box"><label>CMC PROPERTIES</label><input type="text" id="bfCmc" oninput="bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>BIO FILTER PROPERTIES</label><input type="text" id="bfBioProps" inputmode="decimal" oninput="bfSanitize(this);bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>RLF COTTAGES</label><input type="text" id="bfRlf" inputmode="decimal" oninput="bfSanitize(this);bfRecalcAll()"></div>
+          <div class="bf-count-box"><label>CMC PROPERTIES</label><input type="text" id="bfCmc" inputmode="decimal" oninput="bfSanitize(this);bfRecalcAll()"></div>
           <div class="bf-count-box"><label>ELECTRICITY CHARGED</label><div class="bf-count-fixed">95% <span style="font-weight:400;color:var(--stone);font-size:0.72rem;">(fixed)</span></div></div>
         </div>
 
@@ -2997,19 +3005,46 @@ function bfInputVal(n) {
   return (n === null || n === undefined || isNaN(n)) ? '' : Number(n).toFixed(2);
 }
 
-function bfLoad() {
+function bfShowOverlay(text, mode) {
+  var ov = document.getElementById('bfOverlay');
+  var tx = document.getElementById('bfOverlayText');
+  var sp = document.getElementById('bfSpinner');
+  if (tx) { tx.textContent = text; tx.style.color = (mode === 'done') ? '#3c6b3c' : 'var(--accent)'; }
+  if (sp) sp.style.display = (mode === 'done') ? 'none' : '';
+  if (ov) ov.style.display = 'flex';
+}
+function bfHideOverlay() {
+  var ov = document.getElementById('bfOverlay');
+  if (ov) ov.style.display = 'none';
+}
+function bfSetEditable(on) {
+  var els = document.querySelectorAll('#panel-biofilter .bf-in, #bfBioProps, #bfRlf, #bfCmc');
+  for (var i = 0; i < els.length; i++) els[i].disabled = !on;
+  var btn = document.getElementById('bfSaveBtn');
+  if (btn) btn.disabled = !on;
+}
+function bfSanitize(el) {
+  var v = el.value.replace(/[^0-9.]/g, '');
+  var dot = v.indexOf('.');
+  if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+  if (v !== el.value) el.value = v;
+}
+
+function bfLoad(silent) {
   if (_bfLoaded) { bfRender(); return; }
   var msg = document.getElementById('bfMsg');
-  if (msg) { msg.style.color = 'var(--mid)'; msg.textContent = 'Loading\u2026'; }
+  if (msg) { msg.style.color = 'var(--mid)'; msg.textContent = ''; }
+  if (!silent) bfShowOverlay('Loading RLF cottages\u2026', 'load');
   fetch(SCRIPT_URL + '?action=readBioFilterAdmin', { redirect: 'follow' })
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'Could not load data');
       _bfData = d; _bfLoaded = true;
-      if (msg) msg.textContent = '';
+      bfHideOverlay();
       bfRender();
     })
     .catch(function(e){
+      bfHideOverlay();
       if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Error loading: ' + e.message; }
     });
 }
@@ -3025,9 +3060,9 @@ function bfRender() {
     html +=
       '<tr data-year="' + row.year + '">' +
         '<td class="bf-yr">' + row.year + '</td>' +
-        '<td><input class="bf-in" data-f="bioCost"   inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.bioCost)   + '"></td>' +
-        '<td><input class="bf-in" data-f="discharge" inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.discharge) + '"></td>' +
-        '<td><input class="bf-in" data-f="elec100"   inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.elec100)   + '"></td>' +
+        '<td><input class="bf-in" data-f="bioCost"   inputmode="decimal" oninput="bfSanitize(this);bfRecalcRow(this)" value="' + bfInputVal(row.bioCost)   + '"></td>' +
+        '<td><input class="bf-in" data-f="discharge" inputmode="decimal" oninput="bfSanitize(this);bfRecalcRow(this)" value="' + bfInputVal(row.discharge) + '"></td>' +
+        '<td><input class="bf-in" data-f="elec100"   inputmode="decimal" oninput="bfSanitize(this);bfRecalcRow(this)" value="' + bfInputVal(row.elec100)   + '"></td>' +
         '<td class="bf-calc bf-sep bf-elec95">\u2014</td>' +
         '<td class="bf-calc bf-total">\u2014</td>' +
         '<td class="bf-calc bf-due bf-key bf-keysep">\u2014</td>' +
@@ -3092,7 +3127,6 @@ function bfRecalcAll() {
 }
 
 function bfSave() {
-  var btn = document.getElementById('bfSaveBtn');
   var msg = document.getElementById('bfMsg');
 
   var bioProps = bfParse(document.getElementById('bfBioProps').value);
@@ -3113,10 +3147,9 @@ function bfSave() {
     });
   });
 
-  btn.disabled = true;
-  var oldLabel = btn.innerHTML;
-  btn.innerHTML = 'Saving\u2026';
-  if (msg) { msg.style.color = 'var(--mid)'; msg.textContent = 'Saving\u2026'; }
+  if (msg) msg.textContent = '';
+  bfSetEditable(false);                            // lock every field + the Save button
+  bfShowOverlay('Saving changes\u2026', 'save');   // visible, blocking overlay
 
   fetch(SCRIPT_URL, {
     method: 'POST', redirect: 'follow',
@@ -3130,14 +3163,17 @@ function bfSave() {
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'Save failed');
-    btn.disabled = false; btn.innerHTML = oldLabel;
-    if (msg) msg.textContent = '';
     if (typeof showToast === 'function') showToast('Bio filter saved', 'success');
-    _bfLoaded = false;   // force a fresh reload so the screen mirrors the sheet
-    bfLoad();
+    bfShowOverlay('\u2713 Saved', 'done');         // brief green confirmation
+    setTimeout(function(){
+      bfSetEditable(true);
+      _bfLoaded = false;     // force a fresh reload so the screen mirrors the sheet
+      bfLoad(true);          // silent refresh (no second spinner flash)
+    }, 900);
   })
   .catch(function(e){
-    btn.disabled = false; btn.innerHTML = oldLabel;
+    bfHideOverlay();
+    bfSetEditable(true);
     if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Error saving: ' + e.message; }
     if (typeof showToast === 'function') showToast('Save failed', 'error');
   });
