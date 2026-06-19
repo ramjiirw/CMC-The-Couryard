@@ -1678,6 +1678,9 @@
           #bfTable td.bf-calc { background:rgba(122,92,62,0.06); color:var(--mid); white-space:nowrap; }
           #bfTable td.bf-due { font-weight:700; color:var(--dark); }
           #bfTable .bf-sep { border-left:1px solid rgba(122,92,62,0.28); }
+          #bfTable th.bf-key { color:var(--accent); font-weight:700; background:rgba(196,149,106,0.26); }
+          #bfTable td.bf-key { background:rgba(196,149,106,0.26); font-weight:700; color:var(--dark); font-size:0.92rem; }
+          #bfTable .bf-keysep { border-left:2px solid var(--accent2); }
           .bf-count-box { background:var(--cream); border-radius:8px; padding:0.5rem 0.85rem; }
           .bf-count-box label { display:block; font-size:0.66rem; color:var(--mid); margin-bottom:0.25rem; letter-spacing:0.03em; }
           .bf-count-box input { width:72px; padding:0.32rem 0.45rem; border:1px solid rgba(122,92,62,0.28); border-radius:5px; font-family:Arial,sans-serif; font-size:0.9rem; text-align:right; color:var(--dark); background:#fff; outline:none; }
@@ -1711,8 +1714,8 @@
                 <th>Electric 100%</th>
                 <th class="bf-calc-h bf-sep">Elec 95%</th>
                 <th class="bf-calc-h">Total</th>
-                <th class="bf-calc-h">Due / Prop</th>
-                <th class="bf-calc-h">RLF Total</th>
+                <th class="bf-calc-h bf-key bf-keysep">Due / Prop</th>
+                <th class="bf-calc-h bf-key">RLF Total</th>
               </tr>
             </thead>
             <tbody id="bfTbody"></tbody>
@@ -3027,8 +3030,8 @@ function bfRender() {
         '<td><input class="bf-in" data-f="elec100"   inputmode="decimal" oninput="bfRecalcRow(this)" value="' + bfInputVal(row.elec100)   + '"></td>' +
         '<td class="bf-calc bf-sep bf-elec95">\u2014</td>' +
         '<td class="bf-calc bf-total">\u2014</td>' +
-        '<td class="bf-calc bf-due">\u2014</td>' +
-        '<td class="bf-calc bf-rlftot">\u2014</td>' +
+        '<td class="bf-calc bf-due bf-key bf-keysep">\u2014</td>' +
+        '<td class="bf-calc bf-rlftot bf-key">\u2014</td>' +
       '</tr>';
   });
   document.getElementById('bfTbody').innerHTML = html;
