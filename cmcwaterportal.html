@@ -1821,7 +1821,7 @@ function renderMaintDocs() {
     var idx = await res.json();
     var folder = (idx.folders || []).find(function(f) { return f.key === 'cmcwater'; });
     maintDocState.files = folder ? (folder.files || []) : [];
-    if (totalCountEl) totalCountEl.textContent = maintDocState.files.length;
+    if (totalCountEl) totalCountEl.textContent = maintDocState.files.filter(function(f){ return !f.name.startsWith('HIDE_'); }).length;
     renderMaintDocs();
   } catch(err) {
     if (totalCountEl) totalCountEl.textContent = '!';
