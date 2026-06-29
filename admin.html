@@ -84,6 +84,8 @@
   .sidebar-link { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1.2rem; font-size:0.82rem; color:rgba(184,173,158,0.55); cursor:pointer; transition:all 0.15s; border-left:2px solid transparent; user-select:none; }
   .sidebar-link:hover { background:rgba(196,149,106,0.07); color:var(--stone); border-left-color:rgba(196,149,106,0.3); }
   .sidebar-link.active { background:rgba(196,149,106,0.1); color:var(--accent2); border-left-color:var(--accent2); }
+  .sidebar-extlink { color:var(--accent2); }
+  .sidebar-extlink:hover { background:rgba(196,149,106,0.1); color:var(--accent2); border-left-color:var(--accent2); }
   .sidebar-home { color:var(--stone) !important; font-weight:600; margin-bottom:0.5rem; border-bottom:1px solid rgba(196,149,106,0.15); padding-bottom:0.9rem !important; }
   .admin-content { flex:1; padding:1.8rem; padding-right:0.5rem; padding-bottom:6rem; overflow-y:auto; min-width:0; }
   @media (max-width:768px) {
@@ -960,12 +962,14 @@
       <div class="sidebar-link" data-panel="biofilter" id="nav-biofilter">&#127969; RLF Cottages</div>
       <div class="sidebar-label">Finance</div>
       <div class="sidebar-link" data-panel="categoryref" id="nav-categoryref">&#128181; Category Reference</div>
-      <div class="sidebar-label">Settings</div>
-      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
-      <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
+      <div class="sidebar-label">SIP</div>
       <div class="sidebar-link" data-panel="changesippw" id="nav-changesippw">&#128196; SIP Password</div>
       <div class="sidebar-link" data-panel="sipqa" id="nav-sipqa">&#10067; SIP Q &amp; A</div>
       <div class="sidebar-link" data-panel="sipbriefing" id="nav-sipbriefing">&#128196; SIP Briefing</div>
+      <div class="sidebar-link sidebar-extlink" onclick="window.open('https://cmcthecourtyard.com/sip/','_blank','noopener')" title="Open the live SIP site in a new tab">&#128279; View Live SIP &#8599;</div>
+      <div class="sidebar-label">Settings</div>
+      <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
+      <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
     </nav>
     <main class="admin-content">
       <div class="admin-panel active" id="panel-welcome">
@@ -5074,6 +5078,7 @@ document.getElementById('cpConfirm').addEventListener('keydown', function(e){ if
 document.getElementById('cpNew').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('cpwSaveBtn'); doChangePassword(); } });
 document.getElementById('cpCurrent').addEventListener('keydown', function(e){ if(e.key==='Enter'){ flashButton('cpwSaveBtn'); doChangePassword(); } });
 document.querySelectorAll('.sidebar-link').forEach(function(el){
+  if (!el.dataset.panel) return;
   el.addEventListener('click', function(){ showPanel(el.dataset.panel); });
 });
 document.getElementById('cepOverlay').addEventListener('click', function(e){ if(e.target===this) closeCep(false); });
