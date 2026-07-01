@@ -101,11 +101,22 @@
   .reading-card.captured .card-input-label { color:var(--accent); font-weight:500; }
   .card-input { width:100%; padding:1.1rem 1rem; background:#1e1a16; color:#ffffff; border:1px solid #3a3530; border-radius:4px; font-family:'Courier New',monospace; font-size:2.2rem; font-weight:700; text-align:center; letter-spacing:0.08em; box-sizing:border-box; transition:all 0.15s; }
   .card-input:focus { outline:none; border-color:var(--water); box-shadow:0 0 0 2px rgba(78,175,214,0.2); color:#ffffff; }
+  .card-input:disabled { opacity:0.45; cursor:not-allowed; background:#151210; }
   .reading-card.captured .card-input { color:var(--accent2); border-color:var(--accent2); }
   .reading-card.error .card-input { border-color:#c0392b; }
   .card-error { display:none; color:#c0392b; font-size:0.78rem; margin-top:0.4rem; padding:0.3rem 0.5rem; background:#fdecea; border-radius:4px; }
   .reading-card.error .card-error { display:block; }
   @media(min-width:681px) { .card-input { font-size:1.65rem; padding:0.75rem 1rem; font-weight:600; } }
+
+  /* Previous-readings loading note */
+  .prev-load-note { display:none; align-items:center; gap:0.6rem; padding:0.7rem 1rem; margin-bottom:1rem; background:#fdf6e8; border:1px solid #e6d5a8; border-radius:6px; font-size:0.85rem; color:#6b5a2e; }
+  .prev-load-note.show { display:flex; }
+  .prev-load-note.error { background:#fdecea; border-color:#e6a8a0; color:#8a2e1f; }
+  .prev-load-note-spinner { width:14px; height:14px; border:2px solid #e6d5a8; border-top-color:#6b5a2e; border-radius:50%; animation:prevSpin 0.7s linear infinite; flex-shrink:0; }
+  .prev-load-note.error .prev-load-note-spinner { display:none; }
+  @keyframes prevSpin { to { transform:rotate(360deg); } }
+  .prev-load-retry { margin-left:auto; padding:0.35rem 0.8rem; background:#8a2e1f; color:#fff; border:none; border-radius:4px; font-size:0.78rem; font-weight:600; cursor:pointer; }
+
 
   /* Tick badge */
   .tick-badge { position:absolute; top:0.55rem; right:0.55rem; width:24px; height:24px; background:var(--accent2); border-radius:50%; display:none; align-items:center; justify-content:center; color:white; font-size:0.85rem; font-weight:700; }
@@ -270,6 +281,12 @@
 
     <div class="action-row" id="actionRow">
       <button class="one-off-btn" onclick="openOneOffModal()">+ One-off reading</button>
+    </div>
+
+    <div class="prev-load-note" id="prevLoadNote">
+      <div class="prev-load-note-spinner" id="prevLoadSpinner"></div>
+      <span id="prevLoadNoteText">Loading previous readings — please wait before entering values...</span>
+      <button class="prev-load-retry" id="prevLoadRetryBtn" style="display:none;" onclick="loadWaterData()">Retry</button>
     </div>
 
     <div id="readingsContainer">
@@ -683,12 +700,43 @@ function onSubmitterChange() {
 // ═══════════════════════════════════════════════════════════════════
 // LOAD WATER DATA
 // ═══════════════════════════════════════════════════════════════════
+function showPrevLoadNote() {
+  const note = document.getElementById('prevLoadNote');
+  note.classList.remove('error');
+  note.classList.add('show');
+  document.getElementById('prevLoadSpinner').style.display = '';
+  document.getElementById('prevLoadNoteText').textContent = 'Loading previous readings — please wait before entering values...';
+  document.getElementById('prevLoadRetryBtn').style.display = 'none';
+  setCardInputsDisabled(true);
+}
+
+function showPrevLoadError() {
+  const note = document.getElementById('prevLoadNote');
+  note.classList.add('show', 'error');
+  document.getElementById('prevLoadNoteText').textContent = 'Could not load previous readings — please retry before entering values.';
+  document.getElementById('prevLoadRetryBtn').style.display = '';
+  setCardInputsDisabled(true);
+}
+
+function hidePrevLoadNote() {
+  document.getElementById('prevLoadNote').classList.remove('show', 'error');
+  setCardInputsDisabled(false);
+}
+
+function setCardInputsDisabled(disabled) {
+  document.querySelectorAll('.card-input').forEach(function(input) {
+    input.disabled = disabled;
+  });
+}
+
 function loadWaterData() {
+  showPrevLoadNote();
   fetch(SCRIPT_URL + '?action=readWater', { redirect: 'follow' })
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.status !== 'ok') {
         showToast('Failed to load previous readings', 'error');
+        showPrevLoadError();
         return;
       }
       // Merge fetched lastReading + lastReadingDate into our baked-in property objects
@@ -709,10 +757,12 @@ function loadWaterData() {
 
       // Update each card's "Previous" display in place (no full re-render)
       updatePreviousReadingsInDom();
+      hidePrevLoadNote();
     })
     .catch(function(err){
       console.error(err);
       showToast('Network error — please refresh', 'error');
+      showPrevLoadError();
     });
 }
 
@@ -741,6 +791,7 @@ function renderReadingCards() {
   document.getElementById('lockedWrap').style.display = 'none';
   document.getElementById('actionRow').style.display = 'flex';
   document.getElementById('submitBar').style.display = 'flex';
+  showPrevLoadNote();
 
   const container = document.getElementById('readingsContainer');
   container.innerHTML = '';
@@ -807,7 +858,7 @@ function makeReadingCard(prop, isFarmhouse, isLast) {
       '</div>' +
     '</div>' +
     '<div class="card-input-label">New reading (00000.000)</div>' +
-    '<input type="text" inputmode="decimal" class="card-input" placeholder="00000.000" maxlength="9" autocomplete="off">' +
+    '<input type="text" inputmode="decimal" class="card-input" placeholder="00000.000" maxlength="9" autocomplete="off" disabled>' +
     '<div class="card-error"></div>';
 
   const input = card.querySelector('.card-input');
