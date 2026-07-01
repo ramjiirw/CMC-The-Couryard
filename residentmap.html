@@ -485,6 +485,7 @@ const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B8
 
 let activeNum = null;
 let residents = [];
+let extraHeaders = []; // Column headers for F–M (index 5–12), read live from row 1
 
 // ── Greeting ─────────────────────────────────────────────────────────────────
 (function() {
@@ -497,7 +498,10 @@ let residents = [];
 
 // ── CSV fetch & parse ─────────────────────────────────────────────────────────
 function parseCSV(text) {
-  const lines = text.replace(/\r/g, '').trim().split('\n').slice(1); // skip header, strip \r
+  const rawLines = text.replace(/\r/g, '').trim().split('\n');
+  const headerCols = rawLines[0].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+  extraHeaders = headerCols.slice(5, 13); // columns F–M (index 5–12)
+  const lines = rawLines.slice(1);
   return lines.map(line => {
     const cols = line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
     const address = cols[0] || '';
@@ -506,8 +510,8 @@ function parseCSV(text) {
     const tenant = cols[2] || '';
     const propertyOwnership = cols[3] || '';
     const waterMeter = cols[4] || '';
-    const tpo = cols[5] || '';
-    return { num, address, owner, tenant, propertyOwnership, waterMeter, tpo };
+    const extraCols = cols.slice(5, 13); // columns F–M (index 5–12), matched to extraHeaders
+    return { num, address, owner, tenant, propertyOwnership, waterMeter, extraCols };
   }).filter(r => r.num > 0);
 }
 
@@ -561,8 +565,13 @@ function buildExtraInfoRows(r) {
   const items = [];
   if (r.propertyOwnership) items.push({ label: 'Ownership', value: r.propertyOwnership });
   if (r.waterMeter) items.push({ label: 'Water Meter', value: r.waterMeter });
-  if (r.tpo) items.push({ label: 'TPO', value: r.tpo });
-  // Future columns can be added here
+  // Columns F–M: label comes live from row 1 of the sheet; skipped entirely if the cell is blank
+  (r.extraCols || []).forEach((value, i) => {
+    if (!value) return;
+    const label = (extraHeaders[i] || '').trim();
+    if (!label) return;
+    items.push({ label: label, value: value });
+  });
   if (!items.length) return '';
   return items.map(item =>
     `<div class="legend-extra-row"><span class="legend-extra-label">${item.label}:</span><span class="legend-extra-value">${escHtml(item.value)}</span></div>`
