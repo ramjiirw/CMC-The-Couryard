@@ -269,8 +269,23 @@
   .timeout-countdown { font-size:2.4rem; font-weight:700; color:var(--red); margin-bottom:1.2rem; font-variant-numeric:tabular-nums; }
   .timeout-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:6px; padding:0.7rem 1.8rem; font-family:Arial,sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; letter-spacing:0.05em; }
   .timeout-btn:hover { opacity:0.9; }
-  .btn-logout { background:rgba(96,144,176,0.12); color:#9cc3de; border:1px solid rgba(125,179,216,0.4); border-radius:6px; padding:0.5rem 1.1rem; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.03em; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-  .btn-logout:hover { background:rgba(96,144,176,0.25); border-color:#6090b0; }
+  .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem; }
+  .header-email { color:#9cc3de; font-size:0.78rem; text-decoration:none; white-space:nowrap; }
+  .header-email:hover { text-decoration:underline; }
+  .header-btns { display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:flex-end; }
+  .header-btn { background:rgba(96,144,176,0.12); color:#9cc3de; border:1px solid rgba(125,179,216,0.4); border-radius:6px; padding:0.5rem 1.1rem; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.03em; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .header-btn:hover { background:rgba(96,144,176,0.25); border-color:#6090b0; }
+  #payModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:1rem; }
+  .pay-box { background:#fff; border-radius:12px; padding:1.5rem 1.75rem; max-width:400px; width:100%; box-shadow:0 16px 48px rgba(0,0,0,0.4); box-sizing:border-box; }
+  .pay-box h3 { font-size:1rem; font-weight:700; color:var(--accent); letter-spacing:0.03em; margin:0; }
+  .pay-sub { font-size:0.78rem; color:var(--mid); margin:0.25rem 0 1rem; }
+  .pay-rows { border-top:1px solid var(--border); padding-top:0.9rem; font-size:0.85rem; color:#31292a; line-height:1.4; }
+  .pay-label { color:var(--mid); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; }
+  .pay-name { font-weight:600; margin-bottom:0.7rem; }
+  .pay-cols { display:flex; gap:2.5rem; flex-wrap:wrap; }
+  .pay-val { font-weight:700; font-size:1.05rem; letter-spacing:0.03em; }
+  .pay-close-wrap { text-align:right; margin-top:1.3rem; }
+  .pay-close { background:linear-gradient(135deg,#3a5a70,#6090b0); color:#fff; border:none; border-radius:6px; padding:0.5rem 1.4rem; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -302,7 +317,13 @@
       <p class="greeting" id="welcomeMsg"></p>
     </div>
   </div>
-  <button class="btn-logout" onclick="doLock()">Log out</button>
+  <div class="header-actions">
+    <a class="header-email" href="mailto:cmcdirectors@hotmail.com">✉ cmcdirectors@hotmail.com</a>
+    <div class="header-btns">
+      <button class="header-btn" onclick="openPayModal()">How to Pay</button>
+      <button class="header-btn" onclick="doLock()">Log out</button>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -405,6 +426,22 @@
 <footer>
   <p><span>CMC The Courtyard</span> &nbsp;·&nbsp; ROCK LANE FARM COTTAGES BIO FILTER PORTAL &nbsp;·&nbsp; © <span id="footerYear"></span></p>
 </footer>
+</div>
+
+<div id="payModal" onclick="if(event.target===this)closePayModal()">
+  <div class="pay-box">
+    <h3>How to Pay</h3>
+    <p class="pay-sub">CMC HSBC Current Account</p>
+    <div class="pay-rows">
+      <div class="pay-label">Account Name</div>
+      <div class="pay-name">The Courtyard Management Company (Rock Lane Farm)</div>
+      <div class="pay-cols">
+        <div><div class="pay-label">Sort Code</div><div class="pay-val">40-28-12</div></div>
+        <div><div class="pay-label">Account No</div><div class="pay-val">41559044</div></div>
+      </div>
+    </div>
+    <div class="pay-close-wrap"><button class="pay-close" onclick="closePayModal()">Close</button></div>
+  </div>
 </div>
 
 <div id="timeoutOverlay">
@@ -756,6 +793,9 @@
   document.addEventListener('click', resetAutoLock);
   document.addEventListener('keydown', resetAutoLock);
   document.addEventListener('touchstart', resetAutoLock);
+
+  function openPayModal() { document.getElementById('payModal').style.display = 'flex'; }
+  function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
 
   function revealPortal() {
     document.getElementById('loginScreen').style.display = 'none';
