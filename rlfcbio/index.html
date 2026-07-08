@@ -254,6 +254,7 @@
   .prohibited-head { padding:0.85rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm); }
   .prohibited-head h3 { font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--red); margin:0; }
   .prohibited-head p { font-size:0.8rem; color:var(--mid); line-height:1.5; margin:0.3rem 0 0; }
+  .prohibited-subhead { padding:0.75rem 1.25rem 0; font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--red); }
   .prohibited-body { padding:0.9rem 1.25rem; display:flex; gap:1.5rem; }
   .prohibited-body ul { list-style:none; flex:1; margin:0; padding:0; }
   .prohibited-body li { font-size:0.85rem; color:#31292a; line-height:1.95; }
@@ -284,7 +285,6 @@
     </div>
     <div class="pw-error" id="pwError"></div>
     <button class="login-btn" onclick="doLogin()">Enter Portal</button>
-    <p class="session-msg">Residents’ access only</p>
   </div>
 </div>
 
@@ -373,9 +373,10 @@
   </div>
   <div class="prohibited-panel">
     <div class="prohibited-head">
-      <h3>Prohibited Substances — Do Not Flush</h3>
+      <h3>Prohibited Substances</h3>
       <p>The Bio Filter relies on live bacteria. Only the 3 Ps — pee, poo and paper — should go down the toilet.</p>
     </div>
+    <div class="prohibited-subhead">Do Not Flush</div>
     <div class="prohibited-body">
       <ul>
         <li>Cooking oil &amp; fats</li>
