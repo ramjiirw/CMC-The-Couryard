@@ -14,6 +14,8 @@
     --accent: #7a5c3e;
     --accent2: #c4956a;
     --border: #ddd5c8;
+    --red: #8b3a3a;
+    --warm: #faf7f2;
     --shadow: 0 4px 24px rgba(30,26,22,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -219,6 +221,16 @@
     .btn-toggle { padding: 0.75rem 1rem; font-size: 0.75rem; }
     .toggle-hint { font-size: 0.65rem; }
   }
+  .prohibited-panel { margin-top:1.75rem; background:#fff; border:1px solid var(--border); border-left:4px solid var(--red); border-radius:8px; overflow:hidden; }
+  .prohibited-head { padding:0.85rem 1.25rem; border-bottom:1px solid var(--border); background:var(--warm); }
+  .prohibited-head h3 { font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--red); margin:0; }
+  .prohibited-head p { font-size:0.9rem; color:var(--mid); line-height:1.5; margin:0.3rem 0 0; }
+  .prohibited-subhead { padding:0.75rem 1.25rem 0; font-size:0.82rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--red); }
+  .prohibited-body { padding:0.9rem 1.25rem; display:flex; gap:1.5rem; }
+  .prohibited-body ul { list-style:none; flex:1; margin:0; padding:0; }
+  .prohibited-body li { font-size:0.85rem; color:#31292a; line-height:1.95; }
+  .prohibited-body li::before { content:'\2022  '; }
+  @media (max-width:600px) { .prohibited-body { flex-direction:column; gap:0; } }
 </style>
 </head>
 <body>
@@ -242,6 +254,32 @@
   <div class="page-header">
     <h2>CMC Bio Filter</h2>
     <p>Servicing records, documentation, and Rock Lane Farm Cottages invoices for the CMC Bio Filter system.</p>
+  </div>
+
+  <div class="prohibited-panel">
+    <div class="prohibited-head">
+      <h3>Prohibited Substances</h3>
+      <p>The bacteria in our bio-system are living organisms and can be killed off by poisonous substances.<br><strong>Only the 3 Ps — pee, poo and paper — should go down the toilet.</strong></p>
+    </div>
+    <div class="prohibited-subhead">Do Not Flush</div>
+    <div class="prohibited-body">
+      <ul>
+        <li>Cooking oil &amp; fats</li>
+        <li>Large quantities of cleaning agents</li>
+        <li>Remains of medicines</li>
+        <li>Motor oil etc.</li>
+        <li>Nappies &amp; feminine products</li>
+        <li>Cotton buds &amp; balls</li>
+      </ul>
+      <ul>
+        <li>Condoms</li>
+        <li>Dental floss</li>
+        <li>Cat litter</li>
+        <li>Cigarette butts</li>
+        <li>Paper towels (as they do not break down like toilet paper)</li>
+        <li>Strong Bleach</li>
+      </ul>
+    </div>
   </div>
 
   <!-- Bio Filter Servicing Records -->
