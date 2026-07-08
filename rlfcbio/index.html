@@ -269,7 +269,7 @@
   .timeout-countdown { font-size:2.4rem; font-weight:700; color:var(--red); margin-bottom:1.2rem; font-variant-numeric:tabular-nums; }
   .timeout-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:6px; padding:0.7rem 1.8rem; font-family:Arial,sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; letter-spacing:0.05em; }
   .timeout-btn:hover { opacity:0.9; }
-  .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem; }
+  .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem; align-self:flex-start; }
   .header-email { color:#9cc3de; font-size:0.78rem; text-decoration:none; white-space:nowrap; }
   .header-email:hover { text-decoration:underline; }
   .header-btns { display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:flex-end; }
@@ -284,6 +284,10 @@
   .pay-name { font-weight:600; margin-bottom:0.7rem; }
   .pay-cols { display:flex; gap:2.5rem; flex-wrap:wrap; }
   .pay-val { font-weight:700; font-size:1.05rem; letter-spacing:0.03em; }
+  .pay-val-row { display:flex; align-items:center; gap:0.5rem; }
+  .copy-btn { background:none; border:none; cursor:pointer; padding:2px; color:#6090b0; display:inline-flex; line-height:0; }
+  .copy-btn:hover { color:#3a5a70; }
+  .copied-msg { font-size:0.7rem; color:#3a7a4e; font-weight:700; opacity:0; transition:opacity 0.2s; }
   .pay-close-wrap { text-align:right; margin-top:1.3rem; }
   .pay-close { background:linear-gradient(135deg,#3a5a70,#6090b0); color:#fff; border:none; border-radius:6px; padding:0.5rem 1.4rem; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:600; cursor:pointer; }
 </style>
@@ -431,13 +435,19 @@
 <div id="payModal" onclick="if(event.target===this)closePayModal()">
   <div class="pay-box">
     <h3>How to Pay</h3>
-    <p class="pay-sub">CMC HSBC Current Account</p>
+    <p class="pay-sub">CMC HSBC Account</p>
     <div class="pay-rows">
       <div class="pay-label">Account Name</div>
       <div class="pay-name">The Courtyard Management Company (Rock Lane Farm)</div>
       <div class="pay-cols">
-        <div><div class="pay-label">Sort Code</div><div class="pay-val">40-28-12</div></div>
-        <div><div class="pay-label">Account No</div><div class="pay-val">41559044</div></div>
+        <div>
+          <div class="pay-label">Sort Code</div>
+          <div class="pay-val-row"><span class="pay-val">40-28-12</span><button class="copy-btn" onclick="copyVal(this,'40-28-12')" title="Copy sort code" aria-label="Copy sort code"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><span class="copied-msg">Copied</span></div>
+        </div>
+        <div>
+          <div class="pay-label">Account No</div>
+          <div class="pay-val-row"><span class="pay-val">41559044</span><button class="copy-btn" onclick="copyVal(this,'41559044')" title="Copy account number" aria-label="Copy account number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><span class="copied-msg">Copied</span></div>
+        </div>
       </div>
     </div>
     <div class="pay-close-wrap"><button class="pay-close" onclick="closePayModal()">Close</button></div>
@@ -796,6 +806,15 @@
 
   function openPayModal() { document.getElementById('payModal').style.display = 'flex'; }
   function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
+  function copyVal(btn, val) {
+    function flash() { var m = btn.parentNode.querySelector('.copied-msg'); if (m) { m.style.opacity = '1'; setTimeout(function(){ m.style.opacity = '0'; }, 1400); } }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(flash).catch(function(){ fallbackCopy(val); flash(); });
+    } else { fallbackCopy(val); flash(); }
+  }
+  function fallbackCopy(val) {
+    try { var ta = document.createElement('textarea'); ta.value = val; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); } catch (e) {}
+  }
 
   function revealPortal() {
     document.getElementById('loginScreen').style.display = 'none';
