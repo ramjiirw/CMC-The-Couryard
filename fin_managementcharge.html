@@ -3132,7 +3132,7 @@
                  separately with date+note. Otherwise show one summed line. */
               var addrPayments = {};
               incPayments.forEach(function(r) {
-                var a = r.address || 'Unknown';
+                var a = r.address || 'General';
                 if (!addrPayments[a]) addrPayments[a] = [];
                 addrPayments[a].push(r);
               });
@@ -3153,8 +3153,16 @@
                 } else {
                   /* Has notes — one row per payment, date+note only where note exists */
                   rows.forEach(function(r) {
-                    var label = addr;
-                    if (r.notes && r.notes.trim()) label += (r.date ? ' — ' + r.date : '') + ' ' + r.notes;
+                    var hasAddr = r.address && r.address.trim();
+                    var label;
+                    if (r.notes && r.notes.trim() && !hasAddr) {
+                      /* No property, but notes explain the source — lead with the date */
+                      label = (r.date ? r.date + ' — ' : '') + r.notes;
+                    } else if (r.notes && r.notes.trim()) {
+                      label = addr + (r.date ? ' — ' + r.date : '') + ' ' + r.notes;
+                    } else {
+                      label = addr;
+                    }
                     sh += '<div class="iet-drill-row">';
                     sh += '<span></span><span class="iet-drill-label">' + label + '</span>';
                     sh += '<span class="iet-drill-val iet-income-val">' + fmt(r.amount) + '</span>';
@@ -3620,7 +3628,7 @@
             var drills = gdr[g.key][name];
             if (pfx === 'I-') {
               var ap = {};
-              drills.forEach(function(r) { var a = r.address || 'Unknown'; if (!ap[a]) ap[a] = []; ap[a].push(r); });
+              drills.forEach(function(r) { var a = r.address || 'General'; if (!ap[a]) ap[a] = []; ap[a].push(r); });
               Object.keys(ap).sort(function(a, b) {
                 var na = parseInt(a), nb = parseInt(b);
                 return (!isNaN(na) && !isNaN(nb)) ? na - nb : a.localeCompare(b);
@@ -3631,7 +3639,13 @@
                   html += '<div class="rpt-dr"><span>' + addr + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(tot) + '</span></div>';
                 } else {
                   rows.forEach(function(r) {
-                    var lbl = addr + (r.date ? ' \u2014 ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
+                    var hasAddr = r.address && r.address.trim();
+                    var lbl;
+                    if (r.notes && r.notes.trim() && !hasAddr) {
+                      lbl = (r.date ? r.date + ' \u2014 ' : '') + r.notes;
+                    } else {
+                      lbl = addr + (r.date ? ' \u2014 ' + r.date : '') + (r.notes ? ' ' + r.notes : '');
+                    }
                     html += '<div class="rpt-dr"><span>' + lbl + '</span><span style="color:#6b5f52;font-weight:600">' + fmt(r.amount) + '</span></div>';
                   });
                 }
