@@ -427,11 +427,10 @@
     body > script, body > noscript { display: none !important; }
 
     /* Inside <main>, hide everything except the overlay */
-    main > *:not(#water-report-overlay) { display: none !important; }
+    main > *:not(#water-report-overlay):not(#waterbills-overlay) { display: none !important; }
     main { display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; }
 
     #water-report-overlay {
-      display: block !important;
       position: static !important;
       overflow: visible !important;
       height: auto !important;
@@ -452,6 +451,28 @@
       padding: 0 !important;
       min-width: 0 !important;
     }
+    #waterbills-overlay {
+      position: static !important;
+      overflow: visible !important;
+      height: auto !important;
+      width: 100% !important;
+      background: white !important;
+      z-index: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #waterbills-overlay > div:first-child { display: none !important; }
+    #waterbills-overlay-content {
+      display: block !important;
+      max-width: none !important;
+      height: auto !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      min-width: 0 !important;
+    }
+    #waterbills-overlay-content > div:first-child { padding-bottom: 0.5rem !important; margin-bottom: 0.75rem !important; }
+    #waterbills-overlay-content img { page-break-inside: avoid; }
 
     /* ── Print-only: tighten the report to fit one page and stop logo bleeding
           onto continuation pages. These rules only apply when printing — the
@@ -491,9 +512,11 @@
      viewport width while the table extends further, leaving a visible gap on
      the right). 920px chosen to comfortably fit the 6-column table. */
   @media (max-width: 768px) {
-    #water-report-overlay { overflow-x: auto; }
+    #water-report-overlay, #waterbills-overlay { overflow-x: auto; }
     #water-report-overlay-content { min-width: 920px; }
+    #waterbills-overlay-content { min-width: 1040px; }
     #water-report-overlay > div:first-child { min-width: 920px; box-sizing: border-box; }
+    #waterbills-overlay > div:first-child { min-width: 1040px; box-sizing: border-box; }
   }
 
   /* Report body styles */
@@ -546,6 +569,16 @@
   .water-rpt-empty .icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.5; }
   .water-rpt-empty .msg  { font-size: 1rem; font-weight: 600; color: #1e1a16; }
   .water-rpt-empty .sub  { font-size: 0.85rem; margin-top: 0.4rem; }
+  /* Quarterly Water Bills additions */
+  .toggle-smart { font-weight: 400; opacity: 0.7; font-size: 0.72rem; letter-spacing: 0.02em; text-transform: none; }
+  .wbill-sumstrip { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
+  .wbill-sumcard { flex: 1; min-width: 150px; background: #faf7f2; border: 1px solid #ede8e0; border-radius: 8px; padding: 0.7rem 0.9rem; }
+  .wbill-sumcard .lab { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b5f52; }
+  .wbill-sumcard .val { font-size: 19px; font-weight: 700; color: #1e1a16; margin-top: 4px; }
+  .wbill-sumcard .val.money { color: #2a7896; }
+  .water-rpt-table td.total { font-weight: 700; color: #2a7896; }
+  .water-rpt-table th.col-total .qlabel { color: #2a7896; }
+  .water-rpt-table tfoot td.total { color: #2a7896; }
 </style>
 </head>
 <body>
@@ -605,7 +638,18 @@
   <!-- Water Meter Readings Report -->
   <div class="doc-card-wrapper" style="margin-bottom:1rem;">
     <button class="btn-toggle btn-loading" id="toggle-waterreport" onclick="openWaterReport()" style="background:#2a7896;color:#ffffff;">
-      <span>&#128202; Open Water Meter Readings Report</span>
+      <span>&#128202; Quarterly Water Meter Readings<span class="toggle-smart" id="readings-smart"></span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to open &amp; view</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- Quarterly Water Bills -->
+  <div class="doc-card-wrapper" style="margin-bottom:1rem;">
+    <button class="btn-toggle btn-loading" id="toggle-waterbills" onclick="openWaterBills()" style="background:#2a7896;color:#ffffff;">
+      <span>&#128183; Quarterly Water Bills<span class="toggle-smart" id="bills-smart"></span></span>
       <span class="toggle-hint">
         <span class="hint-loading">⏳ Loading data…</span>
         <span class="hint-open">Tap to open &amp; view</span>
@@ -652,6 +696,23 @@
       </div>
     </div>
     <div id="water-report-overlay-content" style="padding:2rem 3rem;max-width:1180px;margin:0 auto;"></div>
+  </div>
+
+  <div id="waterbills-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+    <div style="position:sticky;top:0;z-index:10;background:#2a7896;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <select id="wbill-year-select" onchange="wbillChangeYear(this.value)" style="width:90px;padding:0.35rem 0.6rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
+      <div class="water-qtr-btn-group" id="wbill-qtr-btns">
+        <button class="water-qtr-btn" data-q="1">Q1</button>
+        <button class="water-qtr-btn" data-q="2">Q2</button>
+        <button class="water-qtr-btn" data-q="3">Q3</button>
+        <button class="water-qtr-btn" data-q="4">Q4</button>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+        <button onclick="printWaterBills()" style="padding:0.4rem 1rem;background:#fff;color:#2a7896;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+        <button onclick="closeWaterBillsOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#10005; Close</button>
+      </div>
+    </div>
+    <div id="waterbills-overlay-content" style="padding:2rem 3rem;max-width:1180px;margin:0 auto;"></div>
   </div>
 
 </main>
@@ -874,6 +935,7 @@ let waterReportQuarter = null;
     .then(function(d) {
       if (d.status === 'ok') {
         waterReportData = d;
+        populateReadingsSmart(d);
       }
       var btn = document.getElementById('toggle-waterreport');
       if (btn) btn.classList.remove('btn-loading');
@@ -1138,7 +1200,247 @@ function printWaterReport() {
   window.print();
   document.title = origTitle;
 }
-// ─── End Water Meter Readings Report ────────────────────────────────────────
+// ─── End Water Meter Readings Report ────────────────────────────
+
+// ─── Quarterly Water Bills Report ────────────────────────────────────────────
+let waterBillsData = null;      // { bills, billMeta, summary }
+let wbYear = null, wbQuarter = null;
+let wbYearsAvail = [];
+let wbQuartersByYear = {};
+
+(function preloadWaterBills() {
+  fetch(SCRIPT_URL + '?action=readWaterBills', { redirect: 'follow' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.status === 'ok') {
+        waterBillsData = d;
+        indexWaterBills(d);
+        populateBillsSmart(d);
+        populateStatementSmart(d);
+      }
+      var b = document.getElementById('toggle-waterbills');   if (b) b.classList.remove('btn-loading');
+      var st = document.getElementById('toggle-waterstatement'); if (st) st.classList.remove('btn-loading');
+    })
+    .catch(function() {
+      var b = document.getElementById('toggle-waterbills');   if (b) b.classList.remove('btn-loading');
+      var st = document.getElementById('toggle-waterstatement'); if (st) st.classList.remove('btn-loading');
+    });
+})();
+
+function indexWaterBills(d) {
+  wbYearsAvail = []; wbQuartersByYear = {};
+  var ys = {};
+  (d.bills || []).forEach(function(b) {
+    var m = (b.quarter || '').match(/^(\d{4})\s*Q([1-4])$/i);
+    if (!m) return;
+    var y = parseInt(m[1], 10), q = parseInt(m[2], 10);
+    ys[y] = true;
+    if (!wbQuartersByYear[y]) wbQuartersByYear[y] = {};
+    wbQuartersByYear[y][q] = true;
+  });
+  wbYearsAvail = Object.keys(ys).map(Number).sort(function(a, b) { return b - a; });
+  Object.keys(wbQuartersByYear).forEach(function(y) {
+    wbQuartersByYear[y] = Object.keys(wbQuartersByYear[y]).map(Number).sort(function(a, b) { return a - b; });
+  });
+}
+
+function wbillNiceDate(ddmmyyyy) {
+  if (!ddmmyyyy) return '';
+  var pt = ddmmyyyy.split('/');
+  if (pt.length !== 3) return ddmmyyyy;
+  var dt = new Date(parseInt(pt[2], 10), parseInt(pt[1], 10) - 1, parseInt(pt[0], 10));
+  if (isNaN(dt.getTime())) return ddmmyyyy;
+  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function wbillMoney(n) { return (n === null || n === undefined || isNaN(n)) ? '\u2014' : '\u00a3' + Number(n).toFixed(2); }
+
+function populateReadingsSmart(d) {
+  var el = document.getElementById('readings-smart');
+  if (!el) return;
+  var years = d.availableYears || [];
+  if (!years.length) return;
+  var y = years[0];
+  var qs = (d.availableQuartersByYear || {})[y] || [];
+  if (!qs.length) return;
+  var q = Math.max.apply(null, qs);
+  var date = '';
+  (d.rows || []).forEach(function(r) { if (r.year === y && r.q === q && !date) date = r.readingDate; });
+  el.textContent = '  \u00b7  Latest: ' + y + ' Q' + q + (date ? ' \u00b7 ' + wbillNiceDate(date) : '');
+}
+function populateBillsSmart(d) {
+  var el = document.getElementById('bills-smart');
+  if (!el) return;
+  var sm = d.summary || {};
+  if (sm.latestBillQuarter) {
+    el.textContent = '  \u00b7  Latest: ' + sm.latestBillQuarter + (sm.latestBillGeneratedDate ? ' \u00b7 generated ' + wbillNiceDate(sm.latestBillGeneratedDate) : '');
+  }
+}
+function populateStatementSmart(d) {
+  var el = document.getElementById('statement-smart');
+  if (!el) return;
+  var sm = d.summary || {};
+  if (sm.latestBillQuarter) {
+    el.textContent = '  \u00b7  ' + sm.latestBillQuarter + ' \u00b7 ' + sm.paidCount + ' of ' + sm.totalProperties + ' paid \u00b7 ' + sm.outstandingCount + ' outstanding';
+  }
+}
+
+async function openWaterBills() {
+  if (!waterBillsData) {
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readWaterBills', { redirect: 'follow' });
+      var json = await res.json();
+      if (json.status === 'ok') { waterBillsData = json; indexWaterBills(json); }
+      else { alert('Could not load water bills: ' + (json.message || 'unknown error')); return; }
+    } catch (e) { alert('Could not load water bills: ' + e.message); return; }
+  }
+  if (!wbYearsAvail.length) { alert('No water bills have been generated yet.'); return; }
+  wbYear = wbYearsAvail[0];
+  var qs = wbQuartersByYear[wbYear] || [];
+  wbQuarter = qs.length ? Math.max.apply(null, qs) : 1;
+  var sel = document.getElementById('wbill-year-select');
+  sel.innerHTML = '';
+  wbYearsAvail.forEach(function(y) {
+    var o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    o.style.background = '#2a7896'; o.style.color = '#fff';
+    if (y === wbYear) o.selected = true;
+    sel.appendChild(o);
+  });
+  refreshWBillQuarterButtons();
+  renderWaterBills();
+  var overlay = document.getElementById('waterbills-overlay');
+  if (overlay) {
+    overlay.style.display = 'block'; overlay.scrollTop = 0;
+    document.body.style.overflow = 'hidden'; document.documentElement.style.overflow = 'hidden';
+  }
+}
+function closeWaterBillsOverlay() {
+  var overlay = document.getElementById('waterbills-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = ''; document.documentElement.style.overflow = '';
+}
+function wbillChangeYear(y) {
+  wbYear = parseInt(y, 10);
+  var qs = wbQuartersByYear[wbYear] || [];
+  if (qs.length) wbQuarter = Math.max.apply(null, qs);
+  refreshWBillQuarterButtons();
+  renderWaterBills();
+}
+function wbillChangeQuarter(q) {
+  wbQuarter = q;
+  refreshWBillQuarterButtons();
+  renderWaterBills();
+}
+function refreshWBillQuarterButtons() {
+  var avail = wbQuartersByYear[wbYear] || [];
+  var btns = document.querySelectorAll('#wbill-qtr-btns .water-qtr-btn');
+  btns.forEach(function(btn) {
+    var q = parseInt(btn.dataset.q, 10);
+    var isAvail = avail.indexOf(q) !== -1;
+    btn.classList.toggle('disabled', !isAvail);
+    btn.classList.toggle('active', isAvail && q === wbQuarter);
+    btn.onclick = isAvail ? (function(qq) { return function() { wbillChangeQuarter(qq); }; })(q) : null;
+  });
+}
+
+function renderWaterBills() {
+  var quarter = wbYear + ' Q' + wbQuarter;
+  var rows = (waterBillsData.bills || []).filter(function(b) { return b.quarter === quarter; });
+  rows.sort(function(a, b) {
+    var na = parseInt((a.property.match(/^\d+/) || ['9999'])[0], 10);
+    var nb = parseInt((b.property.match(/^\d+/) || ['9999'])[0], 10);
+    return na - nb;
+  });
+  var meta = (waterBillsData.billMeta || {})[quarter] || {};
+  var range = WATER_QTR_RANGE[wbQuarter] || '';
+
+  var now = new Date();
+  var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  var readingDate = meta.periodEnd ? wbillNiceDate(meta.periodEnd) : '\u2014';
+
+  var pageLogoEl = document.getElementById('headerLogo');
+  var pageLogoSrc = pageLogoEl ? pageLogoEl.src : '';
+
+  var h = '';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+  h += '<div style="display:flex;align-items:center;">';
+  h += '<img src="' + pageLogoSrc + '" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+  h += '<div style="margin-left:1rem;">';
+  h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Water Bills</div>';
+  h += '</div></div>';
+  h += '<div style="text-align:right;">';
+  h += '<div style="font-size:20px;font-weight:700;color:#2a7896;">' + quarter + ' &middot; ' + range + '</div>';
+  h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Generated ' + generated + '</div>';
+  h += '</div></div>';
+
+  if (rows.length === 0) {
+    h += '<div class="water-rpt-empty"><div class="icon">&#128167;</div>';
+    h += '<div class="msg">No bill generated for this quarter</div>';
+    h += '<div class="sub">When the ' + quarter + ' bill is generated it will appear here.</div></div>';
+    document.getElementById('waterbills-overlay-content').innerHTML = h;
+    return;
+  }
+
+  var standShare = (meta.siteStanding != null) ? meta.siteStanding / 14 : null;
+  var adminShare = (meta.adminTotal != null) ? meta.adminTotal / 14 : null;
+  h += '<div class="wbill-sumstrip">';
+  h += '<div class="wbill-sumcard"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
+  h += '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillMoney(meta.pricePerM3) + '</div></div>';
+  h += '<div class="wbill-sumcard"><div class="lab">Standing charge share</div><div class="val money">' + wbillMoney(standShare) + '</div></div>';
+  h += '<div class="wbill-sumcard"><div class="lab">Admin per property</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
+  h += '</div>';
+
+  h += '<div class="water-rpt-col-head">Quarterly Bills</div>';
+
+  var pq = (wbQuarter === 1) ? 4 : wbQuarter - 1;
+  var py = (wbQuarter === 1) ? wbYear - 1 : wbYear;
+  var prevLabel = py + ' Q' + pq, curLabel = quarter;
+
+  h += '<table class="water-rpt-table"><thead><tr>';
+  h += '<th>Address</th><th>Resident</th><th>Water Meter</th>';
+  h += '<th class="col-prev"><span class="qlabel">' + prevLabel + '</span><span class="qrole">Previous Quarter</span></th>';
+  h += '<th class="col-curr"><span class="qlabel">' + curLabel + '</span><span class="qrole">Current Quarter</span></th>';
+  h += '<th class="col-vol"><span class="qlabel">' + curLabel + '</span><span class="qrole">Water Volume</span></th>';
+  h += '<th class="col-total"><span class="qlabel">' + curLabel + '</span><span class="qrole">Total (\u00a3)</span></th>';
+  h += '</tr></thead><tbody>';
+
+  var totPrev = 0, totCur = 0, totVol = 0, totTot = 0, hasPrev = false;
+  rows.forEach(function(b) {
+    if (b.previousReading !== null) { totPrev += b.previousReading; hasPrev = true; }
+    if (b.currentReading !== null) totCur += b.currentReading;
+    if (b.volume !== null) totVol += b.volume;
+    if (b.total !== null) totTot += b.total;
+    h += '<tr>';
+    h += '<td>' + b.property + '</td>';
+    h += '<td>' + (b.resident || '') + '</td>';
+    h += '<td>' + (b.meter || '') + '</td>';
+    h += '<td class="num prev">' + waterFmtReading(b.previousReading) + '</td>';
+    h += '<td class="num curr">' + waterFmtReading(b.currentReading) + '</td>';
+    h += '<td class="num vol">' + waterFmtVolume(b.volume) + '</td>';
+    h += '<td class="num total">' + wbillMoney(b.total) + '</td>';
+    h += '</tr>';
+  });
+
+  h += '</tbody><tfoot><tr>';
+  h += '<td class="label" colspan="3">Total CMC Water Meter Reading, Volume &amp; Charges</td>';
+  h += '<td class="num prev">' + (hasPrev ? waterFmtReading(totPrev) : '&mdash;') + '</td>';
+  h += '<td class="num curr">' + waterFmtReading(totCur) + '</td>';
+  h += '<td class="num vol">' + waterFmtVolume(totVol) + '</td>';
+  h += '<td class="num total">' + wbillMoney(totTot) + '</td>';
+  h += '</tr></tfoot></table>';
+
+  document.getElementById('waterbills-overlay-content').innerHTML = h;
+}
+
+function printWaterBills() {
+  var origTitle = document.title;
+  document.title = 'CMC The Courtyard \u2014 Water Bills ' + (wbYear || '') + ' Q' + (wbQuarter || '');
+  window.print();
+  document.title = origTitle;
+}
+// ─── End Quarterly Water Bills Report ────────────────────────────────────────
 
 (function() {
     const now = new Date();
