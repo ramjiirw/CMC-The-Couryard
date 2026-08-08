@@ -637,6 +637,19 @@
   .water-rpt-table td.total { font-weight: 700; color: #2a7896; }
   .water-rpt-table th.col-total .qlabel { color: #2a7896; }
   .water-rpt-table tfoot td.total { color: #2a7896; }
+  /* Payments view */
+  .wbill-glance { font-size: 14px; color: #6b5f52; margin: 0 0 0.7rem; font-weight: 600; }
+  .wbill-glance b.ok { color: #2f6b45; } .wbill-glance b.out { color: #a24a34; }
+  .wbill-glance.allpaid { color: #2f6b45; font-weight: 700; }
+  .water-rpt-table td.paidcol { font-variant-numeric: tabular-nums; }
+  .water-rpt-table tfoot td.paidtot { color: #2f6b45; font-weight: 700; }
+  .water-rpt-table tfoot td.outlabel { font-size: 12px; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.05em; text-align: center; }
+  .water-rpt-table tfoot td.outtot { color: #a24a34; font-weight: 700; }
+  .water-rpt-table tfoot td.outtot.clear { color: #2f6b45; }
+  .wbpill { display: inline-block; padding: 2px 10px; border-radius: 11px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+  .wbpill.paid { background: #e3f0e7; color: #2f6b45; }
+  .wbpill.part { background: #fbeecf; color: #9a6b1c; }
+  .wbpill.unpaid { background: #f5e2dd; color: #a24a34; }
 </style>
 </head>
 <body>
@@ -775,6 +788,11 @@
         <button class="water-qtr-btn" data-q="2">Q2</button>
         <button class="water-qtr-btn" data-q="3">Q3</button>
         <button class="water-qtr-btn" data-q="4">Q4</button>
+      </div>
+      <div style="width:1px;height:26px;background:rgba(255,255,255,0.35);margin:0 0.25rem;"></div>
+      <div class="water-qtr-btn-group" id="wbill-view-btns">
+        <button class="water-qtr-btn active" id="wbview-bill" onclick="wbillSetView('bill')" style="min-width:auto;padding:0.35rem 0.9rem;">Bill</button>
+        <button class="water-qtr-btn" id="wbview-pay" onclick="wbillSetView('pay')" style="min-width:auto;padding:0.35rem 0.9rem;">Payments</button>
       </div>
       <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
         <button onclick="printWaterBills()" style="padding:0.4rem 1rem;background:#fff;color:#2a7896;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
@@ -1282,6 +1300,8 @@ function printWaterReport() {
 // ─── Quarterly Water Bills Report ────────────────────────────────────────────
 let waterBillsData = null;      // { bills, billMeta, summary }
 let wbYear = null, wbQuarter = null;
+
+let wbView = 'bill';   // 'bill' | 'pay'
 let wbYearsAvail = [];
 let wbQuartersByYear = {};
 
@@ -1383,6 +1403,9 @@ async function openWaterBills() {
     if (y === wbYear) o.selected = true;
     sel.appendChild(o);
   });
+  wbView = 'bill';
+  var _bb = document.getElementById('wbview-bill'); if (_bb) _bb.classList.add('active');
+  var _pb = document.getElementById('wbview-pay'); if (_pb) _pb.classList.remove('active');
   refreshWBillQuarterButtons();
   renderWaterBills();
   var overlay = document.getElementById('waterbills-overlay');
@@ -1445,7 +1468,7 @@ function renderWaterBills() {
   h += '<img src="' + pageLogoSrc + '" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
   h += '<div style="margin-left:1rem;">';
   h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
-  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Quarterly Water Bills</div>';
+  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Quarterly Water Bills' + (wbView === 'pay' ? ' &amp; Payments' : '') + '</div>';
   h += '</div></div>';
   h += '<div style="text-align:right;">';
   h += '<div style="font-size:20px;font-weight:700;color:#2a7896;">' + quarter + ' &middot; ' + range + '</div>';
@@ -1474,6 +1497,62 @@ function renderWaterBills() {
   var py = (wbQuarter === 1) ? wbYear - 1 : wbYear;
   var prevLabel = py + ' Q' + pq, curLabel = quarter;
 
+  if (wbView === 'pay') {
+    // ── Payments view: Address · Resident · Volume · Total billed · Paid · Status · Date paid ──
+    var pTotVol = 0, pTotBilled = 0, pTotPaid = 0, paidN = 0;
+    var body = '';
+    rows.forEach(function(b) {
+      var billed = b.total || 0;
+      var paid = b.paid || 0;
+      var st = b.paymentStatus || 'unpaid';
+      if (st === 'paid') paidN++;
+      pTotVol += (b.volume || 0); pTotBilled += billed; pTotPaid += paid;
+      var lastDate = (b.payments && b.payments.length) ? b.payments[b.payments.length - 1].date : '';
+      body += '<tr>';
+      body += '<td>' + b.property + '</td>';
+      body += '<td>' + (b.resident || '') + '</td>';
+      body += '<td class="num vol">' + waterFmtVolume(b.volume) + '</td>';
+      body += '<td class="num total">' + wbillMoney(billed) + '</td>';
+      body += '<td class="num paidcol">' + (paid > 0 ? wbillMoney(paid) : '\u2014') + '</td>';
+      body += '<td style="text-align:center;"><span class="wbpill ' + st + '">' + ({ paid: 'Paid', part: 'Part paid', unpaid: 'Unpaid' }[st] || st) + '</span></td>';
+      body += '<td class="num" style="color:#6b5f52;font-size:15px;text-align:left;">' + (lastDate || '\u2014') + '</td>';
+      body += '</tr>';
+    });
+
+    var outstanding = Math.round((pTotBilled - pTotPaid) * 100) / 100;
+    var outN = rows.length - paidN;
+    if (outstanding <= 0.001) {
+      h += '<div class="wbill-glance allpaid">' + quarter + ' &middot; \u2713 All paid</div>';
+    } else {
+      h += '<div class="wbill-glance">' + quarter + ' &middot; <b class="ok">' + paidN + ' of ' + rows.length + ' paid</b> &middot; <b class="out">' + wbillMoney(outstanding) + ' outstanding</b></div>';
+    }
+
+    h += '<table class="water-rpt-table"><thead><tr>';
+    h += '<th>Address</th><th>Resident</th>';
+    h += '<th class="col-vol"><span class="qlabel">' + curLabel + '</span><span class="qrole">Water Volume</span></th>';
+    h += '<th class="col-total"><span class="qlabel">' + curLabel + '</span><span class="qrole">Total Billed</span></th>';
+    h += '<th><span class="qlabel" style="color:#2f6b45;">' + curLabel + '</span><span class="qrole">Paid</span></th>';
+    h += '<th style="text-align:center;">Status</th>';
+    h += '<th style="text-align:left;">Date Paid</th>';
+    h += '</tr></thead><tbody>' + body + '</tbody><tfoot><tr>';
+    h += '<td class="label" colspan="2">Totals</td>';
+    h += '<td class="num vol">' + waterFmtVolume(pTotVol) + '</td>';
+    h += '<td class="num total">' + wbillMoney(pTotBilled) + '</td>';
+    h += '<td class="num paidtot">' + wbillMoney(pTotPaid) + '</td>';
+    if (outstanding <= 0.001) {
+      h += '<td class="outlabel">All Paid</td>';
+      h += '<td class="num outtot clear">\u2713 ' + wbillMoney(0) + '</td>';
+    } else {
+      h += '<td class="outlabel">Outstanding</td>';
+      h += '<td class="num outtot">' + wbillMoney(outstanding) + '</td>';
+    }
+    h += '</tr></tfoot></table>';
+
+    document.getElementById('waterbills-overlay-content').innerHTML = h;
+    return;
+  }
+
+  // ── Bill view (default) ──
   h += '<table class="water-rpt-table"><thead><tr>';
   h += '<th>Address</th><th>Resident</th><th>Water Meter</th>';
   h += '<th class="col-prev"><span class="qlabel">' + prevLabel + '</span><span class="qrole">Previous Quarter</span></th>';
@@ -1510,9 +1589,17 @@ function renderWaterBills() {
   document.getElementById('waterbills-overlay-content').innerHTML = h;
 }
 
+function wbillSetView(v) {
+  wbView = v;
+  var bb = document.getElementById('wbview-bill'), pb = document.getElementById('wbview-pay');
+  if (bb) bb.classList.toggle('active', v === 'bill');
+  if (pb) pb.classList.toggle('active', v === 'pay');
+  renderWaterBills();
+}
+
 function printWaterBills() {
   var origTitle = document.title;
-  document.title = 'CMC The Courtyard \u2014 Water Bills ' + (wbYear || '') + ' Q' + (wbQuarter || '');
+  document.title = 'CMC The Courtyard \u2014 Water Bills' + (wbView === 'pay' ? ' & Payments' : '') + ' ' + (wbYear || '') + ' Q' + (wbQuarter || '');
   window.print();
   document.title = origTitle;
 }
