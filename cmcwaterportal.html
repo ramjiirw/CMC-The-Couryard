@@ -1427,7 +1427,7 @@ function wbillChangeYear(y) {
   renderWaterBills();
 }
 function wbillChangeQuarter(q) {
-  wbQuarter = q;
+  wbQuarter = (wbQuarter === q) ? null : q;   // click the active quarter again -> Year to date
   refreshWBillQuarterButtons();
   renderWaterBills();
 }
@@ -1444,6 +1444,7 @@ function refreshWBillQuarterButtons() {
 }
 
 function renderWaterBills() {
+  if (wbQuarter === null) { renderWaterBillsYTD(); return; }
   var quarter = wbYear + ' Q' + wbQuarter;
   var rows = (waterBillsData.bills || []).filter(function(b) { return b.quarter === quarter; });
   rows.sort(function(a, b) {
@@ -1528,10 +1529,10 @@ function renderWaterBills() {
     }
 
     h += '<table class="water-rpt-table"><thead><tr>';
-    h += '<th>Address</th><th>Resident</th>';
-    h += '<th class="col-vol"><span class="qlabel">' + curLabel + '</span><span class="qrole">Water Volume</span></th>';
-    h += '<th class="col-total"><span class="qlabel">' + curLabel + '</span><span class="qrole">Total Billed</span></th>';
-    h += '<th><span class="qlabel" style="color:#2f6b45;">' + curLabel + '</span><span class="qrole">Paid</span></th>';
+    h += '<th style="text-align:left;">Address</th><th style="text-align:left;">Resident</th>';
+    h += '<th class="col-vol" style="text-align:right;"><span class="qlabel">' + curLabel + '</span><span class="qrole">Water Volume</span></th>';
+    h += '<th class="col-total" style="text-align:right;"><span class="qlabel">' + curLabel + '</span><span class="qrole">Total Billed</span></th>';
+    h += '<th style="text-align:right;"><span class="qlabel" style="color:#2f6b45;">' + curLabel + '</span><span class="qrole">Paid</span></th>';
     h += '<th style="text-align:center;">Status</th>';
     h += '<th style="text-align:left;">Date Paid</th>';
     h += '</tr></thead><tbody>' + body + '</tbody><tfoot><tr>';
@@ -1597,9 +1598,151 @@ function wbillSetView(v) {
   renderWaterBills();
 }
 
+function renderWaterBillsYTD() {
+  var year = wbYear;
+  var byProp = {};
+  var quartersSet = {};
+  (waterBillsData.bills || []).forEach(function(b) {
+    var m = (b.quarter || '').match(/^(\d{4})\s*Q([1-4])$/i);
+    if (!m || parseInt(m[1], 10) !== year) return;
+    quartersSet[parseInt(m[2], 10)] = true;
+    if (!byProp[b.property]) byProp[b.property] = { property: b.property, resident: b.resident || '', meter: b.meter || '', vol: 0, billed: 0, paid: 0 };
+    var pr = byProp[b.property];
+    pr.vol += (b.volume || 0); pr.billed += (b.total || 0); pr.paid += (b.paid || 0);
+    if (b.resident && !pr.resident) pr.resident = b.resident;
+    if (b.meter && !pr.meter) pr.meter = b.meter;
+  });
+  var props = Object.keys(byProp).map(function(k) { return byProp[k]; });
+  props.sort(function(a, b) {
+    var na = parseInt((a.property.match(/^\d+/) || ['9999'])[0], 10);
+    var nb = parseInt((b.property.match(/^\d+/) || ['9999'])[0], 10);
+    return na - nb;
+  });
+  var quarters = Object.keys(quartersSet).map(Number).sort(function(a, b) { return a - b; });
+
+  var pageLogoEl = document.getElementById('headerLogo');
+  var pageLogoSrc = pageLogoEl ? pageLogoEl.src : '';
+  var first = quarters[0], last = quarters[quarters.length - 1];
+  var firstMonth = (WATER_QTR_RANGE[first] || '').split(' \u2013 ')[0] || '';
+  var lastArr = (WATER_QTR_RANGE[last] || '').split(' \u2013 ');
+  var lastMonth = lastArr[lastArr.length - 1] || '';
+  var qspan = 'Q' + first + (last !== first ? '\u2013Q' + last : '');
+  var spanLabel = year + ' \u00b7 ' + qspan + ((firstMonth && lastMonth) ? ' \u00b7 ' + firstMonth + ' \u2013 ' + lastMonth : '');
+
+  var now = new Date();
+  var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  var h = '';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+  h += '<div style="display:flex;align-items:center;">';
+  h += '<img src="' + pageLogoSrc + '" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+  h += '<div style="margin-left:1rem;">';
+  h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Quarterly Water Bills' + (wbView === 'pay' ? ' &amp; Payments' : '') + '</div>';
+  h += '</div></div>';
+  h += '<div style="text-align:right;">';
+  h += '<div style="font-size:20px;font-weight:700;color:#2a7896;">' + spanLabel + '</div>';
+  h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Year to date (' + quarters.length + ' quarter' + (quarters.length > 1 ? 's' : '') + ') &middot; generated ' + generated + '</div>';
+  h += '</div></div>';
+
+  if (props.length === 0) {
+    h += '<div class="water-rpt-empty"><div class="icon">&#128167;</div><div class="msg">No bills generated for ' + year + ' yet</div><div class="sub">Year-to-date totals appear once bills are generated.</div></div>';
+    document.getElementById('waterbills-overlay-content').innerHTML = h;
+    return;
+  }
+
+  // smart boxes
+  var prices = quarters.map(function(qn) { var mm = (waterBillsData.billMeta || {})[year + ' Q' + qn] || {}; return { q: qn, price: mm.pricePerM3 }; });
+  var allSame = prices.every(function(x) { return x.price === prices[0].price; });
+  var priceCard;
+  if (allSame) {
+    priceCard = '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillMoney(prices[0].price) + '</div></div>';
+  } else {
+    var perq = prices.map(function(x) { return 'Q' + x.q + ' <span style="color:#2a7896;">' + wbillMoney(x.price) + '</span>'; }).join(' &middot; ');
+    priceCard = '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3 (per quarter)</div><div style="font-size:17px;font-weight:700;color:#1e1a16;margin-top:4px;line-height:1.5;">' + perq + '</div></div>';
+  }
+  var standTotal = 0, adminTotal = 0, standConst = true, adminConst = true, standEach = null, adminEach = null;
+  quarters.forEach(function(qn) {
+    var mm = (waterBillsData.billMeta || {})[year + ' Q' + qn] || {};
+    var ss = (mm.siteStanding != null) ? mm.siteStanding / 14 : 0;
+    var aa = (mm.adminTotal != null) ? mm.adminTotal / 14 : 0;
+    standTotal += ss; adminTotal += aa;
+    if (standEach === null) standEach = ss; else if (Math.abs(standEach - ss) > 0.0001) standConst = false;
+    if (adminEach === null) adminEach = aa; else if (Math.abs(adminEach - aa) > 0.0001) adminConst = false;
+  });
+  standTotal = Math.round(standTotal * 100) / 100; adminTotal = Math.round(adminTotal * 100) / 100;
+  var nQ = quarters.length, qWord = 'quarter' + (nQ > 1 ? 's' : '');
+  var standNote = standConst ? (wbillMoney(standEach) + ' \u00d7 ' + nQ + ' ' + qWord) : ('across ' + nQ + ' quarters');
+  var adminNote = adminConst ? (wbillMoney(adminEach) + ' \u00d7 ' + nQ + ' ' + qWord) : ('across ' + nQ + ' quarters');
+
+  h += '<div class="wbill-sumstrip">';
+  h += priceCard;
+  h += '<div class="wbill-sumcard"><div class="lab">Standing charge (YTD)</div><div class="val money">' + wbillMoney(standTotal) + '</div><div class="lab" style="margin-top:2px;text-transform:none;font-weight:400;">' + standNote + '</div></div>';
+  h += '<div class="wbill-sumcard"><div class="lab">Admin (YTD)</div><div class="val money">' + wbillMoney(adminTotal) + '</div><div class="lab" style="margin-top:2px;text-transform:none;font-weight:400;">' + adminNote + '</div></div>';
+  h += '</div>';
+
+  if (wbView === 'pay') {
+    var tv = 0, tb = 0, tp = 0, paidN = 0, body = '';
+    props.forEach(function(pr) {
+      var st = (pr.paid <= 0) ? 'unpaid' : (pr.paid + 0.001 < pr.billed ? 'part' : 'paid');
+      if (st === 'paid') paidN++;
+      tv += pr.vol; tb += pr.billed; tp += pr.paid;
+      body += '<tr>';
+      body += '<td style="text-align:left;">' + pr.property + '</td>';
+      body += '<td style="text-align:left;">' + pr.resident + '</td>';
+      body += '<td style="text-align:center;">' + pr.meter + '</td>';
+      body += '<td class="num vol">' + waterFmtVolume(pr.vol) + '</td>';
+      body += '<td class="num total">' + wbillMoney(pr.billed) + '</td>';
+      body += '<td class="num paidcol">' + (pr.paid > 0 ? wbillMoney(pr.paid) : '\u2014') + '</td>';
+      body += '<td style="text-align:center;"><span class="wbpill ' + st + '">' + ({ paid: 'Paid', part: 'Part paid', unpaid: 'Unpaid' }[st]) + '</span></td>';
+      body += '</tr>';
+    });
+    var outstanding = Math.round((tb - tp) * 100) / 100;
+    if (outstanding <= 0.001) h += '<div class="wbill-glance allpaid">' + qspan + ' &middot; \u2713 All paid</div>';
+    else h += '<div class="wbill-glance">' + qspan + ' &middot; <b class="ok">' + paidN + ' of ' + props.length + ' paid</b> &middot; <b class="out">' + wbillMoney(outstanding) + ' outstanding</b></div>';
+    h += '<table class="water-rpt-table"><thead><tr>';
+    h += '<th style="text-align:left;">Address</th><th style="text-align:left;">Resident</th><th style="text-align:center;">Water Meter</th>';
+    h += '<th class="col-vol" style="text-align:right;"><span class="qlabel">' + qspan + '</span><span class="qrole">Total Volume</span></th>';
+    h += '<th class="col-total" style="text-align:right;"><span class="qlabel">' + qspan + '</span><span class="qrole">Total Billed</span></th>';
+    h += '<th style="text-align:right;"><span class="qlabel" style="color:#2f6b45;">' + qspan + '</span><span class="qrole">Paid</span></th>';
+    h += '<th style="text-align:center;">Status</th>';
+    h += '</tr></thead><tbody>' + body + '</tbody><tfoot><tr>';
+    h += '<td class="label" colspan="3" style="text-align:left;">Year-to-date totals</td>';
+    h += '<td class="num vol">' + waterFmtVolume(tv) + '</td>';
+    h += '<td class="num total">' + wbillMoney(tb) + '</td>';
+    h += '<td class="num paidtot">' + wbillMoney(tp) + '</td>';
+    if (outstanding <= 0.001) h += '<td class="outtot clear" style="text-align:center;">\u2713 All Paid ' + wbillMoney(0) + '</td>';
+    else h += '<td class="outtot" style="text-align:center;">Outstanding ' + wbillMoney(outstanding) + '</td>';
+    h += '</tr></tfoot></table>';
+  } else {
+    var tv2 = 0, tb2 = 0, body2 = '';
+    props.forEach(function(pr) {
+      tv2 += pr.vol; tb2 += pr.billed;
+      body2 += '<tr>';
+      body2 += '<td style="text-align:left;">' + pr.property + '</td>';
+      body2 += '<td style="text-align:left;">' + pr.resident + '</td>';
+      body2 += '<td style="text-align:center;">' + pr.meter + '</td>';
+      body2 += '<td class="num vol">' + waterFmtVolume(pr.vol) + '</td>';
+      body2 += '<td class="num total">' + wbillMoney(pr.billed) + '</td>';
+      body2 += '</tr>';
+    });
+    h += '<table class="water-rpt-table"><thead><tr>';
+    h += '<th style="text-align:left;">Address</th><th style="text-align:left;">Resident</th><th style="text-align:center;">Water Meter</th>';
+    h += '<th class="col-vol" style="text-align:right;"><span class="qlabel">' + qspan + '</span><span class="qrole">Total Volume</span></th>';
+    h += '<th class="col-total" style="text-align:right;"><span class="qlabel">' + qspan + '</span><span class="qrole">Total Billed</span></th>';
+    h += '</tr></thead><tbody>' + body2 + '</tbody><tfoot><tr>';
+    h += '<td class="label" colspan="3" style="text-align:left;">Year-to-date totals</td>';
+    h += '<td class="num vol">' + waterFmtVolume(tv2) + '</td>';
+    h += '<td class="num total">' + wbillMoney(tb2) + '</td>';
+    h += '</tr></tfoot></table>';
+  }
+
+  document.getElementById('waterbills-overlay-content').innerHTML = h;
+}
+
 function printWaterBills() {
   var origTitle = document.title;
-  document.title = 'CMC The Courtyard \u2014 Water Bills' + (wbView === 'pay' ? ' & Payments' : '') + ' ' + (wbYear || '') + ' Q' + (wbQuarter || '');
+  document.title = 'CMC The Courtyard \u2014 Water Bills' + (wbView === 'pay' ? ' & Payments' : '') + ' ' + (wbYear || '') + (wbQuarter === null ? ' YTD' : ' Q' + wbQuarter);
   window.print();
   document.title = origTitle;
 }
