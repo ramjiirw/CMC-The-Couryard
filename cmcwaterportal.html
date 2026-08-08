@@ -427,7 +427,7 @@
     body > script, body > noscript { display: none !important; }
 
     /* Inside <main>, hide everything except the overlay */
-    main > *:not(#water-report-overlay):not(#waterbills-overlay) { display: none !important; }
+    main > *:not(#water-report-overlay):not(#waterbills-overlay):not(#wstmt-overlay) { display: none !important; }
     main { display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; }
 
     #water-report-overlay {
@@ -473,6 +473,28 @@
     }
     #waterbills-overlay-content > div:first-child { padding-bottom: 0.5rem !important; margin-bottom: 0.75rem !important; }
     #waterbills-overlay-content img { page-break-inside: avoid; }
+    #wstmt-overlay {
+      position: static !important;
+      overflow: visible !important;
+      height: auto !important;
+      width: 100% !important;
+      background: white !important;
+      z-index: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #wstmt-overlay > div:first-child { display: none !important; }
+    #wstmt-overlay-content {
+      display: block !important;
+      max-width: none !important;
+      height: auto !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      min-width: 0 !important;
+    }
+    #wstmt-overlay-content > div:first-child { padding-bottom: 0.5rem !important; margin-bottom: 0.75rem !important; }
+    #wstmt-overlay-content img { page-break-inside: avoid; }
 
     /* ── Print-only: tighten the report to fit one page and stop logo bleeding
           onto continuation pages. These rules only apply when printing — the
@@ -512,11 +534,13 @@
      viewport width while the table extends further, leaving a visible gap on
      the right). 920px chosen to comfortably fit the 6-column table. */
   @media (max-width: 768px) {
-    #water-report-overlay, #waterbills-overlay { overflow-x: auto; }
+    #water-report-overlay, #waterbills-overlay, #wstmt-overlay { overflow-x: auto; }
     #water-report-overlay-content { min-width: 920px; }
     #waterbills-overlay-content { min-width: 1040px; }
+    #wstmt-overlay-content { min-width: 780px; }
     #water-report-overlay > div:first-child { min-width: 920px; box-sizing: border-box; }
     #waterbills-overlay > div:first-child { min-width: 1040px; box-sizing: border-box; }
+    #wstmt-overlay > div:first-child { min-width: 780px; box-sizing: border-box; }
   }
 
   /* Report body styles */
@@ -570,7 +594,41 @@
   .water-rpt-empty .msg  { font-size: 1rem; font-weight: 600; color: #1e1a16; }
   .water-rpt-empty .sub  { font-size: 0.85rem; margin-top: 0.4rem; }
   /* Quarterly Water Bills additions */
-  .toggle-smart { font-weight: 400; opacity: 0.9; font-size: 0.76rem; letter-spacing: 0.02em; text-transform: none; }
+  .toggle-smart { font-weight: 400; opacity: 0.9; font-size: 0.76rem; letter-spacing: 0.02em; text-transform: uppercase; }
+  /* ── Property Water Statement additions ── */
+  .wstmt-yr-btn { padding: 0.35rem 0.75rem; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; font-family: Arial, sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; min-width: 46px; }
+  .wstmt-yr-btn.active { background: #fff; color: #2f4a8f; }
+  .wstmt-sumcard .val.owed  { color: #b06a4f; }
+  .wstmt-sumcard .val.clear { color: #3d6b4a; }
+  .wstmt-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; }
+  .wstmt-table th { text-align: right; font-size: 13px; font-weight: 600; color: #6b5f52; text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px 8px 8px; border-bottom: 2.5px solid #1e1a16; }
+  .wstmt-table th.l { text-align: left; }
+  .wstmt-table td { padding: 9px 8px; font-size: 16px; color: #1e1a16; border-bottom: 1px solid #ede8e0; }
+  .wstmt-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .wstmt-table td.c { text-align: center; }
+  .wstmt-table td.qtr { font-weight: 700; }
+  .wstmt-table td.date { color: #6b5f52; font-size: 15px; }
+  .wstmt-table td.vol { color: #6b5f52; }
+  .wstmt-table td.total { font-weight: 700; color: #2f4a8f; }
+  .wstmt-yhead td { background: #f0ebe2; border-top: 1.5px solid #d8cfc4; border-bottom: 1.5px solid #d8cfc4; font-weight: 700; font-size: 16px; color: #1e1a16; cursor: pointer; }
+  .wstmt-yhead .caret { display: inline-block; width: 14px; color: #6b5f52; transition: transform 0.15s; }
+  .wstmt-yhead.collapsed .caret { transform: rotate(-90deg); }
+  .wstmt-yhead .ysum { font-weight: 400; font-size: 13px; color: #6b5f52; margin-left: 0.6rem; }
+  .wstmt-yhead td.total { color: #2f4a8f; font-weight: 700; }
+  .wstmt-qrow.hidden { display: none; }
+  .wstmt-qrow .expander { cursor: pointer; color: #2f4a8f; font-weight: 700; margin-left: 6px; font-size: 13px; }
+  .wstmt-pill { display: inline-block; padding: 2px 10px; border-radius: 11px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+  .wstmt-pill.paid   { background: #e3f0e7; color: #2f6b45; }
+  .wstmt-pill.part   { background: #fbeecf; color: #9a6b1c; }
+  .wstmt-pill.unpaid { background: #f5e2dd; color: #a24a34; }
+  .wstmt-trend { font-size: 11px; margin-left: 5px; font-weight: 700; }
+  .wstmt-trend.up { color: #b06a4f; } .wstmt-trend.down { color: #3d6b4a; } .wstmt-trend.flat { color: #b8ad9e; }
+  .wstmt-payrow.hidden { display: none; }
+  .wstmt-payrow td { background: #fbf9f5 !important; border-bottom: 1px dashed #e6ddd0; padding: 0; }
+  .wstmt-paywrap { padding: 6px 8px 8px 34px; }
+  .wstmt-payline { display: flex; justify-content: space-between; font-size: 14px; color: #6b5f52; padding: 3px 0; max-width: 420px; }
+  .wstmt-payline .amt { font-variant-numeric: tabular-nums; color: #2f6b45; font-weight: 700; }
+  .wstmt-payhdr { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b8ad9e; margin-bottom: 2px; }
   .wbill-sumstrip { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
   .wbill-sumcard { flex: 1; min-width: 150px; background: #faf7f2; border: 1px solid #ede8e0; border-radius: 8px; padding: 0.7rem 0.9rem; }
   .wbill-sumcard .lab { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b5f52; }
@@ -657,6 +715,17 @@
     </button>
   </div>
 
+  <!-- Property Water Statements -->
+  <div class="doc-card-wrapper" style="margin-bottom:1rem;">
+    <button class="btn-toggle btn-loading" id="toggle-waterstatement" onclick="openWaterStatement()" style="background:#2f4a8f;color:#ffffff;">
+      <span>&#129534; Property Water Statements<span class="toggle-smart" id="statement-smart"></span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">⏳ Loading data…</span>
+        <span class="hint-open">Tap to open &amp; view</span>
+      </span>
+    </button>
+  </div>
+
   <!-- Maintenance Documents -->
   <div class="doc-card-wrapper">
     <button class="btn-toggle" id="toggle-maintdocs" onclick="toggleMaintDocs()" aria-expanded="false">
@@ -713,6 +782,18 @@
       </div>
     </div>
     <div id="waterbills-overlay-content" style="padding:2rem 3rem;max-width:1180px;margin:0 auto;"></div>
+  </div>
+
+  <div id="wstmt-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
+    <div style="position:sticky;top:0;z-index:10;background:#2f4a8f;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <select id="wstmt-addr-select" onchange="wstmtChangeAddress(this.value)" style="min-width:260px;padding:0.4rem 0.7rem;border:1px solid rgba(255,255,255,0.4);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;background:rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;"></select>
+      <div class="water-qtr-btn-group" id="wstmt-yr-btns"></div>
+      <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
+        <button onclick="printWaterStatement()" style="padding:0.4rem 1rem;background:#fff;color:#2f4a8f;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
+        <button onclick="closeWaterStatementOverlay()" style="padding:0.4rem 1rem;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#10005; Close</button>
+      </div>
+    </div>
+    <div id="wstmt-overlay-content" style="padding:2rem 3rem;max-width:1180px;margin:0 auto;"></div>
   </div>
 
 </main>
@@ -1435,7 +1516,223 @@ function printWaterBills() {
   window.print();
   document.title = origTitle;
 }
-// ─── End Quarterly Water Bills Report ────────────────────────────────────────
+// ─── End Quarterly Water Bills Report ────────────────────────────
+
+// ─── Property Water Statement Report ─────────────────────────────────────────
+let wstmtAddr = null;
+let wstmtYearFilter = 'all';
+let wstmtAddresses = [];        // [{address, resident}]
+let wstmtByAddress = {};        // address -> [bill rows]
+
+function wstmtIndex(d) {
+  wstmtAddresses = []; wstmtByAddress = {};
+  var seen = {};
+  (d.bills || []).forEach(function(b) {
+    if (!wstmtByAddress[b.property]) {
+      wstmtByAddress[b.property] = [];
+      if (!seen[b.property]) { seen[b.property] = true; wstmtAddresses.push({ address: b.property, resident: b.resident || '' }); }
+    }
+    wstmtByAddress[b.property].push(b);
+  });
+  // numeric sort addresses by leading house number
+  wstmtAddresses.sort(function(a, b) {
+    var na = parseInt((a.address.match(/^\d+/) || ['9999'])[0], 10);
+    var nb = parseInt((b.address.match(/^\d+/) || ['9999'])[0], 10);
+    return na - nb;
+  });
+}
+
+function wstmtQParts(q) {
+  var m = (q || '').match(/^(\d{4})\s*Q([1-4])$/i);
+  return m ? { y: parseInt(m[1], 10), q: parseInt(m[2], 10) } : null;
+}
+
+async function openWaterStatement() {
+  if (!waterBillsData) {
+    try {
+      var res = await fetch(SCRIPT_URL + '?action=readWaterBills', { redirect: 'follow' });
+      var json = await res.json();
+      if (json.status === 'ok') { waterBillsData = json; indexWaterBills(json); }
+      else { alert('Could not load statements: ' + (json.message || 'unknown error')); return; }
+    } catch (e) { alert('Could not load statements: ' + e.message); return; }
+  }
+  wstmtIndex(waterBillsData);
+  if (!wstmtAddresses.length) { alert('No water bills have been generated yet.'); return; }
+  wstmtAddr = wstmtAddresses[0].address;
+  wstmtYearFilter = 'all';
+
+  var sel = document.getElementById('wstmt-addr-select');
+  sel.innerHTML = '';
+  wstmtAddresses.forEach(function(a) {
+    var o = document.createElement('option');
+    o.value = a.address;
+    o.textContent = a.address + (a.resident ? ' \u2014 ' + a.resident : '');
+    o.style.background = '#2f4a8f'; o.style.color = '#fff';
+    if (a.address === wstmtAddr) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  buildWstmtYearButtons();
+  renderWaterStatement();
+  var overlay = document.getElementById('wstmt-overlay');
+  if (overlay) {
+    overlay.style.display = 'block'; overlay.scrollTop = 0;
+    document.body.style.overflow = 'hidden'; document.documentElement.style.overflow = 'hidden';
+  }
+}
+function closeWaterStatementOverlay() {
+  var overlay = document.getElementById('wstmt-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = ''; document.documentElement.style.overflow = '';
+}
+function wstmtChangeAddress(a) { wstmtAddr = a; wstmtYearFilter = 'all'; buildWstmtYearButtons(); renderWaterStatement(); }
+function wstmtChangeYear(y) { wstmtYearFilter = y; buildWstmtYearButtons(); renderWaterStatement(); }
+
+function buildWstmtYearButtons() {
+  var rows = wstmtByAddress[wstmtAddr] || [];
+  var ys = {};
+  rows.forEach(function(b) { var p = wstmtQParts(b.quarter); if (p) ys[p.y] = true; });
+  var years = Object.keys(ys).map(Number).sort(function(a, b) { return b - a; });
+  var wrap = document.getElementById('wstmt-yr-btns');
+  var html = '<button class="wstmt-yr-btn' + (wstmtYearFilter === 'all' ? ' active' : '') + '" onclick="wstmtChangeYear(\'all\')">All</button>';
+  years.forEach(function(y) {
+    html += '<button class="wstmt-yr-btn' + (wstmtYearFilter == y ? ' active' : '') + '" onclick="wstmtChangeYear(\'' + y + '\')">' + y + '</button>';
+  });
+  wrap.innerHTML = html;
+}
+
+function wstmtNiceDate(ddmmyyyy) { return wbillNiceDate(ddmmyyyy); }
+function wstmtMoney(n) { return wbillMoney(n); }
+
+function renderWaterStatement() {
+  var addrObj = null;
+  wstmtAddresses.forEach(function(a) { if (a.address === wstmtAddr) addrObj = a; });
+  var resident = addrObj ? addrObj.resident : '';
+
+  var rows = (wstmtByAddress[wstmtAddr] || []).slice();
+  // group by year -> quarters (asc within year)
+  var byYear = {};
+  rows.forEach(function(b) {
+    var pt = wstmtQParts(b.quarter); if (!pt) return;
+    if (!byYear[pt.y]) byYear[pt.y] = [];
+    byYear[pt.y].push(b);
+  });
+  var years = Object.keys(byYear).map(Number).sort(function(a, b) { return b - a; }); // newest first
+  years.forEach(function(y) { byYear[y].sort(function(a, b) { return wstmtQParts(a.quarter).q - wstmtQParts(b.quarter).q; }); });
+
+  var currentYear = new Date().getFullYear();
+  var showYears = (wstmtYearFilter === 'all') ? years : years.filter(function(y) { return y == wstmtYearFilter; });
+
+  // cards over visible rows
+  var cBilled = 0, cPaid = 0;
+  showYears.forEach(function(y) { byYear[y].forEach(function(b) { cBilled += (b.total || 0); cPaid += (b.paid || 0); }); });
+  var cOwed = Number((cBilled - cPaid).toFixed(2));
+  var scope = (wstmtYearFilter === 'all') ? 'All years' : String(wstmtYearFilter);
+
+  var pageLogoEl = document.getElementById('headerLogo');
+  var pageLogoSrc = pageLogoEl ? pageLogoEl.src : '';
+
+  var h = '';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
+  h += '<div style="display:flex;align-items:center;">';
+  h += '<img src="' + pageLogoSrc + '" alt="CMC Logo" style="width:72px;height:54px;object-fit:cover;border-radius:6px;">';
+  h += '<div style="margin-left:1rem;">';
+  h += '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">CMC The Courtyard</div>';
+  h += '<div style="font-size:24px;font-weight:700;color:#1e1a16;margin-top:3px;">Property Water Statement</div>';
+  h += '</div></div>';
+  h += '<div style="text-align:right;">';
+  h += '<div style="font-size:18px;font-weight:700;color:#2f4a8f;">' + wstmtAddr + '</div>';
+  if (resident) h += '<div style="font-size:13px;color:#6b5f52;margin-top:3px;">' + resident + '</div>';
+  h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">' + scope + ' &middot; generated ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '</div>';
+  h += '</div></div>';
+
+  // cards
+  h += '<div class="wbill-sumstrip">';
+  h += '<div class="wbill-sumcard wstmt-sumcard"><div class="lab">Total billed (' + scope + ')</div><div class="val money">' + wstmtMoney(cBilled) + '</div></div>';
+  h += '<div class="wbill-sumcard wstmt-sumcard"><div class="lab">Total paid</div><div class="val clear">' + wstmtMoney(cPaid) + '</div></div>';
+  h += '<div class="wbill-sumcard wstmt-sumcard"><div class="lab">Outstanding</div><div class="val ' + (cOwed > 0.001 ? 'owed' : 'clear') + '">' + wstmtMoney(cOwed) + '</div></div>';
+  h += '</div>';
+
+  if (!showYears.length) {
+    h += '<div class="water-rpt-empty"><div class="icon">&#128167;</div><div class="msg">No statements for this selection</div><div class="sub">Bills will appear here as each quarter is generated.</div></div>';
+    document.getElementById('wstmt-overlay-content').innerHTML = h;
+    return;
+  }
+
+  h += '<table class="wstmt-table"><thead><tr>';
+  h += '<th class="l">Quarter</th><th class="l">Bill date</th><th>Water Volume</th><th>Total billed</th><th>Paid</th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
+  h += '</tr></thead><tbody>';
+
+  showYears.forEach(function(y) {
+    var yr = byYear[y];
+    var yBilled = 0, yPaid = 0;
+    yr.forEach(function(b) { yBilled += (b.total || 0); yPaid += (b.paid || 0); });
+    var yStatus = (yPaid <= 0) ? 'unpaid' : (yPaid + 0.001 < yBilled ? 'part' : 'paid');
+    var collapsed = (wstmtYearFilter === 'all' && y !== currentYear);
+    var yid = 'y' + y;
+
+    h += '<tr class="wstmt-yhead' + (collapsed ? ' collapsed' : '') + '" onclick="wstmtToggleYear(\'' + yid + '\',this)">';
+    h += '<td class="l" colspan="3"><span class="caret">\u25be</span> ' + y + '<span class="ysum">' + yr.length + ' bill' + (yr.length > 1 ? 's' : '') + '</span></td>';
+    h += '<td class="num total">' + wstmtMoney(yBilled) + '</td>';
+    h += '<td class="num">' + wstmtMoney(yPaid) + '</td>';
+    h += '<td class="c"><span class="wstmt-pill ' + yStatus + '">' + wstmtPillLabel(yStatus) + '</span></td>';
+    h += '<td></td></tr>';
+
+    var prevVol = null;
+    yr.forEach(function(b, idx) {
+      var st = b.paymentStatus || 'unpaid';
+      var paid = b.paid || 0;
+      var multi = (b.payments || []).length > 1;
+      var lastDate = (b.payments && b.payments.length) ? b.payments[b.payments.length - 1].date : '\u2014';
+      var payId = yid + '_' + idx;
+      h += '<tr class="wstmt-qrow y-' + yid + (collapsed ? ' hidden' : '') + '">';
+      h += '<td class="qtr l">' + b.quarter + '</td>';
+      h += '<td class="date l">' + (b.periodEnd ? wstmtNiceDate(b.periodEnd) : (b.generatedDate ? wstmtNiceDate(b.generatedDate) : '\u2014')) + '</td>';
+      h += '<td class="num vol">' + waterFmtVolume(b.volume) + wstmtTrend(b.volume, prevVol) + '</td>';
+      h += '<td class="num total">' + wstmtMoney(b.total) + '</td>';
+      h += '<td class="num">' + (paid > 0 ? wstmtMoney(paid) : '\u2014') + (multi ? '<span class="expander" onclick="wstmtTogglePay(\'' + payId + '\',event)">' + b.payments.length + ' payments \u25be</span>' : '') + '</td>';
+      h += '<td class="c"><span class="wstmt-pill ' + st + '">' + wstmtPillLabel(st) + '</span></td>';
+      h += '<td class="date">' + lastDate + '</td>';
+      h += '</tr>';
+      if (multi) {
+        var lines = '<div class="wstmt-payhdr">Payments recorded</div>';
+        b.payments.forEach(function(pp) { lines += '<div class="wstmt-payline"><span>' + pp.date + '</span><span class="amt">' + wstmtMoney(pp.amount) + '</span></div>'; });
+        h += '<tr class="wstmt-payrow hidden pay-' + payId + ' y-' + yid + (collapsed ? ' hidden' : '') + '"><td colspan="7"><div class="wstmt-paywrap">' + lines + '</div></td></tr>';
+      }
+      prevVol = b.volume;
+    });
+  });
+
+  h += '</tbody></table>';
+  document.getElementById('wstmt-overlay-content').innerHTML = h;
+}
+
+function wstmtPillLabel(s) { return { paid: 'Paid', part: 'Part paid', unpaid: 'Unpaid' }[s] || s; }
+function wstmtTrend(cur, prev) {
+  if (prev === null || prev === undefined || cur === null || cur === undefined) return '';
+  if (cur > prev) return '<span class="wstmt-trend up">\u25b2</span>';
+  if (cur < prev) return '<span class="wstmt-trend down">\u25bc</span>';
+  return '<span class="wstmt-trend flat">\u2013</span>';
+}
+function wstmtToggleYear(yid, el) {
+  el.classList.toggle('collapsed');
+  var hide = el.classList.contains('collapsed');
+  document.querySelectorAll('.y-' + yid).forEach(function(r) {
+    if (r.classList.contains('wstmt-payrow')) { r.classList.add('hidden'); return; }
+    r.classList.toggle('hidden', hide);
+  });
+}
+function wstmtTogglePay(payId, ev) {
+  ev.stopPropagation();
+  document.querySelectorAll('.pay-' + payId).forEach(function(r) { r.classList.toggle('hidden'); });
+}
+function printWaterStatement() {
+  var origTitle = document.title;
+  document.title = 'CMC The Courtyard \u2014 Water Statement \u2014 ' + (wstmtAddr || '');
+  window.print();
+  document.title = origTitle;
+}
+// ─── End Property Water Statement Report ─────────────────────────────────────
 
 (function() {
     const now = new Date();
