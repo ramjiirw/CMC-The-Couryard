@@ -1925,14 +1925,18 @@ function renderWaterStatement() {
 
   showYears.forEach(function(y) {
     var yr = byYear[y];
-    var yBilled = 0, yPaid = 0;
-    yr.forEach(function(b) { yBilled += (b.total || 0); yPaid += (b.paid || 0); });
+    var yBilled = 0, yPaid = 0, yVol = 0, yHasVol = false;
+    yr.forEach(function(b) {
+      yBilled += (b.total || 0); yPaid += (b.paid || 0);
+      if (b.volume !== null && b.volume !== undefined && !isNaN(b.volume)) { yVol += b.volume; yHasVol = true; }
+    });
     var yStatus = (yPaid <= 0) ? 'unpaid' : (yPaid + 0.001 < yBilled ? 'part' : 'paid');
     var collapsed = (wstmtYearFilter === 'all' && y !== currentYear);
     var yid = 'y' + y;
 
     h += '<tr class="wstmt-yhead' + (collapsed ? ' collapsed' : '') + '" onclick="wstmtToggleYear(\'' + yid + '\',this)">';
-    h += '<td class="l" colspan="3"><span class="caret">\u25be</span> ' + y + '<span class="ysum">' + yr.length + ' bill' + (yr.length > 1 ? 's' : '') + '</span></td>';
+    h += '<td class="l" colspan="2"><span class="caret">\u25be</span> ' + y + '<span class="ysum">' + yr.length + ' bill' + (yr.length > 1 ? 's' : '') + '</span></td>';
+    h += '<td class="num vol">' + (yHasVol ? waterFmtVolume(yVol) : '&mdash;') + '</td>';
     h += '<td class="num total">' + wstmtMoney(yBilled) + '</td>';
     h += '<td class="num">' + wstmtMoney(yPaid) + '</td>';
     h += '<td class="c"><span class="wstmt-pill ' + yStatus + '">' + wstmtPillLabel(yStatus) + '</span></td>';
