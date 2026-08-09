@@ -2550,6 +2550,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
         <div style="display:inline-flex;gap:4px;margin-bottom:0.9rem;background:#f5f0e8;border:1px solid rgba(122,92,62,0.28);border-radius:7px;padding:3px;">
           <button id="weModeLiscombe" onclick="weSetMode('liscombe')" style="padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;">To Liscombe Park</button>
           <button id="weModeResidents" onclick="weSetMode('residents')" style="padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);">To Residents</button>
+          <button id="weModeInvoices" onclick="weSetMode('invoices')" style="padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);">Water Invoices</button>
         </div>
         <div id="weMsg" style="font-size:0.78rem;margin-bottom:0.75rem;min-height:1.2rem;"></div>
 
@@ -2566,6 +2567,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <div id="weWarningBanner" style="display:none;margin-top:0.6rem;padding:0.5rem 0.75rem;background:rgba(196,149,106,0.15);border:1px solid rgba(196,149,106,0.35);border-radius:5px;font-size:0.78rem;color:var(--accent);"></div>
         </div>
 
+        <!-- ── Readings modes (Liscombe / Residents) controls ── -->
+        <div id="weReadingsControls">
         <!-- Recipients (editable) -->
         <div style="margin-bottom:1rem;background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.75rem 0.9rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
@@ -2654,6 +2657,60 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
             </div>
           </div>
         </div>
+        </div><!-- /weReadingsControls -->
+
+        <!-- ── Water Invoices mode controls ── -->
+        <div id="weInvoiceControls" style="display:none;">
+          <div id="wiAlready" style="display:none;margin-bottom:0.9rem;padding:0.6rem 0.85rem;background:rgba(196,149,106,0.15);border:1px solid rgba(196,149,106,0.45);border-radius:6px;font-size:0.8rem;color:var(--accent);"></div>
+
+          <div id="wiEmptyMsg" style="padding:2rem;text-align:center;color:var(--stone);font-style:italic;font-size:0.85rem;">Select a year and quarter to preview the invoices.</div>
+
+          <div id="wiViewer" style="display:none;">
+            <!-- Stepper / recipient header -->
+            <div style="background:#fff;border:1px solid rgba(122,92,62,0.28);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.9rem;">
+              <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;">
+                <button class="abtn abtn-muted" id="wiPrevBtn" onclick="wiStep(-1)" style="font-size:0.8rem;padding:0.3rem 0.7rem;">&#8249; Prev</button>
+                <div style="text-align:center;min-width:160px;flex:1;">
+                  <div id="wiStepLabel" style="font-size:0.82rem;font-weight:700;color:var(--dark);"></div>
+                  <div id="wiRecipLine" style="font-size:0.74rem;color:var(--mid);margin-top:0.15rem;"></div>
+                </div>
+                <button class="abtn abtn-muted" id="wiNextBtn" onclick="wiStep(1)" style="font-size:0.8rem;padding:0.3rem 0.7rem;">Next &#8250;</button>
+              </div>
+              <div style="text-align:center;margin-top:0.5rem;">
+                <button class="abtn abtn-muted" id="wiDirToggle" onclick="wiToggleDirector()" style="font-size:0.74rem;padding:0.25rem 0.7rem;">View director summary &#8250;</button>
+              </div>
+            </div>
+
+            <!-- Live preview (rendered by the backend, shown in an iframe) -->
+            <div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;">Email preview</div>
+            <div style="background:#f4f4f4;padding:10px;border-radius:6px;border:1px solid rgba(122,92,62,0.28);margin-bottom:1rem;">
+              <iframe id="wiFrame" style="width:100%;height:620px;border:0;background:#f4f4f4;border-radius:4px;"></iframe>
+            </div>
+
+            <!-- Action buttons -->
+            <div id="wiButtonArea" style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+              <button class="abtn abtn-primary" id="wiSendBtn" onclick="wiReview()">&#128231; Review &amp; Send Invoices</button>
+            </div>
+            <div id="wiSuccessArea" style="display:none;padding:0.75rem 0;">
+              <p style="margin:0;font-size:1.1rem;font-weight:700;color:var(--accent);">&#10003; <span id="wiSuccessText"></span></p>
+            </div>
+          </div>
+
+          <!-- Invoices review modal -->
+          <div id="wiModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(30,26,22,0.6);z-index:500;align-items:center;justify-content:center;">
+            <div style="background:var(--cream);border-radius:10px;border:1px solid rgba(122,92,62,0.3);padding:1.5rem;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+              <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:0.2rem;">Review &amp; Send Invoices</div>
+              <div id="wiModalSub" style="font-size:0.75rem;color:var(--mid);margin-bottom:1rem;"></div>
+              <div id="wiModalWarn" style="display:none;padding:0.6rem 0.8rem;background:rgba(196,149,106,0.16);border:1px solid rgba(196,149,106,0.5);border-radius:6px;font-size:0.8rem;color:var(--accent);margin-bottom:1rem;"></div>
+              <div id="wiModalList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--dark);max-height:300px;overflow-y:auto;"></div>
+              <div style="padding:0.6rem 0.8rem;background:rgba(196,149,106,0.12);border:1px solid rgba(196,149,106,0.3);border-radius:6px;font-size:0.78rem;color:var(--accent);margin-bottom:1rem;">Each residence receives its own invoice (no directors copied). One summary email goes to the directors. Emails cannot be unsent once delivered.</div>
+              <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+                <button class="abtn abtn-muted" onclick="wiCloseModal()">Cancel</button>
+                <button class="abtn abtn-primary" id="wiConfirmBtn" onclick="wiSend(false)">&#128231; Send Now</button>
+              </div>
+            </div>
+          </div>
+        </div><!-- /weInvoiceControls -->
       </div>
 
       <!-- Finance Reports Panel -->
@@ -9995,15 +10052,17 @@ function weClearPreview() {
 // Swaps wording, clears the recipient fields so the new mode's defaults load,
 // and re-fetches the preview (recipients differ per mode).
 function weSetMode(mode) {
-  if (mode !== 'liscombe' && mode !== 'residents') return;
+  if (mode !== 'liscombe' && mode !== 'residents' && mode !== 'invoices') return;
   if (weState.mode === mode) return;
   weState.mode = mode;
-  document.getElementById('weIntro').value   = (mode === 'residents') ? weState.residentIntro   : weState.defaultIntro;
-  document.getElementById('weClosing').value = (mode === 'residents') ? weState.residentClosing : weState.defaultClosing;
-  ['weToField','weCcField','weBccField'].forEach(function(id){
-    const el = document.getElementById(id);
-    if (el) { delete el.dataset.touched; el.value = ''; }
-  });
+  if (mode !== 'invoices') {
+    document.getElementById('weIntro').value   = (mode === 'residents') ? weState.residentIntro   : weState.defaultIntro;
+    document.getElementById('weClosing').value = (mode === 'residents') ? weState.residentClosing : weState.defaultClosing;
+    ['weToField','weCcField','weBccField'].forEach(function(id){
+      const el = document.getElementById(id);
+      if (el) { delete el.dataset.touched; el.value = ''; }
+    });
+  }
   weApplyModeUI();
   _weLastFetchKey = null;   // force a re-fetch for the new mode's recipients
   document.getElementById('weMsg').textContent = '';
@@ -10013,11 +10072,28 @@ function weSetMode(mode) {
 // Update the toggle buttons, title, description and recipient-label notes to
 // match the current mode. Does not touch data or trigger a fetch.
 function weApplyModeUI() {
-  const isRes  = weState.mode === 'residents';
+  const mode   = weState.mode;
+  const isRes  = mode === 'residents';
+  const isInv  = mode === 'invoices';
   const onCss  = 'padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;';
   const offCss = 'padding:0.4rem 0.9rem;border:none;border-radius:5px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;background:transparent;color:var(--mid);';
-  document.getElementById('weModeLiscombe').style.cssText = isRes ? offCss : onCss;
+  document.getElementById('weModeLiscombe').style.cssText = (mode === 'liscombe') ? onCss : offCss;
   document.getElementById('weModeResidents').style.cssText = isRes ? onCss : offCss;
+  var invBtn = document.getElementById('weModeInvoices');
+  if (invBtn) invBtn.style.cssText = isInv ? onCss : offCss;
+
+  // Swap which control group is visible
+  var rc = document.getElementById('weReadingsControls');
+  var ic = document.getElementById('weInvoiceControls');
+  if (rc) rc.style.display = isInv ? 'none' : '';
+  if (ic) ic.style.display = isInv ? ''     : 'none';
+
+  if (isInv) {
+    document.getElementById('wePanelTitle').innerHTML = '&#128167; Water Meter Readings &mdash; Water Invoices';
+    document.getElementById('wePanelDesc').textContent = 'Send each residence its own quarterly water invoice, plus one summary to the directors. Pick a quarter, step through the invoices to preview them, then review and send. The invoice content is fixed \u2014 there is nothing to edit here.';
+    return;
+  }
+
   document.getElementById('wePanelTitle').innerHTML = '&#128167; Water Meter Readings &mdash; Email to ' + (isRes ? 'Residents' : 'Liscombe Park');
   document.getElementById('wePanelDesc').textContent = isRes
     ? 'Send the quarterly water meter readings to all residents. Residents are BCC\u2019d so no one sees another\u2019s address. The intro and closing text are editable below; the preview updates live.'
@@ -10071,6 +10147,7 @@ function weSetRecipientsLoading(isLoading) {
 }
 
 function weUpdatePreview() {
+  if (weState.mode === 'invoices') { wiUpdatePreview(); return; }
   const yr = weState.selectedYear;
   const q  = weState.selectedQuarter;
   if (!yr || !q) {
@@ -10453,6 +10530,190 @@ async function weSend() {
   btn.disabled = false;
   btn.innerHTML = '&#128231; Send Now';
   setTimeout(function() { msg.textContent = ''; }, 6000);
+}
+
+// ── Water Invoices mode ───────────────────────────────────────────────────────
+// Separate rendering path used when the Water Meter Readings panel is in
+// 'invoices' mode. Reuses the shared quarter selector; everything below is its
+// own. Preview HTML is rendered by the backend and shown in an iframe; a stepper
+// flicks through the 14 individual invoices, with a toggle to the director
+// summary. Sending goes through a review modal; the backend's double-send guard
+// returns status 'confirm', which swaps the button to an explicit "Send anyway".
+var wiState = { data: null, index: 0, showDirector: false, lastKey: null };
+
+function wiUpdatePreview() {
+  const yr = weState.selectedYear;
+  const q  = weState.selectedQuarter;
+  var rc = document.getElementById('weReadingsCount'); if (rc) rc.textContent = '';
+  var wb = document.getElementById('weWarningBanner'); if (wb) wb.style.display = 'none';
+  var already = document.getElementById('wiAlready');
+  if (already) { already.style.display = 'none'; already.innerHTML = ''; }
+  if (!yr || !q) {
+    wiState.data = null;
+    document.getElementById('wiViewer').style.display = 'none';
+    var em0 = document.getElementById('wiEmptyMsg');
+    em0.style.display = 'block';
+    em0.textContent = 'Select a year and quarter to preview the invoices.';
+    return;
+  }
+  document.getElementById('weMsg').style.color = 'var(--mid)';
+  document.getElementById('weMsg').textContent = 'Loading invoices\u2026';
+  fetch(SCRIPT_URL + '?action=previewWaterInvoices&year=' + yr + '&quarter=' + q)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      document.getElementById('weMsg').textContent = '';
+      if (data.status !== 'ok') {
+        wiState.data = null;
+        document.getElementById('wiViewer').style.display = 'none';
+        var em = document.getElementById('wiEmptyMsg');
+        em.style.display = 'block';
+        em.textContent = data.message || 'No generated bill for this quarter yet.';
+        return;
+      }
+      wiState.data = data;
+      wiState.index = 0;
+      wiState.showDirector = false;
+      wiState.lastKey = 'inv_' + yr + '_' + q;
+      document.getElementById('wiEmptyMsg').style.display = 'none';
+      document.getElementById('wiViewer').style.display = 'block';
+      if (data.alreadySentOn) {
+        var a = document.getElementById('wiAlready');
+        a.style.display = 'block';
+        a.innerHTML = '\u26a0 Invoices for ' + weEscHtml(data.quarterLabel) + ' were already sent on ' + weEscHtml(data.alreadySentOn) + '. Sending again will issue duplicate invoices.';
+      }
+      wiRender();
+    })
+    .catch(function(e){
+      document.getElementById('weMsg').style.color = '#b05050';
+      document.getElementById('weMsg').textContent = '\u2717 Could not load invoices \u2014 ' + e.message;
+    });
+}
+
+function wiRender() {
+  var d = wiState.data;
+  if (!d) return;
+  var frame  = document.getElementById('wiFrame');
+  var dirBtn = document.getElementById('wiDirToggle');
+  var prevB  = document.getElementById('wiPrevBtn');
+  var nextB  = document.getElementById('wiNextBtn');
+
+  if (wiState.showDirector) {
+    frame.srcdoc = d.directorHtml || '';
+    document.getElementById('wiStepLabel').textContent = 'Director summary';
+    var rlD = document.getElementById('wiRecipLine');
+    rlD.textContent = 'Goes to the directors (from cmcsettings)';
+    rlD.style.color = 'var(--mid)';
+    prevB.style.visibility = 'hidden';
+    nextB.style.visibility = 'hidden';
+    if (dirBtn) dirBtn.innerHTML = '&#8249; Back to invoices';
+    return;
+  }
+
+  if (dirBtn) dirBtn.innerHTML = 'View director summary &#8250;';
+  prevB.style.visibility = '';
+  nextB.style.visibility = '';
+  var n = d.invoices.length;
+  if (wiState.index < 0) wiState.index = 0;
+  if (wiState.index > n - 1) wiState.index = n - 1;
+  var inv = d.invoices[wiState.index];
+  frame.srcdoc = inv.html || '';
+  document.getElementById('wiStepLabel').textContent = 'Invoice ' + (wiState.index + 1) + ' of ' + n + '  \u00b7  ' + inv.property;
+  var rl = document.getElementById('wiRecipLine');
+  rl.textContent = inv.missingEmail ? '\u26a0 No email on file \u2014 this one will be skipped' : ('To: ' + inv.emails.join(', '));
+  rl.style.color = inv.missingEmail ? '#a24a34' : 'var(--mid)';
+  prevB.disabled = (wiState.index === 0);
+  nextB.disabled = (wiState.index === n - 1);
+}
+
+function wiStep(delta) {
+  if (!wiState.data || wiState.showDirector) return;
+  wiState.index += delta;
+  wiRender();
+}
+
+function wiToggleDirector() {
+  if (!wiState.data) return;
+  wiState.showDirector = !wiState.showDirector;
+  wiRender();
+}
+
+function wiReview() {
+  var d = wiState.data;
+  if (!d) return;
+  var willSend = d.invoices.filter(function(i){ return !i.missingEmail; });
+  var missing  = d.invoices.filter(function(i){ return i.missingEmail; });
+  if (!willSend.length) {
+    document.getElementById('weMsg').style.color = '#b05050';
+    document.getElementById('weMsg').textContent = '\u2717 No residents have an email on file for this quarter.';
+    return;
+  }
+  document.getElementById('wiModalSub').textContent = 'You are about to send ' + willSend.length + ' individual invoice' + (willSend.length === 1 ? '' : 's') + ' plus one director summary for ' + d.quarterLabel + '.';
+
+  var warn = document.getElementById('wiModalWarn');
+  var warnBits = [];
+  if (d.alreadySentOn) warnBits.push('These invoices were already sent on ' + weEscHtml(d.alreadySentOn) + '. Sending again issues duplicates.');
+  if (missing.length)  warnBits.push(missing.length + ' propert' + (missing.length === 1 ? 'y has' : 'ies have') + ' no email and will be skipped: ' + missing.map(function(i){ return weEscHtml(i.property); }).join(', ') + '.');
+  if (warnBits.length) { warn.style.display = 'block'; warn.innerHTML = '\u26a0 ' + warnBits.join('<br>'); }
+  else { warn.style.display = 'none'; warn.innerHTML = ''; }
+
+  document.getElementById('wiModalList').innerHTML = willSend.map(function(i){
+    return '<div style="padding:0.25rem 0;border-bottom:1px solid rgba(122,92,62,0.12);"><strong>' + weEscHtml(i.property) + '</strong> &middot; ' + weEscHtml(i.emails.join(', ')) + '</div>';
+  }).join('');
+
+  var cb = document.getElementById('wiConfirmBtn');
+  cb.disabled = false;
+  cb.setAttribute('onclick', 'wiSend(false)');
+  cb.innerHTML = '&#128231; Send Now';
+
+  document.getElementById('wiModalOverlay').style.display = 'flex';
+}
+
+function wiCloseModal() {
+  document.getElementById('wiModalOverlay').style.display = 'none';
+}
+
+async function wiSend(force) {
+  var d = wiState.data;
+  if (!d) return;
+  var cb  = document.getElementById('wiConfirmBtn');
+  var msg = document.getElementById('weMsg');
+  cb.disabled = true;
+  cb.textContent = 'Sending\u2026';
+  try {
+    var payload = { action: 'sendWaterInvoices', year: weState.selectedYear, quarter: weState.selectedQuarter, force: !!force };
+    var res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    var data = await res.json();
+    if (data.status === 'confirm') {
+      var warn = document.getElementById('wiModalWarn');
+      warn.style.display = 'block';
+      warn.innerHTML = '\u26a0 ' + weEscHtml(data.message || 'Already sent.') + ' Press \u201cSend anyway\u201d to issue duplicates.';
+      cb.disabled = false;
+      cb.textContent = 'Send anyway';
+      cb.setAttribute('onclick', 'wiSend(true)');
+      return;
+    }
+    if (data.status !== 'ok') throw new Error(data.message || 'Send failed');
+    wiCloseModal();
+    document.getElementById('wiSuccessText').textContent = data.message || 'Invoices sent.';
+    document.getElementById('wiButtonArea').style.display  = 'none';
+    document.getElementById('wiSuccessArea').style.display = 'block';
+    msg.style.color = 'var(--green)';
+    msg.textContent = '\u2713 ' + (data.message || 'Sent.');
+    wiState.lastKey = null;
+    setTimeout(function(){
+      document.getElementById('wiButtonArea').style.display  = 'flex';
+      document.getElementById('wiSuccessArea').style.display = 'none';
+      wiUpdatePreview();
+    }, 4000);
+  } catch(e) {
+    wiCloseModal();
+    msg.style.color = '#b05050';
+    msg.textContent = '\u2717 Could not send \u2014 ' + e.message;
+  }
+  cb.disabled = false;
+  cb.innerHTML = '&#128231; Send Now';
+  cb.setAttribute('onclick', 'wiSend(false)');
+  setTimeout(function(){ msg.textContent = ''; }, 6000);
 }
 
 // ── Assignment Email Modal ────────────────────────────────────────────────────
