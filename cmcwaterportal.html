@@ -1206,8 +1206,19 @@ function populateStatementSmart(d) {
   var el = document.getElementById('statement-smart');
   if (!el) return;
   var sm = d.summary || {};
-  if (sm.latestBillQuarter) {
-    el.textContent = '  \u00b7  ' + sm.latestBillQuarter + ' \u00b7 ' + sm.paidCount + ' of ' + sm.totalProperties + ' paid \u00b7 ' + sm.outstandingCount + ' outstanding';
+  if (!sm.latestBillQuarter) return;
+  var q = sm.latestBillQuarter;
+  var rows = ((d && d.bills) || []).filter(function(b) { return b.quarter === q; });
+  var owed = 0, n = 0;
+  rows.forEach(function(b) {
+    var bal = (b.total || 0) - (b.paid || 0);
+    if (bal > 0.001) { owed += bal; n++; }
+  });
+  owed = Math.round(owed * 100) / 100;
+  if (owed <= 0.001) {
+    el.textContent = '  \u00b7  ' + q + ' \u00b7 all settled \u2713';
+  } else {
+    el.textContent = '  \u00b7  ' + q + ' \u00b7 ' + wbillMoney(owed) + ' outstanding across ' + n + ' propert' + (n === 1 ? 'y' : 'ies');
   }
 }
 
