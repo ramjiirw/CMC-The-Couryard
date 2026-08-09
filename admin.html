@@ -958,7 +958,7 @@
       <div class="sidebar-label">Maintenance</div>
       <div class="sidebar-link" data-panel="maintenance" id="nav-maintenance">&#128295; Issues</div>
       <div class="sidebar-label">Water</div>
-      <div class="sidebar-link" data-panel="wateremail" id="nav-wateremail">&#128167; Water Meter Readings</div>
+      <div class="sidebar-link" data-panel="wateremail" id="nav-wateremail">&#128167; Water Emails</div>
       <div class="sidebar-link sidebar-extlink" onclick="window.open('https://cmcthecourtyard.com/cmcwater.html','_blank','noopener')" title="Open the live water meter readings form in a new tab">&#128279; Enter Live Readings &#8599;</div>
       <div class="sidebar-label">Bio Filter</div>
       <div class="sidebar-link" data-panel="biofilter" id="nav-biofilter">&#127969; RLF Cottages</div>
@@ -1878,6 +1878,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">Address entered by visitor; optionally CC cmcdirectors@hotmail.com</td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC</td>
             </tr>
+            <tr style="border-bottom:1px solid rgba(184,173,158,0.3);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(38,128,128,0.14);color:#1d6b6b;border:1px solid rgba(38,128,128,0.3);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Invoices</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Admin sends the quarterly water invoices via the Water Emails panel (Water Invoices mode)<br><span style="font-size:0.72rem;color:var(--mid);">Sends one invoice per residence &mdash; each to that residence&#39;s own email(s) in TO (co-owners share the single To line), with no directors copied &mdash; plus one summary email to the directors. Each invoice shows the meter, previous and current readings, water volume, price per m&sup3;, standing and admin charges and the total, with CMC bank details and a &quot;Visit the Portal&quot; button. The greeting uses residents&#39; first names (e.g. &quot;Dear Bruno &amp; Ian&quot;). Replies are addressed to cmcdirectors@hotmail.com and iwoodland@hotmail.com. Properties with no email on file are skipped and listed for the sender. A double-send guard warns before re-sending a quarter. Logged to Send History as &quot;Water Invoices&quot;.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Each residence&#39;s own email(s) (TO); one summary to the directors (from cmcsettings col A)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO</td>
+            </tr>
             <tr><td colspan="4" style="padding:1rem 0.6rem 0.2rem;font-size:0.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.5px;background:rgba(122,92,62,0.06);border-top:2px solid rgba(184,173,158,0.4);">Automatic — triggered by Apps Script</td></tr>
             <tr style="background:rgba(122,92,62,0.06);">
               <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--mid);font-weight:600;border-bottom:1px solid rgba(184,173,158,0.3);">Type</th>
@@ -2218,6 +2224,66 @@ There is a new notice on the CMC The Courtyard resident portal.
 [Notice body text]
 
 Visit the portal to read the full notice and any updates.</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(38,128,128,0.14);color:#1d6b6b;border:1px solid rgba(38,128,128,0.3);">Water Invoices &mdash; Resident</span>
+              <span class="eref-label">Sent to each residence when admin sends the quarterly water invoices</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear [first names, e.g. Bruno &amp; Ian],
+
+[Property, e.g. 1 The Courtyard]
+
+Please find your water invoice for [YYYY QN] below.
+
+Invoice date · [send date]        [YYYY QN · month range]
+
+Water Meter                  [meter]
+Previous Quarter ([prev q])  [reading]
+Current Quarter ([this q])   [reading]
+Water Volume                 [volume] m³
+Water Volume Charge (at £[rate] per m³)   £[amount]
+Standing Charge              £[amount]
+Admin Charge                 £[amount]
+Total Quarterly Water Charge £[total]
+
+HOW TO PAY
+Please make payment electronically into the CMC bank account below, using a reference that identifies you — for example "No. 1 CMC Water".
+Account Name: THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)
+Sort Code: 40-28-12
+Account No: 41559044
+
+It is important this invoice is paid as soon as possible, as CMC has already paid the full water bill to Liscombe Park Ltd on your behalf.
+
+[Visit the Portal button → cmcthecourtyard.com]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(38,128,128,0.14);color:#1d6b6b;border:1px solid rgba(38,128,128,0.3);">Water Invoices &mdash; Director Summary</span>
+              <span class="eref-label">One summary sent to the directors alongside the resident invoices</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear Ian and Simon,
+
+[N] water invoices for [YYYY QN] have been sent to residents today. This is your record of what was billed.
+
+This quarter: Price per m³ £[rate] · Standing Charge £[amount] · Admin Charge £[amount]
+
+Address           Resident              Volume    Total
+[1 The Courtyard   Andy & Teresa Keay    24.653    £70.08]
+[ ... one row per property ... ]
+Grand total billed ([N] invoices)                  £[grand]
+
+[Any properties with no email on file are flagged here and skipped.]
+
+[CMC Portal button → cmcthecourtyard.com]</pre>
             </div>
           </div>
 
@@ -6814,7 +6880,8 @@ var BH_TYPE_CHIP_MAP = {
   'Maintenance Update':       { bg:'rgba(122,92,62,0.18)',  color:'var(--accent)', border:'rgba(122,92,62,0.3)' },
   'Water Reading Reminder':   { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
   'Water Readings':           { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
-  'Water Readings Submitted': { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' }
+  'Water Readings Submitted': { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
+  'Water Invoices':           { bg:'rgba(38,128,128,0.14)', color:'#1d6b6b',       border:'rgba(38,128,128,0.3)' }
 };
 
 function bhTypeChip(type) {
@@ -10089,7 +10156,7 @@ function weApplyModeUI() {
   if (ic) ic.style.display = isInv ? ''     : 'none';
 
   if (isInv) {
-    document.getElementById('wePanelTitle').innerHTML = '&#128167; Water Meter Readings &mdash; Water Invoices';
+    document.getElementById('wePanelTitle').innerHTML = '&#128167; Water Invoices';
     document.getElementById('wePanelDesc').textContent = 'Send each residence its own quarterly water invoice, plus one summary to the directors. Pick a quarter, step through the invoices to preview them, then review and send. The invoice content is fixed \u2014 there is nothing to edit here.';
     return;
   }
