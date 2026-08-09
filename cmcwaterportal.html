@@ -769,8 +769,7 @@
       </div>
       <div style="width:1px;height:26px;background:rgba(255,255,255,0.35);margin:0 0.25rem;"></div>
       <div class="water-qtr-btn-group" id="wbill-view-btns">
-        <button class="water-qtr-btn active" id="wbview-readings" onclick="wbillSetView('readings')" style="min-width:auto;padding:0.35rem 0.9rem;">Readings</button>
-        <button class="water-qtr-btn" id="wbview-bill" onclick="wbillSetView('bill')" style="min-width:auto;padding:0.35rem 0.9rem;">Bill</button>
+        <button class="water-qtr-btn active" id="wbview-bill" onclick="wbillSetView('bill')" style="min-width:auto;padding:0.35rem 0.9rem;">Readings &amp; Bills</button>
         <button class="water-qtr-btn" id="wbview-pay" onclick="wbillSetView('pay')" style="min-width:auto;padding:0.35rem 0.9rem;">Payments</button>
       </div>
       <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
@@ -1092,7 +1091,7 @@ function readingVolume(cur, prev) {
 let waterBillsData = null;      // { bills, billMeta, summary }
 let wbYear = null, wbQuarter = null;
 
-let wbView = 'readings';   // 'readings' | 'bill' | 'pay'
+let wbView = 'bill';   // 'bill' (Readings & Bills) | 'pay'
 let wbYearsAvail = [];
 let wbQuartersByYear = {};
 
@@ -1147,6 +1146,14 @@ function quarterHasBill(quarter) {
   return ((waterBillsData && waterBillsData.bills) || []).some(function(b) { return b.quarter === quarter; });
 }
 
+// 2026 Q1 is the one-off baseline quarter at the very start of water billing:
+// readings only, no bill will ever exist for it, so it must never show "awaiting bill".
+function isBaselineQuarter(year, q) { return Number(year) === 2026 && Number(q) === 1; }
+function quarterIsBaseline(quarter) {
+  var m = (quarter || '').match(/^(\d{4})\s*Q([1-4])$/i);
+  return m ? isBaselineQuarter(parseInt(m[1], 10), parseInt(m[2], 10)) : false;
+}
+
 function wbillNiceDate(ddmmyyyy) {
   if (!ddmmyyyy) return '';
   var pt = ddmmyyyy.split('/');
@@ -1179,7 +1186,9 @@ function populateCombinedSmart() {
   var quarter = y + ' Q' + q;
 
   if (!quarterHasBill(quarter)) {
-    el.textContent = '  \u00b7  ' + quarter + ' \u00b7 readings in \u00b7 awaiting bill';
+    el.textContent = quarterIsBaseline(quarter)
+      ? '  \u00b7  ' + quarter + ' \u00b7 baseline readings'
+      : '  \u00b7  ' + quarter + ' \u00b7 readings in \u00b7 awaiting bill';
     return;
   }
   // Bill exists for the latest reading quarter — count paid vs outstanding.
@@ -1235,7 +1244,7 @@ async function openWaterBills() {
     if (y === wbYear) o.selected = true;
     sel.appendChild(o);
   });
-  wbView = 'readings';
+  wbView = 'bill';
   setWbViewButtons();
   refreshWBillQuarterButtons();
   renderWaterBills();
@@ -1248,10 +1257,8 @@ async function openWaterBills() {
 
 // Reflect wbView on the three view-toggle buttons.
 function setWbViewButtons() {
-  var rb = document.getElementById('wbview-readings');
   var bb = document.getElementById('wbview-bill');
   var pb = document.getElementById('wbview-pay');
-  if (rb) rb.classList.toggle('active', wbView === 'readings');
   if (bb) bb.classList.toggle('active', wbView === 'bill');
   if (pb) pb.classList.toggle('active', wbView === 'pay');
 }
@@ -1293,14 +1300,13 @@ function numPropSort(a, b) {
 
 // Show/hide the amber "pending" dot on the Bill & Payments toggle buttons.
 function setWbPendingDots(pending) {
-  var bb = document.getElementById('wbview-bill'), pb = document.getElementById('wbview-pay');
-  if (bb) bb.classList.toggle('pending', !!pending);
+  var pb = document.getElementById('wbview-pay');
   if (pb) pb.classList.toggle('pending', !!pending);
 }
 
 // Readings table for the combined report. withTotalCol adds a Total (£) column
 // filled with dashes — used by the Bill view when a bill isn't in yet.
-function readingsTableHTML(rd, curLabel, prevLabel, withTotalCol) {
+function readingsTableHTML(rd, curLabel, prevLabel, withTotalCol, totalNote) {
   if (!rd.props.length) {
     return '<div class="water-rpt-empty"><div class="icon">&#128167;</div>'
       + '<div class="msg">No readings recorded for this quarter</div>'
@@ -1339,7 +1345,7 @@ function readingsTableHTML(rd, curLabel, prevLabel, withTotalCol) {
   h += '<td class="num prev">' + (hasPrev ? waterFmtReading(totPrev) : '&mdash;') + '</td>';
   h += '<td class="num curr">' + waterFmtReading(totCur) + '</td>';
   h += '<td class="num vol">' + (hasVol ? waterFmtVolume(totVol) : '&mdash;') + '</td>';
-  if (withTotalCol) h += '<td class="num total"><span class="wbill-await-note">Awaiting bill</span></td>';
+  if (withTotalCol) h += '<td class="num total"><span class="wbill-await-note">' + (totalNote || 'Awaiting bill') + '</span></td>';
   h += '</tr></tfoot></table>';
   return h;
 }
@@ -1363,13 +1369,16 @@ function renderWaterBills() {
   var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
     + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  // Amber pending dot on Bill & Payments when this quarter has readings but no bill.
-  setWbPendingDots(!hasBill);
+  var baseline = isBaselineQuarter(wbYear, wbQuarter);
 
-  var title = (wbView === 'readings') ? 'Quarterly Water Meter Readings'
-            : (wbView === 'pay')      ? 'Quarterly Water Bills &amp; Payments'
-            :                           'Quarterly Water Bills';
-  var awaitingTag = (!hasBill && wbView !== 'readings')
+  // Amber pending dot on Payments when this quarter has readings but no bill
+  // (never for the 2026 Q1 baseline, which will never be billed).
+  setWbPendingDots(!hasBill && !baseline);
+
+  var title = (wbView === 'pay') ? 'Quarterly Water Bills &amp; Payments'
+            : hasBill            ? 'Quarterly Water Meter Readings and Bill'
+            :                      'Quarterly Water Meter Readings';
+  var awaitingTag = (!hasBill && !baseline)
     ? '<div style="display:inline-block;margin-top:5px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9a6b1c;background:#fbeecf;padding:2px 10px;border-radius:11px;">Awaiting bill from Liscombe Park</div>'
     : '';
 
@@ -1390,22 +1399,18 @@ function renderWaterBills() {
   h += awaitingTag;
   h += '</div></div>';
 
-  // ── Readings view ──
-  if (wbView === 'readings') {
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;font-size:17px;color:#1e1a16;">';
-    h += '<div><span style="font-weight:600;">Water meter reading date:</span> ' + rd.readingDate + '</div><div></div></div>';
-    h += readingsTableHTML(rd, curLabel, prevLabel, false);
-    document.getElementById('waterbills-overlay-content').innerHTML = h;
-    return;
-  }
-
   // ── Payments view ──
   if (wbView === 'pay') {
     if (!hasBill) {
       h += '<div style="text-align:center;padding:3rem 1rem;color:#9a6b1c;">';
       h += '<div style="font-size:40px;">&#128167;</div>';
-      h += '<div style="font-size:18px;font-weight:700;margin-top:0.5rem;">Awaiting bill from Liscombe Park</div>';
-      h += '<div style="font-size:14px;color:#6b5f52;margin-top:0.4rem;">Payments can be tracked once this quarter\'s bill is generated.</div></div>';
+      if (baseline) {
+        h += '<div style="font-size:18px;font-weight:700;margin-top:0.5rem;color:#6b5f52;">No bill for this quarter</div>';
+        h += '<div style="font-size:14px;color:#6b5f52;margin-top:0.4rem;">' + quarter + ' is the baseline reading taken at the start of water billing \u2014 no bill was raised.</div></div>';
+      } else {
+        h += '<div style="font-size:18px;font-weight:700;margin-top:0.5rem;">Awaiting bill from Liscombe Park</div>';
+        h += '<div style="font-size:14px;color:#6b5f52;margin-top:0.4rem;">Payments can be tracked once this quarter\'s bill is generated.</div></div>';
+      }
       document.getElementById('waterbills-overlay-content').innerHTML = h;
       return;
     }
@@ -1472,11 +1477,12 @@ function renderWaterBills() {
     h += '<div class="wbill-sumcard"><div class="lab">Admin per property</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
     h += '</div>';
   } else {
+    var awaitTxt = baseline ? '\u2014' : 'Awaiting bill';
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard await"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
-    h += '<div class="wbill-sumcard await"><div class="lab">Price per m\u00b3</div><div class="val await">Awaiting bill</div></div>';
-    h += '<div class="wbill-sumcard await"><div class="lab">Standing charge share</div><div class="val await">Awaiting bill</div></div>';
-    h += '<div class="wbill-sumcard await"><div class="lab">Admin per property</div><div class="val await">Awaiting bill</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Price per m\u00b3</div><div class="val await">' + awaitTxt + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Standing charge share</div><div class="val await">' + awaitTxt + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Admin per property</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '</div>';
   }
 
@@ -1512,8 +1518,8 @@ function renderWaterBills() {
     h += '<td class="num total">' + wbillMoney(totTot) + '</td>';
     h += '</tr></tfoot></table>';
   } else {
-    // Awaiting bill: show the readings we have, with a dashed Total column.
-    h += readingsTableHTML(rd, curLabel, prevLabel, true);
+    // No bill yet: show the readings we have, with a dashed Total column.
+    h += readingsTableHTML(rd, curLabel, prevLabel, true, baseline ? '\u2014' : 'Awaiting bill');
   }
 
   document.getElementById('waterbills-overlay-content').innerHTML = h;
@@ -1538,10 +1544,15 @@ function wbSpanLabel(year, quarters) {
 function renderWaterBillsYTD() {
   setWbPendingDots(false);   // YTD spans multiple quarters — no single-quarter pending dot
 
-  // ── Readings YTD: total water volume per property across the year ──
-  if (wbView === 'readings') {
-    renderReadingsYTD();
-    return;
+  // Combined "Readings & Bills" view: if the year has no bills at all, fall back
+  // to the plain readings-volume year-to-date (renderReadingsYTD adds an
+  // "awaiting bill" tag unless the only quarter present is the 2026 Q1 baseline).
+  if (wbView === 'bill') {
+    var yearHasBill = ((waterBillsData && waterBillsData.bills) || []).some(function(b) {
+      var m = (b.quarter || '').match(/^(\d{4})\s*Q([1-4])$/i);
+      return m && parseInt(m[1], 10) === wbYear;
+    });
+    if (!yearHasBill) { renderReadingsYTD(); return; }
   }
 
   var year = wbYear;
@@ -1709,6 +1720,13 @@ function renderReadingsYTD() {
   var generated = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   var sp = rqs.length ? wbSpanLabel(year, rqs) : { qspan: '', spanLabel: year + '' };
 
+  // Readings-only YTD (year has no bills). Flag that a bill is coming, unless the
+  // only quarter present is the 2026 Q1 baseline (which will never be billed).
+  var onlyBaseline = rqs.length > 0 && rqs.every(function(qn) { return isBaselineQuarter(year, qn); });
+  var ytdAwaitTag = !onlyBaseline
+    ? '<div style="display:inline-block;margin-top:5px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9a6b1c;background:#fbeecf;padding:2px 10px;border-radius:11px;">Awaiting bill from Liscombe Park</div>'
+    : '';
+
   var h = '';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.5rem;">';
   h += '<div style="display:flex;align-items:center;">';
@@ -1720,6 +1738,7 @@ function renderReadingsYTD() {
   h += '<div style="text-align:right;">';
   h += '<div style="font-size:20px;font-weight:700;color:#2a7896;">' + sp.spanLabel + '</div>';
   h += '<div style="font-size:12px;color:#9e8e7e;margin-top:4px;">Year to date (' + rqs.length + ' quarter' + (rqs.length !== 1 ? 's' : '') + ') &middot; generated ' + generated + '</div>';
+  h += ytdAwaitTag;
   h += '</div></div>';
 
   if (props.length === 0) {
@@ -1751,9 +1770,8 @@ function renderReadingsYTD() {
 
 function printWaterBills() {
   var origTitle = document.title;
-  var vlabel = (wbView === 'readings') ? 'Water Meter Readings'
-             : (wbView === 'pay')      ? 'Water Bills & Payments'
-             :                           'Water Bills';
+  var vlabel = (wbView === 'pay') ? 'Water Bills & Payments'
+             :                      'Water Meter Readings and Bill';
   document.title = 'CMC The Courtyard \u2014 ' + vlabel + ' ' + (wbYear || '') + (wbQuarter === null ? ' YTD' : ' Q' + wbQuarter);
   window.print();
   document.title = origTitle;
