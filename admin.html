@@ -1597,6 +1597,7 @@
             <option>Water Readings</option>
             <option>Water Readings Submitted</option>
             <option>Water Invoices</option>
+            <option>Water Payment Reminder</option>
           </select>
           <input id="bhFilterText" type="text" placeholder="Search subject / message…"
             oninput="bhApplyFilters()"
@@ -1983,6 +1984,12 @@
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">TO</td>
             </tr>
             <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
+              <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(180,110,40,0.14);color:#9a5a1a;border:1px solid rgba(180,110,40,0.3);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Water Payment Reminder</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--dark);">Sent automatically 10 days after a water bill&#39;s generated date if the invoice is still unpaid<br><span style="font-size:0.72rem;color:var(--mid);">Runs off the daily water trigger (<code>waterBillAutoGenerateTrigger</code>, ~2pm) &rarr; <code>checkWaterInvoiceReminders_()</code>. One nudge per property and quarter (never repeats), and only for quarters where the invoices were actually sent. Part-paid bills are chased for the remaining balance. Shows the amount outstanding, CMC bank details and a &quot;Visit the Portal&quot; button; the greeting uses first names. Residents with no email on file are skipped. Replies go to cmcdirectors@hotmail.com and iwoodland@hotmail.com. Logged to Send History as &quot;Water Payment Reminder&quot;.</span></td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);">Resident(s) at the property (TO); directors CC&#39;d (from cmcsettings col A)</td>
+              <td style="padding:0.4rem 0.6rem;color:var(--mid);white-space:nowrap;">TO / CC</td>
+            </tr>
+            <tr style="border-top:1px solid rgba(184,173,158,0.15);background:rgba(122,92,62,0.03);">
               <td style="padding:0.4rem 0.6rem;white-space:nowrap;"><span style="background:rgba(122,31,58,0.12);color:#7a1f3a;border:1px solid rgba(122,31,58,0.25);border-radius:4px;padding:0.1rem 0.4rem;font-size:0.72rem;font-weight:600;white-space:nowrap;">Spend Authorisation Requested</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--dark);">A director submits a new spend authorisation request via the Finance Authorisation Tracker on the CMC Finance Tracker page<br><span style="font-size:0.72rem;color:var(--mid);">Sent immediately to all directors except the requestor; requestor CC&apos;d. → <code>submitDirectorRequest()</code>.</span></td>
               <td style="padding:0.4rem 0.6rem;color:var(--mid);">All directors except the requestor (CC: requestor)</td>
@@ -2285,6 +2292,37 @@ Grand total billed ([N] invoices)                  £[grand]
 [Any properties with no email on file are flagged here and skipped.]
 
 [CMC Portal button → cmcthecourtyard.com]</pre>
+            </div>
+          </div>
+
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(180,110,40,0.14);color:#9a5a1a;border:1px solid rgba(180,110,40,0.3);">Water Payment Reminder</span>
+              <span class="eref-label">Sent 10 days after a bill if the water invoice is still unpaid</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear [first names],
+
+[Property]
+
+This is a reminder that your water invoice for [YYYY QN] has not yet been paid, according to our records.
+
+Amount outstanding
+£[amount]
+[if part-paid: £[paid] of £[total] already received. Thank you.]
+
+HOW TO PAY
+Please make payment electronically into the CMC bank account below, using a reference that identifies you, for example "No. 1 CMC Water".
+Account Name: THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)
+Sort Code: 40-28-12
+Account No: 41559044
+
+As noted on your invoice, it is important this is paid as soon as possible, as CMC has already paid the full water bill to Liscombe Park Ltd on your behalf.
+
+If you've already paid, please disregard this reminder, or simply reply to this email to let us know and we'll update our records.
+
+[Visit the Portal button → cmcthecourtyard.com]</pre>
             </div>
           </div>
 
@@ -6882,7 +6920,8 @@ var BH_TYPE_CHIP_MAP = {
   'Water Reading Reminder':   { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
   'Water Readings':           { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
   'Water Readings Submitted': { bg:'rgba(60,140,180,0.12)', color:'#1f6680',       border:'rgba(60,140,180,0.25)' },
-  'Water Invoices':           { bg:'rgba(38,128,128,0.14)', color:'#1d6b6b',       border:'rgba(38,128,128,0.3)' }
+  'Water Invoices':           { bg:'rgba(38,128,128,0.14)', color:'#1d6b6b',       border:'rgba(38,128,128,0.3)' },
+  'Water Payment Reminder':   { bg:'rgba(180,110,40,0.14)', color:'#9a5a1a',       border:'rgba(180,110,40,0.3)' }
 };
 
 function bhTypeChip(type) {
