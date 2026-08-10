@@ -343,6 +343,14 @@
   .fh-smoke-alert { }
   .fh-smoke-alert .fh-shiver-inner { animation: fh-shiver 2.8s ease-in-out infinite; }
 
+  /* ── Water card outstanding-balance state (blue flip, no shiver) ── */
+  .water-alert { background: #1d5468 !important; border-color: #1d5468 !important; }
+  .water-alert h3 { color: #ffffff !important; }
+  .water-alert .agm-detail-label { color: rgba(255,255,255,0.6) !important; }
+  .water-alert .agm-detail-val { color: #ffffff !important; }
+  .water-alert .agm-cta { color: rgba(255,255,255,0.65) !important; }
+  .water-alert .agm-details { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.15) !important; }
+
   /* ── Farmhouse smoke overdue bar (shown above noticeboard when 30+ days overdue) ── */
   .smoke-overdue-bar {
     display: none;
@@ -1159,15 +1167,14 @@
     </a>
 
     <!-- CMC Water -->
-    <a class="link-card agm-card" href="cmcwaterportal.html">
+    <a class="link-card agm-card" id="waterCard" href="cmcwaterportal.html">
       <div class="agm-card-top">
         <span class="icon" style="margin:0">💧</span>
         <h3 style="margin:0">CMC Water</h3>
       </div>
       <div class="agm-details">
-        <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest meter reading</span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label" id="waterLabel" style="flex:0 0 auto;">Latest meter reading</span></div>
         <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="waterLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
-        <div class="agm-detail-row" style="margin-top:0.5rem;"><span class="agm-detail-label" style="flex:0 0 auto;color:var(--accent2);">⚠️ This section is being built — check back soon</span></div>
       </div>
       <p class="agm-cta">View water meter readings, billing and documents →</p>
     </a>
@@ -1535,38 +1542,114 @@
     }
   })();
 
-  // Load latest water meter reading for CMC Water card
+  // Load water status for the CMC Water card.
+  // Pulls the same three feeds the water portal uses so the card mirrors it:
+  //   readWater      - latest meter reading date across all properties
+  //   readWaterBills - per-property bills (quarter + paymentStatus)
+  //   readWaterReport- recorded reading quarters (proper quarter boundaries)
+  // Behaviour: any OUTSTANDING bill wins and the card flips blue (Option 2),
+  // otherwise it follows the latest recorded reading quarter, stage-aware.
   (async function() {
+    const cardEl  = document.getElementById('waterCard');
+    const labelEl = document.getElementById('waterLabel');
+    const el      = document.getElementById('waterLatest');
+
+    function setState(label, html, alert) {
+      if (labelEl) labelEl.textContent = label;
+      if (el)      el.innerHTML = html;
+      if (cardEl)  cardEl.classList.toggle('water-alert', !!alert);
+    }
+    function qKey(q) {
+      var m = (q || '').match(/^(\d{4})\s*Q([1-4])$/i);
+      return m ? (parseInt(m[1], 10) * 10 + parseInt(m[2], 10)) : -1;
+    }
+    function isBaseline(q) {
+      var m = (q || '').match(/^(\d{4})\s*Q([1-4])$/i);
+      return !!(m && parseInt(m[1], 10) === 2026 && parseInt(m[2], 10) === 1);
+    }
+
     try {
-      const res = await fetch(SCRIPT_URL + '?action=readWater', { redirect: 'follow' });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data.status !== 'ok' || !data.properties) throw new Error();
+      const results = await Promise.all([
+        fetch(SCRIPT_URL + '?action=readWater',       { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+        fetch(SCRIPT_URL + '?action=readWaterBills',   { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+        fetch(SCRIPT_URL + '?action=readWaterReport',  { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+      ]);
+      const waterRes  = results[0], billsRes = results[1], reportRes = results[2];
 
-      // Find most recent reading date across all properties.
-      // lastReadingDate is formatted as 'dd/MM/yyyy HH:mm' from the GAS backend.
-      let mostRecent = null;
-      data.properties.forEach(function(p) {
-        if (!p.lastReadingDate) return;
-        const m = p.lastReadingDate.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-        if (!m) return;
-        const d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
-        if (!mostRecent || d > mostRecent) mostRecent = d;
+      const bills  = (billsRes  && billsRes.status  === 'ok' && billsRes.bills)      ? billsRes.bills : [];
+      const report = (reportRes && reportRes.status === 'ok')                        ? reportRes      : null;
+      const water  = (waterRes  && waterRes.status  === 'ok' && waterRes.properties) ? waterRes       : null;
+
+      // Group bills by quarter -> paid / total / outstanding counts.
+      var byQ = {};
+      bills.forEach(function(b) {
+        var k = b.quarter || ''; if (!k) return;
+        if (!byQ[k]) byQ[k] = { quarter: k, total: 0, paid: 0 };
+        byQ[k].total++;
+        if ((b.paymentStatus || 'unpaid') === 'paid') byQ[k].paid++;
       });
+      var quarters = Object.keys(byQ).map(function(k) { var o = byQ[k]; o.out = o.total - o.paid; return o; });
 
-      const el = document.getElementById('waterLatest');
-      if (!mostRecent) { el.textContent = 'No readings yet'; return; }
+      // OPTION 2: any outstanding bill wins -> most recent unpaid quarter, blue.
+      var outstanding = quarters.filter(function(o){ return o.out > 0; })
+                                .sort(function(a, b){ return qKey(b.quarter) - qKey(a.quarter); });
+      if (outstanding.length) {
+        var f = outstanding[0];
+        setState('Water billing', f.quarter + ' \u00b7 ' + f.paid + ' of ' + f.total + ' paid \u00b7 ' + f.out + ' outstanding', true);
+        return;
+      }
 
-      const dateStr = mostRecent.toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
-      const month = mostRecent.getMonth(); // 0-11
-      const quarter = Math.floor(month / 3) + 1; // Q1 = Jan-Mar, Q2 = Apr-Jun, etc.
-      const year = mostRecent.getFullYear();
-      el.textContent = dateStr + ' · Q' + quarter + ' ' + year;
-    } catch(e) {
-      const el = document.getElementById('waterLatest');
-      if (el) el.textContent = '—';
+      // No money outstanding -> follow the latest recorded reading quarter.
+      // Latest reading date (only shown in the readings stage).
+      var mostRecent = null;
+      if (water) {
+        water.properties.forEach(function(p) {
+          if (!p.lastReadingDate) return;
+          var m = p.lastReadingDate.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if (!m) return;
+          var d = new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+          if (!mostRecent || d > mostRecent) mostRecent = d;
+        });
+      }
+      var dateStr = mostRecent ? mostRecent.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
+      // Latest recorded reading quarter from the report feed (proper quarters).
+      var quarter = null;
+      if (report && report.availableYears && report.availableYears.length) {
+        var y  = report.availableYears[0];
+        var qs = ((report.availableQuartersByYear || {})[y]) || [];
+        if (qs.length) { quarter = y + ' Q' + Math.max.apply(null, qs); }
+      }
+      // Fall back to the latest bill quarter if no reading quarters are available.
+      if (!quarter && quarters.length) {
+        quarter = quarters.slice().sort(function(a, b){ return qKey(b.quarter) - qKey(a.quarter); })[0].quarter;
+      }
+
+      if (!quarter && !mostRecent) { setState('Latest meter reading', 'No readings yet', false); return; }
+
+      // Bill exists for this quarter and it's fully paid (outstanding handled above).
+      if (quarter && byQ[quarter]) {
+        var o = byQ[quarter];
+        setState('Water billing', '<span style="color:#3d6b4a;">' + quarter + ' \u00b7 all ' + o.total + ' paid \u2713</span>', false);
+        return;
+      }
+
+      // Readings stage (no bill yet for this quarter) -> show reading + date.
+      if (quarter) {
+        var body = isBaseline(quarter) ? (quarter + ' \u00b7 baseline readings')
+                                       : (quarter + ' \u00b7 readings in \u00b7 awaiting bill');
+        if (dateStr) body += ' \u00b7 ' + dateStr;
+        setState('Latest meter reading', body, false);
+        return;
+      }
+
+      // Only a date, no quarter info available.
+      setState('Latest meter reading', dateStr || '\u2014', false);
+    } catch (e) {
+      if (el) el.textContent = '\u2014';
+      if (cardEl) cardEl.classList.remove('water-alert');
     }
   })();
+
 
   // Show 'Latest minutes available' pill on AGM card if a PIN_ file exists in agmminutes
   (async function() {
