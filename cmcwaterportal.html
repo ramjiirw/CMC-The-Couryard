@@ -838,6 +838,26 @@
   .lq-eq .ok { color:#2f6b45; font-weight:700; } .lq-eq .warn { color:#c47a1a; font-weight:700; }
   .yr-select-liscombe { width:110px; padding:0.35rem 0.6rem; border:1px solid rgba(255,255,255,0.4); border-radius:5px; font-family:Arial,sans-serif; font-size:0.85rem; background:rgba(255,255,255,0.15); color:#fff; font-weight:600; cursor:pointer; }
   .yr-select-liscombe option { color:#1e1a16; }
+  .lq-modeseg { display:inline-flex; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:6px; padding:2px; }
+  .lq-modeseg button { border:none; background:transparent; color:#dfeaef; font-family:Arial,sans-serif; font-size:0.82rem; font-weight:700; padding:4px 12px; border-radius:4px; cursor:pointer; }
+  .lq-modeseg button.on { background:#fff; color:#1d5468; }
+  .ins-chiprow { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.1rem; }
+  .ins-chiprow button { border:1px solid #d8cfc4; background:#fff; color:#5c5348; font-family:Arial,sans-serif; font-size:0.8rem; font-weight:700; padding:6px 13px; border-radius:20px; cursor:pointer; }
+  .ins-chiprow button.on { background:#1d5468; color:#fff; border-color:#1d5468; }
+  .ins-card { background:#faf7f2; border:1px solid #ede8e0; border-radius:9px; padding:1rem 1.1rem 0.8rem; }
+  .ins-cchead { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:2px; }
+  .ins-card h3 { margin:0; font-size:16px; color:#1e1a16; }
+  .ins-csub { font-size:12px; color:#9e8e7e; margin:2px 0 0.7rem; }
+  .ins-seg { display:inline-flex; background:#efe9df; border:1px solid #d8cfc4; border-radius:6px; padding:2px; }
+  .ins-seg button { border:none; background:transparent; font-family:Arial,sans-serif; font-size:11.5px; font-weight:700; color:#6b5f52; padding:3px 10px; border-radius:4px; cursor:pointer; }
+  .ins-seg button.on { background:#2a7896; color:#fff; }
+  .ins-readout { margin-top:8px; font-size:12.5px; color:#1d5468; background:#eef4f7; border:1px solid #cfe0e8; border-radius:6px; padding:8px 11px; min-height:16px; }
+  .ins-readout .hint { color:#9e8e7e; font-style:italic; }
+  .ins-analysis { margin-top:10px; font-size:13.5px; color:#4a4139; line-height:1.5; }
+  .ins-analysis .flag { color:#8a5a10; font-weight:600; }
+  .ins-lgd { font-size:11px; color:#6b5f52; margin-top:6px; display:flex; gap:14px; flex-wrap:wrap; }
+  .ins-lgd span i { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  #liscombe-overlay circle, #liscombe-overlay rect.bar { cursor:pointer; }
   @media print {
     #liscombe-overlay > div:first-child { display:none !important; }
     #liscombe-overlay-content { padding:0 !important; max-width:100% !important; }
@@ -847,6 +867,7 @@
   <div id="liscombe-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
     <div style="position:sticky;top:0;z-index:10;background:#1d5468;padding:0.65rem 1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
       <select id="liscombe-yr-select" class="yr-select-liscombe" onchange="liscombeChangeYear(this.value)"></select>
+      <span class="lq-modeseg"><button id="lq-mode-stmt" class="on" onclick="liscombeSetMode('statement')">Statement</button><button id="lq-mode-ins" onclick="liscombeSetMode('insights')">&#128167; Insights</button></span>
       <span style="color:#fff;font-weight:700;font-size:0.95rem;">&#128167; CMC &rarr; Liscombe Park Water Account</span>
       <div style="margin-left:auto;display:flex;gap:0.6rem;align-items:center;">
         <button onclick="printLiscombeAccount()" style="padding:0.4rem 1rem;background:#fff;color:#1d5468;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128196; Save as PDF / Print</button>
@@ -1940,12 +1961,12 @@ async function openLiscombeAccount(){
   var yrs = liscombeData.availableYears || [];
   liscombeYearFilter = (yrs.indexOf(cy)>-1) ? String(cy) : (yrs.length ? String(yrs[0]) : 'all');
   liscombeCollapsed={}; liscombeOpenDetail={};
-  renderLiscombeAccount();
+  liscombeSetMode('statement');
   var ov=document.getElementById('liscombe-overlay');
   if(ov){ ov.style.display='block'; ov.scrollTop=0; document.body.style.overflow='hidden'; document.documentElement.style.overflow='hidden'; }
 }
 function closeLiscombeOverlay(){ var ov=document.getElementById('liscombe-overlay'); if(ov) ov.style.display='none'; document.body.style.overflow=''; document.documentElement.style.overflow=''; }
-function liscombeChangeYear(y){ liscombeYearFilter=y; liscombeCollapsed={}; liscombeOpenDetail={}; renderLiscombeAccount(); }
+function liscombeChangeYear(y){ liscombeYearFilter=y; liscombeCollapsed={}; liscombeOpenDetail={}; renderLiscombe(); }
 function liscombeToggleYear(y){ liscombeCollapsed['y'+y]=!liscombeCollapsed['y'+y]; renderLiscombeAccount(); }
 function liscombeToggleDetail(id){ liscombeOpenDetail[id]=!liscombeOpenDetail[id]; renderLiscombeAccount(); }
 function printLiscombeAccount(){ window.print(); }
@@ -2059,6 +2080,172 @@ function renderLiscombeAccount(){
   h += '</tbody></table></div>';
   document.getElementById('liscombe-overlay-content').innerHTML = h;
 }
+
+// ── Liscombe report — Water Insights view ──────────────────────────────────
+var liscombeMode = 'statement';
+var insChip='price', insGran='quarter', insBstyle='stacked', insSstyle='grouped';
+var INS_QCOL=['#8fb8c4','#4a8b8b','#b06a4f','#c9a96e'], INS_QN=['Q1','Q2','Q3','Q4'], INS_SCOL=['#2a7896','#b06a4f','#7a5c3e','#4a8b8b','#9a6b1c'];
+
+function liscombeSetMode(m){
+  liscombeMode=m;
+  var a=document.getElementById('lq-mode-stmt'), b=document.getElementById('lq-mode-ins');
+  if(a) a.classList.toggle('on', m==='statement');
+  if(b) b.classList.toggle('on', m==='insights');
+  renderLiscombe();
+}
+function renderLiscombe(){ if(liscombeMode==='insights') renderLiscombeInsights(); else renderLiscombeAccount(); }
+function insTell(t){ var el=document.getElementById('ins-readout'); if(el) el.textContent=t; } window.insTell=insTell;
+function insEsc(s){ return String(s).replace(/'/g,'\u2019'); }
+function insMoney(v){ return '£'+Number(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function insM3(v){ return Math.round(v)+''; }
+function insPct(a,b){ return (b-a)/a*100; }
+
+function insRows(){ return (liscombeData.rows||[]).filter(function(r){return r.hasBill;}).slice().sort(function(a,b){return (a.year*10+a.q)-(b.year*10+b.q);}); }
+function insYears(rows){ var y=[]; rows.forEach(function(r){ if(y.indexOf(r.year)===-1) y.push(r.year); }); return y.sort(function(a,b){return a-b;}); }
+function insStmtLine(r){ var st=r.paymentStatus==='paid'?'Paid':(r.paymentStatus==='part'?'Part paid':(r.paymentStatus==='awaiting'?'Awaiting bill':'Unpaid'));
+  return r.quarter+'  ·  '+Number(r.volume).toFixed(3)+' m³  ·  '+insMoney(r.pricePerM3)+'/m³  ·  our derived '+insMoney(r.derived)+'  ·  Amount Due '+insMoney(r.amountDue)+'  ·  paid '+insMoney(r.cmcPaid)+'  ·  '+st; }
+function insYearLine(rows, y){ var rs=rows.filter(function(r){return r.year===y;}); var tv=0,tc=0,ap=0; rs.forEach(function(r){tv+=r.volume;tc+=r.amountDue;ap+=r.pricePerM3;});
+  return y+'  ·  '+rs.length+' quarter'+(rs.length>1?'s':'')+'  ·  total '+tv.toFixed(1)+' m³  ·  avg '+insMoney(ap/rs.length)+'/m³  ·  total cost '+insMoney(tc); }
+
+function insLine(labels,values,fmt,color,reads,h){ h=h||280; var W=760,pL=58,pR=18,pT=20,pB=34,n=values.length;
+  if(!n) return '<div style="padding:2rem;text-align:center;color:#9e8e7e;">Not enough data yet.</div>';
+  var mn=Math.min.apply(null,values),mx=Math.max.apply(null,values); if(mn===mx){mn*=0.95;mx*=1.05;} var pd=(mx-mn)*0.15||1; mn-=pd;mx+=pd;
+  function x(i){return pL+(n<=1?0:i*(W-pL-pR)/(n-1));} function y(v){return pT+(h-pT-pB)*(1-(v-mn)/(mx-mn));}
+  var g=''; for(var t=0;t<=3;t++){var val=mn+(mx-mn)*t/3,yy=y(val); g+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(W-pR)+'" y2="'+yy+'" stroke="#e6ddd0"/>'; g+='<text x="'+(pL-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#9e8e7e" font-family="Arial">'+fmt(val)+'</text>';}
+  var d=''; values.forEach(function(v,i){d+=(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)+' ';});
+  g+='<path d="'+d+'L '+x(n-1)+' '+(h-pB)+' L '+x(0)+' '+(h-pB)+' Z" fill="'+color+'" opacity="0.08"/>'; g+='<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2.5"/>';
+  values.forEach(function(v,i){ g+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4.5" fill="'+color+'" onclick="insTell(\''+insEsc(reads[i])+'\')"/>'; g+='<text x="'+x(i)+'" y="'+(y(v)-10)+'" text-anchor="middle" font-size="11" fill="#1e1a16" font-family="Arial" font-weight="700">'+fmt(v)+'</text>'; g+='<text x="'+x(i)+'" y="'+(h-12)+'" text-anchor="middle" font-size="11" fill="#6b5f52" font-family="Arial">'+labels[i]+'</text>'; });
+  return '<svg viewBox="0 0 '+W+' '+h+'" style="width:100%;height:auto;">'+g+'</svg>'; }
+
+function insBar(labels,values,fmt,color,reads,h,flag){ h=h||290; var W=760,pL=44,pR=14,pT=18,pB=30,n=values.length;
+  if(!n) return '<div style="padding:2rem;text-align:center;color:#9e8e7e;">Not enough data yet.</div>';
+  var mx=Math.max.apply(null,values)*1.16||1; var gap=(W-pL-pR)/n,bw=gap*0.64; var mean=values.reduce(function(a,b){return a+b;},0)/n;
+  function y(v){return pT+(h-pT-pB)*(1-v/mx);} var g='';
+  for(var t=0;t<=3;t++){var val=mx*t/3,yy=y(val); g+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(W-pR)+'" y2="'+yy+'" stroke="#e6ddd0"/>'; g+='<text x="'+(pL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#9e8e7e" font-family="Arial">'+fmt(val)+'</text>';}
+  values.forEach(function(v,i){var cx=pL+gap*i+gap/2,by=y(v); var out=flag&&v>mean*1.75;
+    g+='<rect class="bar" x="'+(cx-bw/2)+'" y="'+by+'" width="'+bw+'" height="'+(h-pB-by)+'" rx="3" fill="'+(out?'#b06a4f':color)+'" onclick="insTell(\''+insEsc(reads[i])+'\')"/>';
+    g+='<text x="'+cx+'" y="'+(by-5)+'" text-anchor="middle" font-size="10" fill="#1e1a16" font-family="Arial" font-weight="700">'+fmt(v)+'</text>';
+    g+='<text x="'+cx+'" y="'+(h-9)+'" text-anchor="middle" font-size="10.5" fill="#6b5f52" font-family="Arial">'+labels[i]+'</text>'; });
+  return '<svg viewBox="0 0 '+W+' '+h+'" style="width:100%;height:auto;">'+g+'</svg>'; }
+
+function insStacked(labels,matrix,colors,reads,h){ h=h||300; var W=760,pL=44,pR=14,pT=18,pB=30,n=matrix.length;
+  if(!n) return '<div style="padding:2rem;text-align:center;color:#9e8e7e;">Not enough data yet.</div>';
+  var totals=matrix.map(function(r){return r.reduce(function(a,b){return a+b;},0);}); var mx=Math.max.apply(null,totals)*1.14||1;
+  var gap=(W-pL-pR)/n,bw=gap*0.6; function y(v){return pT+(h-pT-pB)*(1-v/mx);} var g='';
+  for(var t=0;t<=3;t++){var val=mx*t/3,yy=y(val); g+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(W-pR)+'" y2="'+yy+'" stroke="#e6ddd0"/>'; g+='<text x="'+(pL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#9e8e7e" font-family="Arial">'+Math.round(val)+'</text>';}
+  matrix.forEach(function(segs,i){var cx=pL+gap*i+gap/2,acc=0; segs.forEach(function(sv,si){var y0=y(acc+sv),y1=y(acc); g+='<rect class="bar" x="'+(cx-bw/2)+'" y="'+y0+'" width="'+bw+'" height="'+(y1-y0)+'" fill="'+colors[si%colors.length]+'" onclick="insTell(\''+insEsc(reads[i])+'\')"/>'; acc+=sv;});
+    g+='<text x="'+cx+'" y="'+(y(acc)-4)+'" text-anchor="middle" font-size="10" fill="#1e1a16" font-weight="700" font-family="Arial">'+Math.round(acc)+'</text>'; g+='<text x="'+cx+'" y="'+(h-9)+'" text-anchor="middle" font-size="10.5" fill="#6b5f52" font-family="Arial">'+labels[i]+'</text>'; });
+  return '<svg viewBox="0 0 '+W+' '+h+'" style="width:100%;height:auto;">'+g+'</svg>'; }
+
+function insTrendText(series,fmtv,qlabels){ if(series.length<2) return 'Just one data point so far — the trend builds as more quarters come in.';
+  var a=series[0],b=series[series.length-1],p=insPct(a,b); var dir=Math.abs(p)<1?'broadly flat':(p>0?'up '+p.toFixed(1)+'%':'down '+Math.abs(p).toFixed(1)+'%');
+  var base='Overall '+dir+' ('+fmtv(a)+' → '+fmtv(b)+') across '+series.length+' points.'; var steps=[]; for(var i=1;i<series.length;i++)steps.push(Math.abs(series[i]-series[i-1]));
+  var med=steps.slice().sort(function(x,y){return x-y;})[Math.floor(steps.length/2)]||0; var fi=-1; steps.forEach(function(s,i){if(med>0&&s>med*3)fi=i+1;});
+  return base+(fi>-1?' <span class="flag">⚠ '+qlabels[fi]+' steps out of line with the trend — worth a check.</span>':''); }
+
+function insQLegend(qs){ return '<div class="ins-lgd">'+qs.map(function(q,i){return '<span><i style="background:'+INS_QCOL[i%4]+'"></i>'+q+'</span>';}).join('')+'</div>'; }
+function insYLegend(years){ return '<div class="ins-lgd">'+years.map(function(y,i){return '<span><i style="background:'+INS_SCOL[i%INS_SCOL.length]+'"></i>'+y+'</span>';}).join('')+'</div>'; }
+
+function renderLiscombeInsights(){
+  var el=document.getElementById('liscombe-overlay-content'); if(!el) return;
+  var rows=insRows();
+  if(rows.length===0){ el.innerHTML='<div style="padding:3rem;text-align:center;color:#9e8e7e;">No billed quarters yet — insights appear once bills are in.</div>'; return; }
+  var years=insYears(rows);
+  var qs=rows.map(function(r){return r.quarter;});
+  var qlab=qs.map(function(q){return q.replace('20','');});
+  var price=rows.map(function(r){return r.pricePerM3;}), volume=rows.map(function(r){return r.volume;}), cost=rows.map(function(r){return r.amountDue;});
+  var latest=rows[rows.length-1]; var latestYear=latest.year;
+
+  function byYear(series,mode){ return years.map(function(y){ var v=0,n=0; rows.forEach(function(r,i){ if(r.year===y){v+=series[i];n++;} }); return mode==='avg'?v/n:v; }); }
+
+  // per-property helpers from propSeries
+  var ps=(liscombeData.propSeries||[]);
+  function propLatestQuarter(){ return ps.map(function(p){ return { num:p.num, prop:p.property, v:(p.byQuarter[latest.quarter]||0) }; }); }
+  function yearQuarters(y){ return rows.filter(function(r){return r.year===y;}).map(function(r){return r.quarter;}); }
+  function propYearSegs(y){ var yq=yearQuarters(y); return { yq:yq, data:ps.map(function(p){ return { num:p.num, prop:p.property, segs:yq.map(function(q){return p.byQuarter[q]||0;}) }; }) }; }
+
+  // seasonal: quarter-of-year clusters, series = years
+  function seasonal(){ var seas={}; INS_QN.forEach(function(q){seas[q]={};}); rows.forEach(function(r){ var qn='Q'+r.q; seas[qn][r.year]=r.volume; }); return seas; }
+
+  var chip=insChip;
+  var head='', body='', analysis='', sub='';
+  var reads;
+
+  function granCtrl(){ return '<span class="ins-seg"><button class="'+(insGran==='quarter'?'on':'')+'" onclick="insSetGran(\'quarter\')">By quarter</button><button class="'+(insGran==='year'?'on':'')+'" onclick="insSetGran(\'year\')">By year</button></span>'; }
+
+  if(chip==='price'||chip==='vol'||chip==='cost'){
+    var series = chip==='price'?price:(chip==='vol'?volume:cost);
+    var fmt = chip==='price'?insMoney:(chip==='vol'?insM3:function(v){return '£'+Math.round(v);});
+    var color = chip==='price'?'#1d5468':(chip==='vol'?'#2a7896':'#b06a4f');
+    var title = chip==='price'?'Price per m³ over time':(chip==='vol'?'Consumption over time':'Liscombe cost over time');
+    sub = chip==='price'?'What Liscombe charges per cubic metre':(chip==='vol'?'Total site water volume per quarter (m³)':'Total Amount Due per quarter');
+    head='<div class="ins-cchead"><h3>'+title+'</h3><div>'+granCtrl()+'</div></div>';
+    if(insGran==='year'){ var ys=byYear(series, chip==='price'?'avg':'sum'); reads=years.map(function(y){return insYearLine(rows,y);});
+      body=insLine(years.map(String), ys, fmt, color, reads, 290);
+      analysis = chip==='price' ? ('Average rate by year: '+years.map(function(y,i){return y+' '+insMoney(byYear(price,'avg')[i]);}).join(', ')+'.')
+               : (chip==='vol' ? ('Year totals: '+years.map(function(y,i){return y+' '+Math.round(byYear(volume,'sum')[i])+' m³';}).join(', ')+'.')
+               : ('Year totals: '+years.map(function(y,i){return y+' £'+Math.round(byYear(cost,'sum')[i]);}).join(', ')+'.'));
+    } else { reads=rows.map(insStmtLine);
+      body=insLine(qlab, series, fmt, color, reads, 290);
+      analysis=insTrendText(series, fmt, qs);
+    }
+  } else if(chip==='byprop'){
+    head='<div class="ins-cchead"><h3>Consumption by property</h3><div>'+granCtrl();
+    if(insGran==='year') head+=' <span class="ins-seg"><button class="'+(insBstyle==='grouped'?'on':'')+'" onclick="insSetBstyle(\'grouped\')">Totals</button><button class="'+(insBstyle==='stacked'?'on':'')+'" onclick="insSetBstyle(\'stacked\')">By quarter</button></span>';
+    head+='</div></div>';
+    if(insGran==='quarter'){ sub='Latest quarter ('+latest.quarter+'), m³ per residence';
+      var pq=propLatestQuarter(); reads=pq.map(function(p){return 'No. '+p.num+'  ·  '+latest.quarter+'  ·  '+p.v.toFixed(3)+' m³';});
+      body=insBar(pq.map(function(p){return String(p.num);}), pq.map(function(p){return p.v;}), insM3, '#4a8b8b', reads, 290, true);
+      var vals=pq.map(function(p){return p.v;}); var mean=vals.reduce(function(a,b){return a+b;},0)/vals.length; var outs=pq.filter(function(p){return p.v>mean*1.75;});
+      var base='Site total '+vals.reduce(function(a,b){return a+b;},0).toFixed(1)+' m³ · average '+mean.toFixed(1)+' m³ per property.';
+      analysis = outs.length ? base+' <span class="flag">⚠ No. '+outs[0].num+' ('+outs[0].v.toFixed(1)+' m³) is well above the site average — could be seasonal (garden watering), a leak, or a misread reading.</span>' : base+' Usage is fairly even.';
+    } else { var py=propYearSegs(latestYear); sub=latestYear+' by property, m³';
+      if(insBstyle==='stacked'){ reads=py.data.map(function(p){return 'No. '+p.num+'  ·  '+latestYear+'  ·  total '+p.segs.reduce(function(a,b){return a+b;},0).toFixed(1)+' m³ ('+p.segs.map(function(v,i){return py.yq[i].slice(-2)+' '+v.toFixed(1);}).join(', ')+')';});
+        body=insStacked(py.data.map(function(p){return String(p.num);}), py.data.map(function(p){return p.segs;}), INS_QCOL, reads, 300)+insQLegend(py.yq.map(function(q){return q.slice(-2);}));
+        analysis='Each bar is a property’s '+latestYear+' total; the colours split it by quarter, so you can see the seasonal shape per property.';
+      } else { var tot=py.data.map(function(p){return {num:p.num, t:p.segs.reduce(function(a,b){return a+b;},0)};}); reads=tot.map(function(p){return 'No. '+p.num+'  ·  '+latestYear+' total  ·  '+p.t.toFixed(1)+' m³';});
+        body=insBar(tot.map(function(p){return String(p.num);}), tot.map(function(p){return p.t;}), insM3, '#4a8b8b', reads, 290, true);
+        var vals=tot.map(function(p){return p.t;}); var mean=vals.reduce(function(a,b){return a+b;},0)/vals.length; var outs=tot.filter(function(p){return p.t>mean*1.75;});
+        analysis='Each property’s '+latestYear+' total. '+(outs.length?'<span class="flag">⚠ No. '+outs[0].num+' is well above the site average this year — worth a look.</span>':'Usage is fairly even across the year.');
+      }
+    }
+  } else if(chip==='season'){
+    head='<div class="ins-cchead"><h3>Seasonal — same quarter, year on year</h3><div><span class="ins-seg"><button class="'+(insSstyle==='grouped'?'on':'')+'" onclick="insSetSstyle(\'grouped\')">Grouped</button><button class="'+(insSstyle==='stacked'?'on':'')+'" onclick="insSetSstyle(\'stacked\')">Stacked</button></span></div></div>';
+    sub='Site volume by quarter, per year (m³)';
+    var seas=seasonal(); var present=INS_QN.filter(function(q){return Object.keys(seas[q]).length;});
+    if(insSstyle==='stacked'){ var matrix=present.map(function(q){return years.map(function(y){return seas[q][y]||0;});});
+      reads=present.map(function(q){return q+' — '+years.map(function(y){return seas[q][y]!=null?y+' '+seas[q][y].toFixed(1):y+' —';}).join(', ');});
+      body=insStacked(present, matrix, INS_SCOL, reads, 290)+insYLegend(years);
+    } else { // grouped
+      var W=760,pL=44,pR=14,pT=18,pB=30; var allv=[]; present.forEach(function(q){years.forEach(function(y){if(seas[q][y]!=null)allv.push(seas[q][y]);});}); var mx=Math.max.apply(null,allv)*1.16||1;
+      var cg=(W-pL-pR)/present.length; function y(v){return pT+(290-pT-pB)*(1-v/mx);} var g='';
+      for(var t=0;t<=3;t++){var val=mx*t/3,yy=y(val); g+='<line x1="'+pL+'" y1="'+yy+'" x2="'+(W-pR)+'" y2="'+yy+'" stroke="#e6ddd0"/>'; g+='<text x="'+(pL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#9e8e7e" font-family="Arial">'+Math.round(val)+'</text>';}
+      present.forEach(function(q,ci){var baseX=pL+cg*ci+cg/2; var bw=cg*0.7/Math.max(years.length,1);
+        years.forEach(function(yr,yi){ var v=seas[q][yr]; if(v==null)return; var bx=baseX-(years.length*bw)/2+yi*bw, by=y(v);
+          g+='<rect class="bar" x="'+bx+'" y="'+by+'" width="'+(bw*0.86)+'" height="'+(290-pB-by)+'" rx="2" fill="'+INS_SCOL[yi%INS_SCOL.length]+'" onclick="insTell(\''+insEsc(q+' '+yr+' — '+v.toFixed(3)+' m³')+'\')"/>';
+          g+='<text x="'+(bx+bw*0.43)+'" y="'+(by-4)+'" text-anchor="middle" font-size="9" fill="#1e1a16" font-family="Arial" font-weight="700">'+Math.round(v)+'</text>'; });
+        g+='<text x="'+baseX+'" y="'+(290-9)+'" text-anchor="middle" font-size="11" fill="#6b5f52" font-family="Arial">'+q+'</text>'; });
+      body='<svg viewBox="0 0 '+W+' 290" style="width:100%;height:auto;">'+g+'</svg>'+insYLegend(years);
+    }
+    if(years.length<2) analysis='Year-on-year comparison builds once there’s more than one year of data.';
+    else { var y0=years[years.length-2], y1=years[years.length-1]; var bits=present.filter(function(q){return seas[q][y0]!=null&&seas[q][y1]!=null;}).map(function(q){var p=insPct(seas[q][y0],seas[q][y1]); return q+' '+(p>=0?'up':'down')+' '+Math.abs(p).toFixed(1)+'%';});
+      analysis=bits.join('; ')+' ('+y0+' → '+y1+').'; }
+  }
+
+  var chips=['price','vol','cost','byprop','season'], clab={price:'Price /m³',vol:'Consumption',cost:'Cost',byprop:'By property',season:'Seasonal'};
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1rem;border-bottom:2.5px solid #1e1a16;margin-bottom:1.3rem;flex-wrap:wrap;gap:1rem;">';
+  h+='<div><div style="font-size:12px;text-transform:uppercase;letter-spacing:0.14em;color:#6b5f52;">The Courtyard Management Company</div><div style="font-size:22px;font-weight:700;color:#1e1a16;margin-top:3px;">💧 Water Insights</div></div>';
+  h+='<div style="text-align:right;font-size:12px;color:#9e8e7e;">'+rows.length+' quarter'+(rows.length>1?'s':'')+' of data</div></div>';
+  h+='<div class="ins-chiprow">'+chips.map(function(k){return '<button class="'+(insChip===k?'on':'')+'" onclick="insSetChip(\''+k+'\')">'+clab[k]+'</button>';}).join('')+'</div>';
+  h+='<div class="ins-card">'+head+'<p class="ins-csub">'+sub+'</p>'+body;
+  h+='<div class="ins-readout" id="ins-readout"><span class="hint">Tap a point or bar for the full statement line behind it.</span></div>';
+  h+='<div class="ins-analysis">'+analysis+'</div></div>';
+  el.innerHTML=h;
+}
+function insSetChip(k){ insChip=k; if(k!=='price'&&k!=='vol'&&k!=='cost'&&k!=='byprop') insGran='quarter'; renderLiscombeInsights(); }
+function insSetGran(g){ insGran=g; renderLiscombeInsights(); }
+function insSetBstyle(b){ insBstyle=b; renderLiscombeInsights(); }
+function insSetSstyle(s){ insSstyle=s; renderLiscombeInsights(); }
 
 async function openWaterStatement() {
   if (!waterBillsData) {
