@@ -711,10 +711,56 @@
 </div>
 
 <main>
+  <style>
+  .water-group { background:rgba(29,84,104,0.05); border:1px solid rgba(29,84,104,0.13); border-radius:14px; padding:0.6rem 0.7rem 0.05rem; margin-bottom:1.3rem; }
+  .water-group.warm { background:rgba(122,92,62,0.055); border-color:rgba(122,92,62,0.15); }
+  .water-grouplab { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:#8a7a64; margin:0.2rem 0.3rem 0.45rem; }
+  .water-policy { font-size:0.85rem; color:#5c5348; line-height:1.55; margin:0.6rem 0 1.6rem; max-width:920px; }
+  .pay-block { background:#fff; border:1px solid #e4d9c8; border-left:4px solid #1d5468; border-radius:10px; padding:1rem 1.2rem 1.1rem; margin:0.6rem 0 1.6rem; max-width:920px; }
+  .pay-block .ph { font-size:1.02rem; font-weight:700; color:#1d5468; margin-bottom:0.7rem; }
+  .pay-row { display:flex; gap:12px; padding:0.5rem 0; border-top:1px solid #f0e9dd; }
+  .pay-row:first-of-type { border-top:none; }
+  .pay-row .lab { flex:0 0 118px; font-size:0.8rem; font-weight:700; color:#7a5c3e; text-transform:uppercase; letter-spacing:0.03em; padding-top:1px; }
+  .pay-row .txt { font-size:0.9rem; color:#4a4139; line-height:1.5; }
+  .pay-row .txt b { color:#1e1a16; }
+  .bankbox { background:#f7faf9; border:1px solid #dce8e3; border-radius:7px; padding:0.6rem 0.8rem; margin-top:0.5rem; font-size:0.9rem; color:#1e1a16; line-height:1.9; }
+  .bankbox .k { color:#6b5f52; } .bankbox b { color:#1d5468; }
+  .meter-card { background:#fff; border:1px solid #ddd2c2; border-radius:12px; margin:1.4rem 0 1rem; padding:1rem 1.1rem 1.1rem; }
+  .meter-card .mtitle { font-weight:700; color:#3a332b; font-size:0.98rem; display:flex; align-items:center; gap:9px; margin-bottom:0.2rem; }
+  .meter-loc { font-size:0.8rem; font-weight:700; color:#7a5c3e; margin:0.9rem 0 0.4rem; }
+  .meter-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:3px 18px; }
+  .meter-row { font-size:0.85rem; color:#3a332b; padding:2px 0; font-variant-numeric:tabular-nums; }
+  .meter-row b { color:#1d5468; font-weight:700; margin-right:6px; }
+  .meter-row .mc { color:#6b5f52; }
+  </style>
+
   <div class="page-title">
     <h2>&#128167; CMC Water</h2>
     <p>View water meter readings, billing and water-related documents.</p>
   </div>
+  <div class="pay-block">
+    <div class="ph">Paying your water bill</div>
+    <div class="pay-row">
+      <div class="lab">Pay promptly</div>
+      <div class="txt">It&rsquo;s important your water bill is paid <b>as soon as possible</b>, as CMC has already paid the full amount to Liscombe Park on your behalf.</div>
+    </div>
+    <div class="pay-row">
+      <div class="lab">Who pays</div>
+      <div class="txt">Responsibility for water charges remains with the <b>property owner</b>. Where a property is let, payment is made directly by the owner, not by a tenant or other third party.</div>
+    </div>
+    <div class="pay-row">
+      <div class="lab">How to pay</div>
+      <div class="txt">By <b>electronic bank transfer only</b> (CMC cannot accept cheque or cash), using a reference that identifies you, e.g. <b>&ldquo;No. 1 CMC Water&rdquo;</b>.
+        <div class="bankbox">
+          <span class="k">Account Name:</span> <b>THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)</b><br>
+          <span class="k">Sort Code:</span> <b>40-28-12</b> &nbsp;&middot;&nbsp; <span class="k">Account No:</span> <b>41559044</b>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="water-grouplab">Your property</div>
+  <div class="water-group">
 
   <!-- Water Readings, Bills & Payments (combined report) -->
   <div class="doc-card-wrapper" style="margin-bottom:1rem;">
@@ -738,6 +784,21 @@
     </button>
   </div>
 
+  </div><!-- /Your property -->
+
+  <div class="water-grouplab">Site &amp; supplier</div>
+  <div class="water-group warm">
+  <div class="doc-card-wrapper">
+      <button class="btn-toggle btn-loading" id="toggle-liscombe" onclick="openLiscombeAccount()" style="background:#1d5468;color:#ffffff;">
+        <span>&#128167; CMC &rarr; Liscombe Park Water Account<span class="toggle-smart" id="liscombe-smart"></span></span>
+        <span class="toggle-hint">
+          <span class="hint-loading">⏳ Loading data…</span>
+          <span class="hint-open">Tap to open &amp; view</span>
+        </span>
+      </button>
+    </div>
+
+  <!-- Water Documents -->
   <!-- Maintenance Documents -->
   <div class="doc-card-wrapper">
     <button class="btn-toggle" id="toggle-maintdocs" onclick="toggleMaintDocs()" aria-expanded="false">
@@ -762,15 +823,13 @@
   </div>
 
 
-  <!-- CMC → Liscombe Park Water Account -->
-  <div class="doc-card-wrapper" style="margin-top:1rem;">
-    <button class="btn-toggle btn-loading" id="toggle-liscombe" onclick="openLiscombeAccount()" style="background:#1d5468;color:#ffffff;">
-      <span>&#128167; CMC &rarr; Liscombe Park Water Account<span class="toggle-smart" id="liscombe-smart"></span></span>
-      <span class="toggle-hint">
-        <span class="hint-loading">⏳ Loading data…</span>
-        <span class="hint-open">Tap to open &amp; view</span>
-      </span>
-    </button>
+
+  </div><!-- /Site & supplier -->
+
+  <!-- Water Meter Numbers -->
+  <div class="meter-card">
+    <div class="mtitle"><svg width="26" height="26" viewBox="0 0 40 40" style="flex:0 0 auto;"><rect x="3.5" y="8" width="33" height="24" rx="5.5" fill="#eef5f7" stroke="#1d5468" stroke-width="2.4"/><rect x="9" y="15" width="22" height="10" rx="2" fill="#ffffff" stroke="#1d5468" stroke-width="1.1"/><text x="20" y="22.7" text-anchor="middle" font-size="7.5" font-family="monospace" font-weight="700" fill="#1d5468" letter-spacing="0.5">0234</text><circle cx="14" cy="29" r="1.3" fill="#1d5468"/><circle cx="18" cy="29" r="1.3" fill="#8fb8c4"/><circle cx="31" cy="12.5" r="1.6" fill="none" stroke="#1d5468" stroke-width="1"/></svg><span>Water Meter Numbers</span></div>
+    <div id="meter-card-body"></div>
   </div>
 
   <div id="waterbills-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow-y:auto;">
@@ -1079,6 +1138,12 @@ const WATER_METERS = {
   '13 The Courtyard': '06AU005266',
   '14 The Courtyard': '06AU005299'
 };
+function renderMeterNumbers(){
+  var el=document.getElementById('meter-card-body'); if(!el) return;
+  function rows(a,b){ var h=''; for(var n=a;n<=b;n++){ var code=WATER_METERS[n+' The Courtyard']||''; var nn=(n<10?'0'+n:''+n); h+='<div class="meter-row"><b>'+nn+'</b>The Courtyard <span class="mc">'+code+'</span></div>'; } return h; }
+  el.innerHTML='<div class="meter-loc">Location 1 &middot; Front Car Park Lawn</div><div class="meter-grid">'+rows(1,9)+'</div>'+'<div class="meter-loc">Location 2 &middot; Communal Gas Tanks Garden</div><div class="meter-grid">'+rows(10,14)+'</div>';
+}
+document.addEventListener('DOMContentLoaded', renderMeterNumbers);
 const WATER_QTR_RANGE = {
   1: 'January – March',
   2: 'April – June',
