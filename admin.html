@@ -2652,112 +2652,105 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
       <div class="admin-panel" id="panel-waterbillsinput">
         <style>#panel-waterbillsinput .wbiDateInput::-webkit-calendar-picker-indicator{opacity:0;width:0;padding:0;margin:0;}</style>
         <div class="panel-title">&#128167; Water Bills Input</div>
-        <div class="panel-desc">Enter the quarterly supplier water bill and press Save &mdash; it writes straight to the <code>cmcwaterbills</code> sheet. When the quarter&rsquo;s meter readings are already in, saving also generates the 14 per-property bills on the spot. Period start, end and days are filled in automatically, so you don&rsquo;t type those.</div>
+        <div class="panel-desc">This page is for entering a new quarterly supplier water bill. Press Save and it writes straight to the <code>cmcwaterbills</code> sheet; when the quarter&rsquo;s meter readings are already in, saving also generates the 14 per-property bills on the spot. Period start, end and days are filled in automatically. Bills already entered are read-only &mdash; see the list at the bottom.</div>
 
-        <div style="max-width:600px;">
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
-            <select id="wbiSelect" style="height:34px;border:1px solid rgba(122,92,62,0.3);border-radius:7px;background:#fff;padding:0 10px;font-family:Arial,sans-serif;font-size:0.82rem;color:var(--dark);"></select>
-          </div>
+        <div style="max-width:620px;">
+          <div style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.8rem;">New bill</div>
 
-          <div id="wbiStatus" style="display:none;align-items:center;gap:6px;background:#e3f0e8;color:#2e6b4f;border:1px solid #bfe0cd;border-radius:999px;padding:4px 11px;font-size:0.72rem;font-weight:600;margin-bottom:1.1rem;width:fit-content;">&#10003; Generated &middot; 14 property bills</div>
-
-          <div style="font-size:0.68rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.7rem;">Bill</div>
-
-          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Bill ID</span>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Bill ID</span>
             <span style="width:32px;flex:none;"></span>
-            <div style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div id="wbiIdPickers" style="display:flex;align-items:center;gap:8px;">
-                <span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;background:#f3eee3;color:var(--dark);font-family:Arial,sans-serif;font-size:0.9rem;font-weight:700;">B</span>
-                <select id="wbiYear" style="height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 10px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:var(--dark);"></select>
-                <select id="wbiQuarter" style="height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 10px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:var(--dark);">
-                  <option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option>
-                </select>
-              </div>
-              <span id="wbiIdReadonly" data-id="" style="display:none;height:36px;align-items:center;padding:0 12px;border:1px solid rgba(122,92,62,0.2);border-radius:8px;background:#faf7f1;color:var(--mid);font-family:Arial,sans-serif;font-size:0.9rem;font-weight:600;"></span>
+            <div id="wbiIdPickers" style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;background:#f3eee3;color:var(--dark);font-family:Arial,sans-serif;font-size:0.9rem;font-weight:700;">B</span>
+              <select id="wbiYear" style="height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 10px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:var(--dark);"></select>
+              <select id="wbiQuarter" style="height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 10px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;color:var(--dark);">
+                <option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option>
+              </select>
+              <span style="font-size:0.85rem;color:var(--mid);">&rarr;</span>
+              <span id="wbiIdPreview" style="font-size:0.9rem;font-weight:700;color:var(--accent);"></span>
             </div>
           </div>
+          <div id="wbiDupNote" style="display:none;margin:0 0 11px 173px;font-size:0.8rem;color:#8b3a3a;">&#9888; A bill for this quarter already exists and can&rsquo;t be duplicated &mdash; see the list below.</div>
+          <div style="height:6px;"></div>
 
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Bill date</span>
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Bill date</span>
             <span style="width:32px;flex:none;display:flex;align-items:center;justify-content:center;">
               <button type="button" id="wbiDateBtn" style="width:32px;height:32px;border:1px solid #cfe0ed;border-radius:7px;background:#e8f1f8;color:#1f6680;cursor:pointer;padding:0;font-size:0.95rem;" aria-label="Open date picker">&#128197;</button>
             </span>
-            <input id="wbiBillDate" class="wbiDateInput" type="date" style="flex:1;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+            <input id="wbiBillDate" class="wbiDateInput wbiReq" type="date" style="flex:1;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
           </div>
 
-          <div style="font-size:0.68rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Charges from the supplier bill</div>
+          <div style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Charges from the supplier bill</div>
 
-          <div class="wbiChargeRow" style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Price per m&sup3;</span>
-            <span style="width:32px;flex:none;display:flex;align-items:center;justify-content:center;"><button type="button" class="wbiLock" data-locked="0" style="width:32px;height:32px;border:1px solid rgba(122,92,62,0.25);border-radius:7px;background:#f4ecdb;color:#a07a2e;cursor:pointer;display:none;padding:0;font-size:0.85rem;" aria-label="Unlock to edit">&#128274;</button></span>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Price per m&sup3;</span>
+            <span style="width:32px;flex:none;"></span>
             <div style="flex:1;position:relative;">
               <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
-              <input id="wbiPrice" class="wbiMoney" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
-            </div>
-          </div>
-          <div class="wbiChargeRow" style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Site standing charge</span>
-            <span style="width:32px;flex:none;display:flex;align-items:center;justify-content:center;"><button type="button" class="wbiLock" data-locked="0" style="width:32px;height:32px;border:1px solid rgba(122,92,62,0.25);border-radius:7px;background:#f4ecdb;color:#a07a2e;cursor:pointer;display:none;padding:0;font-size:0.85rem;" aria-label="Unlock to edit">&#128274;</button></span>
-            <div style="flex:1;position:relative;">
-              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
-              <input id="wbiStanding" class="wbiMoney" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+              <input id="wbiPrice" class="wbiMoney wbiReq" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Site users</span>
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Site standing charge</span>
+            <span style="width:32px;flex:none;"></span>
+            <div style="flex:1;position:relative;">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
+              <input id="wbiStanding" class="wbiMoney wbiReq" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Site users</span>
             <span style="width:32px;flex:none;"></span>
             <select id="wbiUsers" style="flex:1;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;color:var(--dark);"></select>
           </div>
-          <div class="wbiChargeRow" style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Admin total inc VAT</span>
-            <span style="width:32px;flex:none;display:flex;align-items:center;justify-content:center;"><button type="button" class="wbiLock" data-locked="0" style="width:32px;height:32px;border:1px solid rgba(122,92,62,0.25);border-radius:7px;background:#f4ecdb;color:#a07a2e;cursor:pointer;display:none;padding:0;font-size:0.85rem;" aria-label="Unlock to edit">&#128274;</button></span>
-            <div style="flex:1;position:relative;">
-              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
-              <input id="wbiAdmin" class="wbiMoney" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
-            </div>
-          </div>
-          <div class="" style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
-            <span style="width:130px;flex:none;font-size:0.8rem;color:var(--mid);">Amount due</span>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Admin total inc VAT</span>
             <span style="width:32px;flex:none;"></span>
             <div style="flex:1;position:relative;">
               <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
-              <input id="wbiDue" class="wbiMoney" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+              <input id="wbiAdmin" class="wbiMoney wbiReq" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Amount due</span>
+            <span style="width:32px;flex:none;"></span>
+            <div style="flex:1;position:relative;">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
+              <input id="wbiDue" class="wbiMoney wbiReq" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
             </div>
           </div>
 
-          <div style="font-size:0.68rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Filled automatically</div>
+          <div style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Filled automatically</div>
           <div style="background:#f0eadf;border:1px solid #e2dac9;border-radius:9px;padding:12px 13px;">
-            <div style="font-size:0.68rem;color:#9a8f7e;margin-bottom:0.6rem;">The script fills these in when the bill is generated &mdash; you don&rsquo;t touch them.</div>
+            <div style="font-size:0.78rem;color:#8a7c68;margin-bottom:0.6rem;">The script fills these in when the bill is generated &mdash; you don&rsquo;t touch them.</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 0.6fr;gap:10px;">
-              <div><label style="display:block;font-size:0.68rem;color:#9a8f7e;margin-bottom:4px;">Period start</label><input id="wbiPStart" disabled style="width:100%;height:33px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.8rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
-              <div><label style="display:block;font-size:0.68rem;color:#9a8f7e;margin-bottom:4px;">Period end</label><input id="wbiPEnd" disabled style="width:100%;height:33px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.8rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
-              <div><label style="display:block;font-size:0.68rem;color:#9a8f7e;margin-bottom:4px;">Days</label><input id="wbiDays" disabled style="width:100%;height:33px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.8rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
+              <div><label style="display:block;font-size:0.78rem;color:#8a7c68;margin-bottom:4px;">Period start</label><input id="wbiPStart" disabled style="width:100%;height:34px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.85rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
+              <div><label style="display:block;font-size:0.78rem;color:#8a7c68;margin-bottom:4px;">Period end</label><input id="wbiPEnd" disabled style="width:100%;height:34px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.85rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
+              <div><label style="display:block;font-size:0.78rem;color:#8a7c68;margin-bottom:4px;">Days</label><input id="wbiDays" disabled style="width:100%;height:34px;border:1px solid #ddd3c2;border-radius:7px;padding:0 9px;font-family:Arial,sans-serif;font-size:0.85rem;background:#e7e0d2;color:#8a7c68;box-sizing:border-box;"></div>
             </div>
           </div>
 
-          <div style="font-size:0.68rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Notes</div>
+          <div style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin:1.3rem 0 0.7rem;">Notes <span style="text-transform:none;letter-spacing:0;color:#9a8f7e;font-weight:400;">(optional)</span></div>
           <textarea id="wbiNotes" rows="2" style="width:100%;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:9px 11px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;resize:vertical;"></textarea>
 
-          <div id="wbiWarn" style="display:none;align-items:flex-start;gap:8px;background:#f6e9e4;border:1px solid #e3b8a6;border-radius:8px;padding:10px 12px;font-size:0.76rem;color:#8b3a3a;line-height:1.5;margin-top:0.9rem;">&#9888; This bill is already generated. Changing these figures will no longer match the 14 per-property bills that were created from it.</div>
-
-          <div style="display:flex;gap:12px;align-items:center;border-top:1px solid rgba(122,92,62,0.15);padding-top:1rem;margin-top:1rem;">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid rgba(122,92,62,0.15);padding-top:1rem;margin-top:1rem;">
             <button type="button" id="wbiSaveBtn" style="height:40px;background:#7a5c3e;color:#fff;border:none;border-radius:8px;padding:0 22px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128190; Save to sheet</button>
-            <span style="font-size:0.72rem;color:#9a8f7e;">Saves the row and generates on the spot if the readings are in.</span>
+            <span id="wbiReqNote" style="display:none;font-size:0.8rem;color:#8b3a3a;">&#9888; Please fill the highlighted fields.</span>
+            <span id="wbiSaveHint" style="font-size:0.75rem;color:#9a8f7e;">Saves the row and generates on the spot if the readings are in.</span>
           </div>
 
-          <div style="margin-top:1.5rem;border-top:1px solid rgba(122,92,62,0.15);padding-top:0.9rem;">
-            <div id="wbiAllToggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:#7a5c3e;font-weight:600;user-select:none;">
+          <div style="margin-top:1.6rem;border-top:1px solid rgba(122,92,62,0.15);padding-top:0.9rem;">
+            <div id="wbiAllToggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;color:#7a5c3e;font-weight:600;user-select:none;">
               <span id="wbiAllCaret">&#9656;</span> All water bills <span id="wbiAllCount" style="color:var(--mid);font-weight:400;"></span>
             </div>
-            <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.8rem;">
-              <table style="border-collapse:collapse;font-size:0.72rem;width:100%;min-width:580px;">
+            <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
+              <table style="border-collapse:collapse;font-size:0.85rem;width:100%;min-width:640px;">
                 <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;">
-                  <th style="padding:7px 8px;font-weight:600;">Bill ID</th><th style="padding:7px 8px;font-weight:600;">Bill date</th><th style="padding:7px 8px;font-weight:600;">Start</th><th style="padding:7px 8px;font-weight:600;">End</th><th style="padding:7px 8px;font-weight:600;">Days</th><th style="padding:7px 8px;font-weight:600;">&pound;/m&sup3;</th><th style="padding:7px 8px;font-weight:600;">Standing</th><th style="padding:7px 8px;font-weight:600;">Users</th><th style="padding:7px 8px;font-weight:600;">Admin</th><th style="padding:7px 8px;font-weight:600;">Due</th>
+                  <th style="padding:9px 10px;font-weight:600;">Bill ID</th><th style="padding:9px 10px;font-weight:600;">Bill date</th><th style="padding:9px 10px;font-weight:600;">Start</th><th style="padding:9px 10px;font-weight:600;">End</th><th style="padding:9px 10px;font-weight:600;">Days</th><th style="padding:9px 10px;font-weight:600;">&pound;/m&sup3;</th><th style="padding:9px 10px;font-weight:600;">Standing</th><th style="padding:9px 10px;font-weight:600;">Users</th><th style="padding:9px 10px;font-weight:600;">Admin</th><th style="padding:9px 10px;font-weight:600;">Due</th><th style="padding:9px 10px;font-weight:600;">Notes</th>
                 </tr></thead>
                 <tbody id="wbiTableBody"></tbody>
               </table>
-              <div style="font-size:0.68rem;color:#9a8f7e;margin-top:0.6rem;">Tap a row to load that bill into the form above.</div>
             </div>
           </div>
         </div>
@@ -11697,118 +11690,82 @@ function mntSendAssignEmail() {
 
 <script>
 (function(){
-  var BILLS = {}, GEN = {};
+  var BILLS = {}, GEN = {}, EXIST = {};
   function q(id){ return document.getElementById(id); }
   function rankOf(qtr){ var m=(qtr||'').match(/(\d{4})\s*Q\s*([1-4])/i); return m?(parseInt(m[1],10)*10+parseInt(m[2],10)):0; }
-  function sheetToInput(d){ var m=(d||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m?(m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2)):''; }
   function inputToSheet(d){ var m=(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m?(m[3]+'/'+m[2]+'/'+m[1]):(d||''); }
   function fmtMoney(v){ if(v===''||v==null) return ''; var n=Number(v); return isNaN(n)?String(v):n.toFixed(2); }
   function billList(){ return Object.keys(BILLS).map(function(k){return BILLS[k];}).sort(function(a,b){return rankOf(b.quarter)-rankOf(a.quarter);}); }
 
   function populateYears(){ var sel=q('wbiYear'); if(!sel||sel.options.length) return; var y=new Date().getFullYear(); sel.innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>'; sel.value=String(y); }
   function populateUsers(){ var sel=q('wbiUsers'); if(!sel||sel.options.length) return; var h=''; for(var n=50;n<=70;n++){ h+='<option value="'+n+'"'+(n===57?' selected':'')+'>'+n+'</option>'; } sel.innerHTML=h; sel.value='57'; }
-  function setUsers(v){ var sel=q('wbiUsers'); if(!sel) return; var val=(v==null||v==='')?'57':String(v); var found=false; Array.prototype.forEach.call(sel.options,function(o){ if(o.value===val) found=true; }); if(!found){ var o=document.createElement('option'); o.value=val; o.textContent=val; sel.insertBefore(o, sel.firstChild); } sel.value=val; }
-  function showIdPickers(show){ q('wbiIdPickers').style.display=show?'flex':'none'; q('wbiIdReadonly').style.display=show?'none':'inline-flex'; }
-  function getBillId(){ if(q('wbiIdReadonly').style.display!=='none'){ return q('wbiIdReadonly').getAttribute('data-id')||''; } return 'B'+q('wbiYear').value+' Q'+q('wbiQuarter').value; }
+  function getBillId(){ return 'B'+q('wbiYear').value+' Q'+q('wbiQuarter').value; }
 
-  window.wbiLoad = function(selectId){
+  function updatePreview(){
+    var id=getBillId();
+    q('wbiIdPreview').textContent=id;
+    var dup=!!EXIST[id];
+    q('wbiDupNote').style.display=dup?'block':'none';
+  }
+
+  function setInvalid(inp,bad){ inp.style.borderColor=bad?'#c0392b':'rgba(122,92,62,0.3)'; inp.style.background=bad?'#fdecea':'#fff'; }
+  function clearAllInvalid(){ Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiReq'),function(i){ setInvalid(i,false); }); q('wbiReqNote').style.display='none'; }
+
+  window.wbiLoad = function(){
     fetch(SCRIPT_URL + '?action=readWaterBills', { redirect:'follow' })
       .then(function(r){ return r.json(); })
       .then(function(d){
         BILLS = (d && d.billMeta) ? d.billMeta : {};
-        GEN = {};
+        GEN = {}; EXIST = {};
         ((d && d.bills) || []).forEach(function(b){ if(b && b.quarter) GEN[b.quarter]=true; });
-        wbiBuildSelect(); wbiBuildTable();
-        if(selectId){ q('wbiSelect').value=selectId; wbiSelect(selectId); } else { wbiSelect('new'); }
+        billList().forEach(function(b){ EXIST[b.billId]=true; });
+        wbiBuildTable();
+        resetForm();
       })
       .catch(function(){ if(typeof showToast==='function') showToast('Could not load water bills','error'); });
   };
 
-  function wbiBuildSelect(){
-    var sel=q('wbiSelect'); if(!sel) return;
-    var html='<option value="new">+ New bill</option>';
-    billList().forEach(function(b){ html+='<option value="'+b.billId+'">'+b.billId+(GEN[b.quarter]?' \u2713':'')+'</option>'; });
-    sel.innerHTML=html;
+  function resetForm(){
+    if(!q('wbiYear')) return;
+    if(q('wbiYear').options.length) q('wbiYear').selectedIndex=0;
+    q('wbiQuarter').value='1';
+    q('wbiBillDate').value='';
+    q('wbiUsers').value='57';
+    q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiDue').value='';
+    q('wbiNotes').value='';
+    q('wbiPStart').value=''; q('wbiPEnd').value=''; q('wbiDays').value='';
+    clearAllInvalid();
+    updatePreview();
   }
 
   function wbiBuildTable(){
     var tb=q('wbiTableBody'); if(!tb) return; var html=''; var list=billList();
-    function c(v){ return '<td style="padding:6px 8px;white-space:nowrap;">'+(v==null?'':v)+'</td>'; }
+    function c(v){ return '<td style="padding:8px 10px;white-space:nowrap;">'+(v==null?'':v)+'</td>'; }
     list.forEach(function(b){
       var g=!!GEN[b.quarter];
-      html+='<tr class="wbiRow" data-id="'+b.billId+'" style="border-top:1px solid #ece4d6;cursor:pointer;'+(g?'':'color:#9a8f7e;')+'">'
-        +'<td style="padding:6px 8px;white-space:nowrap;">'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
-        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+c(fmtMoney(b.pricePerM3))+c(fmtMoney(b.siteStanding))+c(b.siteUsers)+c(fmtMoney(b.adminTotal))+c(fmtMoney(b.amountDue))+'</tr>';
+      html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
+        +'<td style="padding:8px 10px;white-space:nowrap;">'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
+        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+c(fmtMoney(b.pricePerM3))+c(fmtMoney(b.siteStanding))+c(b.siteUsers)+c(fmtMoney(b.adminTotal))+c(fmtMoney(b.amountDue))
+        +'<td style="padding:8px 10px;">'+(b.notes||'')+'</td></tr>';
     });
-    if(!html) html='<tr><td colspan="10" style="padding:10px 8px;color:#9a8f7e;">No bills yet.</td></tr>';
+    if(!html) html='<tr><td colspan="11" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
     tb.innerHTML=html;
     var cnt=q('wbiAllCount'); if(cnt) cnt.textContent=list.length?('('+list.length+')'):'';
-    Array.prototype.forEach.call(document.querySelectorAll('#wbiTableBody .wbiRow'),function(r){
-      r.addEventListener('click',function(){ var id=r.getAttribute('data-id'); q('wbiSelect').value=id; wbiSelect(id); });
-    });
   }
 
-  function setCharge(id, val, generated){
-    var inp=q(id); inp.value=fmtMoney(val);
-    var btn=inp.closest('.wbiChargeRow').querySelector('.wbiLock');
-    if(generated){
-      inp.setAttribute('readonly',''); inp.style.background='#faf7f1'; inp.style.color='#6b5f52';
-      btn.style.display=''; btn.setAttribute('data-locked','1'); btn.innerHTML='&#128274;'; btn.style.color='#a07a2e'; btn.style.background='#f4ecdb';
-    } else {
-      inp.removeAttribute('readonly'); inp.style.background='#fff'; inp.style.color='#1e1a16';
-      btn.style.display='none'; btn.setAttribute('data-locked','0');
-    }
-  }
-
-  window.wbiSelect = function(id){
-    if(!q('wbiSelect')) return;
-    q('wbiWarn').style.display='none';
-    if(id==='new' || !id){
-      showIdPickers(true);
-      if(q('wbiYear').options.length) q('wbiYear').selectedIndex=0;
-      q('wbiQuarter').value='1';
-      q('wbiIdReadonly').setAttribute('data-id','');
-      q('wbiBillDate').value=''; setUsers(''); q('wbiDue').value=''; q('wbiNotes').value='';
-      q('wbiPStart').value=''; q('wbiPEnd').value=''; q('wbiDays').value='';
-      setCharge('wbiPrice','',false); setCharge('wbiStanding','',false); setCharge('wbiAdmin','',false);
-      q('wbiStatus').style.display='none'; return;
-    }
-    var b=null; billList().forEach(function(x){ if(x.billId===id) b=x; });
-    if(!b){ wbiSelect('new'); return; }
-    var g=!!GEN[b.quarter];
-    showIdPickers(false);
-    q('wbiIdReadonly').textContent=b.billId; q('wbiIdReadonly').setAttribute('data-id',b.billId);
-    q('wbiBillDate').value=sheetToInput(b.billDate);
-    setUsers(b.siteUsers);
-    q('wbiDue').value=fmtMoney(b.amountDue);
-    q('wbiNotes').value=(b.notes||'');
-    q('wbiPStart').value=(b.periodStart||''); q('wbiPEnd').value=(b.periodEnd||''); q('wbiDays').value=(b.days==null?'':b.days);
-    setCharge('wbiPrice', b.pricePerM3, g); setCharge('wbiStanding', b.siteStanding, g); setCharge('wbiAdmin', b.adminTotal, g);
-    q('wbiStatus').style.display = g ? 'inline-flex' : 'none';
-  };
-
-  function bindLocks(){
-    Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiLock'),function(btn){
-      btn.addEventListener('click',function(){
-        var inp=btn.closest('.wbiChargeRow').querySelector('input');
-        if(btn.getAttribute('data-locked')==='1'){
-          inp.removeAttribute('readonly'); inp.style.background='#fff'; inp.style.color='#1e1a16';
-          btn.setAttribute('data-locked','0'); btn.innerHTML='&#128275;'; btn.style.color='#7a5c3e'; btn.style.background='#efe2cf';
-          q('wbiWarn').style.display='flex'; inp.focus();
-        } else {
-          inp.setAttribute('readonly',''); inp.style.background='#faf7f1'; inp.style.color='#6b5f52';
-          btn.setAttribute('data-locked','1'); btn.innerHTML='&#128274;'; btn.style.color='#a07a2e'; btn.style.background='#f4ecdb';
-          var anyOpen=false;
-          Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiLock'),function(b2){ if(b2.style.display!=='none' && b2.getAttribute('data-locked')==='0') anyOpen=true; });
-          if(!anyOpen) q('wbiWarn').style.display='none';
-        }
-      });
+  function validate(){
+    var ok=true;
+    ['wbiBillDate','wbiPrice','wbiStanding','wbiAdmin','wbiDue'].forEach(function(id){
+      var inp=q(id); var bad=((inp.value||'').trim()===''); setInvalid(inp,bad); if(bad) ok=false;
     });
+    q('wbiReqNote').style.display=ok?'none':'inline';
+    return ok;
   }
 
   window.wbiSave = function(){
     var billId=getBillId();
-    if(!billId){ if(typeof showToast==='function') showToast('Pick a year and quarter first','error'); return; }
+    if(EXIST[billId]){ q('wbiDupNote').style.display='block'; if(typeof showToast==='function') showToast('A bill for '+billId+' already exists','error'); return; }
+    if(!validate()){ return; }
     var bill={ billId:billId, billDate:inputToSheet(q('wbiBillDate').value),
       pricePerM3:(q('wbiPrice').value||'').trim(), siteStanding:(q('wbiStanding').value||'').trim(),
       siteUsers:(q('wbiUsers').value||'').trim(), adminTotal:(q('wbiAdmin').value||'').trim(),
@@ -11819,23 +11776,28 @@ function mntSendAssignEmail() {
       .then(function(d){
         if(!d || d.status!=='ok') throw new Error((d && d.message) || 'Save failed');
         if(typeof showToast==='function') showToast(d.message || 'Saved','success');
-        wbiLoad(billId);
+        wbiLoad();
+        if(q('wbiAllBody').style.display==='none'){ q('wbiAllBody').style.display='block'; q('wbiAllCaret').innerHTML='&#9662;'; }
       })
       .catch(function(e){ if(typeof showToast==='function') showToast('Error saving: '+e.message,'error'); })
       .then(function(){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=orig; });
   };
 
   function wbiInit(){
-    if(!q('wbiSelect')) return;
+    if(!q('wbiYear')) return;
     populateYears(); populateUsers();
-    q('wbiSelect').addEventListener('change',function(){ wbiSelect(this.value); });
+    q('wbiYear').addEventListener('change',updatePreview);
+    q('wbiQuarter').addEventListener('change',updatePreview);
     q('wbiDateBtn').addEventListener('click',function(){ var d=q('wbiBillDate'); try{ d.showPicker(); }catch(e){ d.focus(); } });
     q('wbiSaveBtn').addEventListener('click',wbiSave);
     q('wbiAllToggle').addEventListener('click',function(){ var body=q('wbiAllBody'), open=body.style.display!=='none'; body.style.display=open?'none':'block'; q('wbiAllCaret').innerHTML=open?'&#9656;':'&#9662;'; });
     Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiMoney'),function(inp){
       inp.addEventListener('blur',function(){ var v=(inp.value||'').trim(); if(v!==''&&!isNaN(Number(v))) inp.value=Number(v).toFixed(2); });
     });
-    bindLocks();
+    Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiReq'),function(inp){
+      inp.addEventListener('input',function(){ setInvalid(inp,false); if(!document.querySelector('#panel-waterbillsinput .wbiReq[style*="rgb(192, 57, 43)"]')) q('wbiReqNote').style.display='none'; });
+    });
+    updatePreview();
   }
   wbiInit();
 })();
