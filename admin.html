@@ -2750,8 +2750,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           </div>
           <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
             <table class="wbi-alltable">
-              <colgroup><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:5%"><col style="width:6%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:25%"></colgroup>
-              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>Due</th><th>Notes</th></tr></thead>
+              <colgroup><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:7%"><col style="width:8%"><col style="width:11%"><col style="width:8%"><col style="width:9%"><col style="width:9%"></colgroup>
+              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>Due</th></tr></thead>
               <tbody id="wbiTableBody"></tbody>
             </table>
           </div>
@@ -11730,18 +11730,29 @@ function mntSendAssignEmail() {
     clearAllInvalid(); updatePreview();
   }
 
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function wbiBuildTable(){
     var tb=q('wbiTableBody'); if(!tb) return; var html=''; var list=billList();
     function c(v){ return '<td>'+(v==null?'':v)+'</td>'; }
+    function m(v){ var s=fmtMoney(v); return '<td>'+(s===''?'':'&pound;'+s)+'</td>'; }
     list.forEach(function(b){
       var g=!!GEN[b.quarter];
       html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
         +'<td>'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
-        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+c(fmtMoney(b.pricePerM3))+c(fmtMoney(b.siteStanding))+c(b.siteUsers)+c(fmtMoney(b.adminTotal))+c(fmtMoney(b.amountDue))
-        +'<td class="wbi-notes">'+(b.notes||'')+'</td></tr>';
+        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+m(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.amountDue)
+        +'</tr>';
+      if(b.notes && String(b.notes).trim()!==''){
+        html+='<tr class="wbi-noterow"><td colspan="10" style="border:0;padding:2px 10px 9px;">'
+          +'<span class="wbi-notetoggle" style="cursor:pointer;color:#7a5c3e;font-size:0.8rem;font-weight:600;user-select:none;">&#9656; Note</span>'
+          +'<div class="wbi-notetext" style="display:none;margin-top:5px;font-size:0.82rem;color:var(--dark);line-height:1.5;max-width:900px;">'+esc(b.notes)+'</div>'
+          +'</td></tr>';
+      }
     });
-    if(!html) html='<tr><td colspan="11" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
+    if(!html) html='<tr><td colspan="10" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
     tb.innerHTML=html;
+    Array.prototype.forEach.call(document.querySelectorAll('#wbiTableBody .wbi-notetoggle'),function(t){
+      t.addEventListener('click',function(){ var txt=t.nextElementSibling, open=txt.style.display!=='none'; txt.style.display=open?'none':'block'; t.innerHTML=(open?'&#9656;':'&#9662;')+' Note'; });
+    });
     var cnt=q('wbiAllCount'); if(cnt) cnt.textContent=list.length?('('+list.length+')'):'';
   }
 
