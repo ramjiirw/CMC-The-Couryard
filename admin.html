@@ -2918,6 +2918,11 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
               <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:0.2rem;">Review &amp; Send Invoices</div>
               <div id="wiModalSub" style="font-size:0.75rem;color:var(--mid);margin-bottom:1rem;"></div>
               <div id="wiModalWarn" style="display:none;padding:0.6rem 0.8rem;background:rgba(196,149,106,0.16);border:1px solid rgba(196,149,106,0.5);border-radius:6px;font-size:0.8rem;color:var(--accent);margin-bottom:1rem;"></div>
+              <div id="wiModalControls" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.78rem;">
+                <button type="button" class="abtn abtn-muted" onclick="wiSelectAll(true)" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Select all</button>
+                <button type="button" class="abtn abtn-muted" onclick="wiSelectAll(false)" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Deselect all</button>
+                <span id="wiSelCount" style="color:var(--mid);margin-left:auto;"></span>
+              </div>
               <div id="wiModalList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--dark);max-height:300px;overflow-y:auto;"></div>
               <div style="padding:0.6rem 0.8rem;background:rgba(196,149,106,0.12);border:1px solid rgba(196,149,106,0.3);border-radius:6px;font-size:0.78rem;color:var(--accent);margin-bottom:1rem;">Each residence receives its own invoice (no directors copied). One summary email goes to the directors. Emails cannot be unsent once delivered.</div>
               <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
@@ -10876,7 +10881,10 @@ function wiReview() {
   else { warn.style.display = 'none'; warn.innerHTML = ''; }
 
   document.getElementById('wiModalList').innerHTML = willSend.map(function(i){
-    return '<div style="padding:0.25rem 0;border-bottom:1px solid rgba(122,92,62,0.12);"><strong>' + weEscHtml(i.property) + '</strong> &middot; ' + weEscHtml(i.emails.join(', ')) + '</div>';
+    return '<label style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(122,92,62,0.12);cursor:pointer;">' +
+             '<input type="checkbox" class="wi-recip-cb" data-prop="' + weEscHtml(i.property) + '" checked onchange="wiUpdateSelCount()" style="margin-top:0.15rem;flex-shrink:0;">' +
+             '<span><strong>' + weEscHtml(i.property) + '</strong> &middot; ' + weEscHtml(i.emails.join(', ')) + '</span>' +
+           '</label>';
   }).join('');
 
   var cb = document.getElementById('wiConfirmBtn');
@@ -10884,7 +10892,25 @@ function wiReview() {
   cb.setAttribute('onclick', 'wiSend(false)');
   cb.innerHTML = '&#128231; Send Now';
 
+  wiUpdateSelCount();
   document.getElementById('wiModalOverlay').style.display = 'flex';
+}
+
+// Tick/untick every recipient in the review list, then refresh the count.
+function wiSelectAll(on) {
+  Array.prototype.forEach.call(document.querySelectorAll('#wiModalList .wi-recip-cb'), function(cb){ cb.checked = on; });
+  wiUpdateSelCount();
+}
+
+// Refresh the "X of Y selected" label and enable/disable Send Now.
+function wiUpdateSelCount() {
+  var boxes = document.querySelectorAll('#wiModalList .wi-recip-cb');
+  var total = boxes.length, sel = 0;
+  Array.prototype.forEach.call(boxes, function(cb){ if (cb.checked) sel++; });
+  var lbl = document.getElementById('wiSelCount');
+  if (lbl) lbl.textContent = sel + ' of ' + total + ' selected';
+  var send = document.getElementById('wiConfirmBtn');
+  if (send) { send.disabled = (sel === 0); send.style.opacity = (sel === 0 ? '0.5' : ''); }
 }
 
 function wiCloseModal() {
@@ -10896,10 +10922,23 @@ async function wiSend(force) {
   if (!d) return;
   var cb  = document.getElementById('wiConfirmBtn');
   var msg = document.getElementById('weMsg');
+
+  // Collect the ticked properties. Defensive guard — the button is disabled at
+  // zero, but never send to nobody.
+  var selectedProps = [];
+  Array.prototype.forEach.call(document.querySelectorAll('#wiModalList .wi-recip-cb'), function(box){
+    if (box.checked) selectedProps.push(box.getAttribute('data-prop'));
+  });
+  if (!selectedProps.length) {
+    msg.style.color = '#b05050';
+    msg.textContent = '\u2717 No properties selected \u2014 tick at least one to send.';
+    return;
+  }
+
   cb.disabled = true;
   cb.textContent = 'Sending\u2026';
   try {
-    var payload = { action: 'sendWaterInvoices', year: weState.selectedYear, quarter: weState.selectedQuarter, force: !!force };
+    var payload = { action: 'sendWaterInvoices', year: weState.selectedYear, quarter: weState.selectedQuarter, force: !!force, properties: selectedProps };
     var res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     var data = await res.json();
     if (data.status === 'confirm') {
