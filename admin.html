@@ -2925,6 +2925,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
               </div>
               <div id="wiModalList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--dark);max-height:300px;overflow-y:auto;"></div>
               <div style="padding:0.6rem 0.8rem;background:rgba(196,149,106,0.12);border:1px solid rgba(196,149,106,0.3);border-radius:6px;font-size:0.78rem;color:var(--accent);margin-bottom:1rem;">Each residence receives its own invoice (no directors copied). One summary email goes to the directors. Emails cannot be unsent once delivered.</div>
+              <div id="wiConfirmNote" style="display:none;padding:0.5rem 0.75rem;margin-bottom:0.75rem;background:rgba(196,149,106,0.16);border:1px solid rgba(196,149,106,0.5);border-radius:6px;font-size:0.78rem;color:var(--accent);"></div>
               <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
                 <button class="abtn abtn-muted" onclick="wiCloseModal()">Cancel</button>
                 <button class="abtn abtn-primary" id="wiConfirmBtn" onclick="wiSend(false)">&#128231; Send Now</button>
@@ -10777,11 +10778,19 @@ function wiUpdatePreview() {
     document.getElementById('wiViewer').style.display = 'none';
     var em0 = document.getElementById('wiEmptyMsg');
     em0.style.display = 'block';
+    em0.style.color = 'var(--stone)';
     em0.textContent = 'Select a year and quarter to preview the invoices.';
     return;
   }
-  document.getElementById('weMsg').style.color = 'var(--mid)';
-  document.getElementById('weMsg').textContent = 'Loading invoices\u2026';
+  // Show the standard admin spinner in the preview area and clear the previous
+  // invoice, so it's obvious the new quarter is loading (same loading style used
+  // by the residents table, noticeboard, etc.).
+  document.getElementById('weMsg').textContent = '';
+  document.getElementById('wiViewer').style.display = 'none';
+  var emL = document.getElementById('wiEmptyMsg');
+  emL.style.display = 'block';
+  emL.style.color = 'var(--stone)';
+  emL.innerHTML = '<div class="spinner"></div>Loading invoices\u2026';
   fetch(SCRIPT_URL + '?action=previewWaterInvoices&year=' + yr + '&quarter=' + q)
     .then(function(r){ return r.json(); })
     .then(function(data){
@@ -10791,6 +10800,7 @@ function wiUpdatePreview() {
         document.getElementById('wiViewer').style.display = 'none';
         var em = document.getElementById('wiEmptyMsg');
         em.style.display = 'block';
+        em.style.color = 'var(--stone)';
         em.textContent = data.message || 'No generated bill for this quarter yet.';
         return;
       }
@@ -10808,8 +10818,12 @@ function wiUpdatePreview() {
       wiRender();
     })
     .catch(function(e){
-      document.getElementById('weMsg').style.color = '#b05050';
-      document.getElementById('weMsg').textContent = '\u2717 Could not load invoices \u2014 ' + e.message;
+      document.getElementById('weMsg').textContent = '';
+      document.getElementById('wiViewer').style.display = 'none';
+      var emE = document.getElementById('wiEmptyMsg');
+      emE.style.display = 'block';
+      emE.style.color = '#b05050';
+      emE.textContent = '\u2717 Could not load invoices \u2014 ' + e.message;
     });
 }
 
@@ -10896,6 +10910,8 @@ function wiReview() {
   cb.disabled = false;
   cb.setAttribute('onclick', 'wiSend(false)');
   cb.innerHTML = '&#128231; Send Now';
+  var wcn = document.getElementById('wiConfirmNote');
+  if (wcn) { wcn.style.display = 'none'; wcn.innerHTML = ''; }
 
   document.getElementById('wiModalOverlay').style.display = 'flex';
 }
@@ -11002,9 +11018,11 @@ async function wiSend(force) {
     var res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     var data = await res.json();
     if (data.status === 'confirm') {
-      var warn = document.getElementById('wiModalWarn');
-      warn.style.display = 'block';
-      warn.innerHTML = '\u26a0 ' + weEscHtml(data.message || 'Already sent.') + ' Press \u201cSend anyway\u201d to issue duplicates.';
+      // Only a full re-send reaches here. Show the reason right beside the
+      // buttons so it's never off-screen at the top of a scrolled list.
+      var note = document.getElementById('wiConfirmNote');
+      note.style.display = 'block';
+      note.innerHTML = '\u26a0 ' + weEscHtml(data.quarterLabel || 'This quarter') + ' was already sent on ' + weEscHtml(data.alreadySentOn || '') + '. Click \u201cSend anyway\u201d to re-send.';
       cb.disabled = false;
       cb.textContent = 'Send anyway';
       cb.setAttribute('onclick', 'wiSend(true)');
