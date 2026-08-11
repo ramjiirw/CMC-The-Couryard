@@ -2919,8 +2919,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
               <div id="wiModalSub" style="font-size:0.75rem;color:var(--mid);margin-bottom:1rem;"></div>
               <div id="wiModalWarn" style="display:none;padding:0.6rem 0.8rem;background:rgba(196,149,106,0.16);border:1px solid rgba(196,149,106,0.5);border-radius:6px;font-size:0.8rem;color:var(--accent);margin-bottom:1rem;"></div>
               <div id="wiModalControls" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.78rem;">
-                <button type="button" class="abtn abtn-muted" onclick="wiSelectAll(true)" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Select all</button>
-                <button type="button" class="abtn abtn-muted" onclick="wiSelectAll(false)" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Deselect all</button>
+                <button type="button" class="abtn abtn-muted" onclick="wiSelectAll()" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Select all</button>
+                <button type="button" class="abtn abtn-muted" onclick="wiSelectNone()" style="font-size:0.72rem;padding:0.2rem 0.6rem;">Deselect all</button>
                 <span id="wiSelCount" style="color:var(--mid);margin-left:auto;"></span>
               </div>
               <div id="wiModalList" style="border:1px solid rgba(122,92,62,0.2);border-radius:6px;margin-bottom:1rem;overflow:hidden;background:#fff;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--dark);max-height:300px;overflow-y:auto;"></div>
@@ -10861,6 +10861,11 @@ function wiToggleDirector() {
   wiRender();
 }
 
+// Per-residence, per-address selection state for the review modal.
+// Mirrors the Broadcast Email recipient picker (bcResidents): each residence
+// carries its address list plus a parallel `checked` array and an `open` flag.
+var wiRecips = [];
+
 function wiReview() {
   var d = wiState.data;
   if (!d) return;
@@ -10871,7 +10876,7 @@ function wiReview() {
     document.getElementById('weMsg').textContent = '\u2717 No residents have an email on file for this quarter.';
     return;
   }
-  document.getElementById('wiModalSub').textContent = 'You are about to send ' + willSend.length + ' individual invoice' + (willSend.length === 1 ? '' : 's') + ' plus one director summary for ' + d.quarterLabel + '.';
+  document.getElementById('wiModalSub').textContent = 'Tick the residences and addresses to receive the ' + d.quarterLabel + ' invoice. A summary goes to the directors only on a full send.';
 
   var warn = document.getElementById('wiModalWarn');
   var warnBits = [];
@@ -10880,37 +10885,91 @@ function wiReview() {
   if (warnBits.length) { warn.style.display = 'block'; warn.innerHTML = '\u26a0 ' + warnBits.join('<br>'); }
   else { warn.style.display = 'none'; warn.innerHTML = ''; }
 
-  document.getElementById('wiModalList').innerHTML = willSend.map(function(i){
-    return '<label style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.3rem 0;border-bottom:1px solid rgba(122,92,62,0.12);cursor:pointer;">' +
-             '<input type="checkbox" class="wi-recip-cb" data-prop="' + weEscHtml(i.property) + '" checked onchange="wiUpdateSelCount()" style="margin-top:0.15rem;flex-shrink:0;">' +
-             '<span><strong>' + weEscHtml(i.property) + '</strong> &middot; ' + weEscHtml(i.emails.join(', ')) + '</span>' +
-           '</label>';
-  }).join('');
+  // Build the selection state fresh each time the modal opens — every address
+  // ticked by default so a normal full send is unchanged.
+  wiRecips = willSend.map(function(i){
+    return { property: i.property, emails: i.emails.slice(), checked: i.emails.map(function(){ return true; }), open: false };
+  });
+  wiRenderRecips();
 
   var cb = document.getElementById('wiConfirmBtn');
   cb.disabled = false;
   cb.setAttribute('onclick', 'wiSend(false)');
   cb.innerHTML = '&#128231; Send Now';
 
-  wiUpdateSelCount();
   document.getElementById('wiModalOverlay').style.display = 'flex';
 }
 
-// Tick/untick every recipient in the review list, then refresh the count.
-function wiSelectAll(on) {
-  Array.prototype.forEach.call(document.querySelectorAll('#wiModalList .wi-recip-cb'), function(cb){ cb.checked = on; });
+// Render the residence rows into the modal list. Single column (the modal is
+// narrow); otherwise mirrors the Broadcast picker's parent/child pattern.
+function wiRenderRecips() {
+  var wrap = document.getElementById('wiModalList');
+  wrap.innerHTML = wiRecips.map(function(r, i){
+    var anyOn = r.checked.some(Boolean);
+    var allOn = r.checked.every(Boolean);
+    var activeCnt = r.checked.filter(Boolean).length;
+    var rowBg    = anyOn ? 'background:rgba(122,92,62,0.1);' : '';
+    var rowColor = anyOn ? 'color:var(--accent);font-weight:600;' : 'color:var(--dark);';
+    var arrowRot   = r.open ? 'transform:rotate(90deg);' : '';
+    var subDisplay = r.open ? 'block' : 'none';
+    var countLabel = activeCnt > 0 && activeCnt < r.emails.length
+      ? activeCnt + '/' + r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '')
+      : r.emails.length + ' email' + (r.emails.length > 1 ? 's' : '');
+    return '<div style="border-bottom:1px solid rgba(122,92,62,0.08);">' +
+      '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.4rem;cursor:pointer;font-size:0.82rem;transition:background 0.15s;' + rowBg + rowColor + '" onclick="wiToggleAddr(' + i + ')">' +
+        '<input type="checkbox" id="wi-chk-' + i + '" ' + (allOn ? 'checked' : '') + ' onclick="event.stopPropagation();wiClickAddrChk(' + i + ')" style="cursor:pointer;accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">' +
+        '<span style="flex:1;">' + weEscHtml(r.property) + '</span>' +
+        '<span style="display:flex;align-items:center;gap:0.3rem;white-space:nowrap;">' +
+          '<span style="font-size:0.75rem;color:var(--mid);font-weight:600;">' + countLabel + '</span>' +
+          '<span style="display:inline-block;font-size:0.6rem;color:rgba(122,92,62,0.5);transition:transform 0.15s;' + arrowRot + '" onclick="event.stopPropagation();wiToggleExpand(' + i + ')">&#9654;</span>' +
+        '</span>' +
+      '</div>' +
+      '<div style="display:' + subDisplay + ';background:rgba(122,92,62,0.04);border-top:1px solid rgba(122,92,62,0.08);padding:0.2rem 0.75rem 0.2rem 2rem;">' +
+        r.emails.map(function(email, ei){
+          var subOn = r.checked[ei];
+          return '<label style="display:flex;align-items:center;gap:0.5rem;padding:0.28rem 0;cursor:pointer;font-size:0.78rem;color:' + (subOn ? 'var(--accent)' : 'var(--mid)') + ';border-bottom:1px solid rgba(122,92,62,0.06);">' +
+            '<input type="checkbox" ' + (subOn ? 'checked' : '') + ' onchange="wiToggleEmail(' + i + ',' + ei + ')" style="cursor:pointer;accent-color:var(--accent);width:13px;height:13px;flex-shrink:0;">' +
+            '<span>' + weEscHtml(email) + '</span>' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+  // Set the indeterminate (dash) state on each parent whose emails are mixed.
+  wiRecips.forEach(function(r, i){
+    var chk = document.getElementById('wi-chk-' + i);
+    if (chk) chk.indeterminate = r.checked.some(Boolean) && !r.checked.every(Boolean);
+  });
   wiUpdateSelCount();
 }
 
-// Refresh the "X of Y selected" label and enable/disable Send Now.
+// Clicking the residence row toggles all its addresses on/off.
+function wiToggleAddr(i) {
+  var r = wiRecips[i];
+  var allOn = r.checked.every(Boolean);
+  r.checked = r.checked.map(function(){ return !allOn; });
+  wiRenderRecips();
+}
+// The parent checkbox does the same as clicking the row.
+function wiClickAddrChk(i) { wiToggleAddr(i); }
+// Expand / collapse a residence's individual addresses.
+function wiToggleExpand(i) { wiRecips[i].open = !wiRecips[i].open; wiRenderRecips(); }
+// Toggle a single address.
+function wiToggleEmail(i, ei) { wiRecips[i].checked[ei] = !wiRecips[i].checked[ei]; wiRenderRecips(); }
+// Select-all / deselect-all across every address.
+function wiSelectAll()  { wiRecips.forEach(function(r){ r.checked = r.checked.map(function(){ return true;  }); }); wiRenderRecips(); }
+function wiSelectNone() { wiRecips.forEach(function(r){ r.checked = r.checked.map(function(){ return false; }); }); wiRenderRecips(); }
+
+// Refresh the live tally and enable/disable Send Now.
 function wiUpdateSelCount() {
-  var boxes = document.querySelectorAll('#wiModalList .wi-recip-cb');
-  var total = boxes.length, sel = 0;
-  Array.prototype.forEach.call(boxes, function(cb){ if (cb.checked) sel++; });
+  var totalEmails = 0, addrCount = 0;
+  wiRecips.forEach(function(r){ var c = r.checked.filter(Boolean).length; if (c > 0) { totalEmails += c; addrCount++; } });
   var lbl = document.getElementById('wiSelCount');
-  if (lbl) lbl.textContent = sel + ' of ' + total + ' selected';
+  if (lbl) lbl.textContent = totalEmails === 0
+    ? 'No addresses selected'
+    : addrCount + ' residence' + (addrCount > 1 ? 's' : '') + ' \u00b7 ' + totalEmails + ' email' + (totalEmails > 1 ? 's' : '');
   var send = document.getElementById('wiConfirmBtn');
-  if (send) { send.disabled = (sel === 0); send.style.opacity = (sel === 0 ? '0.5' : ''); }
+  if (send) { send.disabled = (totalEmails === 0); send.style.opacity = (totalEmails === 0 ? '0.5' : ''); }
 }
 
 function wiCloseModal() {
@@ -10923,22 +10982,23 @@ async function wiSend(force) {
   var cb  = document.getElementById('wiConfirmBtn');
   var msg = document.getElementById('weMsg');
 
-  // Collect the ticked properties. Defensive guard — the button is disabled at
-  // zero, but never send to nobody.
-  var selectedProps = [];
-  Array.prototype.forEach.call(document.querySelectorAll('#wiModalList .wi-recip-cb'), function(box){
-    if (box.checked) selectedProps.push(box.getAttribute('data-prop'));
+  // Collect the ticked addresses per residence. Defensive guard — the button is
+  // disabled at zero, but never send to nobody.
+  var recipients = [];
+  wiRecips.forEach(function(r){
+    var picked = r.emails.filter(function(e, ei){ return r.checked[ei]; });
+    if (picked.length) recipients.push({ property: r.property, emails: picked });
   });
-  if (!selectedProps.length) {
+  if (!recipients.length) {
     msg.style.color = '#b05050';
-    msg.textContent = '\u2717 No properties selected \u2014 tick at least one to send.';
+    msg.textContent = '\u2717 No addresses selected \u2014 tick at least one to send.';
     return;
   }
 
   cb.disabled = true;
   cb.textContent = 'Sending\u2026';
   try {
-    var payload = { action: 'sendWaterInvoices', year: weState.selectedYear, quarter: weState.selectedQuarter, force: !!force, properties: selectedProps };
+    var payload = { action: 'sendWaterInvoices', year: weState.selectedYear, quarter: weState.selectedQuarter, force: !!force, recipients: recipients };
     var res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
     var data = await res.json();
     if (data.status === 'confirm') {
