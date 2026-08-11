@@ -2650,7 +2650,10 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
 
       <!-- Water Bills Input Panel -->
       <div class="admin-panel" id="panel-waterbillsinput">
-        <style>#panel-waterbillsinput .wbiDateInput::-webkit-calendar-picker-indicator{opacity:0;width:0;padding:0;margin:0;}</style>
+        <style>#panel-waterbillsinput .wbiDateInput::-webkit-calendar-picker-indicator{opacity:0;width:0;padding:0;margin:0;}
+        #panel-waterbillsinput .wbi-alltable{width:100%;border-collapse:collapse;font-size:0.82rem;table-layout:fixed;}
+        #panel-waterbillsinput .wbi-alltable th{padding:8px 10px;font-weight:600;text-align:left;vertical-align:bottom;overflow-wrap:anywhere;}
+        #panel-waterbillsinput .wbi-alltable td{padding:7px 10px;vertical-align:top;overflow-wrap:anywhere;}</style>
         <div class="panel-title">&#128167; Water Bills Input</div>
         <div class="panel-desc">This page is for entering a new quarterly supplier water bill. Press Save and it writes straight to the <code>cmcwaterbills</code> sheet; when the quarter&rsquo;s meter readings are already in, saving also generates the 14 per-property bills on the spot. Period start, end and days are filled in automatically. Bills already entered are read-only &mdash; see the list at the bottom.</div>
 
@@ -2739,19 +2742,18 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
             <span id="wbiReqNote" style="display:none;font-size:0.8rem;color:#8b3a3a;">&#9888; Please fill the highlighted fields.</span>
             <span id="wbiSaveHint" style="font-size:0.75rem;color:#9a8f7e;">Saves the row and generates on the spot if the readings are in.</span>
           </div>
+        </div>
 
-          <div style="margin-top:1.6rem;border-top:1px solid rgba(122,92,62,0.15);padding-top:0.9rem;">
-            <div id="wbiAllToggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;color:#7a5c3e;font-weight:600;user-select:none;">
-              <span id="wbiAllCaret">&#9656;</span> All water bills <span id="wbiAllCount" style="color:var(--mid);font-weight:400;"></span>
-            </div>
-            <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
-              <table style="border-collapse:collapse;font-size:0.85rem;width:100%;min-width:640px;">
-                <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;">
-                  <th style="padding:9px 10px;font-weight:600;">Bill ID</th><th style="padding:9px 10px;font-weight:600;">Bill date</th><th style="padding:9px 10px;font-weight:600;">Start</th><th style="padding:9px 10px;font-weight:600;">End</th><th style="padding:9px 10px;font-weight:600;">Days</th><th style="padding:9px 10px;font-weight:600;">&pound;/m&sup3;</th><th style="padding:9px 10px;font-weight:600;">Standing</th><th style="padding:9px 10px;font-weight:600;">Users</th><th style="padding:9px 10px;font-weight:600;">Admin</th><th style="padding:9px 10px;font-weight:600;">Due</th><th style="padding:9px 10px;font-weight:600;">Notes</th>
-                </tr></thead>
-                <tbody id="wbiTableBody"></tbody>
-              </table>
-            </div>
+        <div style="margin-top:1.6rem;border-top:1px solid rgba(122,92,62,0.15);padding-top:0.9rem;">
+          <div id="wbiAllToggle" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;color:#7a5c3e;font-weight:600;user-select:none;">
+            <span id="wbiAllCaret">&#9656;</span> All water bills <span id="wbiAllCount" style="color:var(--mid);font-weight:400;"></span>
+          </div>
+          <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
+            <table class="wbi-alltable">
+              <colgroup><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:5%"><col style="width:6%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:25%"></colgroup>
+              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>Due</th><th>Notes</th></tr></thead>
+              <tbody id="wbiTableBody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -11701,12 +11703,7 @@ function mntSendAssignEmail() {
   function populateUsers(){ var sel=q('wbiUsers'); if(!sel||sel.options.length) return; var h=''; for(var n=50;n<=70;n++){ h+='<option value="'+n+'"'+(n===57?' selected':'')+'>'+n+'</option>'; } sel.innerHTML=h; sel.value='57'; }
   function getBillId(){ return 'B'+q('wbiYear').value+' Q'+q('wbiQuarter').value; }
 
-  function updatePreview(){
-    var id=getBillId();
-    q('wbiIdPreview').textContent=id;
-    var dup=!!EXIST[id];
-    q('wbiDupNote').style.display=dup?'block':'none';
-  }
+  function updatePreview(){ var id=getBillId(); q('wbiIdPreview').textContent=id; q('wbiDupNote').style.display=EXIST[id]?'block':'none'; }
 
   function setInvalid(inp,bad){ inp.style.borderColor=bad?'#c0392b':'rgba(122,92,62,0.3)'; inp.style.background=bad?'#fdecea':'#fff'; }
   function clearAllInvalid(){ Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiReq'),function(i){ setInvalid(i,false); }); q('wbiReqNote').style.display='none'; }
@@ -11719,8 +11716,7 @@ function mntSendAssignEmail() {
         GEN = {}; EXIST = {};
         ((d && d.bills) || []).forEach(function(b){ if(b && b.quarter) GEN[b.quarter]=true; });
         billList().forEach(function(b){ EXIST[b.billId]=true; });
-        wbiBuildTable();
-        resetForm();
+        wbiBuildTable(); resetForm();
       })
       .catch(function(){ if(typeof showToast==='function') showToast('Could not load water bills','error'); });
   };
@@ -11728,25 +11724,21 @@ function mntSendAssignEmail() {
   function resetForm(){
     if(!q('wbiYear')) return;
     if(q('wbiYear').options.length) q('wbiYear').selectedIndex=0;
-    q('wbiQuarter').value='1';
-    q('wbiBillDate').value='';
-    q('wbiUsers').value='57';
-    q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiDue').value='';
-    q('wbiNotes').value='';
+    q('wbiQuarter').value='1'; q('wbiBillDate').value=''; q('wbiUsers').value='57';
+    q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiDue').value=''; q('wbiNotes').value='';
     q('wbiPStart').value=''; q('wbiPEnd').value=''; q('wbiDays').value='';
-    clearAllInvalid();
-    updatePreview();
+    clearAllInvalid(); updatePreview();
   }
 
   function wbiBuildTable(){
     var tb=q('wbiTableBody'); if(!tb) return; var html=''; var list=billList();
-    function c(v){ return '<td style="padding:8px 10px;white-space:nowrap;">'+(v==null?'':v)+'</td>'; }
+    function c(v){ return '<td>'+(v==null?'':v)+'</td>'; }
     list.forEach(function(b){
       var g=!!GEN[b.quarter];
       html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
-        +'<td style="padding:8px 10px;white-space:nowrap;">'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
+        +'<td>'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
         +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+c(fmtMoney(b.pricePerM3))+c(fmtMoney(b.siteStanding))+c(b.siteUsers)+c(fmtMoney(b.adminTotal))+c(fmtMoney(b.amountDue))
-        +'<td style="padding:8px 10px;">'+(b.notes||'')+'</td></tr>';
+        +'<td class="wbi-notes">'+(b.notes||'')+'</td></tr>';
     });
     if(!html) html='<tr><td colspan="11" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
     tb.innerHTML=html;
