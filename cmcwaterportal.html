@@ -1679,16 +1679,16 @@ function renderWaterBills() {
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillMoney(meta.pricePerM3) + '</div></div>';
-    h += '<div class="wbill-sumcard"><div class="lab">Standing charge share</div><div class="val money">' + wbillMoney(standShare) + '</div></div>';
-    h += '<div class="wbill-sumcard"><div class="lab">Admin per property</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
+    h += '<div class="wbill-sumcard"><div class="lab">Standing charge (per property)</div><div class="val money">' + wbillMoney(standShare) + '</div></div>';
+    h += '<div class="wbill-sumcard"><div class="lab">Admin (per property)</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
     h += '</div>';
   } else {
     var awaitTxt = baseline ? '\u2014' : 'Awaiting bill';
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard await"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Price per m\u00b3</div><div class="val await">' + awaitTxt + '</div></div>';
-    h += '<div class="wbill-sumcard await"><div class="lab">Standing charge share</div><div class="val await">' + awaitTxt + '</div></div>';
-    h += '<div class="wbill-sumcard await"><div class="lab">Admin per property</div><div class="val await">' + awaitTxt + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Standing charge (per property)</div><div class="val await">' + awaitTxt + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Admin (per property)</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '</div>';
   }
 
