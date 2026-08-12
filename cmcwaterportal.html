@@ -1278,6 +1278,7 @@ let wbQuartersByYear = {};
         buildCombinedAvailability();
         populateCombinedSmart();
         populateStatementSmart(d);
+        populateLiscombeSmart();
       }
       var b = document.getElementById('toggle-waterbills');   if (b) b.classList.remove('btn-loading');
       var st = document.getElementById('toggle-waterstatement'); if (st) st.classList.remove('btn-loading');
@@ -1376,24 +1377,35 @@ function populateCombinedSmart() {
     el.textContent = '  \u00b7  ' + quarter + ' \u00b7 ' + paid + ' of ' + total + ' paid \u00b7 ' + out + ' outstanding';
   }
 }
+// Residents' outstanding for a given bill quarter, from the loaded bills feed.
+// Returns { owed, n } (amount owed and number of properties with a balance),
+// or null if the bills feed isn't available yet.
+function waterResidentsDue(quarter) {
+  if (!waterBillsData || !waterBillsData.bills || !quarter) return null;
+  var owed = 0, n = 0;
+  waterBillsData.bills.forEach(function(b) {
+    if (b.quarter !== quarter) return;
+    var bal = (b.total || 0) - (b.paid || 0);
+    if (bal > 0.001) { owed += bal; n++; }
+  });
+  return { owed: Math.round(owed * 100) / 100, n: n };
+}
+// Shared trailing text used by both the Statements and Liscombe buttons, so the
+// figures always agree: " · £X due · N properties", or " · all settled ✓".
+// Returns '' when the bills feed isn't loaded yet.
+function waterDueFragment(quarter) {
+  var d = waterResidentsDue(quarter);
+  if (!d) return '';
+  if (d.owed <= 0.001) return ' \u00b7 all settled \u2713';
+  return ' \u00b7 ' + wbillMoney(d.owed) + ' due \u00b7 ' + d.n + ' propert' + (d.n === 1 ? 'y' : 'ies');
+}
 function populateStatementSmart(d) {
   var el = document.getElementById('statement-smart');
   if (!el) return;
   var sm = d.summary || {};
   if (!sm.latestBillQuarter) return;
   var q = sm.latestBillQuarter;
-  var rows = ((d && d.bills) || []).filter(function(b) { return b.quarter === q; });
-  var owed = 0, n = 0;
-  rows.forEach(function(b) {
-    var bal = (b.total || 0) - (b.paid || 0);
-    if (bal > 0.001) { owed += bal; n++; }
-  });
-  owed = Math.round(owed * 100) / 100;
-  if (owed <= 0.001) {
-    el.textContent = '  \u00b7  ' + q + ' \u00b7 all settled \u2713';
-  } else {
-    el.textContent = '  \u00b7  ' + q + ' \u00b7 ' + wbillMoney(owed) + ' outstanding across ' + n + ' propert' + (n === 1 ? 'y' : 'ies');
-  }
+  el.textContent = '  \u00b7  ' + q + waterDueFragment(q);
 }
 
 async function openWaterBills() {
@@ -2019,7 +2031,15 @@ function lqTrend(cur,prev){ if(prev==null)return''; if(cur>prev+0.001)return '<s
 function populateLiscombeSmart(){
   var el = document.getElementById('liscombe-smart');
   if(!el || !liscombeData || !liscombeData.smart) return;
-  el.textContent = liscombeData.smart.text ? ('  ·  ' + liscombeData.smart.text) : '';
+  var base = liscombeData.smart.text || '';
+  // Append the residents' due figure for the latest billed quarter (same
+  // calculation the Statements button uses, so the two always agree). Adds
+  // nothing until the bills feed has loaded.
+  var frag = '';
+  if(base && waterBillsData && waterBillsData.summary && waterBillsData.summary.latestBillQuarter){
+    frag = waterDueFragment(waterBillsData.summary.latestBillQuarter);
+  }
+  el.textContent = base ? ('  ·  ' + base + frag) : '';
   var st = liscombeData.smart.state;
   el.style.color = (st==='discrepancy') ? '#ffd27f' : ((st==='paid') ? '#bfe6cf' : '');
   el.style.fontWeight = (st==='discrepancy') ? '700' : '';
