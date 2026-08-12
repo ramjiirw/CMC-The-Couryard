@@ -1318,6 +1318,14 @@
     return cached ? Promise.resolve(cached) : freshPromise;
   })();
 
+  // ─── Shared documents index ──────────────────────────────
+  // cmcdocuments/index.json is used by several cards (Finances, Bio Filter,
+  // AGM minutes pill) and the documents hub. Fetch it once and share it so
+  // the page doesn't download the same file several times on load.
+  const documentsIndexPromise = fetch('cmcdocuments/index.json?v=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .catch(function(){ return null; });
+
   (async function() {
     try {
       const bundle = await dashboardData;
@@ -1460,9 +1468,8 @@
   // Load latest Current Account statement for Finances card
   (async function() {
     try {
-      const res = await fetch('cmcdocuments/index.json?v=' + Date.now());
-      if (!res.ok) throw new Error();
-      const idx = await res.json();
+      const idx = await documentsIndexPromise;
+      if (!idx) throw new Error();
       const folders = idx.folders || [];
       const folder = folders.find(f => f.key === 'cmccurrentaccount');
       const files = folder ? (folder.files || []) : [];
@@ -1514,9 +1521,8 @@
   // Load latest Bio Filter servicing record for Bio Filter card
   (async function() {
     try {
-      const res = await fetch('cmcdocuments/index.json?v=' + Date.now());
-      if (!res.ok) throw new Error();
-      const idx = await res.json();
+      const idx = await documentsIndexPromise;
+      if (!idx) throw new Error();
       const folders = idx.folders || [];
       const folder = folders.find(f => f.key === 'cmcbiofilerservicing');
       const files = folder ? (folder.files || []) : [];
@@ -1673,9 +1679,8 @@
   // Show 'Latest minutes available' pill on AGM card if a PIN_ file exists in agmminutes
   (async function() {
     try {
-      const res = await fetch('cmcdocuments/index.json?v=' + Date.now());
-      if (!res.ok) throw new Error();
-      const idx = await res.json();
+      const idx = await documentsIndexPromise;
+      if (!idx) throw new Error();
       const folder = (idx.folders || []).find(f => f.key === 'agmminutes');
       const files = folder ? (folder.files || []) : [];
       const hasPinned = files.some(f => f.name.startsWith('PIN_'));
@@ -1834,9 +1839,8 @@
 
   (async function() {
     const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMtOVs8ca9B85tBEixrLIGjZ0qXZWcuw7ON0I1pSmTO3OD2sALZLPVEtQmEOAfxJb1HwvZbQCECfh5/pub?gid=204434224&single=true&output=csv';
-    try {
-      const res = await fetch(CSV);
-      const text = await res.text();
+
+    function computeFromCsv(text) {
       const rows = text.trim().split('\n').slice(1);
       let owners = 0, tenants = 0;
       rows.forEach(row => {
@@ -1844,6 +1848,9 @@
         const tenant = (cols[2] || '').trim().replace(/^"|"$/g, '');
         if (tenant) tenants++; else owners++;
       });
+      return { owners: owners, tenants: tenants };
+    }
+    function render(owners, tenants) {
       document.getElementById('mapOwner').textContent  = owners;
       document.getElementById('mapTenant').textContent = tenants;
       // Occupancy bar
@@ -1855,6 +1862,20 @@
         document.getElementById('occBarTenant').style.width = tenantPct + '%';
         document.getElementById('occBarWrap').style.display = 'block';
       }
+    }
+    try {
+      // Prefer the prefetched dashboard bundle (instant, no round-trip).
+      var occ = null;
+      try {
+        var _occB = await dashboardData;
+        if (_occB && _occB.occupancy && _occB.occupancy.status === 'ok') occ = _occB.occupancy;
+      } catch (e) {}
+      if (occ) { render(occ.owners || 0, occ.tenants || 0); return; }
+      // Fall back to the live published CSV exactly as before.
+      const res = await fetch(CSV);
+      const text = await res.text();
+      const c = computeFromCsv(text);
+      render(c.owners, c.tenants);
     } catch(e) {
       document.getElementById('mapOwner').textContent  = '—';
       document.getElementById('mapTenant').textContent = '—';
@@ -2035,9 +2056,8 @@
   async function hubLoadIndex() {
     if (_hubLoaded) return;
     try {
-      var res = await fetch('cmcdocuments/index.json?v=' + Date.now());
-      if (!res.ok) throw new Error();
-      var idx = await res.json();
+      var idx = await documentsIndexPromise;
+      if (!idx) throw new Error();
       var docs = [];
       (idx.folders || []).forEach(function(folder) {
         (folder.files || []).forEach(function(file) {
@@ -3216,8 +3236,19 @@
   
   (async function loadNextMeetingBar() {
     try {
-      const res = await fetch(SCRIPT_URL + '?action=readDirectorMeetings', { redirect: 'follow' });
-      const data = await res.json();
+      // Prefer the prefetched dashboard bundle (instant); only fall back to a
+      // live call if director-meetings data isn't present in the bundle.
+      var data = null;
+      try {
+        var _dmB = await dashboardData;
+        if (_dmB && _dmB.directorMeetings) data = _dmB.directorMeetings;
+      } catch (e) {}
+      if (!data) {
+        try {
+          var _dmR = await fetch(SCRIPT_URL + '?action=readDirectorMeetings', { redirect: 'follow' });
+          data = await _dmR.json();
+        } catch (e) { data = null; }
+      }
       if (!data || data.status !== 'ok' || !data.meetings || !data.meetings.length) return;
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const todayISO = today.getFullYear() + '-' + ('0' + (today.getMonth() + 1)).slice(-2) + '-' + ('0' + today.getDate()).slice(-2);
