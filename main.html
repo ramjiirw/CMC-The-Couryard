@@ -1568,13 +1568,32 @@
       return !!(m && parseInt(m[1], 10) === 2026 && parseInt(m[2], 10) === 1);
     }
 
-    try {
-      const results = await Promise.all([
+    // The three live water fetches (original behaviour). Kept as a fallback
+    // for the rare case where the prefetched dashboard bundle has no water
+    // data yet (e.g. a pre-update cached bundle in the minutes after deploy).
+    function fetchWaterLive() {
+      return Promise.all([
         fetch(SCRIPT_URL + '?action=readWater',       { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
         fetch(SCRIPT_URL + '?action=readWaterBills',   { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
         fetch(SCRIPT_URL + '?action=readWaterReport',  { redirect: 'follow' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
       ]);
-      const waterRes  = results[0], billsRes = results[1], reportRes = results[2];
+    }
+
+    try {
+      // Prefer the prefetched dashboard bundle (instant, no round-trip).
+      // Only fall back to the three live calls if water data isn't present.
+      var bundle = null;
+      try { bundle = await dashboardData; } catch (e) { bundle = null; }
+
+      var waterRes, billsRes, reportRes;
+      if (bundle && (bundle.water || bundle.waterBills || bundle.waterReport)) {
+        waterRes  = bundle.water       || null;
+        billsRes  = bundle.waterBills  || null;
+        reportRes = bundle.waterReport || null;
+      } else {
+        var results = await fetchWaterLive();
+        waterRes  = results[0]; billsRes = results[1]; reportRes = results[2];
+      }
 
       const bills  = (billsRes  && billsRes.status  === 'ok' && billsRes.bills)      ? billsRes.bills : [];
       const report = (reportRes && reportRes.status === 'ok')                        ? reportRes      : null;
