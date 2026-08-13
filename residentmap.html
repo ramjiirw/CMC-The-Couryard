@@ -198,6 +198,32 @@
     color: var(--green);
     border: 1px solid rgba(61,107,74,0.2);
   }
+  .badge-forsale {
+    background: #c0392b;
+    color: #fff;
+    border: 1px solid #c0392b;
+  }
+  /* Red "FOR SALE" sign floating just above a property marker */
+  .hotspot .for-sale-sign {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    margin-bottom: 3px;
+    transform: translateX(-50%);
+    background: #c0392b;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: clamp(8px, 1.15vw, 14px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    z-index: 12;
+  }
 
   .loading { padding: 2rem 1rem; text-align: center; color: var(--stone); font-size: 0.82rem; }
   .error-msg { padding: 1rem; color: #c0392b; font-size: 0.8rem; text-align: center; }
@@ -508,18 +534,24 @@ function parseCSV(text) {
     const propertyOwnership = cols[3] || '';
     const waterMeter = cols[4] || '';
     const extraCols = cols.slice(5, 13); // columns F–M (index 5–12), matched to extraHeaders
-    return { num, address, owner, tenant, propertyOwnership, waterMeter, extraCols };
+    const forSale = /for sale/i.test(cols[6] || ''); // Column G (General Info)
+    return { num, address, owner, tenant, propertyOwnership, waterMeter, extraCols, forSale };
   }).filter(r => r.num > 0);
 }
 
 function tenantDisplay(r) {
+  let html;
   if (!r.tenant) {
-    return '<span class="badge badge-owner">Owner occupied</span>';
+    html = '<span class="badge badge-owner">Owner occupied</span>';
   } else if (r.tenant.toLowerCase() === 'tenant') {
-    return '<span class="badge badge-tenant">Tenant</span> <span class="tenant-dot-sidebar"></span>';
+    html = '<span class="badge badge-tenant">Tenant</span> <span class="tenant-dot-sidebar"></span>';
   } else {
-    return '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span> <span class="tenant-dot-sidebar"></span>';
+    html = '<span class="badge badge-tenant">Tenant: ' + r.tenant + '</span> <span class="tenant-dot-sidebar"></span>';
   }
+  if (r.forSale) {
+    html += ' <span class="badge badge-forsale">For Sale</span>';
+  }
+  return html;
 }
 
 function buildLegend(data) {
@@ -547,6 +579,7 @@ function buildLegend(data) {
   // Add/remove tenant dot on map hotspots based on live data
   const mapWrap = document.getElementById('mapWrap');
   mapWrap.querySelectorAll('.tenant-dot').forEach(d => d.remove());
+  mapWrap.querySelectorAll('.for-sale-sign').forEach(s => s.remove());
   data.forEach(r => {
     const hotspot = mapWrap.querySelector(`.hotspot[data-num="${r.num}"]`);
     if (!hotspot) return;
@@ -554,6 +587,12 @@ function buildLegend(data) {
       const dot = document.createElement('span');
       dot.className = 'tenant-dot';
       hotspot.appendChild(dot);
+    }
+    if (r.forSale) {
+      const sign = document.createElement('span');
+      sign.className = 'for-sale-sign';
+      sign.textContent = 'FOR SALE';
+      hotspot.appendChild(sign);
     }
   });
 }
