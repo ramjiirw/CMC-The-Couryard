@@ -10900,9 +10900,12 @@ function wiReview() {
   else { warn.style.display = 'none'; warn.innerHTML = ''; }
 
   // Build the selection state fresh each time the modal opens — every address
-  // ticked by default so a normal full send is unchanged.
+  // ticked for a first send, but UNTICKED once the quarter has already been
+  // sent (d.alreadySentOn is set) so a re-send is a deliberate pick and never
+  // one click from a full duplicate run.
+  var startTicked = !d.alreadySentOn;
   wiRecips = willSend.map(function(i){
-    return { property: i.property, emails: i.emails.slice(), checked: i.emails.map(function(){ return true; }), open: false };
+    return { property: i.property, emails: i.emails.slice(), checked: i.emails.map(function(){ return startTicked; }), open: false };
   });
   wiRenderRecips();
 
