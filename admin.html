@@ -2775,7 +2775,6 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
             <label style="font-size:0.78rem;font-weight:600;color:var(--mid);">Quarter:</label>
             <select id="weYearSel" onchange="weOnQuarterChange()" style="padding:0.4rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;background:#fff;color:var(--dark);cursor:pointer;">
-              <option value="">— Year —</option>
             </select>
             <div id="weQtrBtns" style="display:inline-flex;gap:4px;"></div>
             <span id="weReadingsCount" style="font-size:0.75rem;color:var(--mid);font-style:italic;margin-left:auto;"></span>
@@ -10180,7 +10179,7 @@ async function weInit() {
 
     // Year dropdown — newest first (already sorted in GS)
     const yearSel = document.getElementById('weYearSel');
-    yearSel.innerHTML = '<option value="">— Year —</option>';
+    yearSel.innerHTML = '';
     weState.availableYears.forEach(function(y) {
       const opt = document.createElement('option');
       opt.value = y;
@@ -10192,13 +10191,12 @@ async function weInit() {
     if (weState.availableYears.length) {
       weState.selectedYear = weState.availableYears[0];
       yearSel.value = weState.selectedYear;
-      weBuildQuarterButtons();
-      // Auto-select the latest available quarter for that year
+      // Auto-select the latest available quarter for that year FIRST, then draw
+      // the buttons so the chosen quarter shows as pressed-in.
       const qs = weState.quartersByYear[weState.selectedYear] || [];
-      if (qs.length) {
-        weState.selectedQuarter = qs[qs.length - 1];
-        weUpdatePreview();
-      }
+      if (qs.length) weState.selectedQuarter = qs[qs.length - 1];
+      weBuildQuarterButtons();
+      if (weState.selectedQuarter) weUpdatePreview();
     }
 
     if (!weState.selectedQuarter) weSetRecipientsLoading(false);
@@ -10220,16 +10218,12 @@ function weOnQuarterChange() {
     return;
   }
   weState.selectedYear = yr;
-  weBuildQuarterButtons();
-  // Auto-select latest available quarter for this year
+  // Pick the latest available quarter FIRST, then draw the buttons so it shows
+  // as pressed-in.
   const qs = weState.quartersByYear[yr] || [];
-  if (qs.length) {
-    weState.selectedQuarter = qs[qs.length - 1];
-    weUpdatePreview();
-  } else {
-    weState.selectedQuarter = null;
-    weClearPreview();
-  }
+  weState.selectedQuarter = qs.length ? qs[qs.length - 1] : null;
+  weBuildQuarterButtons();
+  if (weState.selectedQuarter) { weUpdatePreview(); } else { weClearPreview(); }
 }
 
 function weBuildQuarterButtons() {
