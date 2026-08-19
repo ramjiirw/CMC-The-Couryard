@@ -2266,15 +2266,21 @@ Standing Charge              £[amount]
 Admin Charge                 £[amount]
 Total Quarterly Water Charge £[total]
 
-HOW TO PAY
-Please make payment electronically into the CMC bank account below, using a reference that identifies you — for example "No. 1 CMC Water".
+PAYING YOUR WATER BILL
+Pay promptly: It is important your water bill is paid as soon as possible, as CMC has already paid the full amount to Liscombe Park on your behalf.
+Who pays: Responsibility for water charges remains with the property owner. Where a property is let, payment is made directly by the owner, not by a tenant or other third party.
+How to pay: By electronic bank transfer only (CMC cannot accept cheque or cash), using a reference that identifies you, for example "No. 1 CMC Water".
 Account Name: THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)
 Sort Code: 40-28-12
 Account No: 41559044
 
-It is important this invoice is paid as soon as possible, as CMC has already paid the full water bill to Liscombe Park Ltd on your behalf.
+You can view your readings, bills and payments any time in the resident portal at https://cmcthecourtyard.com. Open the CMC Water card.
 
-[Visit the Portal button → cmcthecourtyard.com]</pre>
+[Visit the Portal button → cmcthecourtyard.com]
+
+Kind regards
+
+CMC The Courtyard</pre>
             </div>
           </div>
 
@@ -2314,26 +2320,75 @@ Grand total billed ([N] invoices)                  £[grand]
 [Property]
 
 This is a reminder that your water invoice for [YYYY QN] has not yet been paid, according to our records.
+[if part-paid, this opening reads instead: Our records show that a balance remains outstanding on your water invoice for [YYYY QN].]
 
 Amount outstanding
 £[amount]
 [if part-paid: £[paid] of £[total] already received. Thank you.]
 
-HOW TO PAY
-Please make payment electronically into the CMC bank account below, using a reference that identifies you, for example "No. 1 CMC Water".
+PAYING YOUR WATER BILL
+Pay promptly: It is important your water bill is paid as soon as possible, as CMC has already paid the full amount to Liscombe Park on your behalf.
+Who pays: Responsibility for water charges remains with the property owner. Where a property is let, payment is made directly by the owner, not by a tenant or other third party.
+How to pay: By electronic bank transfer only (CMC cannot accept cheque or cash), using a reference that identifies you, for example "No. 1 CMC Water".
 Account Name: THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)
 Sort Code: 40-28-12
 Account No: 41559044
 
-As noted on your invoice, it is important this is paid as soon as possible, as CMC has already paid the full water bill to Liscombe Park Ltd on your behalf.
-
 If you've already paid, please disregard this reminder, or simply reply to this email to let us know and we'll update our records.
 
-[Visit the Portal button → cmcthecourtyard.com]</pre>
+You can check everything any time in the resident portal at https://cmcthecourtyard.com. Open the CMC Water card.
+
+[Visit the Portal button → cmcthecourtyard.com]
+
+Kind regards
+
+CMC The Courtyard</pre>
             </div>
           </div>
 
-          <p style="margin:1rem 0 0;font-size:0.72rem;color:var(--mid);">When new email types are added to the system, add a row to the table above and an entry here, and add a matching chip to <code>typeChipMap</code> in admin.html.</p>
+          <div class="eref-entry">
+            <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="eref-chip" style="background:rgba(139,58,58,0.14);color:#8b3a3a;border:1px solid rgba(139,58,58,0.3);">Water Payment Second Reminder</span>
+              <span class="eref-label">Sent 7 days after the first reminder &mdash; about 17 days after the bill &mdash; if still unpaid</span>
+              <span class="eref-arrow">&#9654;</span>
+            </div>
+            <div class="eref-body" style="display:none;">
+              <pre class="eref-pre">Dear [first names],
+
+[Property]
+
+We wrote to you on [date of first reminder] about your water invoice for [YYYY QN]. Our records still show it as unpaid, and it is now [N] days since the invoice was issued.
+[if part-paid, "still show it as unpaid" reads instead: still show a balance outstanding on it]
+
+CMC has already paid this amount to Liscombe Park on your behalf, so the balance is currently being carried by the management company.
+
+Amount outstanding
+£[amount]
+[if part-paid: £[paid] of £[total] already received. Thank you.]
+
+PLEASE ARRANGE PAYMENT BY [DATE — 7 DAYS AHEAD]
+
+PAYING YOUR WATER BILL
+Who pays: Responsibility for water charges remains with the property owner. Where a property is let, payment is made directly by the owner, not by a tenant or other third party.
+How to pay: By electronic bank transfer only (CMC cannot accept cheque or cash), using a reference that identifies you, for example "No. 1 CMC Water".
+Account Name: THE COURTYARD MANAGEMENT COMPANY (ROCK LANE FARM)
+Sort Code: 40-28-12
+Account No: 41559044
+
+If you have already paid, please disregard this reminder, or simply reply to this email to let us know and we will update our records.
+
+You can check everything any time in the resident portal at https://cmcthecourtyard.com. Open the CMC Water card.
+
+[Visit the Portal button → cmcthecourtyard.com]
+
+Kind regards
+
+CMC The Courtyard</pre>
+              <div class="eref-sub" style="margin-top:0.5rem;">Note: the "Pay promptly" heading is deliberately absent here &mdash; that point has moved into the opening paragraph. Accents are in the house red rather than gold. There is no third reminder.</div>
+            </div>
+          </div>
+
+          <p style="margin:1rem 0 0;font-size:0.72rem;color:var(--mid);">When new email types are added to the system, add a row to the table above and an entry here, and add a matching chip to <code>BH_TYPE_CHIP_MAP</code> in admin.html.</p>
 
           <div class="eref-entry">
             <div class="eref-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
