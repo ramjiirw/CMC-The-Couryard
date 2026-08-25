@@ -500,6 +500,19 @@
   .ob-subline .s-qtr { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--mid); }
   .ob-subline .s-due { grid-column: 2 / span 2; color: var(--mid); font-variant-numeric: tabular-nums; }
   .ob-subline .s-amt { text-align: right; font-weight: 600; color: #7a2a2a; font-variant-numeric: tabular-nums; }
+  /* Charge-type pills on the property summary row — show at a glance which
+     charges make up a property's outstanding balance. Self-explanatory wording,
+     so no legend is needed. */
+  .ob-chips { margin-left: 0.5rem; display: inline-block; }
+  .ob-chip {
+    display: inline-block; margin-left: 4px; padding: 1px 7px;
+    border-radius: 9px; font-size: 0.63rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; vertical-align: 1px;
+  }
+  .ob-chip-mc { background: #ede4d6; color: #6b4f2e; border: 1px solid #d8c6ac; }
+  .ob-chip-w  { background: #e0eef5; color: #1d5468; border: 1px solid #b6d5e3; }
+  .ob-chip-fr { background: #e6e9dd; color: #4e5a37; border: 1px solid #c7cfb4; }
+  .ob-chip-ir { background: #f0e4e4; color: #7a3b3b; border: 1px solid #ddc0c0; }
 
   /* Mobile: horizontal-scroll the outstanding breakdown (matches MC/Annual/Farmhouse trackers) */
   @media (max-width: 700px) {
@@ -1812,6 +1825,30 @@
     return 'red';
   }
 
+  /* ── Charge-type pills (Outstanding Balances summary row) ──
+     Builds the short pills shown beside a property name so it's clear at a
+     glance what the outstanding balance is made up of. prop.lines is already
+     sorted into charge order, so walking it and skipping repeats keeps the
+     pills in the same order as the breakdown underneath. */
+  var OB_CHIP_DEFS = {
+    'Management Charge':        { label: 'Mgmt',      cls: 'ob-chip-mc' },
+    'Water Recharge':           { label: 'Water',     cls: 'ob-chip-w'  },
+    'Farmhouse Rent':           { label: 'Rent',      cls: 'ob-chip-fr' },
+    'Farmhouse Insurance Rent': { label: 'Insurance', cls: 'ob-chip-ir' }
+  };
+
+  function obChargeChips(lines) {
+    var seen = {}, html = '';
+    lines.forEach(function(l) {
+      if (seen[l.charge]) return;
+      seen[l.charge] = true;
+      var def = OB_CHIP_DEFS[l.charge];
+      if (!def) return;   // unknown charge type: no pill rather than a broken one
+      html += '<span class="ob-chip ' + def.cls + '">' + def.label + '</span>';
+    });
+    return html ? '<span class="ob-chips">' + html + '</span>' : '';
+  }
+
   /* ── Water Recharge helpers (Outstanding Balances) ──
      Water bills come from the shared finance bundle (readWaterBills). A bill
      row carries: property, quarter ("2026 Q2"), total, paid, generatedDate.
@@ -2125,7 +2162,7 @@
       // Property summary row (clickable)
       html += '<div class="ob-prop-row" onclick="toggleOBDetail(\'' + safeKey + '\')">';
       html += '<span class="ob-dot"></span>';
-      html += '<span class="ob-prop-name">' + prop.address + '</span>';
+      html += '<span class="ob-prop-name">' + prop.address + obChargeChips(prop.lines) + '</span>';
       html += '<span class="ob-prop-amt">' + fmt(prop.total) + '</span>';
       html += '<span class="ob-prop-chev" id="' + safeKey + '-chev"></span>';
       html += '</div>';
