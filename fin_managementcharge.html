@@ -469,6 +469,38 @@
     color: #2e7d32; font-weight: 600;
   }
 
+  /* Water Recharge: quarter chip shown beside the charge label */
+  .ob-d-qtr {
+    display: inline-block; margin-left: 0.45rem;
+    font-size: 0.72rem; font-weight: 600; font-variant-numeric: tabular-nums;
+    color: #1d5468; background: #e4f0f6; border: 1px solid #bcd9e6;
+    padding: 1px 6px; border-radius: 3px; vertical-align: 1px;
+  }
+  /* Water Recharge: expander chip on the pooled previous-years line */
+  .ob-d-exp {
+    display: inline-block; margin-left: 0.45rem; cursor: pointer;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--mid); background: rgba(122,92,62,0.10);
+    border: 1px solid rgba(122,92,62,0.25);
+    padding: 1px 7px; border-radius: 3px; vertical-align: 1px;
+    user-select: none; white-space: nowrap;
+  }
+  .ob-d-exp:hover { background: rgba(122,92,62,0.18); }
+  .ob-d-exp .caret { display: inline-block; transition: transform 0.2s; }
+  .ob-d-exp.open .caret { transform: rotate(180deg); }
+  .ob-subwrap { display: none; }
+  .ob-subwrap.open { display: block; }
+  .ob-subline {
+    display: grid; grid-template-columns: 220px 80px 1fr 160px 30px;
+    padding: 0.35rem 1.5rem 0.35rem 4.4rem;
+    font-size: 0.8rem; color: var(--mid);
+    background: rgba(122,92,62,0.045);
+    border-bottom: 1px solid rgba(221,213,200,0.4);
+  }
+  .ob-subline .s-qtr { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--mid); }
+  .ob-subline .s-due { grid-column: 2 / span 2; color: var(--mid); font-variant-numeric: tabular-nums; }
+  .ob-subline .s-amt { text-align: right; font-weight: 600; color: #7a2a2a; font-variant-numeric: tabular-nums; }
+
   /* Mobile: horizontal-scroll the outstanding breakdown (matches MC/Annual/Farmhouse trackers) */
   @media (max-width: 700px) {
     #outstanding-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; min-width: 0; }
@@ -1501,6 +1533,11 @@
 
   var finSummaryData = null;
 
+  // Water bills feed (from the finance bundle). Set to an empty-but-valid
+  // object if the feed is missing or errors, so Outstanding Balances still
+  // renders the management charge and farmhouse figures rather than stalling.
+  var waterBillsData = null;
+
   /* ── Fetch data ──
    * Three of the four datasets (management charges, farmhouse charges, budget)
    * come from the shared finance bundle that was already fetched by the first
@@ -1515,6 +1552,15 @@
     ]);
 
     var bundle = (bundleResult.status === 'fulfilled') ? bundleResult.value : null;
+
+    // Process water bills (from bundle) — needed by Outstanding Balances.
+    // Captured before the other datasets so it is ready when the management
+    // charge and farmhouse blocks below call tryRenderOutstanding().
+    // If the feed is missing (older code.gs) or errored, fall back to an empty
+    // bill list so the report still renders without the water lines.
+    waterBillsData = (bundle && bundle.waterBills && bundle.waterBills.status === 'ok')
+      ? bundle.waterBills
+      : { status: 'ok', bills: [] };
 
     // Process management charges (from bundle)
     try {
@@ -1766,6 +1812,53 @@
     return 'red';
   }
 
+  /* ── Water Recharge helpers (Outstanding Balances) ──
+     Water bills come from the shared finance bundle (readWaterBills). A bill
+     row carries: property, quarter ("2026 Q2"), total, paid, generatedDate.
+     Outstanding for a bill = total − paid. Nothing is owed for a quarter until
+     a bill exists, so quarters with readings but no bill contribute nothing. */
+
+  // Split "2026 Q2" into { y: 2026, q: 2 }. Returns null if unparseable.
+  function obWaterQParts(quarter) {
+    var m = String(quarter || '').match(/^(\d{4})\s*Q\s*([1-4])$/i);
+    if (!m) return null;
+    return { y: parseInt(m[1], 10), q: parseInt(m[2], 10) };
+  }
+
+  // Format a dd/MM/yyyy string as "12 Apr 2026" — matches the water portal.
+  function obWaterNiceDate(ddmmyyyy) {
+    if (!ddmmyyyy) return '';
+    var pt = String(ddmmyyyy).split('/');
+    if (pt.length !== 3) return ddmmyyyy;
+    var dt = new Date(parseInt(pt[2], 10), parseInt(pt[1], 10) - 1, parseInt(pt[0], 10));
+    if (isNaN(dt.getTime())) return ddmmyyyy;
+    return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // Every unpaid/part-paid water bill for one property, oldest quarter first.
+  // Returns [{ quarter, y, q, owed, billDate }].
+  function obWaterUnpaid(addr) {
+    var bills = (waterBillsData && waterBillsData.bills) || [];
+    var out = [];
+    bills.forEach(function(b) {
+      if (String(b.property || '').trim() !== addr) return;
+      var pt = obWaterQParts(b.quarter);
+      if (!pt) return;
+      var owed = Math.round((((b.total || 0) - (b.paid || 0))) * 100) / 100;
+      if (owed <= 0.001) return;
+      out.push({
+        quarter: b.quarter,
+        y: pt.y,
+        q: pt.q,
+        owed: owed,
+        billDate: obWaterNiceDate(b.generatedDate)
+      });
+    });
+    // Chronological: earliest year first, and Q1 before Q2 within a year.
+    out.sort(function(a, b) { return (a.y - b.y) || (a.q - b.q); });
+    return out;
+  }
+
   /* ── Outstanding Resident Account Balances ──
      Pulls together every current debt across management charge, farmhouse rent,
      and farmhouse insurance rent into a single view. Only shows properties that
@@ -1773,7 +1866,7 @@
      past-year MC uses full annual amount. Farmhouse rent uses Jan 1 / Jul 1
      milestones. Insurance rent becomes due in full as soon as it's raised. */
   function renderOutstandingBalances() {
-    if (!chargeData || !farmhouseData) return; // wait until both loaded
+    if (!chargeData || !farmhouseData || !waterBillsData) return; // wait until all three loaded
     var host = document.getElementById('outstanding-inner');
     if (!host) return;
 
@@ -1848,6 +1941,46 @@
             isHistorical: true
           });
         }
+      }
+
+      // ── Water recharge (all 14 properties) ──
+      // Current-year quarters are listed individually; earlier years are pooled
+      // into a single line carrying the individual quarters for the dropdown.
+      var waterUnpaid = obWaterUnpaid(addr);
+      var waterCur  = waterUnpaid.filter(function(w){ return w.y === currentYear; });
+      var waterPrev = waterUnpaid.filter(function(w){ return w.y <  currentYear; });
+
+      waterCur.forEach(function(w) {
+        lines.push({
+          charge: 'Water Recharge',
+          year: currentYear,
+          dueLabel: w.billDate,
+          amount: w.owed,
+          isHistorical: false,
+          waterQuarter: w.quarter
+        });
+      });
+
+      if (waterPrev.length === 1) {
+        // A single previous quarter reads better inline than behind a dropdown.
+        lines.push({
+          charge: 'Water Recharge',
+          year: null,
+          dueLabel: 'Previous years \u00b7 billed ' + waterPrev[0].billDate,
+          amount: waterPrev[0].owed,
+          isHistorical: true,
+          waterQuarter: waterPrev[0].quarter
+        });
+      } else if (waterPrev.length > 1) {
+        var prevTotal = waterPrev.reduce(function(sum, w){ return sum + w.owed; }, 0);
+        lines.push({
+          charge: 'Water Recharge',
+          year: null,
+          dueLabel: 'Previous years',
+          amount: Math.round(prevTotal * 100) / 100,
+          isHistorical: true,
+          waterSubs: waterPrev
+        });
       }
 
       // ── Farmhouse rent + insurance rent (properties 10, 12, 13, 14 only) ──
@@ -1928,12 +2061,16 @@
 
       if (lines.length > 0) {
         // Sort: current year first, historical below; then by charge type within each bucket
-        var chargeOrder = { 'Management Charge': 0, 'Farmhouse Rent': 1, 'Farmhouse Insurance Rent': 2 };
+        var chargeOrder = { 'Management Charge': 0, 'Water Recharge': 1, 'Farmhouse Rent': 2, 'Farmhouse Insurance Rent': 3 };
         lines.sort(function(a, b) {
           if (a.isHistorical !== b.isHistorical) return a.isHistorical ? 1 : -1;
           var oa = chargeOrder[a.charge]; if (oa === undefined) oa = 9;
           var ob = chargeOrder[b.charge]; if (ob === undefined) ob = 9;
-          return oa - ob;
+          if (oa !== ob) return oa - ob;
+          // Same charge type: keep water quarters in chronological order.
+          var qa = obWaterQParts(a.waterQuarter), qb = obWaterQParts(b.waterQuarter);
+          if (qa && qb) return (qa.y - qb.y) || (qa.q - qb.q);
+          return 0;
         });
         var total = lines.reduce(function(s, l){ return s + l.amount; }, 0);
         var hasHistorical = lines.some(function(l){ return l.isHistorical; });
@@ -1998,14 +2135,37 @@
       html += '<div class="ob-detail-head">';
       html += '<span>Charge</span><span>Year</span><span>Due</span><span>Amount</span><span></span>';
       html += '</div>';
-      prop.lines.forEach(function(line) {
+      prop.lines.forEach(function(line, lineIdx) {
+        // Water Recharge lines carry extras: a quarter chip beside the label,
+        // and (where several previous-year quarters are owed) an expander that
+        // opens the individual quarters underneath.
+        var subKey = safeKey + '_w' + lineIdx;
+        var chargeCell = line.charge;
+        if (line.waterQuarter) {
+          chargeCell += '<span class="ob-d-qtr">' + line.waterQuarter + '</span>';
+        } else if (line.waterSubs && line.waterSubs.length) {
+          chargeCell += '<span class="ob-d-exp" id="' + subKey + '-exp" onclick="toggleOBWater(\'' + subKey + '\', event)">' +
+                        line.waterSubs.length + ' quarters <span class="caret">\u25be</span></span>';
+        }
         html += '<div class="ob-detail-line">';
-        html += '<span class="ob-d-charge">' + line.charge + '</span>';
+        html += '<span class="ob-d-charge">' + chargeCell + '</span>';
         html += '<span class="ob-d-year">' + (line.year === null ? '' : line.year) + '</span>';
         html += '<span class="ob-d-due">' + line.dueLabel + '</span>';
         html += '<span class="ob-d-amt">' + fmt(line.amount) + '</span>';
         html += '<span></span>';
         html += '</div>';
+        if (line.waterSubs && line.waterSubs.length) {
+          html += '<div class="ob-subwrap" id="' + subKey + '-sub">';
+          line.waterSubs.forEach(function(w) {
+            html += '<div class="ob-subline">';
+            html += '<span class="s-qtr">' + w.quarter + '</span>';
+            html += '<span class="s-due">' + (w.billDate ? 'Billed ' + w.billDate : '') + '</span>';
+            html += '<span class="s-amt">' + fmt(w.owed) + '</span>';
+            html += '<span></span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
       });
       // Per-property "Total net outstanding" bar — matches Annual Overview pattern
       html += '<div class="ob-prop-subtotal">';
@@ -2038,6 +2198,19 @@
     obUpdateCollapseBtn();
   }
 
+  // Opens/closes the individual previous-year water quarters under a pooled
+  // "Water Recharge · Previous years" line. stopPropagation keeps the click
+  // from also collapsing the whole property row underneath it.
+  function toggleOBWater(key, ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    var wrap = document.getElementById(key + '-sub');
+    var exp  = document.getElementById(key + '-exp');
+    if (!wrap || !exp) return;
+    var opening = !wrap.classList.contains('open');
+    wrap.classList.toggle('open', opening);
+    exp.classList.toggle('open', opening);
+  }
+
   function obUpdateCollapseBtn() {
     // "Collapse All" is visible only when at least one property detail row is open.
     var host = document.getElementById('outstanding-inner');
@@ -2064,13 +2237,17 @@
     var chevs   = host.querySelectorAll('.ob-prop-chev');
     details.forEach(function(d){ d.classList.remove('open'); });
     chevs.forEach(function(c){ c.classList.remove('open'); });
+    // Also close any open water quarter sub-lists so a later expand starts clean.
+    host.querySelectorAll('.ob-subwrap').forEach(function(w){ w.classList.remove('open'); });
+    host.querySelectorAll('.ob-d-exp').forEach(function(e){ e.classList.remove('open'); });
     obUpdateCollapseBtn();
   }
 
-  // Helper: render outstanding balances only when both MC + farmhouse data are loaded.
+  // Helper: render outstanding balances only when MC + farmhouse + water data
+  // are all loaded, so the totals never tick upward after they've been read.
   // Clears the btn-loading state on the toggle when it actually renders.
   function tryRenderOutstanding() {
-    if (!chargeData || !farmhouseData) return;
+    if (!chargeData || !farmhouseData || !waterBillsData) return;
     var btn = document.getElementById('toggle-outstanding');
     if (btn) btn.classList.remove('btn-loading');
     renderOutstandingBalances();
