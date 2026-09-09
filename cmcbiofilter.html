@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.06
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.07
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is on 1.06 for this build too. -->
+     files that actually changed. code.gs is unchanged, still on 1.06. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -43,7 +43,12 @@
   }
   .btn-back:hover { background: #2a2520; color: var(--accent2); }
 
-  main { flex: 1; } .main-inner { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem 2rem; }
+  main { flex: 1; }
+  /* The generous bottom padding is deliberate: the last section on the page
+     expands downwards, and without somewhere to scroll to the newly revealed
+     content sits jammed against the bottom edge. Applies to every section,
+     not just the checks. */
+  .main-inner { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem 5rem; }
 
   .page-header { margin-bottom: 1.75rem; }
   .page-header h2 { font-size: 1.6rem; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
