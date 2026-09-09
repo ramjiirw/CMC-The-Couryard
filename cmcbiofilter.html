@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.04
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.05
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is unchanged, still on 1.03. -->
+     files that actually changed. code.gs is on 1.05 for this build too. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -236,7 +236,6 @@
   @media (max-width:600px) { .prohibited-body { flex-direction:column; gap:0; } }
 
   /* Bio Filter Checks */
-  #toggle-biochecks .hint-open, #toggle-biochecks .hint-close { display: none !important; }
   #toggle-biochecks.bio-bar-due { background: #b84a00; color: #fff; }
   #toggle-biochecks.bio-bar-due:hover { background: #a34200; }
   #toggle-biochecks.bio-bar-overdue { background: #8b3a3a; color: #fff; animation: bioShiver 3s ease-in-out infinite; }
@@ -259,7 +258,8 @@
   #toggle-biochecks.bio-bar-overdue .bio-days-text { color: rgba(255,255,255,0.92); }
 
   .bio-bar-pills { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; }
-  #toggle-biochecks .toggle-hint { margin-left: 0.55rem; }
+  #toggle-biochecks .toggle-hint,
+  #toggle-biohistory .toggle-hint { margin-left: 0.55rem; }
 
   /* Hairline between the two stacked bars rather than a gap showing through. */
   #toggle-biohistory { border-top: 1px solid rgba(245,240,232,0.12); }
@@ -375,6 +375,10 @@
     .bio-opts { width: 100%; }
     .bio-opt { flex: 1; text-align: center; padding: 0.3rem 0.3rem; font-size: 0.66rem; }
     .bio-hist-body { padding-left: 1rem; }
+    /* The check bar carries a pill, the days text, the hint and the chevron.
+       On a narrow phone that will not sit on one line, so it wraps onto two
+       rather than any of it being hidden. */
+    #toggle-biochecks, #toggle-biohistory { flex-wrap: wrap; row-gap: 0.3rem; }
     .bio-bottom { flex-direction: column; }
     .bio-reset { width: 100%; }
   }
@@ -821,10 +825,9 @@
      BIO FILTER CHECKS
      ======================================================================
      The item list is the form. It opens already set to how things usually
-     are, so a routine check is a glance and a save. Pump 1 and "Discharging
-     into channel" start on "Couldn't observe" -- pump 1 runs for a few
-     seconds once an hour and the discharge happens at no set time, so seeing
-     either is luck rather than condition.
+     are, so a routine check is a glance and a save. Pump 1 starts on
+     "Couldn't observe" -- it runs for a few seconds once an hour, so catching
+     it is luck rather than condition. Everything else is visible on any visit.
      The form is inert until a property is picked, and locks again after a save
      so a second person's check cannot be filed under the first person's name.
      Bar: normal to day 2, orange on day 3, red and shivering from day 4.
@@ -851,7 +854,7 @@
     { key:'waterLevel',       group:'Pumping station', label:'Water level acceptable',   sub:'', three:true  },
     { key:'warningLight',     group:'Pumping station', label:'Warning light off',        sub:'', three:true  },
     { key:'dischargePipe',    group:'Discharge',       label:'Pipe in place',            sub:'Always visible', three:false },
-    { key:'dischargeChannel', group:'Discharge',       label:'Discharging into channel', sub:'Only if it happens while you are there', three:true }
+    { key:'channelClear',     group:'Discharge',       label:'Channel clear',            sub:'Free of blockage, overflow or standing water', three:true }
   ];
 
   var BIO_PRESETS = ['Pump not working', 'Water level high', 'Red flashing light',
@@ -863,8 +866,9 @@
     saving: false, showAll: false, openRows: { 0: true }
   };
 
-  /* Items that are usually not visible, so start on "Couldn't observe". */
-  var BIO_UNOBSERVED = ['pump1', 'dischargeChannel'];
+  /* Pump 1 runs for a few seconds once an hour, so it is rarely seen and
+     starts on "Couldn't observe". Everything else is visible on any visit. */
+  var BIO_UNOBSERVED = ['pump1'];
 
   function bioDefaults() {
     var o = {};
@@ -947,7 +951,7 @@
 
     if (!last) {
       btn.classList.add('bio-bar-overdue');
-      label.innerHTML = '&#9888; Bio filter check overdue';
+      label.innerHTML = '&#9888; Record a check &mdash; overdue';
       health.style.display = 'none';
       days.style.display = 'inline';
       days.textContent = 'No checks recorded yet';
@@ -958,13 +962,13 @@
     if (n === null) n = 0;
 
     if (n <= 2) {
-      label.innerHTML = '&#128300; Bio filter checks';
+      label.innerHTML = '&#128300; Record a check';
     } else if (n === 3) {
       btn.classList.add('bio-bar-due');
-      label.innerHTML = '&#9200; Bio filter check due';
+      label.innerHTML = '&#9200; Record a check &mdash; due';
     } else {
       btn.classList.add('bio-bar-overdue');
-      label.innerHTML = '&#9888; Bio filter check overdue';
+      label.innerHTML = '&#9888; Record a check &mdash; overdue';
     }
 
     var time = bioTimeOf(last.date);
