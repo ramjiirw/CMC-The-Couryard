@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.08
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.09
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is on 1.08 for this build too. -->
+     files that actually changed. code.gs is on 1.09 for this build too. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -376,12 +376,16 @@
   .bio-hist-body { padding: 0 1rem 0.9rem 2rem; }
   .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
-  .bio-hist-tools { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; }
+  .bio-hist-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
   .bio-tool { flex: 1; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
     background: #fff; color: var(--mid); font-family: Arial, sans-serif;
     font-size: 0.72rem; font-weight: 600; border-radius: 8px; cursor: pointer;
     transition: all 0.15s; }
-  .bio-tool:hover { border-color: var(--accent2); color: var(--dark); }
+  .bio-tool:hover:not(:disabled) { border-color: var(--accent2); color: var(--dark); }
+  .bio-tool:disabled { opacity: 0.4; cursor: default; }
+  .bio-tool.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .bio-tool.active:hover { border-color: var(--red); color: #fff; }
+  .bio-filter-note { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
 
   .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
     border: 1px solid var(--border); border-radius: 8px; background: var(--warm);
@@ -883,7 +887,7 @@
   var bioState = {
     checks: [], checkers: [], checkedBy: '',
     items: {}, presets: [], otherText: '',
-    saving: false, showAll: false, openRows: {}
+    saving: false, showAll: false, faultsOnly: false, openRows: {}
   };
 
   /* Pump 1 runs for a few seconds once an hour, so it is rarely seen and
@@ -1273,11 +1277,41 @@
       return;
     }
 
-    var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
+    var list = bioVisibleChecks();
+
+    /* Expand all is pointless with nothing left to open, and Collapse all with
+       nothing open -- so each greys out when it would do nothing. Both stay
+       live in between, which is when you have opened a few by hand. */
+    var openCount = 0;
+    list.forEach(function(c, i) { if (bioState.openRows[i]) openCount++; });
+    var noneOpen = openCount === 0;
+    var allOpen  = list.length > 0 && openCount === list.length;
+
     var tools = '<div class="bio-hist-tools">' +
-      '<button type="button" class="bio-tool" onclick="expandAllBioChecks()">Expand all</button>' +
-      '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()">Collapse all</button>' +
+      '<button type="button" class="bio-tool" onclick="expandAllBioChecks()"' +
+        (allOpen || !list.length ? ' disabled' : '') + '>Expand all</button>' +
+      '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()"' +
+        (noneOpen ? ' disabled' : '') + '>Collapse all</button>' +
+      '<button type="button" class="bio-tool' + (bioState.faultsOnly ? ' active' : '') +
+        '" onclick="toggleBioFaultsOnly()">Faults only</button>' +
       '</div>';
+
+    /* The filter searches the whole history, not the 20 on screen -- a fault
+       from months back is exactly what someone turning this on is looking for. */
+    var note = '';
+    if (bioState.faultsOnly) {
+      note = '<div class="bio-filter-note">' +
+             (list.length
+               ? 'Showing ' + list.length + (list.length === 1 ? ' fault' : ' faults') +
+                 ' from ' + total + (total === 1 ? ' check' : ' checks') + '.'
+               : 'No faults recorded in ' + total + (total === 1 ? ' check' : ' checks') + '.') +
+             '</div>';
+    }
+    if (bioState.faultsOnly && !list.length) {
+      wrap.innerHTML = tools + note;
+      return;
+    }
+
     var rows = '';
     list.forEach(function(c, i) {
       var open = !!bioState.openRows[i];
@@ -1295,13 +1329,14 @@
               '</div>';
     });
 
+    /* No "show all" while filtering -- every fault is already listed. */
     var more = '';
-    if (!bioState.showAll && total > 20) {
+    if (!bioState.faultsOnly && !bioState.showAll && total > 20) {
       more = '<button type="button" class="bio-showall" onclick="showAllBioChecks()">' +
              'Show all ' + total + ' checks</button>';
     }
 
-    wrap.innerHTML = tools + rows + more;
+    wrap.innerHTML = tools + note + rows + more;
   }
 
   function toggleBioRow(i) {
@@ -1309,10 +1344,25 @@
     renderBioHistory();
   }
 
+  /* What is actually on screen: every fault when filtering, otherwise the 20
+     most recent unless "show all" has been pressed. Row indices are positions
+     in this list, so anything that changes it must clear openRows. */
+  function bioVisibleChecks() {
+    if (bioState.faultsOnly) {
+      return bioState.checks.filter(function(c) { return c.overall === 'Fault'; });
+    }
+    return bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
+  }
+
+  function toggleBioFaultsOnly() {
+    bioState.faultsOnly = !bioState.faultsOnly;
+    bioState.openRows = {};   /* indices now mean different checks */
+    renderBioHistory();
+  }
+
   function expandAllBioChecks() {
-    var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
     bioState.openRows = {};
-    list.forEach(function(c, i) { bioState.openRows[i] = true; });
+    bioVisibleChecks().forEach(function(c, i) { bioState.openRows[i] = true; });
     renderBioHistory();
   }
 
@@ -1323,6 +1373,7 @@
 
   function showAllBioChecks() {
     bioState.showAll = true;
+    bioState.openRows = {};   /* indices now mean different checks */
     renderBioHistory();
   }
 
