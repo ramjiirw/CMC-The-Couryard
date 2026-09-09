@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.12
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.13
      The build number identifies the change, not the file, so it only moves in
      files that actually changed. code.gs is unchanged, still on 1.09. -->
 <html lang="en">
@@ -376,24 +376,33 @@
   .bio-hist-body { padding: 0 1rem 0.9rem 2rem; }
   .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
-  .bio-hist-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
+  /* Two joined pairs rather than four loose buttons: the grouping is
+     structural, so it does not rely on anyone measuring a gap by eye. */
+  .bio-hist-tools { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-bottom: 0.85rem; }
+  .bio-seg { flex: 1 1 0; display: flex; position: relative; min-width: 190px; }
   .bio-tool { flex: 1 1 0; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
     background: #fff; color: var(--mid); font-family: Arial, sans-serif;
-    font-size: 0.72rem; font-weight: 600; border-radius: 8px; cursor: pointer;
-    transition: all 0.15s; }
-  .bio-tool:hover:not(:disabled) { border-color: var(--accent2); color: var(--dark); }
+    font-size: 0.72rem; font-weight: 600; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, opacity 0.2s; }
+  .bio-seg .bio-tool { border-radius: 0; }
+  .bio-seg .bio-tool:first-of-type { border-radius: 8px 0 0 8px; }
+  .bio-seg .bio-tool:last-of-type  { border-radius: 0 8px 8px 0; border-left: none; }
+  .bio-tool:hover:not(:disabled) { color: var(--dark); }
   .bio-tool:disabled { opacity: 0.4; cursor: default; }
-  /* All checks / Faults only behave as a pair -- one is always selected, so
-     there is never a hidden filter state to find your way out of. All four
-     buttons are siblings sharing one flex rule, so they are genuinely the same
-     width; the wider gap before the pair is what separates the two filters
-     from the two actions. No divider -- a vertical line would sit wrongly once
-     the row wraps to two lines on a narrow phone. */
-  .bio-tool-gap { margin-left: 0.7rem; }
-  .bio-tool.sel { background: var(--dark); border-color: var(--dark); color: var(--cream); }
-  .bio-tool.sel:hover { border-color: var(--dark); color: var(--cream); }
-  .bio-tool.sel-fault { background: var(--red); border-color: var(--red); color: #fff; }
-  .bio-tool.sel-fault:hover { border-color: var(--red); color: #fff; }
+
+  /* The filter pair carries a single moving block behind the buttons. It is
+     one element that slides, which is why the buttons live in the markup and
+     are only re-styled -- rebuilding them would restart the animation. */
+  .bio-seg-filter { border: 1px solid var(--border); border-radius: 8px;
+    background: #fff; overflow: hidden; }
+  .bio-seg-filter .bio-tool { border: none; background: transparent; position: relative; z-index: 1; }
+  .bio-seg-filter .bio-tool.sel { color: var(--cream); }
+  .bio-seg-filter .bio-tool:hover:not(.sel) { color: var(--dark); }
+  .bio-seg-thumb { position: absolute; top: 0; bottom: 0; left: 0; width: 50%;
+    background: var(--dark); border-radius: 7px; pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.28s ease; }
+  .bio-seg-filter.faults .bio-seg-thumb { transform: translateX(100%); background: var(--red); }
+  @media (prefers-reduced-motion: reduce) { .bio-seg-thumb { transition: none; } }
   .bio-filter-note { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
 
   .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
@@ -595,7 +604,21 @@
     </button>
     <div class="collapsible-panel" id="panel-biohistory">
       <div class="doc-card">
-        <div class="bio-inner" id="bio-history-wrap"></div>
+        <div class="bio-inner" id="bio-history-wrap">
+          <div class="bio-hist-tools" id="bio-hist-tools">
+            <span class="bio-seg">
+              <button type="button" class="bio-tool" id="bio-expand-btn" onclick="expandAllBioChecks()">Expand all</button>
+              <button type="button" class="bio-tool" id="bio-collapse-btn" onclick="collapseAllBioChecks()">Collapse all</button>
+            </span>
+            <span class="bio-seg bio-seg-filter" id="bio-filter-seg">
+              <span class="bio-seg-thumb"></span>
+              <button type="button" class="bio-tool sel" id="bio-all-btn" aria-pressed="true" onclick="setBioFaultsOnly(false)">All checks</button>
+              <button type="button" class="bio-tool" id="bio-faults-btn" aria-pressed="false" onclick="setBioFaultsOnly(true)">Faults only</button>
+            </span>
+          </div>
+          <div class="bio-filter-note" id="bio-filter-note" style="display:none"></div>
+          <div id="bio-hist-rows"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1274,17 +1297,22 @@
   }
 
   function renderBioHistory() {
-    var wrap  = document.getElementById('bio-history-wrap');
+    var tools = document.getElementById('bio-hist-tools');
+    var noteEl = document.getElementById('bio-filter-note');
+    var rowsEl = document.getElementById('bio-hist-rows');
     var count = document.getElementById('bio-hist-count');
     var total = bioState.checks.length;
 
     if (count) count.textContent = total ? (total + (total === 1 ? ' check' : ' checks')) : '';
-    if (!wrap) return;
+    if (!rowsEl) return;
     if (!total) {
-      wrap.innerHTML = '<div style="text-align:center;color:var(--stone);font-size:0.82rem">' +
-                       'No checks recorded yet.</div>';
+      if (tools)  tools.style.display = 'none';
+      if (noteEl) noteEl.style.display = 'none';
+      rowsEl.innerHTML = '<div style="text-align:center;color:var(--stone);font-size:0.82rem">' +
+                         'No checks recorded yet.</div>';
       return;
     }
+    if (tools) tools.style.display = '';
 
     var list = bioVisibleChecks();
 
@@ -1293,35 +1321,39 @@
        live in between, which is when you have opened a few by hand. */
     var openCount = 0;
     list.forEach(function(c, i) { if (bioState.openRows[i]) openCount++; });
-    var noneOpen = openCount === 0;
-    var allOpen  = list.length > 0 && openCount === list.length;
 
-    var tools = '<div class="bio-hist-tools">' +
-      '<button type="button" class="bio-tool" onclick="expandAllBioChecks()"' +
-        (allOpen || !list.length ? ' disabled' : '') + '>Expand all</button>' +
-      '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()"' +
-        (noneOpen ? ' disabled' : '') + '>Collapse all</button>' +
-      '<button type="button" class="bio-tool bio-tool-gap' + (bioState.faultsOnly ? '' : ' sel') +
-        '" aria-pressed="' + (bioState.faultsOnly ? 'false' : 'true') +
-        '" onclick="setBioFaultsOnly(false)">All checks</button>' +
-      '<button type="button" class="bio-tool' + (bioState.faultsOnly ? ' sel-fault' : '') +
-        '" aria-pressed="' + (bioState.faultsOnly ? 'true' : 'false') +
-        '" onclick="setBioFaultsOnly(true)">Faults only</button>' +
-      '</div>';
+    var exBtn = document.getElementById('bio-expand-btn');
+    var coBtn = document.getElementById('bio-collapse-btn');
+    if (exBtn) exBtn.disabled = (!list.length || openCount === list.length);
+    if (coBtn) coBtn.disabled = (openCount === 0);
+
+    /* Only the classes change here -- the buttons themselves stay put, so the
+       block behind the filter pair slides rather than jumping. */
+    var seg     = document.getElementById('bio-filter-seg');
+    var allBtn  = document.getElementById('bio-all-btn');
+    var fltBtn  = document.getElementById('bio-faults-btn');
+    if (seg)    seg.classList.toggle('faults', bioState.faultsOnly);
+    if (allBtn) { allBtn.classList.toggle('sel', !bioState.faultsOnly);
+                  allBtn.setAttribute('aria-pressed', bioState.faultsOnly ? 'false' : 'true'); }
+    if (fltBtn) { fltBtn.classList.toggle('sel', bioState.faultsOnly);
+                  fltBtn.setAttribute('aria-pressed', bioState.faultsOnly ? 'true' : 'false'); }
 
     /* The filter searches the whole history, not the 20 on screen -- a fault
        from months back is exactly what someone turning this on is looking for. */
-    var note = '';
-    if (bioState.faultsOnly) {
-      note = '<div class="bio-filter-note">' +
-             (list.length
-               ? 'Showing ' + list.length + (list.length === 1 ? ' fault' : ' faults') +
-                 ' from ' + total + (total === 1 ? ' check' : ' checks') + '.'
-               : 'No faults recorded in ' + total + (total === 1 ? ' check' : ' checks') + '.') +
-             '</div>';
+    if (noteEl) {
+      if (bioState.faultsOnly) {
+        noteEl.style.display = '';
+        noteEl.textContent = list.length
+          ? 'Showing ' + list.length + (list.length === 1 ? ' fault' : ' faults') +
+            ' from ' + total + (total === 1 ? ' check' : ' checks') + '.'
+          : 'No faults recorded in ' + total + (total === 1 ? ' check' : ' checks') + '.';
+      } else {
+        noteEl.style.display = 'none';
+        noteEl.textContent = '';
+      }
     }
     if (bioState.faultsOnly && !list.length) {
-      wrap.innerHTML = tools + note;
+      rowsEl.innerHTML = '';
       return;
     }
 
@@ -1349,7 +1381,7 @@
              'Show all ' + total + ' checks</button>';
     }
 
-    wrap.innerHTML = tools + note + rows + more;
+    rowsEl.innerHTML = rows + more;
   }
 
   function toggleBioRow(i) {
@@ -1486,7 +1518,8 @@
 
     } catch(err) {
       bioUnlockBars();
-      var wrap = document.getElementById('bio-history-wrap');
+      var wrap = document.getElementById('bio-hist-rows') ||
+                 document.getElementById('bio-history-wrap');
       if (cached) {
         /* We already have something on screen -- say it may be out of date
            rather than throwing away a perfectly readable record. */
