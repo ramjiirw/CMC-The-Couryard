@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.10
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.12
      The build number identifies the change, not the file, so it only moves in
      files that actually changed. code.gs is unchanged, still on 1.09. -->
 <html lang="en">
@@ -377,18 +377,24 @@
   .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
   .bio-hist-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
-  .bio-tool { flex: 1; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
+  .bio-tool { flex: 1 1 0; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
     background: #fff; color: var(--mid); font-family: Arial, sans-serif;
     font-size: 0.72rem; font-weight: 600; border-radius: 8px; cursor: pointer;
     transition: all 0.15s; }
   .bio-tool:hover:not(:disabled) { border-color: var(--accent2); color: var(--dark); }
   .bio-tool:disabled { opacity: 0.4; cursor: default; }
-  .bio-tool.active { background: var(--red); border-color: var(--red); color: #fff; }
-  .bio-tool.active:hover { border-color: var(--red); color: #fff; }
+  /* All checks / Faults only behave as a pair -- one is always selected, so
+     there is never a hidden filter state to find your way out of. All four
+     buttons are siblings sharing one flex rule, so they are genuinely the same
+     width; the wider gap before the pair is what separates the two filters
+     from the two actions. No divider -- a vertical line would sit wrongly once
+     the row wraps to two lines on a narrow phone. */
+  .bio-tool-gap { margin-left: 0.7rem; }
+  .bio-tool.sel { background: var(--dark); border-color: var(--dark); color: var(--cream); }
+  .bio-tool.sel:hover { border-color: var(--dark); color: var(--cream); }
+  .bio-tool.sel-fault { background: var(--red); border-color: var(--red); color: #fff; }
+  .bio-tool.sel-fault:hover { border-color: var(--red); color: #fff; }
   .bio-filter-note { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
-  /* The cross is the way out of the filter -- the red active state says it is
-     on, but nothing else on this row is a toggle, so the escape is spelt out. */
-  .bio-tool-x { margin-left: 0.4rem; font-size: 0.95rem; line-height: 1; opacity: 0.9; }
 
   .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
     border: 1px solid var(--border); border-radius: 8px; background: var(--warm);
@@ -1295,10 +1301,12 @@
         (allOpen || !list.length ? ' disabled' : '') + '>Expand all</button>' +
       '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()"' +
         (noneOpen ? ' disabled' : '') + '>Collapse all</button>' +
-      '<button type="button" class="bio-tool' + (bioState.faultsOnly ? ' active' : '') +
-        '" onclick="toggleBioFaultsOnly()"' +
-        (bioState.faultsOnly ? ' aria-label="Clear the faults filter"' : '') + '>Faults only' +
-        (bioState.faultsOnly ? '<span class="bio-tool-x">&times;</span>' : '') + '</button>' +
+      '<button type="button" class="bio-tool bio-tool-gap' + (bioState.faultsOnly ? '' : ' sel') +
+        '" aria-pressed="' + (bioState.faultsOnly ? 'false' : 'true') +
+        '" onclick="setBioFaultsOnly(false)">All checks</button>' +
+      '<button type="button" class="bio-tool' + (bioState.faultsOnly ? ' sel-fault' : '') +
+        '" aria-pressed="' + (bioState.faultsOnly ? 'true' : 'false') +
+        '" onclick="setBioFaultsOnly(true)">Faults only</button>' +
       '</div>';
 
     /* The filter searches the whole history, not the 20 on screen -- a fault
@@ -1359,8 +1367,9 @@
     return bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
   }
 
-  function toggleBioFaultsOnly() {
-    bioState.faultsOnly = !bioState.faultsOnly;
+  function setBioFaultsOnly(on) {
+    if (bioState.faultsOnly === on) return;   /* already showing that view */
+    bioState.faultsOnly = on;
     bioState.openRows = {};   /* indices now mean different checks */
     renderBioHistory();
   }
