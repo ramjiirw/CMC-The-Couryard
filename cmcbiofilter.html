@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.03
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.04
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is on 1.03 for this build too. -->
+     files that actually changed. code.gs is unchanged, still on 1.03. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -261,10 +261,6 @@
   .bio-bar-pills { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; }
   #toggle-biochecks .toggle-hint { margin-left: 0.55rem; }
 
-  /* The latest check sits above both bars, so a look-only visit needs no taps. */
-  .bio-latest-wrap { padding: 1.15rem 1.5rem; background: var(--warm);
-    border-bottom: 1px solid var(--border); }
-  .bio-latest-wrap .bio-card { margin-bottom: 0; }
   /* Hairline between the two stacked bars rather than a gap showing through. */
   #toggle-biohistory { border-top: 1px solid rgba(245,240,232,0.12); }
   .bio-stale { font-size: 0.68rem; color: var(--stone); font-style: italic;
@@ -500,11 +496,10 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Checks</h3>
 
-    <!-- Latest check -- always visible, outside both bars -->
-    <div class="bio-latest-wrap" id="bio-latest"></div>
-
     <!-- Bar 1: record a check. Carries the colour states and the pills, since
-         those are prompts to act. Opens by default once the data has loaded. -->
+         those are prompts to act, and they also summarise the last check --
+         which is why there is no separate card for it. Closed on arrival:
+         this page is not only about the checks. -->
     <button class="btn-toggle btn-loading" id="toggle-biochecks" onclick="togglePanel('biochecks')" aria-expanded="false">
       <span class="toggle-left"><span id="bio-bar-label">&#128300; Record a check</span></span>
       <span class="bio-bar-pills">
@@ -833,10 +828,13 @@
      The form is inert until a property is picked, and locks again after a save
      so a second person's check cannot be filed under the first person's name.
      Bar: normal to day 2, orange on day 3, red and shivering from day 4.
-     Two bars: recording and history are separate, with the latest check always
-     visible above both so a look-only visit needs no taps at all. The last
-     result is kept in localStorage and drawn immediately on arrival, so the
-     section is there before the Apps Script cold start finishes.
+     Two bars, both closed on arrival: recording and history are separate, and
+     this page carries other sections too, so neither is opened for you. The
+     check bar doubles as the summary of the last check -- its pill and days
+     text say what was found and when -- so there is no separate card. The
+     detail of that check is the top row of Previous checks, expanded when the
+     panel opens. The last result is kept in localStorage and drawn immediately
+     on arrival, so the bars are ready before the Apps Script cold start ends.
      ====================================================================== */
 
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
@@ -862,7 +860,7 @@
   var bioState = {
     checks: [], checkers: [], checkedBy: '',
     items: {}, presets: [], otherText: '',
-    saving: false, showAll: false, openRows: {}, opened: false
+    saving: false, showAll: false, openRows: { 0: true }
   };
 
   /* Items that are usually not visible, so start on "Couldn't observe". */
@@ -1213,33 +1211,7 @@
   }
 
   function renderBioResults() {
-    renderBioLatest();
     renderBioHistory();
-  }
-
-  function renderBioLatest() {
-    var wrap = document.getElementById('bio-latest');
-    if (!wrap) return;
-
-    if (!bioState.checks.length) {
-      wrap.innerHTML = '<div class="bio-card" style="text-align:center;color:var(--stone);font-size:0.82rem">' +
-                       'No checks recorded yet.</div>';
-      return;
-    }
-
-    var c = bioState.checks[0];
-    wrap.innerHTML =
-      '<div class="bio-step">Latest check</div>' +
-      '<div class="bio-card">' +
-        '<div class="bio-card-head">' +
-          '<div><div class="bio-card-date">' + bioEsc(bioDateLong(c.date)) +
-            (bioTimeOf(c.date) ? ' <span style="color:var(--mid);font-size:0.8rem">at ' +
-              bioEsc(bioTimeOf(c.date)) + '</span>' : '') + '</div>' +
-          '<div class="bio-card-by">' + bioEsc(c.checkedBy) + '</div></div>' +
-          bioOverallPill(c) +
-        '</div>' +
-        bioDetailHtml(c) +
-      '</div>';
   }
 
   function renderBioHistory() {
@@ -1321,19 +1293,6 @@
     } catch(e) { return null; }
   }
 
-  /* Opens the check panel without togglePanel's scroll-into-view, which would
-     otherwise jerk the page down to this section the moment you arrive. */
-  function openBioCheckPanel() {
-    if (bioState.opened) return;
-    bioState.opened = true;
-    var btn   = document.getElementById('toggle-biochecks');
-    var panel = document.getElementById('panel-biochecks');
-    if (!btn || !panel) return;
-    panel.classList.add('open');
-    btn.classList.add('open');
-    btn.setAttribute('aria-expanded', 'true');
-  }
-
   function bioUnlockBars() {
     ['toggle-biochecks', 'toggle-biohistory'].forEach(function(id) {
       var b = document.getElementById(id);
@@ -1342,6 +1301,10 @@
   }
 
   function renderBioAll() {
+    /* Fresh data means the newest check has changed, so it goes back to being
+       the expanded row -- opening Previous checks shows the last check in full
+       without a second tap. */
+    bioState.openRows = { 0: true };
     renderBioCheckers();
     renderBioResults();
     updateBioBar();
@@ -1364,7 +1327,6 @@
       bioState.checkers = cached.checkers;
       renderBioAll();
       bioUnlockBars();
-      openBioCheckPanel();
     }
 
     try {
@@ -1378,20 +1340,18 @@
 
       renderBioAll();
       bioUnlockBars();
-      openBioCheckPanel();
 
     } catch(err) {
       bioUnlockBars();
+      var wrap = document.getElementById('bio-history-wrap');
       if (cached) {
         /* We already have something on screen -- say it may be out of date
            rather than throwing away a perfectly readable record. */
-        var latest = document.getElementById('bio-latest');
-        if (latest) latest.innerHTML += '<div class="bio-stale">&#9888; Could not reach the ' +
-          'server, so this may be out of date. Pull down to refresh the page.</div>';
+        if (wrap) wrap.innerHTML += '<div class="bio-stale">&#9888; Could not reach the ' +
+          'server, so this may be out of date. Refresh the page to try again.</div>';
       } else {
         var days = document.getElementById('bio-days-pill');
         if (days) { days.style.display = 'inline'; days.textContent = 'Could not load data'; }
-        var wrap = document.getElementById('bio-latest');
         if (wrap) wrap.innerHTML = '<div class="state-error">&#9888; Could not load checks. ' +
                                    bioEsc(err.message) + '</div>';
       }
