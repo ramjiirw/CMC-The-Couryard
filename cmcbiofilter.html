@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.02
+     Kept level with the CMC_BUILD constant in code.gs, so a mismatch between
+     the two shows at a glance that one of them is stale. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -251,9 +254,9 @@
   .bio-pill-green { background: #e1f0e4; color: #265c32; }
   .bio-pill-red   { background: #f6e3e3; color: #7a2f2f; }
   .bio-pill-stone { background: #efe9df; color: #4a4038; }
-  .bio-pill-dark  { background: #2f2a24; color: var(--accent2); }
-  #toggle-biochecks.bio-bar-due .bio-pill-dark,
-  #toggle-biochecks.bio-bar-overdue .bio-pill-dark { background: rgba(255,255,255,0.18); color: #fff; }
+  .bio-days-text { font-size: 0.72rem; color: var(--accent2); white-space: nowrap; }
+  #toggle-biochecks.bio-bar-due .bio-days-text,
+  #toggle-biochecks.bio-bar-overdue .bio-days-text { color: rgba(255,255,255,0.92); }
 
   .bio-bar-pills { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; }
   #toggle-biochecks .toggle-hint { margin-left: 0.55rem; }
@@ -301,11 +304,18 @@
 
   .bio-bottom { display: flex; align-items: stretch; gap: 0.5rem;
     border-top: 1px solid var(--border); margin-top: 1.25rem; padding-top: 1.25rem; }
-  .bio-markall { flex: 0 0 auto; padding: 0.55rem 0.95rem; border: 1px solid #3f7c4a;
-    background: #fff; color: #265c32; font-family: Arial, sans-serif; font-size: 0.78rem;
-    font-weight: 600; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
-  .bio-markall:hover:not(:disabled) { background: #e1f0e4; }
-  .bio-markall:disabled { opacity: 0.45; cursor: default; }
+  .bio-reset { flex: 0 0 auto; padding: 0.55rem 0.95rem; border: 1px solid var(--border);
+    background: #fff; color: var(--mid); font-family: Arial, sans-serif; font-size: 0.78rem;
+    font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .bio-reset:hover:not(:disabled) { border-color: var(--accent2); color: var(--dark); }
+  .bio-reset:disabled { opacity: 0.45; cursor: default; }
+
+  /* The check stays inert until someone says who is doing it. The latest check
+     and the history sit outside this wrapper, so they stay readable throughout. */
+  .bio-form.locked { opacity: 0.4; pointer-events: none; }
+  .bio-prompt { background: #fbf4e9; border: 1px solid #e0cba8; border-radius: 8px;
+    padding: 0.55rem 0.9rem; font-size: 0.75rem; color: var(--accent);
+    margin-bottom: 1rem; }
 
   .bio-save { flex: 1; padding: 0.75rem; border: none; border-radius: 8px;
     background: var(--dark); color: var(--cream); font-family: Arial, sans-serif;
@@ -366,7 +376,7 @@
     .bio-opt { flex: 1; text-align: center; padding: 0.3rem 0.3rem; font-size: 0.66rem; }
     .bio-hist-body { padding-left: 1rem; }
     .bio-bottom { flex-direction: column; }
-    .bio-markall { width: 100%; }
+    .bio-reset { width: 100%; }
   }
 </style>
 </head>
@@ -490,7 +500,7 @@
       <span class="toggle-left"><span id="bio-bar-label">&#128300; Bio Filter Checks</span></span>
       <span class="bio-bar-pills">
         <span class="bio-pill bio-pill-green" id="bio-health-pill" style="display:none"></span>
-        <span class="bio-pill bio-pill-dark" id="bio-days-pill" style="display:none"></span>
+        <span class="bio-days-text" id="bio-days-pill" style="display:none"></span>
       </span>
       <span class="toggle-hint">
         <span class="hint-loading">Loading&hellip;</span>
@@ -508,17 +518,21 @@
           <div class="bio-step">1 &middot; Who is checking</div>
           <div class="bio-chips" id="bio-checkers"></div>
 
-          <div class="bio-step">2 &middot; The check</div>
-          <div class="bio-hint">Already set to how it usually is &mdash; change anything that differs today</div>
-          <div class="bio-items" id="bio-items"></div>
+          <div class="bio-prompt" id="bio-prompt">Tap your property above to start the check</div>
 
-          <div class="bio-step" style="margin-top:1.15rem">3 &middot; Notes</div>
-          <div class="bio-chips" id="bio-presets"></div>
-          <textarea class="bio-textarea" id="bio-other-text" placeholder="Anything else worth recording" style="display:none" oninput="bioState.otherText=this.value"></textarea>
+          <div class="bio-form locked" id="bio-form">
+            <div class="bio-step">2 &middot; The check</div>
+            <div class="bio-hint">Already set to how it usually is &mdash; change anything that differs today</div>
+            <div class="bio-items" id="bio-items"></div>
 
-          <div class="bio-bottom">
-            <button type="button" class="bio-markall" id="bio-markall-btn" onclick="markAllBioPass()" disabled>Mark all as pass</button>
-            <button type="button" class="bio-save" id="bio-save-btn" onclick="saveBioCheck()" disabled>Save check</button>
+            <div class="bio-step" style="margin-top:1.15rem">3 &middot; Notes</div>
+            <div class="bio-chips" id="bio-presets"></div>
+            <textarea class="bio-textarea" id="bio-other-text" placeholder="Anything else worth recording" style="display:none" oninput="bioState.otherText=this.value"></textarea>
+
+            <div class="bio-bottom">
+              <button type="button" class="bio-reset" id="bio-reset-btn" onclick="resetBioCheckFields()" disabled>Reset</button>
+              <button type="button" class="bio-save" id="bio-save-btn" onclick="saveBioCheck()" disabled>Save check</button>
+            </div>
           </div>
 
           <div class="bio-msg" id="bio-save-msg" style="display:none"></div>
@@ -794,8 +808,9 @@
      are, so a routine check is a glance and a save. Pump 1 and "Discharging
      into channel" start on "Couldn't observe" -- pump 1 runs for a few
      seconds once an hour and the discharge happens at no set time, so seeing
-     either is luck rather than condition. "Mark all as pass" at the bottom is
-     for the rare visit where everything genuinely was seen and was fine.
+     either is luck rather than condition.
+     The form is inert until a property is picked, and locks again after a save
+     so a second person's check cannot be filed under the first person's name.
      Bar: normal to day 2, orange on day 3, red and shivering from day 4.
      ====================================================================== */
 
@@ -834,12 +849,6 @@
     BIO_ITEMS.forEach(function(it) {
       o[it.key] = (BIO_UNOBSERVED.indexOf(it.key) !== -1) ? BIO_OBS : 'Pass';
     });
-    return o;
-  }
-
-  function bioAllPass() {
-    var o = {};
-    BIO_ITEMS.forEach(function(it) { o[it.key] = 'Pass'; });
     return o;
   }
 
@@ -918,7 +927,7 @@
       btn.classList.add('bio-bar-overdue');
       label.innerHTML = '&#9888; Bio filter check overdue';
       health.style.display = 'none';
-      days.style.display = 'inline-flex';
+      days.style.display = 'inline';
       days.textContent = 'No checks recorded yet';
       return;
     }
@@ -937,7 +946,7 @@
     }
 
     var time = bioTimeOf(last.date);
-    days.style.display = 'inline-flex';
+    days.style.display = 'inline';
     if (n === 0)      days.textContent = 'Checked today' + (time ? ' at ' + time : '');
     else if (n === 1) days.textContent = 'Checked yesterday' + (time ? ' at ' + time : '');
     else              days.textContent = n + ' days since last check';
@@ -982,17 +991,31 @@
   }
 
   function updateBioButtons() {
-    var ok = !!bioState.checkedBy && !bioState.saving;
-    var save = document.getElementById('bio-save-btn');
-    var mark = document.getElementById('bio-markall-btn');
-    if (save) save.disabled = !ok;
-    if (mark) mark.disabled = !ok;
+    var picked = !!bioState.checkedBy;
+    var ok = picked && !bioState.saving;
+    var save  = document.getElementById('bio-save-btn');
+    var reset = document.getElementById('bio-reset-btn');
+    if (save)  save.disabled  = !ok;
+    if (reset) reset.disabled = !ok;
+
+    /* Dim and disable the whole check until we know who is doing it. */
+    var form = document.getElementById('bio-form');
+    if (form) form.classList.toggle('locked', !picked);
+    var prompt = document.getElementById('bio-prompt');
+    if (prompt) prompt.style.display = picked ? 'none' : 'block';
   }
 
-  /* For the rare visit where everything genuinely was seen and was fine. */
-  function markAllBioPass() {
-    bioState.items = bioAllPass();
+  /* Puts the rows back to how they usually are and clears the notes. The
+     chosen property is left alone -- resetting the check is not the same as
+     handing it to somebody else. */
+  function resetBioCheckFields() {
+    bioState.items = bioDefaults();
+    bioState.presets = [];
+    bioState.otherText = '';
+    var box = document.getElementById('bio-other-text');
+    if (box) { box.value = ''; box.style.display = 'none'; }
     renderBioItems();
+    renderBioPresets();
   }
 
   /* ── The itemised panel ────────────────────────────────────────────── */
@@ -1286,7 +1309,7 @@
     } catch(err) {
       if (btn) btn.classList.remove('btn-loading');
       var days = document.getElementById('bio-days-pill');
-      if (days) { days.style.display = 'inline-flex'; days.textContent = 'Could not load data'; }
+      if (days) { days.style.display = 'inline'; days.textContent = 'Could not load data'; }
       var wrap = document.getElementById('bio-latest');
       if (wrap) wrap.innerHTML = '<div class="state-error">&#9888; Could not load checks. ' +
                                  bioEsc(err.message) + '</div>';
