@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.02
-     Kept level with the CMC_BUILD constant in code.gs, so a mismatch between
-     the two shows at a glance that one of them is stale. -->
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.03
+     The build number identifies the change, not the file, so it only moves in
+     files that actually changed. code.gs is on 1.03 for this build too. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -261,6 +261,15 @@
   .bio-bar-pills { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; }
   #toggle-biochecks .toggle-hint { margin-left: 0.55rem; }
 
+  /* The latest check sits above both bars, so a look-only visit needs no taps. */
+  .bio-latest-wrap { padding: 1.15rem 1.5rem; background: var(--warm);
+    border-bottom: 1px solid var(--border); }
+  .bio-latest-wrap .bio-card { margin-bottom: 0; }
+  /* Hairline between the two stacked bars rather than a gap showing through. */
+  #toggle-biohistory { border-top: 1px solid rgba(245,240,232,0.12); }
+  .bio-stale { font-size: 0.68rem; color: var(--stone); font-style: italic;
+    margin-top: 0.5rem; }
+
   .bio-inner { padding: 1.25rem 1.5rem 1.5rem; }
   .bio-date { font-size: 0.8rem; color: var(--mid); margin-bottom: 1rem; }
   .bio-step { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
@@ -328,7 +337,6 @@
   .bio-msg-ok  { background: #e1f0e4; color: #265c32; border: 1px solid #c8e2ce; }
   .bio-msg-err { background: #fdecea; color: var(--red); border: 1px solid #f5c6cb; }
 
-  .bio-sep { border-top: 1px solid var(--border); margin: 1.5rem 0 1.15rem; }
   .bio-card { background: #fff; border: 1px solid var(--border); border-radius: 10px;
     padding: 0.95rem 1.05rem; margin-bottom: 0.9rem; }
   .bio-card-head { display: flex; align-items: center; justify-content: space-between;
@@ -343,13 +351,8 @@
   .bio-card-notes { border-top: 1px solid #eee7dc; margin-top: 0.7rem; padding-top: 0.6rem;
     font-size: 0.78rem; color: #4a4038; line-height: 1.5; }
 
-  .bio-hist-bar { background: #efe9df; border: 1px solid var(--border); border-radius: 8px;
-    padding: 0.6rem 1rem; display: flex; align-items: center; justify-content: space-between;
-    gap: 0.6rem; font-size: 0.78rem; cursor: pointer; transition: border-color 0.15s; }
-  .bio-hist-bar:hover { border-color: var(--accent2); }
-  .bio-hist-count { font-size: 0.7rem; color: var(--mid); }
-  .bio-hist-list { background: #fff; border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 10px 10px; overflow: hidden; }
+  .bio-hist-list { background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; }
   .bio-hist-row { border-bottom: 1px solid #eee7dc; }
   .bio-hist-row:last-child { border-bottom: none; }
   .bio-hist-row.open { background: var(--warm); }
@@ -364,9 +367,10 @@
   .bio-hist-body { padding: 0 1rem 0.9rem 2rem; }
   .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
-  .bio-showall { display: block; width: 100%; padding: 0.6rem; border: 1px solid var(--border);
-    border-top: none; border-radius: 0 0 10px 10px; background: var(--warm); color: var(--accent);
-    font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+  .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--warm);
+    color: var(--accent); font-family: Arial, sans-serif; font-size: 0.75rem;
+    font-weight: 600; cursor: pointer; }
   .bio-showall:hover { background: #f2ece2; }
 
   @media (max-width: 600px) {
@@ -496,8 +500,13 @@
   <div class="finance-section">
     <h3 class="section-heading">Bio Filter Checks</h3>
 
+    <!-- Latest check -- always visible, outside both bars -->
+    <div class="bio-latest-wrap" id="bio-latest"></div>
+
+    <!-- Bar 1: record a check. Carries the colour states and the pills, since
+         those are prompts to act. Opens by default once the data has loaded. -->
     <button class="btn-toggle btn-loading" id="toggle-biochecks" onclick="togglePanel('biochecks')" aria-expanded="false">
-      <span class="toggle-left"><span id="bio-bar-label">&#128300; Bio Filter Checks</span></span>
+      <span class="toggle-left"><span id="bio-bar-label">&#128300; Record a check</span></span>
       <span class="bio-bar-pills">
         <span class="bio-pill bio-pill-green" id="bio-health-pill" style="display:none"></span>
         <span class="bio-days-text" id="bio-days-pill" style="display:none"></span>
@@ -537,12 +546,24 @@
 
           <div class="bio-msg" id="bio-save-msg" style="display:none"></div>
 
-          <div class="bio-sep"></div>
-
-          <div id="bio-latest"></div>
-          <div id="bio-history-wrap"></div>
-
         </div>
+      </div>
+    </div>
+
+    <!-- Bar 2: previous checks. Plain bar, closed on arrival. -->
+    <button class="btn-toggle btn-loading" id="toggle-biohistory" onclick="togglePanel('biohistory')" aria-expanded="false">
+      <span class="toggle-left"><span>&#128340; Previous checks</span></span>
+      <span class="bio-bar-pills"><span class="bio-days-text" id="bio-hist-count"></span></span>
+      <span class="toggle-hint">
+        <span class="hint-loading">Loading&hellip;</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9654;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-biohistory">
+      <div class="doc-card">
+        <div class="bio-inner" id="bio-history-wrap"></div>
       </div>
     </div>
   </div>
@@ -812,6 +833,10 @@
      The form is inert until a property is picked, and locks again after a save
      so a second person's check cannot be filed under the first person's name.
      Bar: normal to day 2, orange on day 3, red and shivering from day 4.
+     Two bars: recording and history are separate, with the latest check always
+     visible above both so a look-only visit needs no taps at all. The last
+     result is kept in localStorage and drawn immediately on arrival, so the
+     section is there before the Apps Script cold start finishes.
      ====================================================================== */
 
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
@@ -837,8 +862,7 @@
   var bioState = {
     checks: [], checkers: [], checkedBy: '',
     items: {}, presets: [], otherText: '',
-    saving: false,
-    historyOpen: false, showAll: false, openRows: {}
+    saving: false, showAll: false, openRows: {}, opened: false
   };
 
   /* Items that are usually not visible, so start on "Couldn't observe". */
@@ -1141,11 +1165,13 @@
       var data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message || 'Unknown error');
 
+      bioCacheSave();
       resetBioForm();
       bioMsg('&#10004; Check saved successfully.', true);
 
     } catch(err) {
       bioState.checks.shift();
+      bioCacheSave();
       renderBioResults();
       updateBioBar();
       bioMsg('&#9888; Could not save. Please try again.', false);
@@ -1195,10 +1221,6 @@
     var wrap = document.getElementById('bio-latest');
     if (!wrap) return;
 
-    /* When the history is open the latest check is its top row, so the
-       standalone card comes out to avoid showing the same check twice. */
-    if (bioState.historyOpen) { wrap.innerHTML = ''; return; }
-
     if (!bioState.checks.length) {
       wrap.innerHTML = '<div class="bio-card" style="text-align:center;color:var(--stone);font-size:0.82rem">' +
                        'No checks recorded yet.</div>';
@@ -1221,19 +1243,17 @@
   }
 
   function renderBioHistory() {
-    var wrap = document.getElementById('bio-history-wrap');
-    if (!wrap) return;
-    if (!bioState.checks.length) { wrap.innerHTML = ''; return; }
-
+    var wrap  = document.getElementById('bio-history-wrap');
+    var count = document.getElementById('bio-hist-count');
     var total = bioState.checks.length;
-    var bar =
-      '<div class="bio-hist-bar" onclick="toggleBioHistory()">' +
-        '<span>&#128340; All previous checks</span>' +
-        '<span class="bio-hist-count">' + total + (total === 1 ? ' check' : ' checks') +
-          ' &nbsp;' + (bioState.historyOpen ? '&#9660;' : '&#9654;') + '</span>' +
-      '</div>';
 
-    if (!bioState.historyOpen) { wrap.innerHTML = bar; return; }
+    if (count) count.textContent = total ? (total + (total === 1 ? ' check' : ' checks')) : '';
+    if (!wrap) return;
+    if (!total) {
+      wrap.innerHTML = '<div style="text-align:center;color:var(--stone);font-size:0.82rem">' +
+                       'No checks recorded yet.</div>';
+      return;
+    }
 
     var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
     var rows = '';
@@ -1259,15 +1279,7 @@
              'Show all ' + total + ' checks</button>';
     }
 
-    wrap.innerHTML = bar + '<div class="bio-hist-list">' + rows + '</div>' + more;
-  }
-
-  function toggleBioHistory() {
-    bioState.historyOpen = !bioState.historyOpen;
-    /* Opening shows the newest check expanded, everything below it closed. */
-    bioState.openRows = bioState.historyOpen ? { 0: true } : {};
-    if (!bioState.historyOpen) bioState.showAll = false;
-    renderBioResults();
+    wrap.innerHTML = '<div class="bio-hist-list">' + rows + '</div>' + more;
   }
 
   function toggleBioRow(i) {
@@ -1280,6 +1292,62 @@
     renderBioHistory();
   }
 
+  /* ── Remembering the last result ───────────────────────────────────── */
+  /* Apps Script takes one to three seconds to wake up, and that wait is the
+     whole of the delay. Keeping the last result in the browser lets the
+     section draw immediately and then quietly correct itself when the real
+     answer arrives. Nothing is ever saved from this cache -- the form starts
+     locked either way -- so stale data can only ever be read, not written. */
+
+  var BIO_CACHE_KEY = 'cmcBioFilterChecks_v1';
+
+  function bioCacheSave() {
+    try {
+      localStorage.setItem(BIO_CACHE_KEY, JSON.stringify({
+        checks:   bioState.checks,
+        checkers: bioState.checkers,
+        savedAt:  new Date().getTime()
+      }));
+    } catch(e) { /* private mode or full -- carry on without it */ }
+  }
+
+  function bioCacheLoad() {
+    try {
+      var raw = localStorage.getItem(BIO_CACHE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || !Array.isArray(d.checks) || !Array.isArray(d.checkers)) return null;
+      return d;
+    } catch(e) { return null; }
+  }
+
+  /* Opens the check panel without togglePanel's scroll-into-view, which would
+     otherwise jerk the page down to this section the moment you arrive. */
+  function openBioCheckPanel() {
+    if (bioState.opened) return;
+    bioState.opened = true;
+    var btn   = document.getElementById('toggle-biochecks');
+    var panel = document.getElementById('panel-biochecks');
+    if (!btn || !panel) return;
+    panel.classList.add('open');
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  function bioUnlockBars() {
+    ['toggle-biochecks', 'toggle-biohistory'].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (b) b.classList.remove('btn-loading');
+    });
+  }
+
+  function renderBioAll() {
+    renderBioCheckers();
+    renderBioResults();
+    updateBioBar();
+    updateBioButtons();
+  }
+
   /* ── Load on page open ─────────────────────────────────────────────── */
   (async function loadBioChecks() {
     var dateEl = document.getElementById('bio-date-display');
@@ -1289,7 +1357,15 @@
     renderBioItems();
     renderBioPresets();
 
-    var btn = document.getElementById('toggle-biochecks');
+    /* Draw from the last visit straight away, if we have one. */
+    var cached = bioCacheLoad();
+    if (cached) {
+      bioState.checks   = cached.checks;
+      bioState.checkers = cached.checkers;
+      renderBioAll();
+      bioUnlockBars();
+      openBioCheckPanel();
+    }
 
     try {
       var res  = await fetch(SCRIPT_URL + '?action=readBioFilterChecks&v=' + Date.now());
@@ -1298,21 +1374,27 @@
 
       bioState.checks   = data.checks   || [];
       bioState.checkers = data.checkers || [];
+      bioCacheSave();
 
-      renderBioCheckers();
-      renderBioResults();
-      updateBioBar();
-      updateBioButtons();
-
-      if (btn) btn.classList.remove('btn-loading');
+      renderBioAll();
+      bioUnlockBars();
+      openBioCheckPanel();
 
     } catch(err) {
-      if (btn) btn.classList.remove('btn-loading');
-      var days = document.getElementById('bio-days-pill');
-      if (days) { days.style.display = 'inline'; days.textContent = 'Could not load data'; }
-      var wrap = document.getElementById('bio-latest');
-      if (wrap) wrap.innerHTML = '<div class="state-error">&#9888; Could not load checks. ' +
-                                 bioEsc(err.message) + '</div>';
+      bioUnlockBars();
+      if (cached) {
+        /* We already have something on screen -- say it may be out of date
+           rather than throwing away a perfectly readable record. */
+        var latest = document.getElementById('bio-latest');
+        if (latest) latest.innerHTML += '<div class="bio-stale">&#9888; Could not reach the ' +
+          'server, so this may be out of date. Pull down to refresh the page.</div>';
+      } else {
+        var days = document.getElementById('bio-days-pill');
+        if (days) { days.style.display = 'inline'; days.textContent = 'Could not load data'; }
+        var wrap = document.getElementById('bio-latest');
+        if (wrap) wrap.innerHTML = '<div class="state-error">&#9888; Could not load checks. ' +
+                                   bioEsc(err.message) + '</div>';
+      }
     }
   })();
 </script>
