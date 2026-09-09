@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.13
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.15
      The build number identifies the change, not the file, so it only moves in
      files that actually changed. code.gs is unchanged, still on 1.09. -->
 <html lang="en">
@@ -1303,7 +1303,24 @@
     var count = document.getElementById('bio-hist-count');
     var total = bioState.checks.length;
 
-    if (count) count.textContent = total ? (total + (total === 1 ? ' check' : ' checks')) : '';
+    /* A running total stops meaning anything once it is in the hundreds. What
+       matters is whether checking is keeping up, so the bar shows a rolling
+       week instead -- against a two-day cadence you would expect three or
+       four, so a shortfall reads immediately. Seven days also matches the rest
+       of the design, where the bar turns orange on day 3 and red on day 4.
+       Rolling rather than "this week", which would read alarmingly low on a
+       Monday after a perfectly good run. The full total is still shown in the
+       filter note when Faults only is on. */
+    if (count) {
+      var recent = 0;
+      bioState.checks.forEach(function(c) {
+        var d = bioDaysSince(c.date);
+        if (d !== null && d <= 7) recent++;
+      });
+      count.textContent = !total ? ''
+        : (recent === 0 ? 'None in the last 7 days'
+                        : recent + ' in the last 7 days');
+    }
     if (!rowsEl) return;
     if (!total) {
       if (tools)  tools.style.display = 'none';
