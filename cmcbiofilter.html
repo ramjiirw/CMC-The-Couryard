@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.09
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.10
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is on 1.09 for this build too. -->
+     files that actually changed. code.gs is unchanged, still on 1.09. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -386,6 +386,9 @@
   .bio-tool.active { background: var(--red); border-color: var(--red); color: #fff; }
   .bio-tool.active:hover { border-color: var(--red); color: #fff; }
   .bio-filter-note { font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
+  /* The cross is the way out of the filter -- the red active state says it is
+     on, but nothing else on this row is a toggle, so the escape is spelt out. */
+  .bio-tool-x { margin-left: 0.4rem; font-size: 0.95rem; line-height: 1; opacity: 0.9; }
 
   .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
     border: 1px solid var(--border); border-radius: 8px; background: var(--warm);
@@ -1293,7 +1296,9 @@
       '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()"' +
         (noneOpen ? ' disabled' : '') + '>Collapse all</button>' +
       '<button type="button" class="bio-tool' + (bioState.faultsOnly ? ' active' : '') +
-        '" onclick="toggleBioFaultsOnly()">Faults only</button>' +
+        '" onclick="toggleBioFaultsOnly()"' +
+        (bioState.faultsOnly ? ' aria-label="Clear the faults filter"' : '') + '>Faults only' +
+        (bioState.faultsOnly ? '<span class="bio-tool-x">&times;</span>' : '') + '</button>' +
       '</div>';
 
     /* The filter searches the whole history, not the 20 on screen -- a fault
