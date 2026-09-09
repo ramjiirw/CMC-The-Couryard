@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- CMC The Courtyard -- main.html -- Build 1.00
+     First build to carry a number. The number identifies the change, not the
+     file, so this page and code.gs will diverge. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -934,6 +937,23 @@
     </span>
   </a>
 
+  <!-- Bio Filter Overdue Bar — only shown from day 4 without a check.
+       Carries the smoke-overdue-bar class for its styling: the two bars mean
+       the same thing and look the same, so the rules are shared rather than
+       duplicated. bio-overdue-bar is the hook for anything bio-specific. -->
+  <a class="smoke-overdue-bar bio-overdue-bar" id="bioOverdueBar" href="cmcbiofilter.html#biochecks">
+    <span class="smoke-bar-inner">
+      <span class="smoke-bar-left">
+        <span>&#128300; CMC Bio Filter &middot; Checks</span>
+        <span class="smoke-bar-pill" id="bioOverduePill"></span>
+      </span>
+      <span class="smoke-bar-hint">
+        <span>Tap to record now</span>
+        <span class="smoke-bar-chevron">&#9658;</span>
+      </span>
+    </span>
+  </a>
+
   <!-- Upcoming Directors' Meeting Bar — only shown when the next meeting is within 7 days -->
   <a class="dm-next-bar" id="dmNextBar" href="maintenancesubmissions.html#directors-meetings">
     <span class="dm-next-inner">
@@ -1140,7 +1160,7 @@
       <p class="agm-cta">View bank statements and other documents →</p>
     </a>
 
-    <a class="link-card agm-card" href="cmcbiofilter.html">
+    <a class="link-card agm-card" id="bioCard" href="cmcbiofilter.html">
       <div class="agm-card-top">
         <span class="icon" style="margin:0">⚙️</span>
         <h3 style="margin:0">CMC Bio Filter</h3>
@@ -1148,6 +1168,8 @@
       <div class="agm-details">
         <div class="agm-detail-row"><span class="agm-detail-label" style="flex:0 0 auto;">Latest bio filter servicing record</span></div>
         <div class="agm-detail-row" style="margin-top:0.1rem;margin-bottom:0.1rem;"><span class="agm-detail-val" id="bioLatest"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row" style="margin-top:0.4rem;"><span class="agm-detail-label">Last check</span><span class="agm-detail-val" id="bioLastCheck"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
+        <div class="agm-detail-row"><span class="agm-detail-label">Check status</span><span class="agm-detail-val" id="bioCheckStatus"><span class="skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></div>
       </div>
       <p class="agm-cta">View Bio Filter Servicing and documentation →</p>
     </a>
@@ -1545,6 +1567,109 @@
     } catch(e) {
       document.getElementById('bioLatest').textContent = '—';
       showOfflineNotice();
+    }
+  })();
+
+  // ── Bio Filter check state for the Bio Filter card ──────────────────────
+  // Mirrors the farmhouse smoke card, but on the bio filter's own cadence:
+  // a check is due on day 3 and overdue from day 4, against the smoke
+  // check's 30. Wording matches cmcbiofilter.html rather than the smoke card,
+  // so the same check reads the same in both places.
+  (async function() {
+    var card       = document.getElementById('bioCard');
+    var elLast     = document.getElementById('bioLastCheck');
+    var elStatus   = document.getElementById('bioCheckStatus');
+    if (!card || !elLast || !elStatus) return;
+
+    /* Reads 'dd/MM/yyyy HH:mm' and the older 'dd/MM/yyyy'. */
+    function bioParse(str) {
+      var m = (str || '').toString().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+      if (!m) return null;
+      return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10),
+                      m[4] ? parseInt(m[4], 10) : 0, m[5] ? parseInt(m[5], 10) : 0);
+    }
+    function bioTime(str) {
+      var m = (str || '').toString().match(/\s(\d{1,2}):(\d{2})$/);
+      if (!m) return '';
+      var t = (parseInt(m[1], 10) < 10 ? '0' : '') + parseInt(m[1], 10) + ':' + m[2];
+      return t === '00:00' ? '' : t;
+    }
+    function bioFmt(str) {
+      var d = bioParse(str);
+      if (!d) return str || '—';
+      var out = d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+      var t = bioTime(str);
+      return t ? out + ' at ' + t : out;
+    }
+    function bioDaysAgo(str) {
+      var d = bioParse(str);
+      if (!d) return null;
+      var day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      var now = new Date();
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return Math.round((today - day) / 86400000);
+    }
+
+    try {
+      var bundle = await dashboardData;
+      if (!bundle) throw new Error('offline');
+      var data = bundle.bioFilterChecks;
+      if (!data || data.status !== 'ok') throw new Error(data && data.message);
+
+      var last = data.lastCheck;
+      if (!last || !last.date) {
+        elLast.textContent   = 'No checks recorded';
+        elStatus.textContent = '—';
+        return;
+      }
+
+      var days    = bioDaysAgo(last.date);
+      if (days === null) days = 0;
+      var hasFail = last.overall === 'Fault';
+      var isAlert = hasFail || days >= 3;
+
+      elLast.textContent = bioFmt(last.date) +
+                           (last.checkedBy ? ' \u00b7 ' + last.checkedBy : '');
+
+      if (!isAlert) {
+        elStatus.innerHTML = '<span style="color:#3d6b4a;">\u2714 No faults reported</span>';
+      } else if (hasFail) {
+        elStatus.innerHTML = '<span class="fh-val-fail">\u26a0\ufe0f Fault reported</span>';
+      } else if (days === 3) {
+        elStatus.innerHTML = '<span class="fh-val-warn">\u26a0\ufe0f ' + days +
+                             ' days ago \u2014 check due</span>';
+      } else {
+        elStatus.innerHTML = '<span class="fh-val-warn">\u26a0\ufe0f ' + days +
+                             ' days ago \u2014 overdue</span>';
+      }
+
+      /* The bar above the noticeboard appears from day 4 only -- a fault gets
+         the card's colour, not a bar, matching how the smoke check treats it. */
+      if (days >= 4) {
+        var bar  = document.getElementById('bioOverdueBar');
+        var pill = document.getElementById('bioOverduePill');
+        if (bar && pill) {
+          pill.textContent = '\u00b7 LAST CHECK \u00b7 ' + bioFmt(last.date) +
+                             ' \u00b7 ' + (last.checkedBy || '—') +
+                             ' \u00b7 \u26a0\ufe0f \u00b7 ' + days + ' days ago \u2014 overdue';
+          bar.classList.add('is-overdue');
+        }
+      }
+
+      if (isAlert) {
+        card.classList.add('fh-smoke-alert');
+        /* Shiver on a child wrapper, never the card itself, so the card-enter
+           opacity animation is not overridden. Same trick as the smoke card. */
+        var inner = document.createElement('div');
+        inner.className = 'fh-shiver-inner';
+        while (card.firstChild) inner.appendChild(card.firstChild);
+        card.appendChild(inner);
+      }
+
+    } catch(e) {
+      console.log('Bio filter check card error: ' + e.toString());
+      if (elLast)   elLast.textContent   = '—';
+      if (elStatus) elStatus.textContent = '—';
     }
   })();
 
