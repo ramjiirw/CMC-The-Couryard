@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.05
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.06
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. code.gs is on 1.05 for this build too. -->
+     files that actually changed. code.gs is on 1.06 for this build too. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -240,6 +240,12 @@
   #toggle-biochecks.bio-bar-due:hover { background: #a34200; }
   #toggle-biochecks.bio-bar-overdue { background: #8b3a3a; color: #fff; animation: bioShiver 3s ease-in-out infinite; }
   #toggle-biochecks.bio-bar-overdue:hover { background: #7a3232; }
+  /* Confirmation lands on the bar itself, so the flash and the updated time
+     that proves it appear in the same place. */
+  #toggle-biochecks.bio-bar-saved { background: #2f6b3c; color: #fff; animation: none; }
+  #toggle-biochecks.bio-bar-saved:hover { background: #2f6b3c; }
+  #toggle-biochecks.bio-bar-saved .bio-bar-pills,
+  #toggle-biochecks.bio-bar-saved .toggle-hint { display: none; }
   @keyframes bioShiver {
     0%, 86%, 100% { transform: translateX(0); }
     88% { transform: translateX(-2px); }
@@ -261,8 +267,9 @@
   #toggle-biochecks .toggle-hint,
   #toggle-biohistory .toggle-hint { margin-left: 0.55rem; }
 
-  /* Hairline between the two stacked bars rather than a gap showing through. */
-  #toggle-biohistory { border-top: 1px solid rgba(245,240,232,0.12); }
+  /* The two bars are separate things and are spaced apart, though they stay
+     under the one section heading -- both are bio filter checks. */
+  #toggle-biohistory { margin-top: 0.7rem; }
   .bio-stale { font-size: 0.68rem; color: var(--stone); font-style: italic;
     margin-top: 0.5rem; }
 
@@ -280,12 +287,14 @@
 
   .bio-hint { background: var(--warm); border: 1px solid var(--border); border-radius: 8px;
     padding: 0.55rem 0.85rem; font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
-  .bio-items { background: #fff; border: 1px solid var(--border); border-radius: 10px;
-    overflow: hidden; margin-bottom: 1.15rem; }
+  .bio-items { margin-bottom: 1.15rem; }
+  /* One card per area rather than a single joined table. */
+  .bio-group-card { background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; box-shadow: var(--shadow); }
+  .bio-group-card + .bio-group-card { margin-top: 0.7rem; }
   .bio-group { background: rgba(122,92,62,0.08); border-bottom: 1px solid var(--border);
     border-left: 3px solid var(--accent2); padding: 0.4rem 1rem; font-size: 0.68rem;
     font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
-  .bio-group + .bio-group, .bio-row + .bio-group { border-top: 1px solid var(--border); }
   .bio-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
     padding: 0.55rem 1rem; border-bottom: 1px solid #eee7dc; }
   .bio-row:last-child { border-bottom: none; }
@@ -347,11 +356,10 @@
   .bio-card-notes { border-top: 1px solid #eee7dc; margin-top: 0.7rem; padding-top: 0.6rem;
     font-size: 0.78rem; color: #4a4038; line-height: 1.5; }
 
-  .bio-hist-list { background: #fff; border: 1px solid var(--border);
-    border-radius: 10px; overflow: hidden; }
-  .bio-hist-row { border-bottom: 1px solid #eee7dc; }
-  .bio-hist-row:last-child { border-bottom: none; }
-  .bio-hist-row.open { background: var(--warm); }
+  .bio-hist-row { background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; box-shadow: var(--shadow); }
+  .bio-hist-row + .bio-hist-row { margin-top: 0.6rem; }
+  .bio-hist-row.open { background: var(--warm); border-color: var(--accent2); }
   .bio-hist-head { display: flex; align-items: center; justify-content: space-between;
     gap: 0.6rem; padding: 0.55rem 1rem; cursor: pointer; }
   .bio-hist-head:hover { background: rgba(196,149,106,0.06); }
@@ -363,6 +371,13 @@
   .bio-hist-body { padding: 0 1rem 0.9rem 2rem; }
   .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
+  .bio-hist-tools { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; }
+  .bio-tool { flex: 1; padding: 0.45rem 0.6rem; border: 1px solid var(--border);
+    background: #fff; color: var(--mid); font-family: Arial, sans-serif;
+    font-size: 0.72rem; font-weight: 600; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s; }
+  .bio-tool:hover { border-color: var(--accent2); color: var(--dark); }
+
   .bio-showall { display: block; width: 100%; margin-top: 0.6rem; padding: 0.6rem;
     border: 1px solid var(--border); border-radius: 8px; background: var(--warm);
     color: var(--accent); font-family: Arial, sans-serif; font-size: 0.75rem;
@@ -854,7 +869,7 @@
     { key:'waterLevel',       group:'Pumping station', label:'Water level acceptable',   sub:'', three:true  },
     { key:'warningLight',     group:'Pumping station', label:'Warning light off',        sub:'', three:true  },
     { key:'dischargePipe',    group:'Discharge',       label:'Pipe in place',            sub:'Always visible', three:false },
-    { key:'channelClear',     group:'Discharge',       label:'Channel clear',            sub:'Free of blockage, overflow or standing water', three:true }
+    { key:'channelClear',     group:'Discharge',       label:'Channel clear',            sub:'Free of blockage, overflow or standing water', three:false }
   ];
 
   var BIO_PRESETS = ['Pump not working', 'Water level high', 'Red flashing light',
@@ -863,7 +878,7 @@
   var bioState = {
     checks: [], checkers: [], checkedBy: '',
     items: {}, presets: [], otherText: '',
-    saving: false, showAll: false, openRows: { 0: true }
+    saving: false, showAll: false, openRows: {}
   };
 
   /* Pump 1 runs for a few seconds once an hour, so it is rarely seen and
@@ -1051,8 +1066,10 @@
     var html = '', group = '';
     BIO_ITEMS.forEach(function(it) {
       if (it.group !== group) {
+        if (group) html += '</div>';          /* close the previous card */
         group = it.group;
-        html += '<div class="bio-group">' + bioEsc(group) + '</div>';
+        html += '<div class="bio-group-card"><div class="bio-group">' +
+                bioEsc(group) + '</div>';
       }
       var val = bioState.items[it.key];
       var opts = '';
@@ -1066,6 +1083,7 @@
                 '<span class="bio-opts">' + opts + '</span>' +
               '</div>';
     });
+    if (group) html += '</div>';              /* close the last card */
     wrap.innerHTML = html;
   }
 
@@ -1111,6 +1129,25 @@
     renderBioItems();
     renderBioPresets();
     updateBioButtons();
+  }
+
+  /* Closes the panel and flashes the bar green. The confirmation and the
+     updated time that proves it then land in the same place. */
+  function bioCheckSubmitted() {
+    var btn   = document.getElementById('toggle-biochecks');
+    var panel = document.getElementById('panel-biochecks');
+    var label = document.getElementById('bio-bar-label');
+    if (panel) panel.classList.remove('open');
+    if (btn) {
+      btn.classList.remove('open', 'bio-bar-due', 'bio-bar-overdue');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.classList.add('bio-bar-saved');
+    }
+    if (label) label.innerHTML = '&#10004; Check Submitted';
+    setTimeout(function() {
+      if (btn) btn.classList.remove('bio-bar-saved');
+      updateBioBar();
+    }, 1500);
   }
 
   function bioMsg(text, ok) {
@@ -1169,7 +1206,7 @@
 
       bioCacheSave();
       resetBioForm();
-      bioMsg('&#10004; Check saved successfully.', true);
+      bioCheckSubmitted();
 
     } catch(err) {
       bioState.checks.shift();
@@ -1232,6 +1269,10 @@
     }
 
     var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
+    var tools = '<div class="bio-hist-tools">' +
+      '<button type="button" class="bio-tool" onclick="expandAllBioChecks()">Expand all</button>' +
+      '<button type="button" class="bio-tool" onclick="collapseAllBioChecks()">Collapse all</button>' +
+      '</div>';
     var rows = '';
     list.forEach(function(c, i) {
       var open = !!bioState.openRows[i];
@@ -1255,11 +1296,23 @@
              'Show all ' + total + ' checks</button>';
     }
 
-    wrap.innerHTML = '<div class="bio-hist-list">' + rows + '</div>' + more;
+    wrap.innerHTML = tools + rows + more;
   }
 
   function toggleBioRow(i) {
     bioState.openRows[i] = !bioState.openRows[i];
+    renderBioHistory();
+  }
+
+  function expandAllBioChecks() {
+    var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
+    bioState.openRows = {};
+    list.forEach(function(c, i) { bioState.openRows[i] = true; });
+    renderBioHistory();
+  }
+
+  function collapseAllBioChecks() {
+    bioState.openRows = {};
     renderBioHistory();
   }
 
@@ -1305,10 +1358,9 @@
   }
 
   function renderBioAll() {
-    /* Fresh data means the newest check has changed, so it goes back to being
-       the expanded row -- opening Previous checks shows the last check in full
-       without a second tap. */
-    bioState.openRows = { 0: true };
+    /* Fresh data shifts every index along, so anything left open would be
+       pointing at the wrong check. Start closed; expand all is one tap. */
+    bioState.openRows = {};
     renderBioCheckers();
     renderBioResults();
     updateBioBar();
