@@ -231,6 +231,147 @@
   .prohibited-body li { font-size:0.85rem; color:#31292a; line-height:1.95; }
   .prohibited-body li::before { content:'\2022  '; }
   @media (max-width:600px) { .prohibited-body { flex-direction:column; gap:0; } }
+
+  /* Bio Filter Checks */
+  #toggle-biochecks .hint-open, #toggle-biochecks .hint-close { display: none !important; }
+  #toggle-biochecks.bio-bar-due { background: #b84a00; color: #fff; }
+  #toggle-biochecks.bio-bar-due:hover { background: #a34200; }
+  #toggle-biochecks.bio-bar-overdue { background: #8b3a3a; color: #fff; animation: bioShiver 3s ease-in-out infinite; }
+  #toggle-biochecks.bio-bar-overdue:hover { background: #7a3232; }
+  @keyframes bioShiver {
+    0%, 86%, 100% { transform: translateX(0); }
+    88% { transform: translateX(-2px); }
+    90% { transform: translateX(2px); }
+    92% { transform: translateX(-2px); }
+    94% { transform: translateX(2px); }
+  }
+  .bio-pill { font-size: 0.68rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+    text-transform: none; letter-spacing: 0.01em; white-space: nowrap; display: inline-flex;
+    align-items: center; gap: 0.3rem; }
+  .bio-pill-green { background: #e1f0e4; color: #265c32; }
+  .bio-pill-red   { background: #f6e3e3; color: #7a2f2f; }
+  .bio-pill-stone { background: #efe9df; color: #4a4038; }
+  .bio-pill-dark  { background: #2f2a24; color: var(--accent2); }
+  #toggle-biochecks.bio-bar-due .bio-pill-dark,
+  #toggle-biochecks.bio-bar-overdue .bio-pill-dark { background: rgba(255,255,255,0.18); color: #fff; }
+
+  .bio-inner { padding: 1.25rem 1.5rem 1.5rem; }
+  .bio-date { font-size: 0.8rem; color: var(--mid); margin-bottom: 1rem; }
+  .bio-step { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent); margin: 0 0 0.55rem; }
+  .bio-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.15rem; }
+  .bio-chip { background: #efe9df; border: 1px solid var(--border); color: #4a4038;
+    font-family: Arial, sans-serif; font-size: 0.75rem; padding: 0.35rem 0.7rem;
+    border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .bio-chip:hover { border-color: var(--accent2); }
+  .bio-chip.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .bio-chip-round { border-radius: 20px; }
+
+  .bio-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.25rem; }
+  .bio-act { display: flex; align-items: center; gap: 0.8rem; width: 100%; text-align: left;
+    padding: 0.85rem 1.05rem; border-radius: 10px; cursor: pointer; font-family: Arial, sans-serif;
+    transition: all 0.15s; }
+  .bio-act:disabled { opacity: 0.45; cursor: default; }
+  .bio-act .bio-act-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
+  .bio-act .bio-act-title { display: block; font-size: 0.92rem; margin-bottom: 0.12rem; }
+  .bio-act .bio-act-sub { display: block; font-size: 0.72rem; opacity: 0.85; line-height: 1.35; }
+  .bio-act-normal { background: #2f6b3c; border: 1px solid #2f6b3c; color: #fff; }
+  .bio-act-normal:hover:not(:disabled) { background: #285d34; }
+  .bio-act-problem { background: #fff; border: 1px solid var(--border); color: var(--dark); }
+  .bio-act-problem:hover { border-color: var(--red); }
+  .bio-act-problem.open { border: 2px solid var(--red); }
+  .bio-act-problem .bio-act-icon { color: var(--red); }
+  .bio-act-problem .bio-act-sub { color: var(--mid); }
+
+  .bio-detail { margin-top: 1.15rem; }
+  .bio-hint { background: var(--warm); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.55rem 0.85rem; font-size: 0.72rem; color: var(--mid); margin-bottom: 0.85rem; }
+  .bio-items { background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; margin-bottom: 1.15rem; }
+  .bio-group { background: rgba(122,92,62,0.08); border-bottom: 1px solid var(--border);
+    border-left: 3px solid var(--accent2); padding: 0.4rem 1rem; font-size: 0.68rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .bio-group + .bio-group, .bio-row + .bio-group { border-top: 1px solid var(--border); }
+  .bio-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+    padding: 0.55rem 1rem; border-bottom: 1px solid #eee7dc; }
+  .bio-row:last-child { border-bottom: none; }
+  .bio-row-label { font-size: 0.8rem; }
+  .bio-row-sub { display: block; font-size: 0.66rem; color: var(--stone); margin-top: 0.1rem; }
+  .bio-opts { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .bio-opt { border: 1px solid var(--border); background: #fff; color: var(--mid);
+    font-family: Arial, sans-serif; font-size: 0.7rem; padding: 0.25rem 0.6rem;
+    border-radius: 6px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .bio-opt:hover { border-color: var(--accent2); }
+  .bio-opt.sel-pass { background: #e1f0e4; border-color: #3f7c4a; color: #265c32; font-weight: 600; }
+  .bio-opt.sel-fail { background: #f6e3e3; border-color: var(--red); color: #7a2f2f; font-weight: 600; }
+  .bio-opt.sel-obs  { background: #efe9df; border-color: var(--accent); color: #4a4038; font-weight: 600; }
+
+  .bio-textarea { width: 100%; min-height: 62px; padding: 0.55rem 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border); background: #fff; color: var(--dark);
+    font-family: Arial, sans-serif; font-size: 0.8rem; outline: none; resize: vertical;
+    margin-bottom: 1rem; }
+  .bio-textarea:focus { border-color: var(--accent2); }
+  .bio-textarea::placeholder { color: var(--stone); font-style: italic; }
+
+  .bio-save { width: 100%; padding: 0.75rem; border: none; border-radius: 8px;
+    background: var(--dark); color: var(--cream); font-family: Arial, sans-serif;
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer;
+    transition: background 0.2s; }
+  .bio-save:hover:not(:disabled) { background: #2a2520; }
+  .bio-save:disabled { opacity: 0.45; cursor: default; }
+
+  .bio-msg { padding: 0.6rem 0.9rem; border-radius: 8px; font-size: 0.8rem; margin: 0.9rem 0 0; }
+  .bio-msg-ok  { background: #e1f0e4; color: #265c32; border: 1px solid #c8e2ce; }
+  .bio-msg-err { background: #fdecea; color: var(--red); border: 1px solid #f5c6cb; }
+
+  .bio-sep { border-top: 1px solid var(--border); margin: 1.5rem 0 1.15rem; }
+  .bio-card { background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.95rem 1.05rem; margin-bottom: 0.9rem; }
+  .bio-card-head { display: flex; align-items: center; justify-content: space-between;
+    gap: 0.6rem; margin-bottom: 0.75rem; }
+  .bio-card-date { font-size: 0.9rem; }
+  .bio-card-by { font-size: 0.72rem; color: var(--mid); margin-top: 0.15rem; }
+  .bio-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .bio-tag { font-size: 0.68rem; padding: 0.22rem 0.5rem; border-radius: 6px; }
+  .bio-tag-pass { background: #e1f0e4; color: #265c32; }
+  .bio-tag-fail { background: #f6e3e3; color: #7a2f2f; }
+  .bio-tag-obs  { background: #efe9df; color: #4a4038; }
+  .bio-card-notes { border-top: 1px solid #eee7dc; margin-top: 0.7rem; padding-top: 0.6rem;
+    font-size: 0.78rem; color: #4a4038; line-height: 1.5; }
+
+  .bio-hist-bar { background: #efe9df; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.6rem 1rem; display: flex; align-items: center; justify-content: space-between;
+    gap: 0.6rem; font-size: 0.78rem; cursor: pointer; transition: border-color 0.15s; }
+  .bio-hist-bar:hover { border-color: var(--accent2); }
+  .bio-hist-count { font-size: 0.7rem; color: var(--mid); }
+  .bio-hist-list { background: #fff; border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 10px 10px; overflow: hidden; }
+  .bio-hist-row { border-bottom: 1px solid #eee7dc; }
+  .bio-hist-row:last-child { border-bottom: none; }
+  .bio-hist-row.open { background: var(--warm); }
+  .bio-hist-head { display: flex; align-items: center; justify-content: space-between;
+    gap: 0.6rem; padding: 0.55rem 1rem; cursor: pointer; }
+  .bio-hist-head:hover { background: rgba(196,149,106,0.06); }
+  .bio-hist-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .bio-hist-chev { font-size: 0.7rem; color: var(--stone); transition: transform 0.2s; }
+  .bio-hist-row.open .bio-hist-chev { transform: rotate(90deg); color: var(--accent); }
+  .bio-hist-date { font-size: 0.8rem; }
+  .bio-hist-by { font-size: 0.72rem; color: var(--mid); }
+  .bio-hist-body { padding: 0 1rem 0.9rem 2rem; }
+  .bio-hist-group { font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent); margin: 0.5rem 0 0.35rem; }
+  .bio-showall { display: block; width: 100%; padding: 0.6rem; border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 10px 10px; background: var(--warm); color: var(--accent);
+    font-family: Arial, sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+  .bio-showall:hover { background: #f2ece2; }
+
+  @media (max-width: 600px) {
+    .bio-inner { padding: 1rem; }
+    .bio-row { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    .bio-opts { width: 100%; }
+    .bio-opt { flex: 1; text-align: center; padding: 0.3rem 0.3rem; font-size: 0.66rem; }
+    .bio-hist-body { padding-left: 1rem; }
+  }
 </style>
 </head>
 <body>
@@ -340,6 +481,69 @@
       <div class="doc-card" id="card-rlf">
         <div id="wrap-rlf">
           <div class="state-loading"><div class="spinner"></div><div>Loading…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bio Filter Checks -->
+  <div class="finance-section">
+    <h3 class="section-heading">Bio Filter Checks</h3>
+
+    <button class="btn-toggle btn-loading" id="toggle-biochecks" onclick="togglePanel('biochecks')" aria-expanded="false">
+      <span class="toggle-left"><span id="bio-bar-label">&#128300; Bio Filter Checks</span></span>
+      <span class="toggle-hint">
+        <span class="bio-pill bio-pill-green" id="bio-health-pill" style="display:none"></span>
+        <span class="bio-pill bio-pill-dark" id="bio-days-pill" style="display:none"></span>
+        <span class="hint-loading">Loading&hellip;</span>
+        <span class="hint-open">Tap to expand &amp; view</span>
+        <span class="hint-close">Tap to close</span>
+        <span class="chevron">&#9654;</span>
+      </span>
+    </button>
+    <div class="collapsible-panel" id="panel-biochecks">
+      <div class="doc-card">
+        <div class="bio-inner">
+
+          <div class="bio-date" id="bio-date-display"></div>
+
+          <div class="bio-step">1 &middot; Who is checking</div>
+          <div class="bio-chips" id="bio-checkers"></div>
+
+          <div class="bio-step">2 &middot; Record the check</div>
+          <div class="bio-actions">
+            <button type="button" class="bio-act bio-act-normal" id="bio-btn-normal" onclick="saveBioCheck(true)" disabled>
+              <span class="bio-act-icon">&#10003;</span>
+              <span>
+                <span class="bio-act-title">All normal</span>
+                <span class="bio-act-sub">Pumps, pumping station and discharge pipe all as expected</span>
+              </span>
+            </button>
+            <button type="button" class="bio-act bio-act-problem" id="bio-btn-problem" onclick="toggleBioDetail()">
+              <span class="bio-act-icon">&#9888;</span>
+              <span>
+                <span class="bio-act-title">Report a problem</span>
+                <span class="bio-act-sub">Opens the full item list so you can say what is wrong</span>
+              </span>
+            </button>
+          </div>
+
+          <div class="bio-detail" id="bio-detail" style="display:none">
+            <div class="bio-hint">Everything starts as pass &mdash; change only what is not right</div>
+            <div class="bio-items" id="bio-items"></div>
+            <div class="bio-step">Notes</div>
+            <div class="bio-chips" id="bio-presets"></div>
+            <textarea class="bio-textarea" id="bio-other-text" placeholder="Anything else worth recording" style="display:none" oninput="bioState.otherText=this.value"></textarea>
+            <button type="button" class="bio-save" id="bio-save-btn" onclick="saveBioCheck(false)" disabled>Save check</button>
+          </div>
+
+          <div class="bio-msg" id="bio-save-msg" style="display:none"></div>
+
+          <div class="bio-sep"></div>
+
+          <div id="bio-latest"></div>
+          <div id="bio-history-wrap"></div>
+
         </div>
       </div>
     </div>
@@ -596,6 +800,488 @@
         document.getElementById('wrap-' + k).innerHTML = msg;
         document.getElementById('toggle-' + k).classList.remove('btn-loading');
       });
+    }
+  })();
+
+  /* ======================================================================
+     BIO FILTER CHECKS
+     ======================================================================
+     Two-tap path: pick your property, tap "All normal". Anything wrong goes
+     through "Report a problem", where the nine items start on Pass (except
+     "Discharging into channel", which starts on "Couldn't observe" because
+     seeing it is a matter of timing, not condition).
+     Bar: normal to day 2, orange on day 3, red and shivering from day 4.
+     ====================================================================== */
+
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
+
+  var BIO_OBS = "Couldn't observe";
+
+  /* Item order here must match the sheet columns B to J. */
+  var BIO_ITEMS = [
+    { key:'pump1',            group:'Bio filter',      label:'Pump 1',                   sub:'', three:true  },
+    { key:'pump2',            group:'Bio filter',      label:'Pump 2',                   sub:'', three:true  },
+    { key:'pump3',            group:'Bio filter',      label:'Pump 3',                   sub:'', three:true  },
+    { key:'electricity',      group:'Pumping station', label:'Electricity on',           sub:'', three:true  },
+    { key:'stationPump',      group:'Pumping station', label:'Station pump on',          sub:'', three:true  },
+    { key:'waterLevel',       group:'Pumping station', label:'Water level acceptable',   sub:'', three:true  },
+    { key:'warningLight',     group:'Pumping station', label:'Warning light off',        sub:'', three:true  },
+    { key:'dischargePipe',    group:'Discharge',       label:'Pipe in place',            sub:'Always visible', three:false },
+    { key:'dischargeChannel', group:'Discharge',       label:'Discharging into channel', sub:'Only if it happens while you are there', three:true }
+  ];
+
+  var BIO_PRESETS = ['Pump not working', 'Water level high', 'Red flashing light',
+                     'Pipe/hose displaced', 'Odour', 'Other'];
+
+  var bioState = {
+    checks: [], checkers: [], checkedBy: '',
+    items: {}, presets: [], otherText: '',
+    saving: false, detailOpen: false,
+    historyOpen: false, showAll: false, openRows: {}
+  };
+
+  function bioDefaults() {
+    var o = {};
+    BIO_ITEMS.forEach(function(it) {
+      o[it.key] = (it.key === 'dischargeChannel') ? BIO_OBS : 'Pass';
+    });
+    return o;
+  }
+
+  function bioEsc(v) {
+    return (v == null ? '' : v.toString())
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── Dates ─────────────────────────────────────────────────────────── */
+  function bioPad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function bioTodayValue() {
+    var d = new Date();
+    return bioPad(d.getDate()) + '/' + bioPad(d.getMonth() + 1) + '/' + d.getFullYear();
+  }
+
+  function bioTodayDisplay() {
+    return new Date().toLocaleDateString('en-GB',
+      { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function bioParse(str) {
+    var m = (str || '').toString().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+  }
+
+  function bioDateLong(str) {
+    var d = bioParse(str);
+    if (!d) return str || '';
+    return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function bioDateShort(str) {
+    var d = bioParse(str);
+    if (!d) return str || '';
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function bioDaysSince(str) {
+    var d = bioParse(str);
+    if (!d) return null;
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.floor((today - d) / 86400000);
+  }
+
+  /* ── The collapsed bar ─────────────────────────────────────────────── */
+  function updateBioBar() {
+    var btn    = document.getElementById('toggle-biochecks');
+    var label  = document.getElementById('bio-bar-label');
+    var health = document.getElementById('bio-health-pill');
+    var days   = document.getElementById('bio-days-pill');
+    if (!btn) return;
+
+    btn.classList.remove('bio-bar-due', 'bio-bar-overdue');
+    var last = bioState.checks.length ? bioState.checks[0] : null;
+
+    if (!last) {
+      btn.classList.add('bio-bar-overdue');
+      label.innerHTML = '&#9888; Bio filter check overdue';
+      health.style.display = 'none';
+      days.style.display = 'inline-flex';
+      days.textContent = 'No checks recorded yet';
+      return;
+    }
+
+    var n = bioDaysSince(last.date);
+    if (n === null) n = 0;
+
+    if (n <= 2) {
+      label.innerHTML = '&#128300; Bio filter checks';
+    } else if (n === 3) {
+      btn.classList.add('bio-bar-due');
+      label.innerHTML = '&#9200; Bio filter check due';
+    } else {
+      btn.classList.add('bio-bar-overdue');
+      label.innerHTML = '&#9888; Bio filter check overdue';
+    }
+
+    days.style.display = 'inline-flex';
+    if (n === 0)      days.textContent = 'Checked today';
+    else if (n === 1) days.textContent = 'Last checked ' + bioDateShort(last.date) + ' \u00b7 1 day ago';
+    else              days.textContent = n + ' days since last check';
+
+    health.style.display = 'inline-flex';
+    if (last.overall === 'Fault') {
+      health.className = 'bio-pill bio-pill-red';
+      health.innerHTML = '&#9888; Fault reported';
+    } else {
+      health.className = 'bio-pill bio-pill-green';
+      health.innerHTML = '&#10003; Bio filter healthy';
+    }
+  }
+
+  /* ── Who is checking ───────────────────────────────────────────────── */
+  function bioShortName(addr) {
+    return (addr || '').replace(/\s*The Courtyard\s*$/i, '');
+  }
+
+  function renderBioCheckers() {
+    var wrap = document.getElementById('bio-checkers');
+    if (!wrap) return;
+    if (!bioState.checkers.length) {
+      wrap.innerHTML = '<span style="font-size:0.78rem;color:var(--stone)">No properties found.</span>';
+      return;
+    }
+    var html = '';
+    bioState.checkers.forEach(function(addr) {
+      var sel = (addr === bioState.checkedBy) ? ' sel' : '';
+      html += '<button type="button" class="bio-chip' + sel + '" onclick="selectBioChecker(\'' +
+              bioEsc(addr).replace(/'/g, "\\'") + '\')">' + bioEsc(bioShortName(addr)) + '</button>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  function selectBioChecker(addr) {
+    bioState.checkedBy = addr;
+    renderBioCheckers();
+    updateBioButtons();
+  }
+
+  function updateBioButtons() {
+    var ok = !!bioState.checkedBy && !bioState.saving;
+    var n = document.getElementById('bio-btn-normal');
+    var s = document.getElementById('bio-save-btn');
+    if (n) n.disabled = !ok;
+    if (s) s.disabled = !ok;
+  }
+
+  /* ── The itemised panel ────────────────────────────────────────────── */
+  function renderBioItems() {
+    var wrap = document.getElementById('bio-items');
+    if (!wrap) return;
+    var html = '', group = '';
+    BIO_ITEMS.forEach(function(it) {
+      if (it.group !== group) {
+        group = it.group;
+        html += '<div class="bio-group">' + bioEsc(group) + '</div>';
+      }
+      var val = bioState.items[it.key];
+      var opts = '';
+      opts += bioOptBtn(it.key, 'Pass', val, 'sel-pass');
+      opts += bioOptBtn(it.key, 'Fail', val, 'sel-fail');
+      if (it.three) opts += bioOptBtn(it.key, BIO_OBS, val, 'sel-obs');
+      html += '<div class="bio-row">' +
+                '<span class="bio-row-label">' + bioEsc(it.label) +
+                  (it.sub ? '<span class="bio-row-sub">' + bioEsc(it.sub) + '</span>' : '') +
+                '</span>' +
+                '<span class="bio-opts">' + opts + '</span>' +
+              '</div>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  function bioOptBtn(key, val, current, cls) {
+    var sel = (val === current) ? ' ' + cls : '';
+    return '<button type="button" class="bio-opt' + sel + '" onclick="setBioItem(\'' + key +
+           '\',\'' + val.replace(/'/g, "\\'") + '\')">' + bioEsc(val) + '</button>';
+  }
+
+  function setBioItem(key, val) {
+    bioState.items[key] = val;
+    renderBioItems();
+  }
+
+  function renderBioPresets() {
+    var wrap = document.getElementById('bio-presets');
+    if (!wrap) return;
+    var html = '';
+    BIO_PRESETS.forEach(function(p) {
+      var sel = (bioState.presets.indexOf(p) !== -1) ? ' sel' : '';
+      html += '<button type="button" class="bio-chip bio-chip-round' + sel +
+              '" onclick="toggleBioPreset(\'' + p.replace(/'/g, "\\'") + '\')">' + bioEsc(p) + '</button>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  function toggleBioPreset(p) {
+    var i = bioState.presets.indexOf(p);
+    if (i === -1) bioState.presets.push(p); else bioState.presets.splice(i, 1);
+    renderBioPresets();
+    var box = document.getElementById('bio-other-text');
+    if (box) box.style.display = (bioState.presets.indexOf('Other') !== -1) ? 'block' : 'none';
+  }
+
+  function toggleBioDetail() {
+    bioState.detailOpen = !bioState.detailOpen;
+    var panel = document.getElementById('bio-detail');
+    var btn   = document.getElementById('bio-btn-problem');
+    if (panel) panel.style.display = bioState.detailOpen ? 'block' : 'none';
+    if (btn) btn.classList.toggle('open', bioState.detailOpen);
+  }
+
+  function resetBioForm() {
+    bioState.items = bioDefaults();
+    bioState.presets = [];
+    bioState.otherText = '';
+    bioState.checkedBy = '';
+    bioState.detailOpen = false;
+    var panel = document.getElementById('bio-detail');
+    if (panel) panel.style.display = 'none';
+    var btn = document.getElementById('bio-btn-problem');
+    if (btn) btn.classList.remove('open');
+    var box = document.getElementById('bio-other-text');
+    if (box) { box.value = ''; box.style.display = 'none'; }
+    renderBioCheckers();
+    renderBioItems();
+    renderBioPresets();
+    updateBioButtons();
+  }
+
+  function bioMsg(text, ok) {
+    var el = document.getElementById('bio-save-msg');
+    if (!el) return;
+    el.className = 'bio-msg ' + (ok ? 'bio-msg-ok' : 'bio-msg-err');
+    el.innerHTML = text;
+    el.style.display = 'block';
+    if (ok) setTimeout(function() { el.style.display = 'none'; }, 4000);
+  }
+
+  /* ── Saving ────────────────────────────────────────────────────────── */
+  function bioNotesValue() {
+    var parts = bioState.presets.filter(function(p) { return p !== 'Other'; });
+    var other = (bioState.otherText || '').trim();
+    if (other) parts.push(other);
+    return parts.join(' \u00b7 ');
+  }
+
+  async function saveBioCheck(allNormal) {
+    if (bioState.saving) return;
+    if (!bioState.checkedBy) { bioMsg('&#9888; Tap your property first.', false); return; }
+
+    var items = allNormal ? bioDefaults() : bioState.items;
+    var notes = allNormal ? '' : bioNotesValue();
+
+    var overall = 'No faults';
+    BIO_ITEMS.forEach(function(it) { if (items[it.key] === 'Fail') overall = 'Fault'; });
+
+    bioState.saving = true;
+    updateBioButtons();
+    var normalBtn = document.getElementById('bio-btn-normal');
+    var saveBtn   = document.getElementById('bio-save-btn');
+    if (saveBtn) saveBtn.textContent = 'Saving\u2026';
+
+    var todayVal = bioTodayValue();
+    var check = { date: todayVal, overall: overall, notes: notes, checkedBy: bioState.checkedBy };
+    BIO_ITEMS.forEach(function(it) { check[it.key] = items[it.key]; });
+
+    /* Optimistic — show it straight away, roll back if the save fails */
+    bioState.checks.unshift(check);
+    renderBioResults();
+    updateBioBar();
+
+    try {
+      var params = new URLSearchParams({
+        action:    'addBioFilterCheck',
+        date:      todayVal,
+        notes:     notes,
+        checkedBy: check.checkedBy
+      });
+      BIO_ITEMS.forEach(function(it) { params.append(it.key, items[it.key]); });
+
+      var res  = await fetch(SCRIPT_URL + '?' + params.toString());
+      var data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Unknown error');
+
+      resetBioForm();
+      bioMsg('&#10004; Check saved successfully.', true);
+
+    } catch(err) {
+      bioState.checks.shift();
+      renderBioResults();
+      updateBioBar();
+      bioMsg('&#9888; Could not save. Please try again.', false);
+    }
+
+    bioState.saving = false;
+    if (saveBtn) saveBtn.textContent = 'Save check';
+    updateBioButtons();
+  }
+
+  /* ── Latest check and history ──────────────────────────────────────── */
+  function bioTagClass(val) {
+    if (val === 'Fail') return 'bio-tag-fail';
+    if (val === BIO_OBS) return 'bio-tag-obs';
+    return 'bio-tag-pass';
+  }
+
+  function bioOverallPill(check) {
+    if (check.overall === 'Fault') return '<span class="bio-pill bio-pill-red">&#9888; Fault</span>';
+    return '<span class="bio-pill bio-pill-green">&#10003; No faults</span>';
+  }
+
+  function bioDetailHtml(check) {
+    var html = '', group = '';
+    BIO_ITEMS.forEach(function(it) {
+      if (it.group !== group) {
+        group = it.group;
+        html += '</div><div class="bio-hist-group">' + bioEsc(group) + '</div><div class="bio-tags">';
+      }
+      var val = check[it.key] || '';
+      var suffix = (val === 'Pass') ? '' : ' \u2014 ' + val.toLowerCase();
+      html += '<span class="bio-tag ' + bioTagClass(val) + '">' + bioEsc(it.label) + bioEsc(suffix) + '</span>';
+    });
+    html = html.replace(/^<\/div>/, '') + '</div>';
+    if (check.notes) {
+      html += '<div class="bio-card-notes">' + bioEsc(check.notes) + '</div>';
+    }
+    return html;
+  }
+
+  function renderBioResults() {
+    renderBioLatest();
+    renderBioHistory();
+  }
+
+  function renderBioLatest() {
+    var wrap = document.getElementById('bio-latest');
+    if (!wrap) return;
+
+    /* When the history is open the latest check is its top row, so the
+       standalone card comes out to avoid showing the same check twice. */
+    if (bioState.historyOpen) { wrap.innerHTML = ''; return; }
+
+    if (!bioState.checks.length) {
+      wrap.innerHTML = '<div class="bio-card" style="text-align:center;color:var(--stone);font-size:0.82rem">' +
+                       'No checks recorded yet.</div>';
+      return;
+    }
+
+    var c = bioState.checks[0];
+    wrap.innerHTML =
+      '<div class="bio-step">Latest check</div>' +
+      '<div class="bio-card">' +
+        '<div class="bio-card-head">' +
+          '<div><div class="bio-card-date">' + bioEsc(bioDateLong(c.date)) + '</div>' +
+          '<div class="bio-card-by">' + bioEsc(c.checkedBy) + '</div></div>' +
+          bioOverallPill(c) +
+        '</div>' +
+        bioDetailHtml(c) +
+      '</div>';
+  }
+
+  function renderBioHistory() {
+    var wrap = document.getElementById('bio-history-wrap');
+    if (!wrap) return;
+    if (!bioState.checks.length) { wrap.innerHTML = ''; return; }
+
+    var total = bioState.checks.length;
+    var bar =
+      '<div class="bio-hist-bar" onclick="toggleBioHistory()">' +
+        '<span>&#128340; All previous checks</span>' +
+        '<span class="bio-hist-count">' + total + (total === 1 ? ' check' : ' checks') +
+          ' &nbsp;' + (bioState.historyOpen ? '&#9660;' : '&#9654;') + '</span>' +
+      '</div>';
+
+    if (!bioState.historyOpen) { wrap.innerHTML = bar; return; }
+
+    var list = bioState.showAll ? bioState.checks : bioState.checks.slice(0, 20);
+    var rows = '';
+    list.forEach(function(c, i) {
+      var open = !!bioState.openRows[i];
+      rows += '<div class="bio-hist-row' + (open ? ' open' : '') + '">' +
+                '<div class="bio-hist-head" onclick="toggleBioRow(' + i + ')">' +
+                  '<span class="bio-hist-left">' +
+                    '<span class="bio-hist-chev">&#9654;</span>' +
+                    '<span class="bio-hist-date">' + bioEsc(bioDateShort(c.date)) + '</span>' +
+                    '<span class="bio-hist-by">' + bioEsc(c.checkedBy) + '</span>' +
+                  '</span>' +
+                  bioOverallPill(c) +
+                '</div>' +
+                (open ? '<div class="bio-hist-body">' + bioDetailHtml(c) + '</div>' : '') +
+              '</div>';
+    });
+
+    var more = '';
+    if (!bioState.showAll && total > 20) {
+      more = '<button type="button" class="bio-showall" onclick="showAllBioChecks()">' +
+             'Show all ' + total + ' checks</button>';
+    }
+
+    wrap.innerHTML = bar + '<div class="bio-hist-list">' + rows + '</div>' + more;
+  }
+
+  function toggleBioHistory() {
+    bioState.historyOpen = !bioState.historyOpen;
+    /* Opening shows the newest check expanded, everything below it closed. */
+    bioState.openRows = bioState.historyOpen ? { 0: true } : {};
+    if (!bioState.historyOpen) bioState.showAll = false;
+    renderBioResults();
+  }
+
+  function toggleBioRow(i) {
+    bioState.openRows[i] = !bioState.openRows[i];
+    renderBioHistory();
+  }
+
+  function showAllBioChecks() {
+    bioState.showAll = true;
+    renderBioHistory();
+  }
+
+  /* ── Load on page open ─────────────────────────────────────────────── */
+  (async function loadBioChecks() {
+    var dateEl = document.getElementById('bio-date-display');
+    if (dateEl) dateEl.textContent = bioTodayDisplay();
+
+    bioState.items = bioDefaults();
+    renderBioItems();
+    renderBioPresets();
+
+    var btn = document.getElementById('toggle-biochecks');
+
+    try {
+      var res  = await fetch(SCRIPT_URL + '?action=readBioFilterChecks&v=' + Date.now());
+      var data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message || 'Error');
+
+      bioState.checks   = data.checks   || [];
+      bioState.checkers = data.checkers || [];
+
+      renderBioCheckers();
+      renderBioResults();
+      updateBioBar();
+      updateBioButtons();
+
+      if (btn) btn.classList.remove('btn-loading');
+
+    } catch(err) {
+      if (btn) btn.classList.remove('btn-loading');
+      var days = document.getElementById('bio-days-pill');
+      if (days) { days.style.display = 'inline-flex'; days.textContent = 'Could not load data'; }
+      var wrap = document.getElementById('bio-latest');
+      if (wrap) wrap.innerHTML = '<div class="state-error">&#9888; Could not load checks. ' +
+                                 bioEsc(err.message) + '</div>';
     }
   })();
 </script>
