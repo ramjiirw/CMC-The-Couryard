@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.17
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.18
      The build number identifies the change, not the file, so it only moves in
      files that actually changed. code.gs is unchanged, still on 1.09.
      The same number is set in PAGE_BUILD at the top of the script, which is
@@ -671,7 +671,7 @@
   /* Build number -- shown when the mouse rests on the logo, so you can tell
      at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'cmcbiofilter.html';
-  var PAGE_BUILD = '1.17';
+  var PAGE_BUILD = '1.18';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD;
@@ -1626,7 +1626,7 @@
                   '<span class="bio-hist-pills">' +
                     bioCheckWarnings(c).map(function(w) {
                       return '<span class="bio-pill bio-pill-amber">&#9888; ' +
-                             bioEsc(bioItemLabel(w.key)) + ' \u00d7' + w.n + '</span>';
+                             bioEsc(bioItemLabel(w.key)) + ' \u00b7 ' + w.n + ' in a row</span>';
                     }).join('') +
                     bioOverallPill(c) +
                   '</span>' +
