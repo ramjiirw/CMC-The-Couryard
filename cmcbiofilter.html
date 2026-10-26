@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.19
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.20
      The build number identifies the change, not the file, so it only moves in
      files that actually changed. Needs code.gs 1.10 (addBioFilterCheckUpdate).
      The same number is set in PAGE_BUILD at the top of the script, which is
@@ -423,6 +423,9 @@
   .bio-hist-row.open .bio-hist-chev { transform: rotate(90deg); color: var(--accent); }
   .bio-hist-date { font-size: 0.8rem; }
   .bio-hist-by { font-size: 0.72rem; color: var(--mid); }
+  /* Build 1.20: shows on the collapsed row that updates have been added. */
+  .bio-hist-upd { font-size: 0.66rem; font-weight: 600; color: #4a4038;
+    background: #efe9df; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
   /* Build 1.17: the overall pill plus any pump warning on a history row. */
   .bio-hist-pills { display: flex; flex-wrap: wrap; justify-content: flex-end;
     gap: 0.3rem; flex-shrink: 0; }
@@ -690,7 +693,7 @@
   /* Build number -- shown when the mouse rests on the logo, so you can tell
      at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'cmcbiofilter.html';
-  var PAGE_BUILD = '1.19';
+  var PAGE_BUILD = '1.20';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD;
@@ -1582,6 +1585,14 @@
     return html + '</div>';
   }
 
+  /* "✎ 2 updates" for the collapsed row; nothing when there are none. */
+  function bioUpdCountHtml(check) {
+    var n = (check.updates || '').toString().split(/\r?\n/)
+              .filter(function(l) { return l.trim() !== ''; }).length;
+    if (!n) return '';
+    return '<span class="bio-hist-upd">&#9998; ' + n + (n === 1 ? ' update' : ' updates') + '</span>';
+  }
+
   function bioUpdNew() {
     return { open: false, by: '', actions: {}, text: '', saving: false, msg: '', ok: false, key: '' };
   }
@@ -1841,6 +1852,7 @@
                     '<span class="bio-hist-date">' + bioEsc(bioDateShort(c.date)) +
                       (bioTimeOf(c.date) ? ' \u00b7 ' + bioEsc(bioTimeOf(c.date)) : '') + '</span>' +
                     '<span class="bio-hist-by">' + bioEsc(c.checkedBy) + '</span>' +
+                    bioUpdCountHtml(c) +
                   '</span>' +
                   '<span class="bio-hist-pills">' +
                     bioCheckWarnings(c).map(function(w) {
