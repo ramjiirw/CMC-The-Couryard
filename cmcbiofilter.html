@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.20
+<!-- CMC The Courtyard -- cmcbiofilter.html -- Build 1.21
      The build number identifies the change, not the file, so it only moves in
-     files that actually changed. Needs code.gs 1.10 (addBioFilterCheckUpdate).
+     files that actually changed. Needs code.gs 1.11 (control panel, column O).
      The same number is set in PAGE_BUILD at the top of the script, which is
      what the logo's hover tooltip shows -- keep the two in step. -->
 <html lang="en">
@@ -693,7 +693,7 @@
   /* Build number -- shown when the mouse rests on the logo, so you can tell
      at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'cmcbiofilter.html';
-  var PAGE_BUILD = '1.20';
+  var PAGE_BUILD = '1.21';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD;
@@ -970,6 +970,9 @@
 
   /* Item order here must match the sheet columns B to J. */
   var BIO_ITEMS = [
+    /* Build 1.21: checked first -- a tripped pump explains what you then see.
+       Starts unanswered (see BIO_NO_DEFAULT) so the panel is actually opened. */
+    { key:'controlPanel',     group:'Bio filter',      label:'Control panel \u2013 all pumps on', sub:'Open the panel; no pump tripped', three:false },
     { key:'pump1',            group:'Bio filter',      label:'Pump 1',                   sub:'', three:true  },
     { key:'pump2',            group:'Bio filter',      label:'Pump 2',                   sub:'', three:true  },
     { key:'pump3',            group:'Bio filter',      label:'Pump 3',                   sub:'', three:true  },
@@ -981,7 +984,8 @@
     { key:'channelClear',     group:'Discharge',       label:'Channel clear',            sub:'Free of blockage, overflow or standing water', three:false }
   ];
 
-  var BIO_PRESETS = ['Pump not working', 'Water level high', 'Red flashing light',
+  var BIO_PRESETS = ['Pump not working', 'Pump tripped \u2013 switched back on',
+                     'Water level high', 'Red flashing light',
                      'Pipe/hose displaced', 'Odour', 'Other'];
 
   var bioState = {
@@ -995,6 +999,9 @@
   /* Pump 1 runs for a few seconds once an hour, so it is rarely seen and
      starts on "Couldn't observe". Everything else is visible on any visit. */
   var BIO_UNOBSERVED = ['pump1'];
+  /* Build 1.21: items that start with neither answer chosen, so Save check
+     waits until someone has answered them. */
+  var BIO_NO_DEFAULT = ['controlPanel'];
 
   /* ── Pumps 2 and 3 going unobserved (build 1.16) ───────────────────
      Unlike pump 1, pumps 2 and 3 should be seen on any visit, so a run of
@@ -1103,6 +1110,13 @@
   /* What still has to be filled in before the check can be saved. */
   function bioMissing() {
     var missing = [];
+    BIO_NO_DEFAULT.forEach(function(key) {
+      if (!bioState.items[key]) {
+        missing.push(key === 'controlPanel'
+          ? 'Open the control panel and answer Pass or Fail.'
+          : 'Answer ' + bioItemLabel(key) + '.');
+      }
+    });
     var hasFail = false;
     BIO_ITEMS.forEach(function(it) { if (bioState.items[it.key] === 'Fail') hasFail = true; });
     if (hasFail && !bioNotesValue()) {
@@ -1147,7 +1161,8 @@
   function bioDefaults() {
     var o = {};
     BIO_ITEMS.forEach(function(it) {
-      o[it.key] = (BIO_UNOBSERVED.indexOf(it.key) !== -1) ? BIO_OBS : 'Pass';
+      if (BIO_NO_DEFAULT.indexOf(it.key) !== -1) o[it.key] = '';
+      else o[it.key] = (BIO_UNOBSERVED.indexOf(it.key) !== -1) ? BIO_OBS : 'Pass';
     });
     return o;
   }
@@ -1545,6 +1560,9 @@
         html += '</div><div class="bio-hist-group">' + bioEsc(group) + '</div><div class="bio-tags">';
       }
       var val = check[it.key] || '';
+      /* Build 1.21: checks from before an item existed have no answer for
+         it -- leave it out rather than show an empty tag. */
+      if (!val) return;
       var suffix = (val === 'Pass') ? '' : ' \u2014 ' + val.toLowerCase();
       html += '<span class="bio-tag ' + bioTagClass(val) + '">' + bioEsc(it.label) + bioEsc(suffix) + '</span>';
     });
