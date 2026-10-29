@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.05 -- 29 Oct 2026, 18:57
+<!-- CMC The Courtyard -- main.html -- Build 1.06 -- 29 Oct 2026, 19:11
+     Build 1.06: back-to-top button stays above the footer and has a bolder
+     drawn chevron (was a thin text arrow).
      Build 1.05: Useful Information, Finance Tracker and AGM Minutes look like
      raised buttons (lift on hover, press on click); card arrows nudge right
      on hover; back-to-top button; stray closing tag removed.
@@ -699,7 +701,7 @@
 
   /* Build 1.05: back-to-top button, appears once scrolled down. */
   .to-top {
-    position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 900;
+    position: fixed; right: 1.5rem; bottom: 24px; z-index: 900;
     width: 44px; height: 44px; border-radius: 50%;
     border: 1px solid rgba(196,149,106,0.4); background: var(--dark); color: var(--accent2);
     font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -1284,7 +1286,7 @@
 </main>
 
 <!-- Build 1.05: back to top -->
-<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
 
 <!-- Document Search Modal -->
 <div class="search-hub-overlay" id="hubOverlay" onclick="hubOverlayClick(event)">
@@ -1312,8 +1314,8 @@
   /* Build number and date -- shown when the mouse rests on the logo, so you can
      tell at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'main.html';
-  var PAGE_BUILD = '1.05';
-  var PAGE_DATE  = '29 Oct 2026, 18:57';
+  var PAGE_BUILD = '1.06';
+  var PAGE_DATE  = '29 Oct 2026, 19:11';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -1333,8 +1335,16 @@
     }
     function initTop() {
       var b = document.getElementById('toTop'); if (!b) return;
-      function upd() { b.classList.toggle('show', window.scrollY > 400); }
-      window.addEventListener('scroll', upd, { passive: true }); upd();
+      var foot = document.querySelector('footer');
+      function upd() {
+        b.classList.toggle('show', window.scrollY > 400);
+        /* Build 1.06: when the footer is on screen, sit 16px above it */
+        var gap = 24;
+        if (foot) { var over = window.innerHeight - foot.getBoundingClientRect().top; if (over > 0) gap = over + 16; }
+        b.style.bottom = gap + 'px';
+      }
+      window.addEventListener('scroll', upd, { passive: true });
+      window.addEventListener('resize', upd); upd();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { wrapArrows(); initTop(); });
     else { wrapArrows(); initTop(); }
