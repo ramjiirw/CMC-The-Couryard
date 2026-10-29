@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- CMC The Courtyard -- admin.html -- Build 1.01 -- 29 Oct 2026, 17:43
+     First build to carry a number. Formatting toolbar for CMC Useful Information.
+     The build number identifies the change, not the file, so it only moves in
+     files that actually changed. The same number and date are set in PAGE_BUILD
+     and PAGE_DATE at the top of the script, which is what the header's hover
+     tooltip shows -- keep them in step. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -906,6 +912,49 @@
   .lmv-status.on { color:#3d6b4a; }
   .lmv-status.off { color:#8b3a3a; }
   .lmv-saving { font-size:0.72rem; color:#c4956a; font-style:italic; display:none; }
+
+  /* ── Build 1.01: Useful Information formatting toolbar (pattern from Idox Wiki) ── */
+  #uiRows .nb-row textarea.nb-title { margin-top:32px; }
+  #uiRows .nb-row-actions { margin-top:32px; }
+  .uif-col { flex:1; min-width:0; }
+  .uif-bar { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px; align-items:center; }
+  .uif-bar button { font:700 0.8rem Arial,sans-serif; min-width:28px; height:28px; padding:0 7px; border:1px solid rgba(122,92,62,0.28); border-radius:5px; background:#fff; color:var(--dark); cursor:pointer; }
+  .uif-bar button:hover { border-color:var(--accent2); }
+  .uif-bar button.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .uif-bar .uif-u { text-decoration:underline; }
+  .uif-bar .uif-i { font-style:italic; font-family:Georgia,serif; font-weight:400; }
+  .uif-bar .uif-hs { padding:0 3px; color:var(--dark); border-radius:2px; }
+  .uif-bar .uif-pick { min-width:20px; padding:0 3px; font-size:0.72rem; margin-left:-3px; }
+  .uif-bar .uif-a { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; }
+  .uif-bar .uif-a .bar { display:block; width:14px; height:3px; margin-top:2px; border-radius:1px; }
+  .uif-bar .uif-sep { width:1px; align-self:stretch; background:rgba(122,92,62,0.25); margin:3px 4px; }
+  .uif-bar .uif-li { font-weight:500; padding:0 10px; }
+  .uif-bar .uif-paint { display:inline-flex; align-items:center; justify-content:center; gap:2px; }
+  .uif-bar .uif-paint.on.sticky { background:#f6c445; border-color:#7a5300; color:#7a5300; }
+  .uif-bar .uif-paint.on.sticky::after { content:'\221E'; font:700 0.8rem Arial,sans-serif; }
+  .uif-bar .uif-clear { font-weight:500; padding:0 10px; text-decoration:line-through; text-decoration-color:#b3261e; }
+  /* The format painter is desktop only */
+  @media (hover:none) and (pointer:coarse) { .uif-bar .uif-paint { display:none; } }
+  .uif-ed { border:1px solid rgba(122,92,62,0.28); border-radius:6px; background:#fff; padding:0.5rem 0.7rem; min-height:120px; font-family:Arial,sans-serif; font-size:0.85rem; line-height:1.5; color:var(--dark); white-space:pre-wrap; overflow-wrap:anywhere; outline:none; cursor:text; }
+  .uif-ed:focus { border-color:var(--accent2); }
+  .uif-ed:empty::before { content:attr(data-ph); color:var(--stone); }
+  .nb-mobile-box .uif-ed { font-size:1rem; min-height:160px; border-radius:8px; padding:0.7rem 0.85rem; }
+  .nb-mobile-box .uif-ed:focus { box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  body.uif-painting .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%237A5C3E' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%237A5C3E'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%237A5C3E'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
+  body.uif-painting.uif-paint-sticky .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%23E9A400' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%23E9A400'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%23E9A400'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
+  .uif-menu { position:fixed; z-index:10000; background:#fff; border:1px solid rgba(122,92,62,0.28); border-radius:8px; box-shadow:0 6px 20px rgba(30,26,22,0.18); padding:4px; min-width:170px; }
+  .uif-menu button { display:flex; align-items:center; gap:8px; width:100%; border:none; background:none; padding:0.4rem 0.55rem; font:0.8rem Arial,sans-serif; color:var(--dark); cursor:pointer; border-radius:5px; text-align:left; }
+  .uif-menu button:hover { background:#faf7f2; }
+  .uif-menu button.cur { background:rgba(122,92,62,0.1); font-weight:700; }
+  .uif-menu .sw { width:18px; height:14px; border-radius:3px; border:1px solid rgba(0,0,0,0.12); flex:none; }
+  .uif-menu .sw.none { background:linear-gradient(135deg,#fff 45%,#b3261e 46%,#b3261e 54%,#fff 55%); }
+  .uif-menu .swA { width:18px; text-align:center; font-weight:700; flex:none; }
+  .uif-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--dark); color:var(--cream); padding:0.6rem 1rem; border-radius:8px; font-size:0.8rem; z-index:10001; box-shadow:0 4px 24px rgba(30,26,22,0.25); max-width:90vw; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+  .uif-toast.show { opacity:1; }
+  @media (max-width: 600px) {
+    #uiRows .uif-col { display:none !important; }
+    #uiRows .nb-row-actions { margin-top:0; }
+  }
 </style>
 </head>
 <body>
@@ -1661,7 +1710,7 @@
             </div>
             <div>
               <label>Information</label>
-              <textarea id="uiMobileValue" placeholder="Information text"></textarea>
+              <div id="uiMobileValueHost"></div>
             </div>
             <div class="nb-mobile-btns">
               <button onclick="uiMobileCancel()" style="background:#e8e0d5;color:var(--mid);">Cancel</button>
@@ -3180,6 +3229,17 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
 <!-- Floating lock pill -->
 
 <script>
+/* Build number and date -- shown when the mouse rests on "CMC The Courtyard" in
+   the header, so you can tell at a glance whether the browser has picked up the
+   latest version. */
+var PAGE_FILE  = 'admin.html';
+var PAGE_BUILD = '1.01';
+var PAGE_DATE  = '29 Oct 2026, 17:43';
+(function() {
+  var logo = document.querySelector('.admin-logo');
+  if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
+})();
+
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz03XiUfyTXLPlDJcNEFU8QhIVrjRNVQ4Io8Tfscjur7vZAMhitUJBBMs7jegCJJ8LL8w/exec';
 var SESSION_KEY = 'cmc_admin_auth';
 var LOCK_MINS = 30;
@@ -7355,7 +7415,7 @@ function uiRender() {
   if (uiFilterText) {
     display = display.filter(function(d) {
       return d.r.title.toLowerCase().includes(uiFilterText) ||
-             d.r.value.toLowerCase().includes(uiFilterText);
+             uifPlain(d.r.value).toLowerCase().includes(uiFilterText);   // words only, never the formatting tags
     });
   }
 
@@ -7374,10 +7434,10 @@ function uiRender() {
     display.map(function(d) {
       var i = d.i, r = d.r;
       var titlePreview = r.title || '(no title)';
-      var valPreview   = r.value || '(no information)';
+      var valPreview   = uifPlain(r.value) || '(no information)';
       return '<div class="nb-row" id="ui-row-' + i + '">' +
         '<textarea class="nb-title" placeholder="Title" oninput="uiItems[' + i + '].title=this.value;uiSetDirty()">' + escHtml(r.title) + '</textarea>' +
-        '<textarea placeholder="Information text" oninput="uiItems[' + i + '].value=this.value;uiSetDirty()">' + escHtml(r.value) + '</textarea>' +
+        '<div class="uif-col" id="ui-ed-' + i + '"></div>' +
         '<button class="nb-mobile-edit-btn" onclick="uiMobileOpen(' + i + ')">' +
           '<strong style="display:block;font-size:0.8rem;color:var(--accent);margin-bottom:0.2rem;">' + escHtml(titlePreview) + '</strong>' +
           escHtml(valPreview) +
@@ -7387,6 +7447,13 @@ function uiRender() {
         '</div>' +
         '</div>';
     }).join('');
+
+  // Build 1.01: each Information box is a formatting editor with its own toolbar
+  display.forEach(function(d) {
+    var host = document.getElementById('ui-ed-' + d.i);
+    if (!host) return;
+    uifEditor(host, d.r.value, function(v) { uiItems[d.i].value = v; uiSetDirty(); });
+  });
 }
 
 function uiAddRow() {
@@ -7404,17 +7471,22 @@ function uiRemove(i) {
 }
 
 var _uiMobileIdx = -1;
+var _uiMobileVal = '';
 function uiMobileOpen(i) {
   _uiMobileIdx = i;
   document.getElementById('uiMobileTitle').value = uiItems[i].title || '';
-  document.getElementById('uiMobileValue').value = uiItems[i].value || '';
+  // Build 1.01: the same formatting toolbar, without the format painter (desktop only)
+  _uiMobileVal = uiItems[i].value || '';
+  var host = document.getElementById('uiMobileValueHost');
+  host.innerHTML = '';
+  uifEditor(host, _uiMobileVal, function(v) { _uiMobileVal = v; }, { noPainter: true });
   document.getElementById('uiMobileModal').classList.add('open');
   setTimeout(function(){ document.getElementById('uiMobileTitle').focus(); }, 100);
 }
 function uiMobileSave() {
   if (_uiMobileIdx < 0) return;
   uiItems[_uiMobileIdx].title = document.getElementById('uiMobileTitle').value;
-  uiItems[_uiMobileIdx].value = document.getElementById('uiMobileValue').value;
+  uiItems[_uiMobileIdx].value = _uiMobileVal;
   uiSetDirty();
   uiRender();
   uiMobileCancel();
@@ -7448,6 +7520,389 @@ async function uiSave() {
 }
 
 
+
+
+// ─── USEFUL INFORMATION FORMATTING (Build 1.01) ─────────────────────────────
+// Pattern taken from the Idox Wiki toolbar. Formatting is saved as small readable
+// tags in the text, so columns G & H of cmcsettings stay plain text and code.gs
+// needs no change:
+//   {b}bold{/b}  {u}underline{/u}  {i}italic{/i}
+//   font colour:  {red} {green} {blue} {brown}
+//   highlight:    {hl-yellow} {hl-blue} {hl-green} {hl-pink} {hl-orange} {hl-lilac}
+// Bullet lines start "• " and numbered lines "1. " as real characters.
+// main.html turns the same tags into formatting -- keep the two lists in step.
+var UIF_TXT = { red:'#b3261e', green:'#3d6b4a', blue:'#2f5d8a', brown:'#7a5c3e' };
+var UIF_TXT_NAME = { red:'Red', green:'Green', blue:'Blue', brown:'Brown' };
+var UIF_TXT_KEYS = ['red','green','blue','brown'];
+var UIF_HL = { 'hl-yellow':'#ffe46b', 'hl-blue':'#b9dcff', 'hl-green':'#c4f0c2', 'hl-pink':'#ffc8e1', 'hl-orange':'#ffd6a5', 'hl-lilac':'#dccdff' };
+var UIF_HL_NAME = { 'hl-yellow':'Yellow', 'hl-blue':'Light blue', 'hl-green':'Light green', 'hl-pink':'Pink', 'hl-orange':'Orange', 'hl-lilac':'Lilac' };
+var UIF_HL_KEYS = ['hl-yellow','hl-blue','hl-green','hl-pink','hl-orange','hl-lilac'];
+var UIF_TAG_RE = /\{(\/?)(b|u|i|red|green|blue|brown|hl-yellow|hl-blue|hl-green|hl-pink|hl-orange|hl-lilac)\}/g;
+var UIF_CS = '\uE000', UIF_CE = '\uE001';   // where the selection starts / ends, only while a button changes the text
+var UIF_INK = '#1e1a16';
+var uifHlCur = 'hl-yellow', uifTxtCur = 'red';   // the colour H and A put on: the last one picked
+var uifPainter = null, uifMenuEl = null, uifToastTimer = null;
+
+// Colours as the browser writes them back, so they can be recognised
+var _uifProbe = document.createElement('span');
+function uifRgb(c) { _uifProbe.style.color = ''; _uifProbe.style.color = c; return _uifProbe.style.color; }
+var UIF_RGB_TXT = {}, UIF_RGB_HL = {};
+UIF_TXT_KEYS.forEach(function(k) { UIF_RGB_TXT[uifRgb(UIF_TXT[k])] = k; });
+UIF_HL_KEYS.forEach(function(k) { UIF_RGB_HL[uifRgb(UIF_HL[k])] = k; });
+
+function uifEsc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function uifPlain(t) { return String(t == null ? '' : t).replace(UIF_TAG_RE, ''); }
+function uifOpenTag(k) {
+  if (k === 'b' || k === 'u' || k === 'i') return '<' + k + '>';
+  if (UIF_TXT[k]) return '<span style="color:' + UIF_TXT[k] + ';">';
+  return '<span style="background-color:' + UIF_HL[k] + ';">';
+}
+function uifCloseTag(k) { return (k === 'b' || k === 'u' || k === 'i') ? '</' + k + '>' : '</span>'; }
+// Which tags are still open at the end of some text
+function uifOpenAt(str) {
+  var st = [], m, re = new RegExp(UIF_TAG_RE.source, 'g');
+  while ((m = re.exec(str))) {
+    if (!m[1]) { if (st.indexOf(m[2]) < 0) st.push(m[2]); }
+    else { var i = st.lastIndexOf(m[2]); if (i >= 0) st.splice(i, 1); }
+  }
+  return st;
+}
+// One line of tagged text -> safe HTML. Only the tags above become formatting; everything else shows as typed.
+function uifLineHtml(line) {
+  var out = '', st = [], last = 0, m, s = uifEsc(line), re = new RegExp(UIF_TAG_RE.source, 'g');
+  while ((m = re.exec(s))) {
+    out += s.slice(last, m.index);
+    last = re.lastIndex;
+    var k = m[2];
+    if (!m[1]) { if (st.indexOf(k) < 0) { st.push(k); out += uifOpenTag(k); } }
+    else {
+      var at = st.lastIndexOf(k);
+      if (at < 0) continue;
+      var above = st.slice(at + 1);
+      for (var j = st.length - 1; j >= at; j--) out += uifCloseTag(st[j]);
+      st = st.slice(0, at);
+      above.forEach(function(x) { st.push(x); out += uifOpenTag(x); });
+    }
+  }
+  out += s.slice(last);
+  for (var j2 = st.length - 1; j2 >= 0; j2--) out += uifCloseTag(st[j2]);
+  return out;
+}
+// Tags never cross a line break: anything open at the end of a line is closed, and opened again on the next
+function uifSplitLines(t) {
+  var carry = [];
+  return String(t == null ? '' : t).split('\n').map(function(l) {
+    var pre = carry.map(function(k) { return '{' + k + '}'; }).join('');
+    var stack = uifOpenAt(pre + l);
+    carry = stack;
+    return pre + l + stack.slice().reverse().map(function(k) { return '{/' + k + '}'; }).join('');
+  });
+}
+function uifEditorHtml(t) {
+  var L = uifSplitLines(t), h = L.map(uifLineHtml);
+  // an empty last line gets an invisible character, so the cursor has somewhere to sit
+  if (L.length > 1 && !uifPlain(L[L.length - 1]).replace(/[\uE000\uE001]/g, '')) h[h.length - 1] += '\u200b';
+  return h.join('\n');
+}
+// What is in the editor -> tagged text
+function uifFromEditor(root) {
+  function walk(node) {
+    var out = '';
+    Array.prototype.forEach.call(node.childNodes, function(c) {
+      if (c.nodeType === 3) { out += c.data.replace(/\u00a0/g, ' ').replace(/\u200b/g, ''); return; }
+      if (c.nodeType !== 1) return;
+      if (c.tagName === 'BR') { out += '\n'; return; }
+      var block = /^(DIV|P)$/.test(c.tagName);
+      if (block && out && !/\n$/.test(out)) out += '\n';
+      var st = c.style || {}, tg = c.tagName, keys = [];
+      if (tg === 'B' || tg === 'STRONG' || st.fontWeight === 'bold' || +st.fontWeight >= 600) keys.push('b');
+      if (tg === 'U' || /underline/.test(st.textDecoration || '') || /underline/.test(st.textDecorationLine || '')) keys.push('u');
+      if (tg === 'I' || tg === 'EM' || st.fontStyle === 'italic') keys.push('i');
+      var col = st.color ? uifRgb(st.color) : (tg === 'FONT' && c.getAttribute('color') ? uifRgb(c.getAttribute('color')) : '');
+      if (col && UIF_RGB_TXT[col]) keys.push(UIF_RGB_TXT[col]);
+      var bg = st.backgroundColor ? uifRgb(st.backgroundColor) : '';
+      if (bg && UIF_RGB_HL[bg]) keys.push(UIF_RGB_HL[bg]);
+      var inner = walk(c);
+      if (keys.length) {
+        // each line gets its own tags, so lists and line breaks stay simple
+        inner = inner.split('\n').map(function(seg) {
+          if (!seg.replace(/[\uE000\uE001]/g, '')) return seg;
+          var o = '', cl = '';
+          keys.forEach(function(k) { o += '{' + k + '}'; cl = '{/' + k + '}' + cl; });
+          return o + seg + cl;
+        }).join('\n');
+      }
+      if (block && !/\n$/.test(inner) && c.nextSibling) inner += '\n';
+      out += inner;
+    });
+    return out;
+  }
+  var t = walk(root);
+  for (var n = 0; n < 3; n++) t = t.replace(/\{\/([a-z-]+)\}\{\1\}/g, '').replace(/\{([a-z-]+)\}\{\/\1\}/g, '');
+  // a bullet or number always sits at the very start of its line, outside any formatting
+  t = t.split('\n').map(function(l) { return l.replace(/^((?:\{[a-z-]+\}|[\uE000\uE001])+)(• |\d+\. )/, '$2$1'); }).join('\n');
+  return t;
+}
+// Runs a change on the tagged text, keeping the selection where it was
+function uifWithModel(rt, fn) {
+  var ed = rt.ed, sel = window.getSelection(), r;
+  if (sel.rangeCount && ed.contains(sel.anchorNode)) r = sel.getRangeAt(0).cloneRange();
+  else { r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); }
+  var e = r.cloneRange(); e.collapse(false); e.insertNode(document.createTextNode(UIF_CE));
+  var s = r.cloneRange(); s.collapse(true); s.insertNode(document.createTextNode(UIF_CS));
+  ed.innerHTML = uifEditorHtml(fn(uifFromEditor(ed)));
+  var pos = {}, w = document.createTreeWalker(ed, NodeFilter.SHOW_TEXT), nd, list = [];
+  while ((nd = w.nextNode())) list.push(nd);
+  list.forEach(function(n) {
+    [UIF_CS, UIF_CE].forEach(function(mk) {
+      var i = n.data.indexOf(mk);
+      if (i >= 0) { n.data = n.data.slice(0, i) + n.data.slice(i + 1); pos[mk] = { n: n, o: i }; }
+    });
+  });
+  var rr = document.createRange();
+  try {
+    if (pos[UIF_CS]) rr.setStart(pos[UIF_CS].n, Math.min(pos[UIF_CS].o, pos[UIF_CS].n.data.length));
+    if (pos[UIF_CE]) rr.setEnd(pos[UIF_CE].n, Math.min(pos[UIF_CE].o, pos[UIF_CE].n.data.length));
+    else rr.collapse(true);
+    sel.removeAllRanges(); sel.addRange(rr);
+  } catch (x) {}
+  rt.sync();
+}
+
+// ── Bullet and numbered lists ──
+function uifSelLines(L) {
+  var a = 0, b = 0;
+  L.forEach(function(l, i) { if (l.indexOf(UIF_CS) >= 0) a = i; if (l.indexOf(UIF_CE) >= 0) b = i; });
+  return { a: a, b: Math.max(a, b) };
+}
+function uifHasText(l) { return !!uifPlain(l).replace(/[\uE000\uE001\s]/g, ''); }
+function uifLead(l) { var m = l.match(/^([\uE000\uE001]*)(• |\d+\. )?/); return { mk: m[1], p: m[2] || '', rest: l.slice(m[0].length) }; }
+function uifRenumber(L) {
+  var n = 0;
+  return L.map(function(l) {
+    var x = uifLead(l);
+    if (/^\d+\. $/.test(x.p)) { n++; return x.mk + n + '. ' + x.rest; }
+    n = 0; return l;
+  });
+}
+function uifToggleList(kind) {   // kind: 'li' bullets or 'ol' numbers; click again on a list to take it off
+  return function(t) {
+    var L = t.split('\n'), s = uifSelLines(L), one = s.a === s.b;
+    var isKind = function(l) { var p = uifLead(l).p; return kind === 'li' ? p === '• ' : /^\d+\. $/.test(p); };
+    var pick = L.slice(s.a, s.b + 1).filter(uifHasText);
+    var all = (pick.length ? pick : L.slice(s.a, s.b + 1)).every(isKind);
+    for (var i = s.a; i <= s.b; i++) {
+      var x = uifLead(L[i]);
+      if (all) L[i] = x.mk + x.rest;
+      else if (!isKind(L[i]) && (uifHasText(L[i]) || one)) L[i] = (kind === 'li' ? '• ' : '0. ') + x.mk + x.rest;
+    }
+    return uifRenumber(L).join('\n');
+  };
+}
+// Enter on a list line starts the next one; Enter on an empty list line ends the list
+function uifEnterModel(t) {
+  var L = t.split('\n'), i = -1;
+  L.forEach(function(l, x) { if (i < 0 && l.indexOf(UIF_CS) >= 0) i = x; });
+  if (i < 0) return t;
+  L[i] = L[i].replace(UIF_CE, '');
+  var x = uifLead(L[i].replace(UIF_CS, ''));
+  if (x.p && !uifHasText(x.rest)) { L[i] = L[i].replace(x.p, ''); return uifRenumber(L).join('\n'); }
+  var next = x.p === '• ' ? '• ' : x.p ? '0. ' : '';
+  L[i] = L[i].replace(UIF_CS, '\n' + next + UIF_CS);
+  return uifRenumber(L.join('\n').split('\n')).join('\n');
+}
+
+// ── Format painter and Clear ──
+function uifFmtAtCaret(rt) {
+  var sel = window.getSelection();
+  if (!sel.rangeCount || !rt.ed.contains(sel.anchorNode)) return [];
+  var r = sel.getRangeAt(0).cloneRange(); r.collapse(true);
+  var mk = document.createTextNode(UIF_CS); r.insertNode(mk);
+  var t = uifFromEditor(rt.ed);
+  var par = mk.parentNode; par.removeChild(mk); par.normalize();
+  var at = t.indexOf(UIF_CS), before = t.slice(0, at), after = t.slice(at + 1);
+  var ahead = (after.match(/^(\{[a-z-]+\})+/) || [''])[0];   // cursor just before formatted words counts as in them
+  return uifOpenAt(before + ahead);
+}
+// Gives the selected words exactly these formats (none = Clear)
+function uifPaintModel(keys) {
+  return function(t) {
+    var s = t.indexOf(UIF_CS), e = t.indexOf(UIF_CE);
+    if (s < 0 || e < 0 || e <= s + 1) return t;
+    var before = t.slice(0, s), mid = t.slice(s + 1, e), after = t.slice(e + 1);
+    var A = uifOpenAt(before), B = uifOpenAt(before + mid);
+    var o = keys.map(function(k) { return '{' + k + '}'; }).join('');
+    var c = keys.slice().reverse().map(function(k) { return '{/' + k + '}'; }).join('');
+    var body = uifPlain(mid).split('\n').map(function(seg) {
+      var x = seg.match(/^(• |\d+\. )?/)[0], rest = seg.slice(x.length);
+      return rest ? x + o + rest + c : seg;
+    }).join('\n');
+    return before + A.slice().reverse().map(function(k) { return '{/' + k + '}'; }).join('') + UIF_CS + body + UIF_CE +
+      B.map(function(k) { return '{' + k + '}'; }).join('') + after;
+  };
+}
+function uifStartPainter(rt, btn, sticky) {
+  uifPainter = { keys: uifFmtAtCaret(rt), sticky: sticky, btn: btn };
+  btn.classList.add('on'); btn.classList.toggle('sticky', !!sticky);
+  document.body.classList.add('uif-painting'); document.body.classList.toggle('uif-paint-sticky', !!sticky);
+  uifToast(sticky ? 'Format painter stays on: select words to paint them, as many times as you like. Esc or click the brush to stop.' : 'Format painter paints once: now select the words to change.');
+}
+function uifStopPainter() {
+  if (!uifPainter) return;
+  uifPainter.btn.classList.remove('on', 'sticky');
+  uifPainter = null;
+  document.body.classList.remove('uif-painting', 'uif-paint-sticky');
+}
+// Selecting words with the mouse while the painter is on paints them
+document.addEventListener('mouseup', function() {
+  if (!uifPainter) return;
+  setTimeout(function() {
+    if (!uifPainter) return;
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return;
+    var n = sel.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentElement), ed = el && el.closest('.uif-ed');
+    if (!ed || !ed._rt) return;
+    uifWithModel(ed._rt, uifPaintModel(uifPainter.keys));
+    if (!uifPainter.sticky) uifStopPainter();
+  }, 0);
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && uifPainter) uifStopPainter(); });
+
+// ── Colour menus for H and A ──
+function uifCloseMenu() { if (uifMenuEl) { uifMenuEl.remove(); uifMenuEl = null; } }
+document.addEventListener('mousedown', function(e) { if (uifMenuEl && !uifMenuEl.contains(e.target)) uifCloseMenu(); });
+function uifShowMenu(btn, html, onPick) {
+  uifCloseMenu();
+  var r = btn.getBoundingClientRect();
+  uifMenuEl = document.createElement('div');
+  uifMenuEl.className = 'uif-menu';
+  uifMenuEl.innerHTML = html;
+  uifMenuEl.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 190)) + 'px';
+  uifMenuEl.style.top = (r.bottom + 4) + 'px';
+  document.body.appendChild(uifMenuEl);
+  uifMenuEl.querySelectorAll('[data-k]').forEach(function(b) {
+    b.addEventListener('mousedown', function(e) { e.preventDefault(); });   // keeps the selected words selected
+    b.addEventListener('click', function() { onPick(b.getAttribute('data-k')); uifCloseMenu(); });
+  });
+}
+function uifApplyHl(rt, k) {
+  rt.ed.focus();
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('hiliteColor', false, k ? UIF_HL[k] : 'transparent');
+  document.execCommand('styleWithCSS', false, false);
+  rt.sync();
+}
+function uifApplyTxt(rt, k) {
+  rt.ed.focus();
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('foreColor', false, k ? UIF_TXT[k] : UIF_INK);
+  document.execCommand('styleWithCSS', false, false);
+  rt.sync();
+}
+function uifRefreshSwatches() {
+  document.querySelectorAll('.uif-hs').forEach(function(s) { s.style.background = UIF_HL[uifHlCur]; });
+  document.querySelectorAll('.uif-a .bar').forEach(function(s) { s.style.background = UIF_TXT[uifTxtCur]; });
+}
+function uifToast(msg) {
+  var t = document.getElementById('uifToast');
+  if (!t) { t = document.createElement('div'); t.id = 'uifToast'; t.className = 'uif-toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(uifToastTimer); uifToastTimer = setTimeout(function() { t.classList.remove('show'); }, 3500);
+}
+function uifState(rt) {
+  var sel = window.getSelection(), inside = sel.rangeCount && rt.ed.contains(sel.anchorNode);
+  ['bold', 'underline', 'italic'].forEach(function(c) {
+    var b = rt.querySelector('[data-uif="' + c + '"]');
+    if (b) b.classList.toggle('on', !!(inside && document.queryCommandState(c)));
+  });
+}
+
+// ── The Information box with its toolbar ──
+var UIF_PAINT_ICON = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="2" y="1.8" width="10" height="4.2" rx="1"/><path d="M12 3.9h1.6v3.4H7.8v2"/><rect x="6.6" y="9.3" width="2.4" height="5" rx=".8"/></svg>';
+function uifEditor(host, value, onChange, opt) {
+  opt = opt || {};
+  var rt = document.createElement('div');
+  rt.className = 'uif';
+  rt.innerHTML = '<div class="uif-bar" role="toolbar" aria-label="Formatting">' +
+    '<button type="button" data-uif="bold" title="Bold (Ctrl+B)" aria-label="Bold">B</button>' +
+    '<button type="button" data-uif="underline" class="uif-u" title="Underline (Ctrl+U)" aria-label="Underline">U</button>' +
+    '<button type="button" data-uif="italic" class="uif-i" title="Italic (Ctrl+I)" aria-label="Italic">I</button>' +
+    '<span class="uif-sep" aria-hidden="true"></span>' +
+    '<button type="button" data-uif="h" title="Highlight in the colour shown" aria-label="Highlight"><span class="uif-hs" style="background:' + UIF_HL[uifHlCur] + '">H</span></button>' +
+    '<button type="button" data-uif="hpick" class="uif-pick" title="Choose a highlight colour" aria-label="Choose a highlight colour">▾</button>' +
+    '<button type="button" data-uif="a" class="uif-a" title="Font colour: the colour shown under the A" aria-label="Font colour"><span>A</span><span class="bar" style="background:' + UIF_TXT[uifTxtCur] + '"></span></button>' +
+    '<button type="button" data-uif="apick" class="uif-pick" title="Choose a font colour" aria-label="Choose a font colour">▾</button>' +
+    '<span class="uif-sep" aria-hidden="true"></span>' +
+    '<button type="button" data-uif="list" class="uif-li" title="Bullet list: puts a bullet at the start of each line. Click again to undo." aria-label="Bullet list">• List</button>' +
+    '<button type="button" data-uif="olist" class="uif-li" title="Numbered list: puts 1. 2. 3. at the start of each line. Click again to undo." aria-label="Numbered list">1. List</button>' +
+    '<span class="uif-sep" aria-hidden="true"></span>' +
+    (opt.noPainter ? '' : '<button type="button" data-uif="paint" class="uif-paint" title="Format painter: click in some formatted words, click this, then select the words to change. Double-click to keep it on; Esc to stop." aria-label="Format painter">' + UIF_PAINT_ICON + '</button>') +
+    '<button type="button" data-uif="clear" class="uif-clear" title="Clear formatting from the selected words" aria-label="Clear formatting">Clear</button>' +
+    '</div>' +
+    '<div class="uif-ed" contenteditable="true" spellcheck="true" data-ph="Information text"></div>';
+  host.appendChild(rt);
+  var ed = rt.querySelector('.uif-ed');
+  rt.ed = ed; ed._rt = rt;
+  ed.innerHTML = uifEditorHtml(value || '');
+  rt.sync = function() { onChange(uifFromEditor(ed)); uifState(rt); };
+  ed.addEventListener('input', rt.sync);
+  ed.addEventListener('keyup', function() { uifState(rt); });
+  ed.addEventListener('mouseup', function() { setTimeout(function() { uifState(rt); }, 0); });
+  ed.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (!window.getSelection().isCollapsed) document.execCommand('delete');
+    uifWithModel(rt, uifEnterModel);
+  });
+  // Pasted text comes in plain, so only your own formatting is ever kept
+  ed.addEventListener('paste', function(e) {
+    var t = e.clipboardData && e.clipboardData.getData('text/plain');
+    if (t == null) return;
+    e.preventDefault();
+    document.execCommand('insertText', false, t.replace(/\r\n?/g, '\n'));
+  });
+  ed.addEventListener('drop', function(e) { e.preventDefault(); });
+  var pb = rt.querySelector('[data-uif="paint"]');
+  if (pb) pb.addEventListener('dblclick', function() { ed.focus(); if (uifPainter) uifStopPainter(); uifStartPainter(rt, pb, true); });
+  rt.querySelectorAll('[data-uif]').forEach(function(b) {
+    b.addEventListener('mousedown', function(e) { e.preventDefault(); });   // keeps the selected words selected
+    b.addEventListener('click', function(e) {
+      ed.focus();
+      var k = b.getAttribute('data-uif');
+      if (k === 'paint') { if (uifPainter) { uifStopPainter(); return; } uifStartPainter(rt, b, false); return; }
+      if (k === 'clear') {
+        var cs = window.getSelection();
+        if (!cs.rangeCount || cs.isCollapsed) { uifToast('Select some words first, then click Clear.'); return; }
+        uifWithModel(rt, uifPaintModel([])); return;
+      }
+      if (k === 'list') { uifWithModel(rt, uifToggleList('li')); return; }
+      if (k === 'olist') { uifWithModel(rt, uifToggleList('ol')); return; }
+      if (k === 'hpick') {
+        e.stopPropagation();
+        uifShowMenu(b, UIF_HL_KEYS.map(function(x) {
+          return '<button type="button" data-k="' + x + '"' + (x === uifHlCur ? ' class="cur"' : '') + '><span class="sw" style="background:' + UIF_HL[x] + '"></span>' + UIF_HL_NAME[x] + '</button>';
+        }).join('') + '<button type="button" data-k=""><span class="sw none"></span>No highlight</button>',
+        function(x) { if (x) { uifHlCur = x; uifRefreshSwatches(); } uifApplyHl(rt, x); });
+        return;
+      }
+      if (k === 'apick') {
+        e.stopPropagation();
+        uifShowMenu(b, '<button type="button" data-k=""><span class="swA" style="color:' + UIF_INK + '">A</span>Default</button>' +
+          UIF_TXT_KEYS.map(function(x) {
+            return '<button type="button" data-k="' + x + '"' + (x === uifTxtCur ? ' class="cur"' : '') + '><span class="swA" style="color:' + UIF_TXT[x] + '">A</span>' + UIF_TXT_NAME[x] + '</button>';
+          }).join(''),
+        function(x) { if (x) { uifTxtCur = x; uifRefreshSwatches(); } uifApplyTxt(rt, x); });
+        return;
+      }
+      if (k === 'h') { uifApplyHl(rt, uifRgb(document.queryCommandValue('backColor') || '') === uifRgb(UIF_HL[uifHlCur]) ? '' : uifHlCur); return; }
+      if (k === 'a') { uifApplyTxt(rt, uifRgb(document.queryCommandValue('foreColor') || '') === uifRgb(UIF_TXT[uifTxtCur]) ? '' : uifTxtCur); return; }
+      document.execCommand('styleWithCSS', false, false);
+      document.execCommand(k);
+      rt.sync();
+    });
+  });
+  return rt;
+}
 
 
 // ─── FULL DIRECTORY ──────────────────────────────────────────────────────────

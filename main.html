@@ -1,7 +1,12 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.00
-     First build to carry a number. The number identifies the change, not the
-     file, so this page and code.gs will diverge. -->
+<!-- CMC The Courtyard -- main.html -- Build 1.01 -- 29 Oct 2026, 17:43
+     Build 1.01: CMC Useful Information shows the formatting set in admin.html
+     (bold, underline, italic, font colour, highlight, bullet and numbered lists).
+     The number identifies the change, not the file, so this page and code.gs
+     will diverge. The same number and date are set in PAGE_BUILD and PAGE_DATE
+     at the top of the script, which is what the logo's hover tooltip shows --
+     keep them in step. -->
+<!-- Build 1.00: first build to carry a number. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -293,6 +298,10 @@
   .useful-info-empty {
     padding: 1rem 1.25rem; font-size: 0.82rem; color: var(--stone); font-style: italic;
   }
+  /* Build 1.01: one block per line of information; bullet and numbered lines
+     wrap neatly under their own text. */
+  .useful-info-item-value .ui-line.ui-li { padding-left: 1em; text-indent: -1em; }
+  .useful-info-item-value .ui-line.ui-ol { padding-left: 1.4em; text-indent: -1.4em; }
 
   /* ── AGM today banner ── */
   #agmTodayBanner {
@@ -1242,6 +1251,16 @@
 </div>
 
 <script>
+  /* Build number and date -- shown when the mouse rests on the logo, so you can
+     tell at a glance whether the browser has picked up the latest version. */
+  var PAGE_FILE  = 'main.html';
+  var PAGE_BUILD = '1.01';
+  var PAGE_DATE  = '29 Oct 2026, 17:43';
+  (function() {
+    var logo = document.querySelector('.header-brand img');
+    if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
+  })();
+
   (function() {
     const now = new Date();
     const hour = now.getHours();
@@ -2038,7 +2057,7 @@
     if (filter) {
       items = items.filter(r =>
         (r.title  || '').toLowerCase().includes(filter) ||
-        (r.value  || '').toLowerCase().includes(filter)
+        uifPlain(r.value).toLowerCase().includes(filter)   // Build 1.01: words only, never the formatting tags
       );
     }
 
@@ -2057,7 +2076,7 @@
     list.innerHTML = items.map(r =>
       '<div class="useful-info-item">' +
       '<div class="useful-info-item-title">' + escHtml(r.title) + '</div>' +
-      '<div class="useful-info-item-value">' + escHtml(r.value) + '</div>' +
+      '<div class="useful-info-item-value">' + uifInfoHtml(r.value) + '</div>' +
       '</div>'
     ).join('');
   }
@@ -2077,6 +2096,64 @@
 
   function escHtml(str) {
     return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Build 1.01: Useful Information formatting ─────────────────────────────
+  // admin.html saves formatting as small readable tags in the text:
+  //   {b}bold{/b}  {u}underline{/u}  {i}italic{/i}
+  //   font colour:  {red} {green} {blue} {brown}
+  //   highlight:    {hl-yellow} {hl-blue} {hl-green} {hl-pink} {hl-orange} {hl-lilac}
+  // Only these tags become formatting; everything else shows exactly as typed.
+  // Keep this list in step with admin.html.
+  var UIF_TXT = { red:'#b3261e', green:'#3d6b4a', blue:'#2f5d8a', brown:'#7a5c3e' };
+  var UIF_HL  = { 'hl-yellow':'#ffe46b', 'hl-blue':'#b9dcff', 'hl-green':'#c4f0c2', 'hl-pink':'#ffc8e1', 'hl-orange':'#ffd6a5', 'hl-lilac':'#dccdff' };
+  var UIF_TAG_RE = /\{(\/?)(b|u|i|red|green|blue|brown|hl-yellow|hl-blue|hl-green|hl-pink|hl-orange|hl-lilac)\}/g;
+
+  function uifPlain(t) { return String(t == null ? '' : t).replace(UIF_TAG_RE, ''); }
+  function uifOpenTag(k) {
+    if (k === 'b' || k === 'u' || k === 'i') return '<' + k + '>';
+    if (UIF_TXT[k]) return '<span style="color:' + UIF_TXT[k] + ';">';
+    return '<span style="background-color:' + UIF_HL[k] + ';">';
+  }
+  function uifCloseTag(k) { return (k === 'b' || k === 'u' || k === 'i') ? '</' + k + '>' : '</span>'; }
+  function uifOpenAt(str) {
+    var st = [], m, re = new RegExp(UIF_TAG_RE.source, 'g');
+    while ((m = re.exec(str))) {
+      if (!m[1]) { if (st.indexOf(m[2]) < 0) st.push(m[2]); }
+      else { var i = st.lastIndexOf(m[2]); if (i >= 0) st.splice(i, 1); }
+    }
+    return st;
+  }
+  function uifLineHtml(line) {
+    var out = '', st = [], last = 0, m, s = escHtml(String(line)), re = new RegExp(UIF_TAG_RE.source, 'g');
+    while ((m = re.exec(s))) {
+      out += s.slice(last, m.index);
+      last = re.lastIndex;
+      var k = m[2];
+      if (!m[1]) { if (st.indexOf(k) < 0) { st.push(k); out += uifOpenTag(k); } }
+      else {
+        var at = st.lastIndexOf(k);
+        if (at < 0) continue;
+        var above = st.slice(at + 1);
+        for (var j = st.length - 1; j >= at; j--) out += uifCloseTag(st[j]);
+        st = st.slice(0, at);
+        above.forEach(function(x) { st.push(x); out += uifOpenTag(x); });
+      }
+    }
+    out += s.slice(last);
+    for (var j2 = st.length - 1; j2 >= 0; j2--) out += uifCloseTag(st[j2]);
+    return out;
+  }
+  // One block per line; formatting open at the end of a line carries on to the next
+  function uifInfoHtml(t) {
+    var carry = [];
+    return String(t == null ? '' : t).split('\n').map(function(l) {
+      var pre = carry.map(function(k) { return '{' + k + '}'; }).join('');
+      carry = uifOpenAt(pre + l);
+      var p = uifPlain(l);
+      var cls = /^• /.test(p) ? ' ui-li' : /^\d+\. /.test(p) ? ' ui-ol' : '';
+      return '<div class="ui-line' + cls + '">' + (p.length ? uifLineHtml(pre + l) : '<br>') + '</div>';
+    }).join('');
   }
 
   (async function loadUsefulInfo() {
