@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.01 -- 29 Oct 2026, 17:43
+<!-- CMC The Courtyard -- main.html -- Build 1.02 -- 29 Oct 2026, 18:00
+     Build 1.02: bold words in CMC Useful Information show in deep dark brown
+     (#3e2a1a) so they stand out; bold words given a font colour keep it.
      Build 1.01: CMC Useful Information shows the formatting set in admin.html
      (bold, underline, italic, font colour, highlight, bullet and numbered lists).
      The number identifies the change, not the file, so this page and code.gs
@@ -302,6 +304,10 @@
      wrap neatly under their own text. */
   .useful-info-item-value .ui-line.ui-li { padding-left: 1em; text-indent: -1em; }
   .useful-info-item-value .ui-line.ui-ol { padding-left: 1.4em; text-indent: -1.4em; }
+  /* Build 1.02: bold stands out in deep dark brown. Bold words given a font
+     colour in admin (e.g. red) keep that colour. */
+  .useful-info-item-value b { color: #3e2a1a; }
+  .useful-info-item-value span[style^="color"] b { color: inherit; }
 
   /* ── AGM today banner ── */
   #agmTodayBanner {
@@ -1254,8 +1260,8 @@
   /* Build number and date -- shown when the mouse rests on the logo, so you can
      tell at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'main.html';
-  var PAGE_BUILD = '1.01';
-  var PAGE_DATE  = '29 Oct 2026, 17:43';
+  var PAGE_BUILD = '1.02';
+  var PAGE_DATE  = '29 Oct 2026, 18:00';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
