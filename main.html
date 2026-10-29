@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.02 -- 29 Oct 2026, 18:00
+<!-- CMC The Courtyard -- main.html -- Build 1.03 -- 29 Oct 2026, 18:23
+     Build 1.03: on the Bin Collections notice, the next collection is bold dark
+     brown with a NEXT tag (green for recycling, brown for general waste).
      Build 1.02: bold words in CMC Useful Information show in deep dark brown
      (#3e2a1a) so they stand out; bold words given a font colour keep it.
      Build 1.01: CMC Useful Information shows the formatting set in admin.html
@@ -95,6 +97,16 @@
   .noticeboard-item-msg {
     font-size: 0.83rem; color: var(--mid); line-height: 1.5;
   }
+  /* Build 1.03: the next bin collection stands out -- bold dark brown with a
+     NEXT tag in the bin colours (green recycling, brown general waste) */
+  .nb-bin-next { font-weight: 700; color: #3e2a1a; }
+  .nb-next-tag {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    background: #f5ede3; color: #5c3512; border: 1px solid #d4b89a;
+    border-radius: 10px; padding: 0.05rem 0.5rem; margin-left: 0.4rem;
+    letter-spacing: 0.04em; vertical-align: 1px; line-height: 1.4;
+  }
+  .nb-next-tag.recycling { background: #eaf4ed; color: #1e4d28; border-color: #b2d9bb; }
 
   .links-grid {
     display: grid;
@@ -1260,8 +1272,8 @@
   /* Build number and date -- shown when the mouse rests on the logo, so you can
      tell at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'main.html';
-  var PAGE_BUILD = '1.02';
-  var PAGE_DATE  = '29 Oct 2026, 18:00';
+  var PAGE_BUILD = '1.03';
+  var PAGE_DATE  = '29 Oct 2026, 18:23';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -2235,10 +2247,17 @@
         var futureDates = filtered.filter(function(line) { return line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
         var nonDates = filtered.filter(function(line) { return !line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
         var result = hasFuture ? nonDates.concat(futureDates.slice(0, 3)) : ['Our bins are having a rest — dates coming soon 📅'];
+        // Build 1.03: the next collection (the first date still showing) is bold dark brown
+        // with a NEXT tag -- green for recycling, brown for general waste
+        var nextDone = false;
         return result.map(function(line) {
-          if (/mixed recycling/i.test(line)) return line + ' ♻️';
-          if (/general waste/i.test(line)) return line + ' 🗑️';
-          return line;
+          var icon = /mixed recycling/i.test(line) ? ' ♻️' : /general waste/i.test(line) ? ' 🗑️' : '';
+          if (!nextDone && line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i)) {
+            nextDone = true;
+            return '<span class="nb-bin-next">' + line + '</span>' + icon +
+              '<span class="nb-next-tag' + (/recycling/i.test(line) ? ' recycling' : '') + '">NEXT</span>';
+          }
+          return line + icon;
         }).join('\n');
       }
       document.getElementById('noticeboardBody').innerHTML = messages
