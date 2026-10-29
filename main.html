@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.03 -- 29 Oct 2026, 18:23
+<!-- CMC The Courtyard -- main.html -- Build 1.04 -- 29 Oct 2026, 18:28
+     Build 1.04: the next bin collection's tag says how soon it is --
+     TODAY, TOMORROW, or IN 5 DAYS etc. (was NEXT).
      Build 1.03: on the Bin Collections notice, the next collection is bold dark
      brown with a NEXT tag (green for recycling, brown for general waste).
      Build 1.02: bold words in CMC Useful Information show in deep dark brown
@@ -98,7 +100,8 @@
     font-size: 0.83rem; color: var(--mid); line-height: 1.5;
   }
   /* Build 1.03: the next bin collection stands out -- bold dark brown with a
-     NEXT tag in the bin colours (green recycling, brown general waste) */
+     tag in the bin colours (green recycling, brown general waste).
+     Build 1.04: the tag reads TODAY, TOMORROW or IN 5 DAYS etc. */
   .nb-bin-next { font-weight: 700; color: #3e2a1a; }
   .nb-next-tag {
     display: inline-block; font-size: 0.72rem; font-weight: 700;
@@ -1272,8 +1275,8 @@
   /* Build number and date -- shown when the mouse rests on the logo, so you can
      tell at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'main.html';
-  var PAGE_BUILD = '1.03';
-  var PAGE_DATE  = '29 Oct 2026, 18:23';
+  var PAGE_BUILD = '1.04';
+  var PAGE_DATE  = '29 Oct 2026, 18:28';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -2248,14 +2251,19 @@
         var nonDates = filtered.filter(function(line) { return !line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i); });
         var result = hasFuture ? nonDates.concat(futureDates.slice(0, 3)) : ['Our bins are having a rest — dates coming soon 📅'];
         // Build 1.03: the next collection (the first date still showing) is bold dark brown
-        // with a NEXT tag -- green for recycling, brown for general waste
+        // with a tag -- green for recycling, brown for general waste.
+        // Build 1.04: the tag says how soon: TODAY, TOMORROW, or IN 5 DAYS etc.
         var nextDone = false;
         return result.map(function(line) {
           var icon = /mixed recycling/i.test(line) ? ' ♻️' : /general waste/i.test(line) ? ' 🗑️' : '';
-          if (!nextDone && line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i)) {
+          var dm = line.trim().match(/^(\d{1,2})\s+(\w+)\s+(\d{4})/i);
+          if (!nextDone && dm) {
             nextDone = true;
+            var nd = new Date(parseInt(dm[3]), months[dm[2].toLowerCase()], parseInt(dm[1]));
+            var days = Math.round((nd.getTime() - today.getTime()) / 86400000);
+            var when = isNaN(days) ? 'NEXT' : days <= 0 ? 'TODAY' : days === 1 ? 'TOMORROW' : 'IN ' + days + ' DAYS';
             return '<span class="nb-bin-next">' + line + '</span>' + icon +
-              '<span class="nb-next-tag' + (/recycling/i.test(line) ? ' recycling' : '') + '">NEXT</span>';
+              '<span class="nb-next-tag' + (/recycling/i.test(line) ? ' recycling' : '') + '">' + when + '</span>';
           }
           return line + icon;
         }).join('\n');
