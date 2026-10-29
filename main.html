@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- main.html -- Build 1.04 -- 29 Oct 2026, 18:28
+<!-- CMC The Courtyard -- main.html -- Build 1.05 -- 29 Oct 2026, 18:57
+     Build 1.05: Useful Information, Finance Tracker and AGM Minutes look like
+     raised buttons (lift on hover, press on click); card arrows nudge right
+     on hover; back-to-top button; stray closing tag removed.
      Build 1.04: the next bin collection's tag says how soon it is --
      TODAY, TOMORROW, or IN 5 DAYS etc. (was NEXT).
      Build 1.03: on the Bin Collections notice, the next collection is bold dark
@@ -663,6 +666,51 @@
   @keyframes pulse { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
   .hint-loading { animation: pulse 1.2s ease-in-out infinite; }
 
+  /* Build 1.05: Useful Information, Finance Tracker and AGM Minutes look like
+     raised buttons -- firm close shadow, light top edge, lift on hover,
+     press on click. */
+  .tracker-link { text-decoration: none; display: block; margin-bottom: 1.5rem; }
+  .tracker-card { background: var(--dark); border: 1px solid rgba(196,149,106,0.25); border-radius: 10px; padding: 1.5rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; }
+  .useful-info-section, .finance-section, .tracker-card {
+    box-shadow: 0 1px 2px rgba(30,26,22,0.16), 0 4px 12px rgba(30,26,22,0.16);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .useful-info-toggle, .btn-toggle { box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); }
+  .tracker-card { box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 1px 2px rgba(30,26,22,0.16), 0 4px 12px rgba(30,26,22,0.16); }
+  .btn-toggle:hover { transform: none; }
+  .useful-info-section:has(.useful-info-toggle:hover),
+  .finance-section:has(.btn-toggle:hover):not(:has(.btn-minutes-off)) {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(30,26,22,0.16), 0 12px 28px rgba(122,92,62,0.24);
+  }
+  .tracker-link:hover .tracker-card {
+    transform: translateY(-2px); border-color: rgba(196,149,106,0.6);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 3px 6px rgba(30,26,22,0.16), 0 12px 28px rgba(122,92,62,0.24);
+  }
+  .useful-info-section:has(.useful-info-toggle:active),
+  .finance-section:has(.btn-toggle:active):not(:has(.btn-minutes-off)) {
+    transform: translateY(0); box-shadow: 0 1px 2px rgba(30,26,22,0.18);
+  }
+  .tracker-link:active .tracker-card { transform: translateY(0); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 1px 2px rgba(30,26,22,0.18); }
+
+  /* Build 1.05: card arrows nudge right on hover (mouse only). */
+  .cta-arrow { display: inline-block; transition: transform 0.25s ease; }
+  @media (hover: hover) { .link-card:hover .cta-arrow { transform: translateX(4px); } }
+
+  /* Build 1.05: back-to-top button, appears once scrolled down. */
+  .to-top {
+    position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 900;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid rgba(196,149,106,0.4); background: var(--dark); color: var(--accent2);
+    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 4px rgba(30,26,22,0.2), 0 6px 16px rgba(30,26,22,0.2);
+    opacity: 0; visibility: hidden; transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s, background 0.2s;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: none; }
+  .to-top:hover { background: #2a2520; }
+  .to-top:active { transform: translateY(1px); }
+
 
   @media (max-width: 600px) {
 
@@ -1016,7 +1064,6 @@
         <span class="chevron">▶</span>
       </span>
     </button>
-    </button>
     <div class="useful-info-body" id="usefulInfoBody">
       <div class="useful-info-controls">
         <input class="useful-info-search" id="usefulInfoSearch" type="text"
@@ -1033,21 +1080,8 @@
   </div>
 
   <!-- CMC Finance Tracker card -->
-  <a href="fin_managementcharge.html" style="text-decoration:none;display:block;" onmouseover="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.6)';this.querySelector('.tracker-card').style.boxShadow='0 10px 36px rgba(122,92,62,0.22)';this.querySelector('.tracker-card').style.transform='translateY(-2px)';" onmouseout="this.querySelector('.tracker-card').style.borderColor='rgba(196,149,106,0.25)';this.querySelector('.tracker-card').style.boxShadow='';this.querySelector('.tracker-card').style.transform='';">
-  <div class="tracker-card" style="
-    background: var(--dark);
-    border: 1px solid rgba(196,149,106,0.25);
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    padding: 1.5rem 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.25s ease;
-    cursor: pointer;
-  ">
+  <a class="tracker-link" href="fin_managementcharge.html">
+  <div class="tracker-card">
     <div>
       <p style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.35rem;">CMC Finance Tracker</p>
       <p style="font-size:0.88rem;color:var(--stone);line-height:1.5;margin:0;">Track account balances, budget vs actual, income, management charges, and more.</p>
@@ -1249,6 +1283,9 @@
   </div>
 </main>
 
+<!-- Build 1.05: back to top -->
+<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
 <!-- Document Search Modal -->
 <div class="search-hub-overlay" id="hubOverlay" onclick="hubOverlayClick(event)">
   <div class="search-hub-modal">
@@ -1275,11 +1312,32 @@
   /* Build number and date -- shown when the mouse rests on the logo, so you can
      tell at a glance whether the browser has picked up the latest version. */
   var PAGE_FILE  = 'main.html';
-  var PAGE_BUILD = '1.04';
-  var PAGE_DATE  = '29 Oct 2026, 18:28';
+  var PAGE_BUILD = '1.05';
+  var PAGE_DATE  = '29 Oct 2026, 18:57';
   (function() {
     var logo = document.querySelector('.header-brand img');
     if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
+  })();
+  /* Build 1.05: wrap each card's arrow so it can nudge on hover; show the
+     back-to-top button once scrolled down. */
+  (function() {
+    function wrapArrows() {
+      document.querySelectorAll('.link-card .agm-cta').forEach(function(p) {
+        var walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), n, last = null;
+        while ((n = walker.nextNode())) if (n.nodeValue.indexOf('\u2192') !== -1) last = n;
+        if (!last || (last.parentNode.classList && last.parentNode.classList.contains('cta-arrow'))) return;
+        var after = last.splitText(last.nodeValue.lastIndexOf('\u2192')); after.splitText(1);
+        var s = document.createElement('span'); s.className = 'cta-arrow';
+        after.parentNode.replaceChild(s, after); s.appendChild(after);
+      });
+    }
+    function initTop() {
+      var b = document.getElementById('toTop'); if (!b) return;
+      function upd() { b.classList.toggle('show', window.scrollY > 400); }
+      window.addEventListener('scroll', upd, { passive: true }); upd();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { wrapArrows(); initTop(); });
+    else { wrapArrows(); initTop(); }
   })();
 
   (function() {
