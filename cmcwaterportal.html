@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.01 -- 9 Nov 2026, 16:25
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.02 -- 9 Nov 2026, 16:58
+     Build 1.02: CMC -> Liscombe Park Water Account -- when our derived total
+     and Liscombe's Amount Due differ by more than 2p, the difference is
+     labelled from CMC's side: green "surplus" (residents are recharged more
+     than Liscombe charged) or red "shortfall" (CMC pays Liscombe more than it
+     recovers). Shown in the reconciliation box, the Amount Due cell and the
+     breakdown line, and explained in the key.
      Build 1.01: first build to carry a number on this page (shown when the
      mouse rests on the header logo). Price per m³ now shows to 3 decimal
      places throughout (Quarterly Water Bills, Liscombe Park account and
@@ -916,6 +922,13 @@
   .lq-exp { cursor:pointer; color:#1d5468; font-weight:700; margin-left:6px; font-size:11.5px; }
   .lq-tick { font-size:12px; margin-left:5px; }
   .lq-tick.ok { color:#2f6b45; } .lq-tick.warn { color:#c47a1a; } .lq-tick.pend { color:#b8ad9e; }
+  /* Build 1.02: surplus (in CMC's favour) / shortfall (against CMC) */
+  .lq-side { display:inline-block; font-size:0.72rem; font-weight:700; padding:1px 7px; border-radius:6px; border:1px solid; white-space:nowrap; }
+  .lq-side.sur { background:#eef6f0; border-color:#cfe6d6; color:#2f6b45; }
+  .lq-side.short { background:#fbeceb; border-color:#efcdca; color:#a23b3b; }
+  .lq-table td.due .lq-side { display:block; width:max-content; margin:3px 0 0 auto; }
+  .lq-legend .sur { color:#2f6b45; font-weight:700; } .lq-legend .short { color:#a23b3b; font-weight:700; }
+  .lq-eq .lq-side { white-space:normal; }
   .wstmt-pill.awaiting { background:#eef4f7; color:#1d5468; }
   .lq-detail.hidden { display:none; }
   .lq-detail td { background:#fbf9f5 !important; border-bottom:1px dashed #e6ddd0; padding:0; }
@@ -972,8 +985,8 @@
 /* Build number and date -- shown when the mouse rests on the header logo, so
    you can tell at a glance whether the browser has picked up the latest version. */
 var PAGE_FILE  = 'cmcwaterportal.html';
-var PAGE_BUILD = '1.01';
-var PAGE_DATE  = '9 Nov 2026, 16:25';
+var PAGE_BUILD = '1.02';
+var PAGE_DATE  = '9 Nov 2026, 16:58';
 (function() {
   var logo = document.getElementById('headerLogo');
   if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -2057,6 +2070,18 @@ var liscombeOpenDetail = {};
 
 function lqMoney(n){ return '£' + Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function lqRate(n){ return '£' + Number(n).toFixed(3); }   // Build 1.01: 3 dp
+// Build 1.02: describe a reconciliation difference from CMC's side.
+// diff = our derived − Liscombe Amount Due. Above 0 = surplus, below 0 = shortfall.
+function lqPence(a){ a=Math.abs(a); return a < 1 ? (Math.round(a*100) + 'p') : lqMoney(a); }
+function lqSide(diff){
+  var sur = diff > 0, amt = lqPence(diff);
+  return {
+    cls:  sur ? 'sur' : 'short',
+    tag:  amt + (sur ? ' surplus' : ' shortfall'),
+    full: sur ? ('CMC surplus ' + lqMoney(Math.abs(diff)) + ': residents recharged ' + amt + ' more than Liscombe charged')
+              : ('CMC shortfall ' + lqMoney(Math.abs(diff)) + ': CMC pays Liscombe ' + amt + ' more than it recovers')
+  };
+}
 function lqVol(n){ return Number(n).toLocaleString('en-GB',{minimumFractionDigits:3,maximumFractionDigits:3}) + ' m³'; }
 function lqPill(s){ return s==='paid'?'Paid':(s==='part'?'Part paid':(s==='awaiting'?'Awaiting bill':'Unpaid')); }
 function lqTrend(cur,prev){ if(prev==null)return''; if(cur>prev+0.001)return '<span class="wstmt-trend up">▲</span>'; if(cur<prev-0.001)return '<span class="wstmt-trend down">▼</span>'; return '<span class="wstmt-trend flat">–</span>'; }
@@ -2147,7 +2172,7 @@ function renderLiscombeAccount(){
   if(!mism.length){
     h += '<div class="lq-badge ok"><div class="rt">Bill reconciliation ✓</div>Our derived figures match Liscombe’s Amount Due across all billed quarters ('+lqMoney(tDerived)+' = '+lqMoney(tDue)+').'+(awaiting?' '+awaiting+' quarter awaiting Liscombe’s bill.':'')+'</div>';
   } else {
-    var lines = mism.map(function(r){ return r.quarter+' (ours '+lqMoney(r.derived)+' vs Liscombe '+lqMoney(r.amountDue)+', '+(r.diff>0?'+':'')+lqMoney(r.diff)+')'; }).join('; ');
+    var lines = mism.map(function(r){ var sd=lqSide(r.diff); return r.quarter+' (ours '+lqMoney(r.derived)+' vs Liscombe '+lqMoney(r.amountDue)+' <span class="lq-side '+sd.cls+'">'+sd.tag+'</span>)'; }).join('; ');   // Build 1.02
     h += '<div class="lq-badge warn"><div class="rt">⚠ Bill reconciliation — '+mism.length+' to check</div>Our figures don’t match Liscombe’s Amount Due for: '+lines+'. Worth checking the readings or the rates entered.</div>';
   }
   if(tBal>0.001){
@@ -2158,7 +2183,7 @@ function renderLiscombeAccount(){
   }
   h += '</div>';
 
-  h += '<p class="lq-legend"><b>Our derived</b> = what our readings and Liscombe’s rates work out to · <b>Amount Due</b> = the total Liscombe invoiced · <b>Paid by CMC</b> = what we actually paid them. <span class="tk">✓</span> our figure reconciles to Liscombe’s Amount Due · <span class="wn">⚠</span> a discrepancy to check.</p>';
+  h += '<p class="lq-legend"><b>Our derived</b> = what our readings and Liscombe’s rates work out to · <b>Amount Due</b> = the total Liscombe invoiced · <b>Paid by CMC</b> = what we actually paid them. <span class="tk">✓</span> our figure reconciles to Liscombe’s Amount Due · <span class="wn">⚠</span> a discrepancy to check: <span class="sur">surplus</span> = residents are recharged more than Liscombe charged · <span class="short">shortfall</span> = CMC pays Liscombe more than it recovers.</p>';
 
   h += '<div style="overflow-x:auto;"><table class="wstmt-table lq-table"><thead><tr>';
   h += '<th class="l">Quarter</th><th class="l">Bill date</th><th>Water<br>Volume</th><th>Price<br><small>per m³</small></th><th>Our derived<br><small>what we think</small></th><th class="due-h">Amount Due<br><small>Liscombe billed</small></th><th>Paid by CMC<br><small>what we paid</small></th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
@@ -2190,7 +2215,7 @@ function renderLiscombeAccount(){
       if(r.hasBill){
         h += '<td class="num rate">'+lqRate(r.pricePerM3)+'</td>';
         h += '<td class="num derived">'+lqMoney(r.derived)+'</td>';
-        h += '<td class="num due">'+lqMoney(r.amountDue)+'<span class="lq-tick '+(r.reconciled?'ok':'warn')+'">'+(r.reconciled?'✓':'⚠')+'</span></td>';
+        h += '<td class="num due">'+lqMoney(r.amountDue)+'<span class="lq-tick '+(r.reconciled?'ok':'warn')+'">'+(r.reconciled?'✓':'⚠')+'</span>'+(r.reconciled?'':(function(){ var sd=lqSide(r.diff); return '<span class="lq-side '+sd.cls+'">'+sd.tag+'</span>'; })())+'</td>';   // Build 1.02
         h += '<td class="num">'+(r.cmcPaid>0.001?lqMoney(r.cmcPaid):'—')+'</td>';
       } else {
         h += '<td class="num await">—</td><td class="num await">awaiting</td><td class="num await">awaiting bill<span class="lq-tick pend">•</span></td><td class="num await">—</td>';
@@ -2209,7 +2234,7 @@ function renderLiscombeAccount(){
         h += '<div><span class="k">Site Users</span> <span class="v">'+r.siteUsers+'</span></div>';
         h += '</div>';
         if(r.reconciled) h += '<div class="lq-eq">Our derived total <b>'+lqMoney(r.derived)+'</b> = Liscombe Amount Due <b>'+lqMoney(r.amountDue)+'</b> <span class="ok">✓ reconciled'+(r.rounding?' · '+lqMoney(Math.abs(r.diff))+' rounding':'')+'</span></div>';
-        else h += '<div class="lq-eq">Our derived total <b>'+lqMoney(r.derived)+'</b> vs Liscombe Amount Due <b>'+lqMoney(r.amountDue)+'</b> <span class="warn">⚠ '+(r.diff>0?'+':'')+lqMoney(r.diff)+' — check readings / rates</span></div>';
+        else { var sdb=lqSide(r.diff); h += '<div class="lq-eq">Our derived total <b>'+lqMoney(r.derived)+'</b> vs Liscombe Amount Due <b>'+lqMoney(r.amountDue)+'</b> <span class="warn">⚠</span> <span class="lq-side '+sdb.cls+'">'+sdb.full+'</span></div>'; }   // Build 1.02
       } else {
         h += '<div class="dh">Awaiting Liscombe’s bill · '+r.quarter+'</div>';
         h += '<div class="lq-detgrid"><div><span class="k">Readings in · site volume</span> <span class="v">'+(r.volume!=null?lqVol(r.volume):'—')+'</span></div></div>';
