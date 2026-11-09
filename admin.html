@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.05 -- 9 Nov 2026, 16:25
+<!-- CMC The Courtyard -- admin.html -- Build 1.06 -- 9 Nov 2026, 16:50
+     Build 1.06: Water Bills Input -- each bill in the All water bills list has
+     an Edit link that loads it into the form (Bill ID locked). Save changes
+     updates the bill and regenerates its 14 property bills (code.gs Build
+     1.15). Locked, with the reason shown, once that quarter's invoices have
+     been emailed or a resident payment is recorded. Grey hint under Admin
+     total inc VAT: admin line + its VAT.
      Build 1.05: Water Bills Input -- new MDD charge box (site total from the
      Liscombe bill; blank saves as 0.00), sent with the bill when you press
      Save, and an MDD column in the All water bills list. Save to sheet now
@@ -2783,10 +2789,11 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
         #panel-waterbillsinput .wbi-alltable th{padding:8px 10px;font-weight:600;text-align:left;vertical-align:bottom;overflow-wrap:anywhere;}
         #panel-waterbillsinput .wbi-alltable td{padding:7px 10px;vertical-align:top;overflow-wrap:anywhere;}</style>
         <div class="panel-title">&#128167; Water Bills Input</div>
-        <div class="panel-desc">This page is for entering a new quarterly supplier water bill. Press Save and it writes straight to the <code>cmcwaterbills</code> sheet; when the quarter&rsquo;s meter readings are already in, saving also generates the 14 per-property bills on the spot. Period start, end and days are filled in automatically. Bills already entered are read-only &mdash; see the list at the bottom.</div>
+        <div class="panel-desc">This page is for entering a new quarterly supplier water bill. Press Save and it writes straight to the <code>cmcwaterbills</code> sheet; when the quarter&rsquo;s meter readings are already in, saving also generates the 14 per-property bills on the spot. Period start, end and days are filled in automatically. To correct a saved bill, press Edit on its row in the list at the bottom &mdash; this is locked once that quarter&rsquo;s invoices have been emailed or a resident payment is recorded.</div>
 
         <div style="max-width:620px;">
-          <div style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.8rem;">New bill</div>
+          <div id="wbiFormTitle" style="font-size:0.78rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.8rem;">New bill</div>
+          <div id="wbiEditBanner" style="display:none;background:#fdf3dd;border:1px solid #e8cf94;color:#7a5410;border-radius:8px;padding:9px 12px;font-size:0.85rem;margin-bottom:12px;"></div>
 
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
             <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Bill ID</span>
@@ -2843,6 +2850,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
               <input id="wbiAdmin" class="wbiMoney wbiReq" inputmode="decimal" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
             </div>
           </div>
+          <div style="margin:-5px 0 11px 173px;font-size:0.75rem;color:#9a8f7e;">Admin line + its VAT, e.g. &pound;2.50 + &pound;0.50 = &pound;3.00</div>
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
             <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">MDD charge</span>
             <span style="width:32px;flex:none;"></span>
@@ -2875,6 +2883,7 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
 
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid rgba(122,92,62,0.15);padding-top:1rem;margin-top:1rem;">
             <button type="button" id="wbiSaveBtn" style="height:40px;background:#7a5c3e;color:#fff;border:none;border-radius:8px;padding:0 22px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">&#128190; Save to sheet</button>
+            <button type="button" id="wbiCancelBtn" style="display:none;height:40px;background:#fff;color:#7a5c3e;border:1px solid rgba(122,92,62,0.4);border-radius:8px;padding:0 18px;font-family:Arial,sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;">Cancel</button>
             <span id="wbiReqNote" style="display:none;font-size:0.8rem;color:#8b3a3a;">&#9888; Please fill the highlighted fields.</span>
             <span id="wbiSaveHint" style="font-size:0.75rem;color:#9a8f7e;">Saves the row and generates on the spot if the readings are in.</span>
           </div>
@@ -2886,8 +2895,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           </div>
           <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
             <table class="wbi-alltable">
-              <colgroup><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:6%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:10%"></colgroup>
-              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>MDD</th><th>Due</th></tr></thead>
+              <colgroup><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:5%"><col style="width:7%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:7%"><col style="width:9%"><col style="width:11%"></colgroup>
+              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>MDD</th><th>Due</th><th></th></tr></thead>
               <tbody id="wbiTableBody"></tbody>
             </table>
           </div>
@@ -3259,8 +3268,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.05';
-var PAGE_DATE  = '9 Nov 2026, 16:25';
+var PAGE_BUILD = '1.06';
+var PAGE_DATE  = '9 Nov 2026, 16:50';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -12367,6 +12376,10 @@ function mntSendAssignEmail() {
 <script>
 (function(){
   var BILLS = {}, GEN = {}, EXIST = {};
+  var EDIT_ID = null;   // Build 1.06: Bill ID being edited, or null for a new bill
+  var SAVE_NEW_LABEL = '&#128190; Save to sheet', SAVE_EDIT_LABEL = '&#128190; Save changes';
+  var HINT_NEW = 'Saves the row and generates on the spot if the readings are in.';
+  var HINT_EDIT = 'Updates the bill and regenerates its 14 property bills.';
   function q(id){ return document.getElementById(id); }
   function rankOf(qtr){ var m=(qtr||'').match(/(\d{4})\s*Q\s*([1-4])/i); return m?(parseInt(m[1],10)*10+parseInt(m[2],10)):0; }
   function inputToSheet(d){ var m=(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m?(m[3]+'/'+m[2]+'/'+m[1]):(d||''); }
@@ -12378,7 +12391,7 @@ function mntSendAssignEmail() {
   function populateUsers(){ var sel=q('wbiUsers'); if(!sel||sel.options.length) return; var h=''; for(var n=50;n<=70;n++){ h+='<option value="'+n+'"'+(n===57?' selected':'')+'>'+n+'</option>'; } sel.innerHTML=h; sel.value='57'; }
   function getBillId(){ return 'B'+q('wbiYear').value+' Q'+q('wbiQuarter').value; }
 
-  function updatePreview(){ var id=getBillId(); q('wbiIdPreview').textContent=id; q('wbiDupNote').style.display=EXIST[id]?'block':'none'; }
+  function updatePreview(){ var id=EDIT_ID||getBillId(); q('wbiIdPreview').textContent=id; q('wbiDupNote').style.display=(EXIST[id]&&!EDIT_ID)?'block':'none'; }
 
   function setInvalid(inp,bad){ inp.style.borderColor=bad?'#c0392b':'rgba(122,92,62,0.3)'; inp.style.background=bad?'#fdecea':'#fff'; }
   function clearAllInvalid(){ Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiReq'),function(i){ setInvalid(i,false); }); q('wbiReqNote').style.display='none'; }
@@ -12396,8 +12409,38 @@ function mntSendAssignEmail() {
       .catch(function(){ if(typeof showToast==='function') showToast('Could not load water bills','error'); });
   };
 
+  // Build 1.06: switch the form between "New bill" and "Editing <Bill ID>"
+  function applyEditUI(){
+    var ed=!!EDIT_ID;
+    q('wbiYear').disabled=ed; q('wbiQuarter').disabled=ed;
+    q('wbiYear').style.opacity=ed?'0.6':''; q('wbiQuarter').style.opacity=ed?'0.6':'';
+    q('wbiFormTitle').textContent=ed?('Editing bill '+EDIT_ID):'New bill';
+    var bn=q('wbiEditBanner'); bn.style.display=ed?'block':'none';
+    if(ed) bn.innerHTML='&#9888; Editing <strong>'+EDIT_ID+'</strong>. Saving replaces this quarter&rsquo;s 14 property bills.';
+    q('wbiSaveBtn').innerHTML=ed?SAVE_EDIT_LABEL:SAVE_NEW_LABEL;
+    q('wbiSaveHint').textContent=ed?HINT_EDIT:HINT_NEW;
+    q('wbiCancelBtn').style.display=ed?'':'none';
+  }
+  function sheetToInput(d){ var m=(d||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m?(m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2)):''; }
+  function ensureOption(sel,val){ val=String(val); for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===val) return; } var o=document.createElement('option'); o.value=val; o.textContent=val; sel.appendChild(o); }
+  function wbiEdit(billId){
+    var b=null; billList().forEach(function(x){ if(x.billId===billId) b=x; }); if(!b) return;
+    var m=(b.billId||'').match(/(\d{4})\s*Q\s*([1-4])/i); if(!m) return;
+    EDIT_ID=b.billId;
+    ensureOption(q('wbiYear'),m[1]); q('wbiYear').value=m[1]; q('wbiQuarter').value=m[2];
+    q('wbiBillDate').value=sheetToInput(b.billDate);
+    q('wbiPrice').value=fmtRate(b.pricePerM3); q('wbiStanding').value=fmtMoney(b.siteStanding);
+    if(b.siteUsers!=null&&b.siteUsers!==''){ ensureOption(q('wbiUsers'),b.siteUsers); q('wbiUsers').value=String(b.siteUsers); }
+    q('wbiAdmin').value=fmtMoney(b.adminTotal); q('wbiMdd').value=fmtMoney(b.mdd); q('wbiDue').value=fmtMoney(b.amountDue);
+    q('wbiNotes').value=b.notes||'';
+    q('wbiPStart').value=b.periodStart||''; q('wbiPEnd').value=b.periodEnd||''; q('wbiDays').value=(b.days==null?'':b.days);
+    clearAllInvalid(); applyEditUI(); updatePreview();
+    try{ q('wbiFormTitle').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+  }
+
   function resetForm(){
     if(!q('wbiYear')) return;
+    EDIT_ID=null; applyEditUI();   // Build 1.06: always back to a new bill
     if(q('wbiYear').options.length) q('wbiYear').selectedIndex=0;
     q('wbiQuarter').value='1'; q('wbiBillDate').value=''; q('wbiUsers').value='57';
     q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiMdd').value=''; q('wbiDue').value=''; q('wbiNotes').value='';
@@ -12411,23 +12454,33 @@ function mntSendAssignEmail() {
     function c(v){ return '<td>'+(v==null?'':v)+'</td>'; }
     function m(v){ var s=fmtMoney(v); return '<td>'+(s===''?'':'&pound;'+s)+'</td>'; }
     function r(v){ var s=fmtRate(v); return '<td>'+(s===''?'':'&pound;'+s)+'</td>'; }
+    // Build 1.06: Edit link, or a padlock with the reason it is locked
+    function editCell(b){
+      if(b.invoicesSentOn) return '<td style="color:#9a8f7e;" title="Invoices emailed to residents on '+esc(b.invoicesSentOn)+'">&#128274; Invoices sent</td>';
+      if(b.paymentRecorded) return '<td style="color:#9a8f7e;" title="A resident payment is recorded against '+esc(b.quarter)+'">&#128274; Payment recorded</td>';
+      return '<td><span class="wbi-edit" data-id="'+esc(b.billId)+'" style="cursor:pointer;color:#7a5c3e;font-weight:600;">&#9998; Edit</span></td>';
+    }
     list.forEach(function(b){
       var g=!!GEN[b.quarter];
       html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
         +'<td>'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
         +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+r(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.mdd)+m(b.amountDue)
+        +editCell(b)
         +'</tr>';
       if(b.notes && String(b.notes).trim()!==''){
-        html+='<tr class="wbi-noterow"><td colspan="11" style="border:0;padding:2px 10px 9px;">'
+        html+='<tr class="wbi-noterow"><td colspan="12" style="border:0;padding:2px 10px 9px;">'
           +'<span class="wbi-notetoggle" style="cursor:pointer;color:#7a5c3e;font-size:0.8rem;font-weight:600;user-select:none;">&#9656; Note</span>'
           +'<div class="wbi-notetext" style="display:none;margin-top:5px;font-size:0.82rem;color:var(--dark);line-height:1.5;max-width:900px;">'+esc(b.notes)+'</div>'
           +'</td></tr>';
       }
     });
-    if(!html) html='<tr><td colspan="11" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
+    if(!html) html='<tr><td colspan="12" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
     tb.innerHTML=html;
     Array.prototype.forEach.call(document.querySelectorAll('#wbiTableBody .wbi-notetoggle'),function(t){
       t.addEventListener('click',function(){ var txt=t.nextElementSibling, open=txt.style.display!=='none'; txt.style.display=open?'none':'block'; t.innerHTML=(open?'&#9656;':'&#9662;')+' Note'; });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#wbiTableBody .wbi-edit'),function(el){
+      el.addEventListener('click',function(){ wbiEdit(el.getAttribute('data-id')); });
     });
     var cnt=q('wbiAllCount'); if(cnt) cnt.textContent=list.length?('('+list.length+')'):'';
   }
@@ -12442,24 +12495,26 @@ function mntSendAssignEmail() {
   }
 
   window.wbiSave = function(){
-    var billId=getBillId();
-    if(EXIST[billId]){ q('wbiDupNote').style.display='block'; if(typeof showToast==='function') showToast('A bill for '+billId+' already exists','error'); return; }
+    var editing=!!EDIT_ID;   // Build 1.06
+    var billId=editing?EDIT_ID:getBillId();
+    if(!editing && EXIST[billId]){ q('wbiDupNote').style.display='block'; if(typeof showToast==='function') showToast('A bill for '+billId+' already exists','error'); return; }
     if(!validate()){ return; }
     var bill={ billId:billId, billDate:inputToSheet(q('wbiBillDate').value),
       pricePerM3:(q('wbiPrice').value||'').trim(), siteStanding:(q('wbiStanding').value||'').trim(),
       siteUsers:(q('wbiUsers').value||'').trim(), adminTotal:(q('wbiAdmin').value||'').trim(),
       amountDue:(q('wbiDue').value||'').trim(), mdd:(q('wbiMdd').value||'').trim(), notes:q('wbiNotes').value||'' };
-    var btn=q('wbiSaveBtn'); var orig=btn.innerHTML; btn.disabled=true; btn.style.opacity='0.6'; btn.innerHTML='Saving\u2026';
-    fetch(SCRIPT_URL,{ method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'saveWaterBill', bill:bill }) })
+    var btn=q('wbiSaveBtn'); btn.disabled=true; btn.style.opacity='0.6'; btn.innerHTML='Saving\u2026';
+    fetch(SCRIPT_URL,{ method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:(editing?'updateWaterBill':'saveWaterBill'), bill:bill }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(!d || d.status!=='ok') throw new Error((d && d.message) || 'Save failed');
         if(typeof showToast==='function') showToast(d.message || 'Saved','success');
+        EDIT_ID=null;   // back to a new bill (wbiLoad resets the form)
         wbiLoad();
         if(q('wbiAllBody').style.display==='none'){ q('wbiAllBody').style.display='block'; q('wbiAllCaret').innerHTML='&#9662;'; }
       })
       .catch(function(e){ if(typeof showToast==='function') showToast('Error saving: '+e.message,'error'); })
-      .then(function(){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=orig; });
+      .then(function(){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=EDIT_ID?SAVE_EDIT_LABEL:SAVE_NEW_LABEL; });
   };
 
   function wbiInit(){
@@ -12469,6 +12524,7 @@ function mntSendAssignEmail() {
     q('wbiQuarter').addEventListener('change',updatePreview);
     q('wbiDateBtn').addEventListener('click',function(){ var d=q('wbiBillDate'); try{ d.showPicker(); }catch(e){ d.focus(); } });
     q('wbiSaveBtn').addEventListener('click',wbiSave);
+    q('wbiCancelBtn').addEventListener('click',resetForm);   // Build 1.06
     q('wbiAllToggle').addEventListener('click',function(){ var body=q('wbiAllBody'), open=body.style.display!=='none'; body.style.display=open?'none':'block'; q('wbiAllCaret').innerHTML=open?'&#9656;':'&#9662;'; });
     Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiMoney'),function(inp){
       inp.addEventListener('blur',function(){ var v=(inp.value||'').trim(); if(v!==''&&!isNaN(Number(v))) inp.value=Number(v).toFixed(inp.id==='wbiPrice'?3:2); });  // Build 1.04: price per m³ to 3 dp
