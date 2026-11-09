@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.03 -- 29 Oct 2026, 18:16
+<!-- CMC The Courtyard -- admin.html -- Build 1.04 -- 9 Nov 2026, 15:55
+     Build 1.04: Water Bills Input -- Price per m³ keeps 3 decimal places when
+     you leave the box (other money boxes stay at 2), and the All water bills
+     list shows £/m³ at 3 decimal places.
      Build 1.03: while CMC Useful Information is saving, both Save to Sheet
      buttons say Saving… in full colour, and the message line shows
      "Saving to sheet…" with a spinner.
@@ -3243,8 +3246,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.03';
-var PAGE_DATE  = '29 Oct 2026, 18:16';
+var PAGE_BUILD = '1.04';
+var PAGE_DATE  = '9 Nov 2026, 15:55';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -12355,6 +12358,7 @@ function mntSendAssignEmail() {
   function rankOf(qtr){ var m=(qtr||'').match(/(\d{4})\s*Q\s*([1-4])/i); return m?(parseInt(m[1],10)*10+parseInt(m[2],10)):0; }
   function inputToSheet(d){ var m=(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m?(m[3]+'/'+m[2]+'/'+m[1]):(d||''); }
   function fmtMoney(v){ if(v===''||v==null) return ''; var n=Number(v); return isNaN(n)?String(v):n.toFixed(2); }
+  function fmtRate(v){ if(v===''||v==null) return ''; var n=Number(v); return isNaN(n)?String(v):n.toFixed(3); }  // Build 1.04: price per m³ to 3 dp
   function billList(){ return Object.keys(BILLS).map(function(k){return BILLS[k];}).sort(function(a,b){return rankOf(b.quarter)-rankOf(a.quarter);}); }
 
   function populateYears(){ var sel=q('wbiYear'); if(!sel||sel.options.length) return; var y=new Date().getFullYear(); sel.innerHTML='<option value="'+y+'">'+y+'</option><option value="'+(y-1)+'">'+(y-1)+'</option>'; sel.value=String(y); }
@@ -12393,11 +12397,12 @@ function mntSendAssignEmail() {
     var tb=q('wbiTableBody'); if(!tb) return; var html=''; var list=billList();
     function c(v){ return '<td>'+(v==null?'':v)+'</td>'; }
     function m(v){ var s=fmtMoney(v); return '<td>'+(s===''?'':'&pound;'+s)+'</td>'; }
+    function r(v){ var s=fmtRate(v); return '<td>'+(s===''?'':'&pound;'+s)+'</td>'; }
     list.forEach(function(b){
       var g=!!GEN[b.quarter];
       html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
         +'<td>'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
-        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+m(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.amountDue)
+        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+r(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.amountDue)
         +'</tr>';
       if(b.notes && String(b.notes).trim()!==''){
         html+='<tr class="wbi-noterow"><td colspan="10" style="border:0;padding:2px 10px 9px;">'
@@ -12453,7 +12458,7 @@ function mntSendAssignEmail() {
     q('wbiSaveBtn').addEventListener('click',wbiSave);
     q('wbiAllToggle').addEventListener('click',function(){ var body=q('wbiAllBody'), open=body.style.display!=='none'; body.style.display=open?'none':'block'; q('wbiAllCaret').innerHTML=open?'&#9656;':'&#9662;'; });
     Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiMoney'),function(inp){
-      inp.addEventListener('blur',function(){ var v=(inp.value||'').trim(); if(v!==''&&!isNaN(Number(v))) inp.value=Number(v).toFixed(2); });
+      inp.addEventListener('blur',function(){ var v=(inp.value||'').trim(); if(v!==''&&!isNaN(Number(v))) inp.value=Number(v).toFixed(inp.id==='wbiPrice'?3:2); });  // Build 1.04: price per m³ to 3 dp
     });
     Array.prototype.forEach.call(document.querySelectorAll('#panel-waterbillsinput .wbiReq'),function(inp){
       inp.addEventListener('input',function(){ setInvalid(inp,false); if(!document.querySelector('#panel-waterbillsinput .wbiReq[style*="rgb(192, 57, 43)"]')) q('wbiReqNote').style.display='none'; });
