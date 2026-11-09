@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.04 -- 9 Nov 2026, 15:55
+<!-- CMC The Courtyard -- admin.html -- Build 1.05 -- 9 Nov 2026, 16:25
+     Build 1.05: Water Bills Input -- new MDD charge box (site total from the
+     Liscombe bill; blank saves as 0.00), sent with the bill when you press
+     Save, and an MDD column in the All water bills list. Save to sheet now
+     works end to end with code.gs Build 1.14.
      Build 1.04: Water Bills Input -- Price per m³ keeps 3 decimal places when
      you leave the box (other money boxes stay at 2), and the All water bills
      list shows £/m³ at 3 decimal places.
@@ -2326,6 +2330,7 @@ Water Volume                 [volume] m³
 Water Volume Charge (at £[rate] per m³)   £[amount]
 Standing Charge              £[amount]
 Admin Charge                 £[amount]
+MDD Charge                   £[amount]
 Total Quarterly Water Charge £[total]
 
 PAYING YOUR WATER BILL
@@ -2357,7 +2362,7 @@ CMC The Courtyard</pre>
 
 [N] water invoices for [YYYY QN] have been sent to residents today. This is your record of what was billed.
 
-This quarter: Price per m³ £[rate] · Standing Charge £[amount] · Admin Charge £[amount]
+This quarter: Price per m³ £[rate] · Standing Charge £[amount] · Admin Charge £[amount] · MDD Charge £[amount]
 
 Address           Resident              Volume    Total
 [1 The Courtyard   Andy & Teresa Keay    24.653    £70.08]
@@ -2839,6 +2844,14 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
+            <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">MDD charge</span>
+            <span style="width:32px;flex:none;"></span>
+            <div style="flex:1;position:relative;">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mid);font-size:0.9rem;pointer-events:none;">&pound;</span>
+              <input id="wbiMdd" class="wbiMoney" inputmode="decimal" placeholder="0.00" style="width:100%;height:36px;border:1px solid rgba(122,92,62,0.3);border-radius:8px;padding:0 11px 0 24px;font-family:Arial,sans-serif;font-size:0.9rem;background:#fff;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px;">
             <span style="width:130px;flex:none;font-size:0.85rem;color:var(--mid);">Amount due</span>
             <span style="width:32px;flex:none;"></span>
             <div style="flex:1;position:relative;">
@@ -2873,8 +2886,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
           </div>
           <div id="wbiAllBody" style="display:none;overflow-x:auto;margin-top:0.9rem;">
             <table class="wbi-alltable">
-              <colgroup><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:7%"><col style="width:8%"><col style="width:11%"><col style="width:8%"><col style="width:9%"><col style="width:9%"></colgroup>
-              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>Due</th></tr></thead>
+              <colgroup><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:6%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:10%"></colgroup>
+              <thead><tr style="background:#f3eee3;color:var(--mid);text-align:left;"><th>Bill ID</th><th>Bill date</th><th>Start</th><th>End</th><th>Days</th><th>&pound;/m&sup3;</th><th>Standing</th><th>Users</th><th>Admin</th><th>MDD</th><th>Due</th></tr></thead>
               <tbody id="wbiTableBody"></tbody>
             </table>
           </div>
@@ -3246,8 +3259,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.04';
-var PAGE_DATE  = '9 Nov 2026, 15:55';
+var PAGE_BUILD = '1.05';
+var PAGE_DATE  = '9 Nov 2026, 16:25';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -12387,7 +12400,7 @@ function mntSendAssignEmail() {
     if(!q('wbiYear')) return;
     if(q('wbiYear').options.length) q('wbiYear').selectedIndex=0;
     q('wbiQuarter').value='1'; q('wbiBillDate').value=''; q('wbiUsers').value='57';
-    q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiDue').value=''; q('wbiNotes').value='';
+    q('wbiPrice').value=''; q('wbiStanding').value=''; q('wbiAdmin').value=''; q('wbiMdd').value=''; q('wbiDue').value=''; q('wbiNotes').value='';
     q('wbiPStart').value=''; q('wbiPEnd').value=''; q('wbiDays').value='';
     clearAllInvalid(); updatePreview();
   }
@@ -12402,16 +12415,16 @@ function mntSendAssignEmail() {
       var g=!!GEN[b.quarter];
       html+='<tr style="border-top:1px solid #ece4d6;'+(g?'':'color:#9a8f7e;')+'">'
         +'<td>'+b.billId+(g?' <span style="color:#2e6b4f;">\u2713</span>':'')+'</td>'
-        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+r(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.amountDue)
+        +c(b.billDate)+c(b.periodStart)+c(b.periodEnd)+c(b.days)+r(b.pricePerM3)+m(b.siteStanding)+c(b.siteUsers)+m(b.adminTotal)+m(b.mdd)+m(b.amountDue)
         +'</tr>';
       if(b.notes && String(b.notes).trim()!==''){
-        html+='<tr class="wbi-noterow"><td colspan="10" style="border:0;padding:2px 10px 9px;">'
+        html+='<tr class="wbi-noterow"><td colspan="11" style="border:0;padding:2px 10px 9px;">'
           +'<span class="wbi-notetoggle" style="cursor:pointer;color:#7a5c3e;font-size:0.8rem;font-weight:600;user-select:none;">&#9656; Note</span>'
           +'<div class="wbi-notetext" style="display:none;margin-top:5px;font-size:0.82rem;color:var(--dark);line-height:1.5;max-width:900px;">'+esc(b.notes)+'</div>'
           +'</td></tr>';
       }
     });
-    if(!html) html='<tr><td colspan="10" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
+    if(!html) html='<tr><td colspan="11" style="padding:12px 10px;color:#9a8f7e;">No bills yet.</td></tr>';
     tb.innerHTML=html;
     Array.prototype.forEach.call(document.querySelectorAll('#wbiTableBody .wbi-notetoggle'),function(t){
       t.addEventListener('click',function(){ var txt=t.nextElementSibling, open=txt.style.display!=='none'; txt.style.display=open?'none':'block'; t.innerHTML=(open?'&#9656;':'&#9662;')+' Note'; });
@@ -12435,7 +12448,7 @@ function mntSendAssignEmail() {
     var bill={ billId:billId, billDate:inputToSheet(q('wbiBillDate').value),
       pricePerM3:(q('wbiPrice').value||'').trim(), siteStanding:(q('wbiStanding').value||'').trim(),
       siteUsers:(q('wbiUsers').value||'').trim(), adminTotal:(q('wbiAdmin').value||'').trim(),
-      amountDue:(q('wbiDue').value||'').trim(), notes:q('wbiNotes').value||'' };
+      amountDue:(q('wbiDue').value||'').trim(), mdd:(q('wbiMdd').value||'').trim(), notes:q('wbiNotes').value||'' };
     var btn=q('wbiSaveBtn'); var orig=btn.innerHTML; btn.disabled=true; btn.style.opacity='0.6'; btn.innerHTML='Saving\u2026';
     fetch(SCRIPT_URL,{ method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'saveWaterBill', bill:bill }) })
       .then(function(r){ return r.json(); })

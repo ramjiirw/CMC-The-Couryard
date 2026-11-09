@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.01 -- 9 Nov 2026, 16:25
+     Build 1.01: first build to carry a number on this page (shown when the
+     mouse rests on the header logo). Price per m³ now shows to 3 decimal
+     places throughout (Quarterly Water Bills, Liscombe Park account and
+     Insights). The MDD charge from Liscombe's bill appears in the quarterly
+     bill view (per property), the year view (YTD) and the Liscombe Park
+     breakdown. Needs code.gs Build 1.14.
+     The build number identifies the change, not the file, so it only moves in
+     files that actually changed. The same number and date are set in PAGE_BUILD
+     and PAGE_DATE below, which is what the logo's hover tooltip shows -- keep
+     them in step. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -958,6 +969,18 @@
 </main>
 
 <script>
+/* Build number and date -- shown when the mouse rests on the header logo, so
+   you can tell at a glance whether the browser has picked up the latest version. */
+var PAGE_FILE  = 'cmcwaterportal.html';
+var PAGE_BUILD = '1.01';
+var PAGE_DATE  = '9 Nov 2026, 16:25';
+(function() {
+  var logo = document.getElementById('headerLogo');
+  if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
+})();
+</script>
+
+<script>
 let ADMIN_PASSWORD = null;
 let isAdmin = false;
 
@@ -1338,6 +1361,8 @@ function wbillNiceDate(ddmmyyyy) {
   return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function wbillMoney(n) { return (n === null || n === undefined || isNaN(n)) ? '\u2014' : '\u00a3' + Number(n).toFixed(2); }
+// Build 1.01: price per m³ only -- 3 decimal places (e.g. £2.092)
+function wbillRate(n) { return (n === null || n === undefined || isNaN(n)) ? '\u2014' : '\u00a3' + Number(n).toFixed(3); }
 
 // Adaptive smart-text for the combined button. Keyed off the latest READING
 // quarter: if that quarter has a bill, show the paid/outstanding counts; if it
@@ -1676,11 +1701,13 @@ function renderWaterBills() {
   if (hasBill) {
     var standShare = (meta.siteStanding != null) ? meta.siteStanding / 14 : null;
     var adminShare = (meta.adminTotal != null) ? meta.adminTotal / 14 : null;
+    var mddShare = (meta.mdd != null) ? meta.mdd / 14 : 0;   // Build 1.01: MDD (blank = 0)
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
-    h += '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillMoney(meta.pricePerM3) + '</div></div>';
+    h += '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillRate(meta.pricePerM3) + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Standing charge per property</div><div class="val money">' + wbillMoney(standShare) + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Admin per property</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
+    h += '<div class="wbill-sumcard"><div class="lab">MDD per property</div><div class="val money">' + wbillMoney(mddShare) + '</div></div>';
     h += '</div>';
   } else {
     var awaitTxt = baseline ? '\u2014' : 'Awaiting bill';
@@ -1689,6 +1716,7 @@ function renderWaterBills() {
     h += '<div class="wbill-sumcard await"><div class="lab">Price per m\u00b3</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Standing charge PER PROPERTY</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Admin PER PROPERTY</div><div class="val await">' + awaitTxt + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">MDD PER PROPERTY</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '</div>';
   }
 
@@ -1818,29 +1846,34 @@ function renderWaterBillsYTD() {
   var allSame = prices.every(function(x) { return x.price === prices[0].price; });
   var priceCard;
   if (allSame) {
-    priceCard = '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillMoney(prices[0].price) + '</div></div>';
+    priceCard = '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillRate(prices[0].price) + '</div></div>';
   } else {
-    var perq = prices.map(function(x) { return 'Q' + x.q + ' <span style="color:#2a7896;">' + wbillMoney(x.price) + '</span>'; }).join(' &middot; ');
+    var perq = prices.map(function(x) { return 'Q' + x.q + ' <span style="color:#2a7896;">' + wbillRate(x.price) + '</span>'; }).join(' &middot; ');
     priceCard = '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3 (per quarter)</div><div style="font-size:17px;font-weight:700;color:#1e1a16;margin-top:4px;line-height:1.5;">' + perq + '</div></div>';
   }
   var standTotal = 0, adminTotal = 0, standConst = true, adminConst = true, standEach = null, adminEach = null;
+  var mddTotal = 0, mddConst = true, mddEach = null;   // Build 1.01: MDD (blank = 0)
   quarters.forEach(function(qn) {
     var mm = (waterBillsData.billMeta || {})[year + ' Q' + qn] || {};
     var ss = (mm.siteStanding != null) ? mm.siteStanding / 14 : 0;
     var aa = (mm.adminTotal != null) ? mm.adminTotal / 14 : 0;
-    standTotal += ss; adminTotal += aa;
+    var dd = (mm.mdd != null) ? mm.mdd / 14 : 0;
+    standTotal += ss; adminTotal += aa; mddTotal += dd;
+    if (mddEach === null) mddEach = dd; else if (Math.abs(mddEach - dd) > 0.0001) mddConst = false;
     if (standEach === null) standEach = ss; else if (Math.abs(standEach - ss) > 0.0001) standConst = false;
     if (adminEach === null) adminEach = aa; else if (Math.abs(adminEach - aa) > 0.0001) adminConst = false;
   });
-  standTotal = Math.round(standTotal * 100) / 100; adminTotal = Math.round(adminTotal * 100) / 100;
+  standTotal = Math.round(standTotal * 100) / 100; adminTotal = Math.round(adminTotal * 100) / 100; mddTotal = Math.round(mddTotal * 100) / 100;
   var nQ = quarters.length, qWord = 'quarter' + (nQ > 1 ? 's' : '');
   var standNote = standConst ? (wbillMoney(standEach) + ' \u00d7 ' + nQ + ' ' + qWord) : ('across ' + nQ + ' quarters');
   var adminNote = adminConst ? (wbillMoney(adminEach) + ' \u00d7 ' + nQ + ' ' + qWord) : ('across ' + nQ + ' quarters');
+  var mddNote = mddConst ? (wbillMoney(mddEach) + ' \u00d7 ' + nQ + ' ' + qWord) : ('across ' + nQ + ' quarters');
 
   h += '<div class="wbill-sumstrip">';
   h += priceCard;
   h += '<div class="wbill-sumcard"><div class="lab">Standing charge (YTD)</div><div class="val money">' + wbillMoney(standTotal) + '</div><div class="lab" style="margin-top:2px;text-transform:none;font-weight:400;">' + standNote + '</div></div>';
   h += '<div class="wbill-sumcard"><div class="lab">Admin (YTD)</div><div class="val money">' + wbillMoney(adminTotal) + '</div><div class="lab" style="margin-top:2px;text-transform:none;font-weight:400;">' + adminNote + '</div></div>';
+  h += '<div class="wbill-sumcard"><div class="lab">MDD (YTD)</div><div class="val money">' + wbillMoney(mddTotal) + '</div><div class="lab" style="margin-top:2px;text-transform:none;font-weight:400;">' + mddNote + '</div></div>';
   h += '</div>';
 
   if (wbView === 'pay') {
@@ -2023,7 +2056,7 @@ var liscombeCollapsed = {};
 var liscombeOpenDetail = {};
 
 function lqMoney(n){ return '£' + Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function lqRate(n){ return '£' + Number(n).toFixed(2); }
+function lqRate(n){ return '£' + Number(n).toFixed(3); }   // Build 1.01: 3 dp
 function lqVol(n){ return Number(n).toLocaleString('en-GB',{minimumFractionDigits:3,maximumFractionDigits:3}) + ' m³'; }
 function lqPill(s){ return s==='paid'?'Paid':(s==='part'?'Part paid':(s==='awaiting'?'Awaiting bill':'Unpaid')); }
 function lqTrend(cur,prev){ if(prev==null)return''; if(cur>prev+0.001)return '<span class="wstmt-trend up">▲</span>'; if(cur<prev-0.001)return '<span class="wstmt-trend down">▼</span>'; return '<span class="wstmt-trend flat">–</span>'; }
@@ -2172,6 +2205,7 @@ function renderLiscombeAccount(){
         h += '<div><span class="k">Water volume charge</span> <span class="v">'+lqMoney(r.volCharge)+'</span> <span class="k">('+lqVol(r.volume)+' × '+lqRate(r.pricePerM3)+' per m³)</span></div>';
         h += '<div><span class="k">Standing Charge</span> <span class="v">'+lqMoney(r.siteStanding)+'</span></div>';
         h += '<div><span class="k">Admin Total (inc VAT)</span> <span class="v">'+lqMoney(r.adminTotal)+'</span></div>';
+        h += '<div><span class="k">MDD Charge</span> <span class="v">'+lqMoney(r.mdd||0)+'</span></div>';
         h += '<div><span class="k">Site Users</span> <span class="v">'+r.siteUsers+'</span></div>';
         h += '</div>';
         if(r.reconciled) h += '<div class="lq-eq">Our derived total <b>'+lqMoney(r.derived)+'</b> = Liscombe Amount Due <b>'+lqMoney(r.amountDue)+'</b> <span class="ok">✓ reconciled'+(r.rounding?' · '+lqMoney(Math.abs(r.diff))+' rounding':'')+'</span></div>';
@@ -2205,15 +2239,16 @@ function renderLiscombe(){ if(liscombeMode==='insights') renderLiscombeInsights(
 function insTell(t){ var el=document.getElementById('ins-readout'); if(el) el.textContent=t; } window.insTell=insTell;
 function insEsc(s){ return String(s).replace(/'/g,'\u2019'); }
 function insMoney(v){ return '£'+Number(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function insRate(v){ return '£'+Number(v).toFixed(3); }   // Build 1.01: price per m³ to 3 dp
 function insM3(v){ return Math.round(v)+''; }
 function insPct(a,b){ return (b-a)/a*100; }
 
 function insRows(){ return (liscombeData.rows||[]).filter(function(r){return r.hasBill;}).slice().sort(function(a,b){return (a.year*10+a.q)-(b.year*10+b.q);}); }
 function insYears(rows){ var y=[]; rows.forEach(function(r){ if(y.indexOf(r.year)===-1) y.push(r.year); }); return y.sort(function(a,b){return a-b;}); }
 function insStmtLine(r){ var st=r.paymentStatus==='paid'?'Paid':(r.paymentStatus==='part'?'Part paid':(r.paymentStatus==='awaiting'?'Awaiting bill':'Unpaid'));
-  return r.quarter+'  ·  '+Number(r.volume).toFixed(3)+' m³  ·  '+insMoney(r.pricePerM3)+'/m³  ·  our derived '+insMoney(r.derived)+'  ·  Amount Due '+insMoney(r.amountDue)+'  ·  paid '+insMoney(r.cmcPaid)+'  ·  '+st; }
+  return r.quarter+'  ·  '+Number(r.volume).toFixed(3)+' m³  ·  '+insRate(r.pricePerM3)+'/m³  ·  our derived '+insMoney(r.derived)+'  ·  Amount Due '+insMoney(r.amountDue)+'  ·  paid '+insMoney(r.cmcPaid)+'  ·  '+st; }
 function insYearLine(rows, y){ var rs=rows.filter(function(r){return r.year===y;}); var tv=0,tc=0,ap=0; rs.forEach(function(r){tv+=r.volume;tc+=r.amountDue;ap+=r.pricePerM3;});
-  return y+'  ·  '+rs.length+' quarter'+(rs.length>1?'s':'')+'  ·  total '+tv.toFixed(1)+' m³  ·  avg '+insMoney(ap/rs.length)+'/m³  ·  total cost '+insMoney(tc); }
+  return y+'  ·  '+rs.length+' quarter'+(rs.length>1?'s':'')+'  ·  total '+tv.toFixed(1)+' m³  ·  avg '+insRate(ap/rs.length)+'/m³  ·  total cost '+insMoney(tc); }
 
 function insLine(labels,values,fmt,color,reads,h){ h=h||280; var W=760,pL=58,pR=18,pT=20,pB=34,n=values.length;
   if(!n) return '<div style="padding:2rem;text-align:center;color:#9e8e7e;">Not enough data yet.</div>';
@@ -2283,14 +2318,14 @@ function renderLiscombeInsights(){
 
   if(chip==='price'||chip==='vol'||chip==='cost'){
     var series = chip==='price'?price:(chip==='vol'?volume:cost);
-    var fmt = chip==='price'?insMoney:(chip==='vol'?insM3:function(v){return '£'+Math.round(v);});
+    var fmt = chip==='price'?insRate:(chip==='vol'?insM3:function(v){return '£'+Math.round(v);});
     var color = chip==='price'?'#1d5468':(chip==='vol'?'#2a7896':'#b06a4f');
     var title = chip==='price'?'Price per m³ over time':(chip==='vol'?'Consumption over time':'Liscombe cost over time');
     sub = chip==='price'?'What Liscombe charges per cubic metre':(chip==='vol'?'Total site water volume per quarter (m³)':'Total Amount Due per quarter');
     head='<div class="ins-cchead"><h3>'+title+'</h3><div>'+granCtrl()+'</div></div>';
     if(insGran==='year'){ var ys=byYear(series, chip==='price'?'avg':'sum'); reads=years.map(function(y){return insYearLine(rows,y);});
       body=insLine(years.map(String), ys, fmt, color, reads, 290);
-      analysis = chip==='price' ? ('Average rate by year: '+years.map(function(y,i){return y+' '+insMoney(byYear(price,'avg')[i]);}).join(', ')+'.')
+      analysis = chip==='price' ? ('Average rate by year: '+years.map(function(y,i){return y+' '+insRate(byYear(price,'avg')[i]);}).join(', ')+'.')
                : (chip==='vol' ? ('Year totals: '+years.map(function(y,i){return y+' '+Math.round(byYear(volume,'sum')[i])+' m³';}).join(', ')+'.')
                : ('Year totals: '+years.map(function(y,i){return y+' £'+Math.round(byYear(cost,'sum')[i]);}).join(', ')+'.'));
     } else { reads=rows.map(insStmtLine);
