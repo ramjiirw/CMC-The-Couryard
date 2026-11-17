@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.06 -- 9 Nov 2026, 16:50
+<!-- CMC The Courtyard -- admin.html -- Build 1.07 -- 17 Nov 2026, 19:16
+     Build 1.07: new SIP Sales Process panel (sidebar, under SIP Briefing).
+     Add, edit and delete the steps shown in the CMC Sales Process dropdown on
+     the SIP. Each step has Order, When, What and Who (a dropdown: Seller, CMC
+     Directors, or Seller and CMC Directors). Saving stamps the Last Updated
+     date. Needs code.gs Build 1.16.
      Build 1.06: Water Bills Input -- each bill in the All water bills list has
      an Edit link that loads it into the form (Bill ID locked). Save changes
      updates the bill and regenerates its 14 property bills (code.gs Build
@@ -1041,6 +1046,7 @@
       <div class="sidebar-link" data-panel="changesippw" id="nav-changesippw">&#128196; SIP Password</div>
       <div class="sidebar-link" data-panel="sipqa" id="nav-sipqa">&#10067; SIP Q &amp; A</div>
       <div class="sidebar-link" data-panel="sipbriefing" id="nav-sipbriefing">&#128196; SIP Briefing</div>
+      <div class="sidebar-link" data-panel="sipsales" id="nav-sipsales">&#128273; SIP Sales Process</div>
       <div class="sidebar-link sidebar-extlink" onclick="window.open('https://cmcthecourtyard.com/sip/','_blank','noopener')" title="Open the live SIP site in a new tab">&#128279; View Live SIP &#8599;</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
@@ -1898,6 +1904,24 @@
         </div>
         <div id="briefTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading briefing…</div>
+        </div>
+      </div>
+
+      <!-- SIP Sales Process Panel (Build 1.07) -->
+      <div class="admin-panel" id="panel-sipsales" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+        <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;border-radius:10px 10px 0 0;">
+          &#128273; SIP Sales Process
+          <span id="salesCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
+          <span style="margin-left:auto;"></span>
+          <span id="salesLastUpdated" style="font-size:0.72rem;font-weight:400;color:#b8ad9e;text-transform:none;letter-spacing:0;white-space:nowrap;"></span>
+          <button class="abtn" id="salesRefreshBtn" onclick="salesLoad(true)" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(196,149,106,0.18);border:1px solid rgba(196,149,106,0.3);color:#f5f0e8;">&#8635; Refresh</button>
+          <button class="abtn" id="salesAddBtn" onclick="salesOpenAdd()" style="font-size:0.72rem;padding:0.25rem 0.7rem;white-space:nowrap;background:rgba(61,107,74,0.7);border:1px solid rgba(61,107,74,0.5);color:#f5f0e8;">&#43; Add Step</button>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
+          <span style="color:#7a5c3e;font-size:0.72rem;font-style:italic;">Format: **bold**, _italic_, ++underline++ &nbsp;|&nbsp; Start a line with "- " for a bullet point &nbsp;|&nbsp; Steps show on the SIP in Order number order</span>
+        </div>
+        <div id="salesTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
+          <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading sales process…</div>
         </div>
       </div>
 
@@ -3268,8 +3292,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.06';
-var PAGE_DATE  = '9 Nov 2026, 16:50';
+var PAGE_BUILD = '1.07';
+var PAGE_DATE  = '17 Nov 2026, 19:16';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -8614,6 +8638,17 @@ showPanel = function(id) {
     _briefEditingRow = null;
     _briefEditPanelOpen = false;
   }
+  if (id === 'sipsales') salesLoad();
+  if (id !== 'sipsales' && typeof salesHasUnsaved === 'function' && salesHasUnsaved()) {
+    if (!salesConfirmAbandon()) { _origShowPanel2('sipsales'); return; }
+    if (_salesEditingRow !== null && _salesEditingRow.uiIndex !== 'mobile') {
+      var ser = document.getElementById('sales-edit-row-' + _salesEditingRow.uiIndex);
+      if (ser) ser.style.display = 'none';
+    }
+    salesRemoveAddForm();
+    _salesEditingRow = null;
+    _salesEditPanelOpen = false;
+  }
 };
 
 
@@ -9589,6 +9624,416 @@ function briefMobileDelete(actualIndex) {
     else alert('Delete failed: ' + (d.message || 'unknown'));
   })
   .catch(function(e){ alert('Delete failed: ' + (e.message || 'network error')); });
+}
+
+// ─── SIP SALES PROCESS ADMIN (Build 1.07) ─────────────────────────────────────
+// Mirrors the SIP Briefing editor above. Sheet: SIPSalesProcess
+// (A=Order, B=When, C=What, D=Who). code.gs Build 1.16 stamps the Last Updated
+// date on every add, edit and delete.
+
+var SALES_WHO_OPTIONS = ['Seller', 'CMC Directors', 'Seller and CMC Directors'];
+var salesAllRows = [];
+var salesLastUpdated = '';
+var _salesEditPanelOpen = false;
+var _salesEditingRow = null; // { uiIndex, actualIndex } when an edit row / add form / mobile modal is open
+
+function salesIsMobile() {
+  return window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
+}
+
+// Maps older free-typed values (e.g. "Seller, CMC Directors") onto a dropdown option.
+function salesNormaliseWho(who) {
+  var w = String(who || '').trim();
+  if (SALES_WHO_OPTIONS.indexOf(w) !== -1) return w;
+  var lw = w.toLowerCase();
+  var hasSeller = lw.indexOf('seller') !== -1;
+  var hasDir = lw.indexOf('director') !== -1;
+  if (hasSeller && hasDir) return 'Seller and CMC Directors';
+  if (hasSeller) return 'Seller';
+  if (hasDir) return 'CMC Directors';
+  return '';
+}
+
+function salesWhoPills(who) {
+  var w = salesNormaliseWho(who);
+  var seller = '<span style="font-size:0.75rem;color:#2d5a78;background:#eaf1f7;border-radius:4px;padding:0.1rem 0.5rem;white-space:nowrap;">Seller</span>';
+  var dirs   = '<span style="font-size:0.75rem;color:#7a5c3e;background:#f3ede4;border-radius:4px;padding:0.1rem 0.5rem;white-space:nowrap;">CMC Directors</span>';
+  if (w === 'Seller') return seller;
+  if (w === 'CMC Directors') return dirs;
+  if (w === 'Seller and CMC Directors') return seller + ' ' + dirs;
+  return who ? '<span style="font-size:0.75rem;color:#a04040;">' + briefEsc(who) + '</span>' : '';
+}
+
+function salesHasUnsaved() {
+  if (_salesEditingRow === null) return false;
+  var ui = _salesEditingRow.uiIndex;
+  if (ui === 'add' || (ui === 'mobile' && _salesEditingRow.actualIndex === null)) {
+    var t = document.getElementById('sales-add-when');
+    var b = document.getElementById('sales-add-what');
+    var w = document.getElementById('sales-add-who');
+    return !!((t && t.value.trim()) || (b && b.value.trim()) || (w && w.value));
+  }
+  var row = salesAllRows[_salesEditingRow.actualIndex];
+  if (!row) return false;
+  var key = (ui === 'mobile') ? 'edit-mobile' : ui;
+  var o  = document.getElementById(salesFieldId(key, 'order'));
+  var t2 = document.getElementById(salesFieldId(key, 'when'));
+  var b2 = document.getElementById(salesFieldId(key, 'what'));
+  var w2 = document.getElementById(salesFieldId(key, 'who'));
+  if (!o || !t2 || !b2 || !w2) return false;
+  var origOrder = (row.order === null || row.order === undefined) ? '' : String(row.order);
+  if (o.value.trim() !== origOrder) return true;
+  if (t2.value !== (row.when || '')) return true;
+  if (b2.value !== (row.what || '')) return true;
+  if (w2.value !== salesNormaliseWho(row.who)) return true;
+  return false;
+}
+
+function salesConfirmAbandon() {
+  return confirm('You have unsaved sales process changes. Discard them?');
+}
+
+// Click-outside discard warning, same as the Briefing editor.
+var _salesOutsideListenerAttached = false;
+function salesAttachOutsideListener() {
+  if (_salesOutsideListenerAttached) return;
+  _salesOutsideListenerAttached = true;
+  document.addEventListener('mousedown', function(e){
+    if (!_salesEditPanelOpen || !_salesEditingRow) return;
+    if (_salesEditingRow.uiIndex === 'mobile') return; // modal handles itself
+    var editEl = (_salesEditingRow.uiIndex === 'add')
+      ? document.getElementById('sales-add-form')
+      : document.getElementById('sales-edit-row-' + _salesEditingRow.uiIndex);
+    if (!editEl || editEl.contains(e.target)) return;
+    if (!salesHasUnsaved()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (salesConfirmAbandon()) {
+      if (_salesEditingRow.uiIndex === 'add') {
+        salesRemoveAddForm();
+      } else {
+        editEl.style.display = 'none';
+        _salesEditingRow = null;
+        _salesEditPanelOpen = false;
+      }
+    }
+  }, true);
+}
+salesAttachOutsideListener();
+
+function salesLoad(force) {
+  var wrap = document.getElementById('salesTableWrap');
+  if (!wrap) return;
+  if (force && salesHasUnsaved() && !salesConfirmAbandon()) return;
+  _salesEditingRow = null;
+  _salesEditPanelOpen = false;
+  wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading sales process…</div>';
+  var url = SCRIPT_URL + '?action=readSIPSalesProcess' + (force ? '&_=' + Date.now() : '');
+  fetch(url, { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'load failed');
+      salesAllRows = d.rows || [];
+      salesLastUpdated = d.lastUpdated || '';
+      salesRender();
+    })
+    .catch(function(){
+      wrap.innerHTML = '<div style="color:#b05050;font-size:0.84rem;padding:1.5rem;">Could not load the sales process.</div>';
+    });
+}
+
+function salesRender() {
+  var wrap = document.getElementById('salesTableWrap');
+  var pill = document.getElementById('salesCountPill');
+  var lu   = document.getElementById('salesLastUpdated');
+  if (pill) pill.textContent = salesAllRows.length;
+  if (lu) lu.textContent = salesLastUpdated ? 'Last updated ' + salesLastUpdated : '';
+  if (!salesAllRows.length) {
+    wrap.innerHTML = '<div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">No steps yet. Use + Add Step to add the first one.</div>';
+    return;
+  }
+  var html = '';
+  salesAllRows.forEach(function(r, i){
+    var ord = (r.order === null || r.order === undefined) ? '—' : r.order;
+    html += '<div style="border-bottom:1px solid #ede5d6;padding:0.8rem 1.25rem;">'
+      + '<div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.5rem;">'
+      +   '<span style="color:#6b5f52;font-weight:700;font-size:0.78rem;min-width:1.5rem;">' + briefEsc(ord) + '</span>'
+      +   '<span style="color:#1e1a16;font-weight:700;font-size:0.92rem;flex:1;min-width:0;">' + briefEsc(r.when || '') + '</span>'
+      +   '<span style="display:inline-flex;gap:0.3rem;flex-wrap:wrap;">' + salesWhoPills(r.who) + '</span>'
+      +   '<span style="display:inline-flex;gap:0.4rem;">'
+      +     '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(122,92,62,0.12);border:1px solid rgba(122,92,62,0.25);color:#7a5c3e;" onclick="salesOpenEdit(' + i + ',event)">&#9998; Edit</button>'
+      +     '<button class="abtn" style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;" onclick="salesDeleteRow(' + i + ',event)">&#128465;</button>'
+      +   '</span>'
+      + '</div>'
+      + '<div style="color:#3a342e;font-size:0.85rem;line-height:1.5;white-space:pre-wrap;word-break:break-word;">' + briefEsc(r.what || '') + '</div>'
+      + '</div>';
+    html += '<div id="sales-edit-row-' + i + '" style="display:none;background:#f5f0e8;border-bottom:2px solid #c8bfb4;"><div></div></div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// Field ids. key: 'add' | 'edit-mobile' | <row number>
+function salesFieldId(key, field) {
+  if (key === 'add')         return 'sales-add-' + field;
+  if (key === 'edit-mobile') return 'sales-edit-mobile-' + field;
+  return 'sales-edit-' + field + '-' + key;
+}
+
+function salesNextOrder() {
+  var max = 0;
+  salesAllRows.forEach(function(r){ if (r.order !== null && r.order !== undefined && r.order > max) max = r.order; });
+  return Math.floor(max) + 1;
+}
+
+function salesFormMarkup(key, prefill) {
+  prefill = prefill || {};
+  var ord = (prefill.order === null || prefill.order === undefined) ? '' : prefill.order;
+  var who = salesNormaliseWho(prefill.who);
+  var lbl = 'display:block;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b5f52;margin-bottom:0.25rem;';
+  var inp = 'width:100%;padding:0.45rem 0.7rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.85rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;';
+  var opts = '<option value=""' + (who ? '' : ' selected') + '>Choose…</option>'
+    + SALES_WHO_OPTIONS.map(function(o){
+        return '<option value="' + briefEsc(o) + '"' + (o === who ? ' selected' : '') + '>' + briefEsc(o) + '</option>';
+      }).join('');
+  return '<div style="padding:1rem 1.25rem;">'
+    + '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem;align-items:flex-end;">'
+    + '<div style="flex:0 0 80px;"><label style="' + lbl + '">Order</label>'
+    + '<input type="number" step="1" id="' + salesFieldId(key, 'order') + '" value="' + briefEsc(ord) + '" style="' + inp + '"></div>'
+    + '<div style="flex:1;min-width:200px;"><label style="' + lbl + '">When</label>'
+    + '<input type="text" id="' + salesFieldId(key, 'when') + '" value="' + briefEsc(prefill.when || '') + '" style="' + inp + '"></div>'
+    + '<div style="flex:0 0 230px;"><label style="' + lbl + '">Who</label>'
+    + '<select id="' + salesFieldId(key, 'who') + '" style="' + inp + 'cursor:pointer;">' + opts + '</select></div>'
+    + '</div>'
+    + '<label style="' + lbl + '">What</label>'
+    + '<textarea id="' + salesFieldId(key, 'what') + '" style="width:100%;padding:0.6rem 0.8rem;border:1px solid rgba(122,92,62,0.28);border-radius:6px;font-family:Arial,sans-serif;font-size:0.9rem;color:#1e1a16;background:#fff;box-sizing:border-box;outline:none;min-height:160px;resize:vertical;line-height:1.5;">' + briefEsc(prefill.what || '') + '</textarea>'
+    + '<div id="' + salesFieldId(key, 'err') + '" style="color:#b05050;font-size:0.78rem;min-height:1rem;margin:0.4rem 0;"></div>'
+    + '</div>';
+}
+
+// Reads and checks the form. Returns the values, or null after showing the problem.
+function salesReadForm(key) {
+  var err = document.getElementById(salesFieldId(key, 'err'));
+  var v = {
+    order: document.getElementById(salesFieldId(key, 'order')).value.trim(),
+    when:  document.getElementById(salesFieldId(key, 'when')).value.trim(),
+    what:  document.getElementById(salesFieldId(key, 'what')).value,
+    who:   document.getElementById(salesFieldId(key, 'who')).value
+  };
+  var msg = '';
+  if (!v.when) msg = 'Enter the When text.';
+  else if (!v.what.trim()) msg = 'Enter the What text.';
+  else if (!v.who) msg = 'Choose who this step is for.';
+  if (msg) { if (err) err.textContent = msg; return null; }
+  if (err) err.textContent = '';
+  return v;
+}
+
+function salesPost(payload) {
+  return fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  }).then(function(r){ return r.json(); });
+}
+
+function salesOpenEdit(actualIndex, evt) {
+  if (evt) evt.stopPropagation();
+  if (salesIsMobile()) { salesOpenMobileModal(actualIndex); return; }
+  var uiIndex = actualIndex;
+  if (_salesEditingRow !== null && _salesEditingRow.uiIndex !== uiIndex) {
+    if (salesHasUnsaved() && !salesConfirmAbandon()) return;
+    if (_salesEditingRow.uiIndex !== 'add' && _salesEditingRow.uiIndex !== 'mobile') {
+      var oldRow = document.getElementById('sales-edit-row-' + _salesEditingRow.uiIndex);
+      if (oldRow) oldRow.style.display = 'none';
+    }
+    salesRemoveAddForm();
+  }
+  var editRow = document.getElementById('sales-edit-row-' + uiIndex);
+  if (!editRow) return;
+  if (editRow.style.display !== 'none') {
+    if (salesHasUnsaved() && !salesConfirmAbandon()) return;
+    editRow.style.display = 'none';
+    _salesEditingRow = null;
+    _salesEditPanelOpen = false;
+    return;
+  }
+  var row = salesAllRows[actualIndex];
+  editRow.firstElementChild.innerHTML = salesFormMarkup(uiIndex, row)
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;">'
+    + '<button class="abtn abtn-primary" onclick="salesSaveRow(' + actualIndex + ',event)">&#128190; Save</button>'
+    + '<button class="abtn abtn-muted" onclick="salesCloseEdit(' + uiIndex + ',event)">Cancel</button>'
+    + '</div>';
+  editRow.style.display = '';
+  _salesEditingRow = { uiIndex: uiIndex, actualIndex: actualIndex };
+  _salesEditPanelOpen = true;
+  editRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function salesCloseEdit(uiIndex, evt) {
+  if (evt) evt.stopPropagation();
+  if (salesHasUnsaved() && !salesConfirmAbandon()) return;
+  var editRow = document.getElementById('sales-edit-row-' + uiIndex);
+  if (editRow) editRow.style.display = 'none';
+  _salesEditingRow = null;
+  _salesEditPanelOpen = false;
+}
+
+function salesRemoveAddForm() {
+  var f = document.getElementById('sales-add-form');
+  if (f) f.remove();
+  if (_salesEditingRow && _salesEditingRow.uiIndex === 'add') {
+    _salesEditingRow = null;
+    _salesEditPanelOpen = false;
+  }
+}
+
+function salesOpenAdd() {
+  if (salesHasUnsaved() && !salesConfirmAbandon()) return;
+  if (salesIsMobile()) { salesOpenMobileModal(null); return; }
+  if (_salesEditingRow !== null && _salesEditingRow.uiIndex !== 'add' && _salesEditingRow.uiIndex !== 'mobile') {
+    var oldRow = document.getElementById('sales-edit-row-' + _salesEditingRow.uiIndex);
+    if (oldRow) oldRow.style.display = 'none';
+    _salesEditingRow = null;
+  }
+  if (document.getElementById('sales-add-form')) { salesRemoveAddForm(); return; }
+  var wrap = document.getElementById('salesTableWrap');
+  var div = document.createElement('div');
+  div.id = 'sales-add-form';
+  div.style.cssText = 'background:#f5f0e8;border-bottom:2px solid #c8bfb4;';
+  div.innerHTML = '<div style="padding:0.5rem 1.25rem 0;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a5c3e;">New Sales Process Step</div>'
+    + salesFormMarkup('add', { order: salesNextOrder() })
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;">'
+    + '<button class="abtn abtn-primary" id="sales-add-save-btn" onclick="salesSubmitAdd()">&#128190; Add Step</button>'
+    + '<button class="abtn abtn-muted" onclick="salesRemoveAddForm()">Cancel</button>'
+    + '</div>';
+  wrap.insertBefore(div, wrap.firstChild);
+  _salesEditingRow = { uiIndex: 'add', actualIndex: null };
+  _salesEditPanelOpen = true;
+}
+
+function salesSubmitAdd() {
+  var v = salesReadForm('add');
+  if (!v) return;
+  var err = document.getElementById('sales-add-err');
+  var btn = document.getElementById('sales-add-save-btn');
+  btn.disabled = true; btn.innerHTML = 'Saving…';
+  salesPost({ action:'addSIPSalesRow', order: v.order, when: v.when, what: v.what, who: v.who })
+    .then(function(d){
+      if (d.status === 'ok') {
+        salesRemoveAddForm();
+        salesLoad(true);
+      } else {
+        err.textContent = d.message || 'Save failed.';
+        btn.disabled = false; btn.innerHTML = '&#128190; Add Step';
+      }
+    })
+    .catch(function(e){
+      err.textContent = 'Network error: ' + (e.message || 'unknown');
+      btn.disabled = false; btn.innerHTML = '&#128190; Add Step';
+    });
+}
+
+function salesSaveRow(actualIndex, evt) {
+  if (evt) evt.stopPropagation();
+  var v = salesReadForm(actualIndex);
+  if (!v) return;
+  var err = document.getElementById(salesFieldId(actualIndex, 'err'));
+  var row = salesAllRows[actualIndex];
+  var saveBtn = (evt && evt.target) ? evt.target : null;
+  var orig = saveBtn ? saveBtn.innerHTML : null;
+  if (saveBtn) { saveBtn.innerHTML = '&#128190; Saving&hellip;'; saveBtn.disabled = true; }
+  salesPost({ action:'updateSIPSalesRow', rowIndex: row._sheetRow, order: v.order, when: v.when, what: v.what, who: v.who })
+    .then(function(d){
+      if (d.status === 'ok') {
+        _salesEditingRow = null;
+        _salesEditPanelOpen = false;
+        salesLoad(true);
+      } else {
+        if (err) err.textContent = d.message || 'Save failed.';
+        if (saveBtn) { saveBtn.innerHTML = orig; saveBtn.disabled = false; }
+      }
+    })
+    .catch(function(e){
+      if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
+      if (saveBtn) { saveBtn.innerHTML = orig; saveBtn.disabled = false; }
+    });
+}
+
+function salesDeleteRow(actualIndex, evt) {
+  if (evt) evt.stopPropagation();
+  var row = salesAllRows[actualIndex];
+  if (!row) return;
+  if (!confirm('Delete this sales process step?\n\n' + (row.when || row.what || '').substring(0, 80))) return;
+  if (document.getElementById('salesMobileModal')) salesMobileCancelQuiet();
+  salesPost({ action:'deleteSIPSalesRow', rowIndex: row._sheetRow })
+    .then(function(d){
+      if (d.status === 'ok') { _salesEditingRow = null; _salesEditPanelOpen = false; salesLoad(true); }
+      else alert('Delete failed: ' + (d.message || 'unknown'));
+    })
+    .catch(function(e){ alert('Delete failed: ' + (e.message || 'network error')); });
+}
+
+// Mobile modal — same form in an overlay
+function salesOpenMobileModal(actualIndex) {
+  var existing = document.getElementById('salesMobileModal');
+  if (existing) existing.remove();
+  var isNew = actualIndex === null;
+  var row = isNew ? { order: salesNextOrder() } : salesAllRows[actualIndex];
+  var key = isNew ? 'add' : 'edit-mobile';
+  var modal = document.createElement('div');
+  modal.id = 'salesMobileModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto;';
+  modal.innerHTML = '<div style="background:#fff;border-radius:10px;width:100%;max-width:640px;margin-top:2rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);">'
+    + '<div style="background:#1e1a16;color:#f5f0e8;padding:0.75rem 1.25rem;border-radius:10px 10px 0 0;font-size:0.85rem;font-weight:600;display:flex;align-items:center;">'
+    + (isNew ? 'New Sales Process Step' : 'Edit Sales Process Step')
+    + '<span style="margin-left:auto;cursor:pointer;font-size:1.4rem;line-height:1;" onclick="salesMobileCancel()">&times;</span>'
+    + '</div>'
+    + salesFormMarkup(key, row)
+    + '<div style="display:flex;gap:0.5rem;padding:0 1.25rem 1rem;flex-wrap:wrap;">'
+    + '<button class="abtn abtn-primary" id="sales-mobile-save-btn" onclick="salesMobileSave(' + (isNew ? 'null' : actualIndex) + ')">&#128190; Save</button>'
+    + '<button class="abtn abtn-muted" onclick="salesMobileCancel()">Cancel</button>'
+    + (isNew ? '' : '<button class="abtn" style="background:rgba(176,80,80,0.12);border:1px solid rgba(176,80,80,0.25);color:#a04040;margin-left:auto;" onclick="salesDeleteRow(' + actualIndex + ')">&#128465; Delete</button>')
+    + '</div></div>';
+  document.body.appendChild(modal);
+  _salesEditingRow = { uiIndex: 'mobile', actualIndex: actualIndex };
+  _salesEditPanelOpen = true;
+}
+
+function salesMobileCancelQuiet() {
+  var m = document.getElementById('salesMobileModal');
+  if (m) m.remove();
+  _salesEditingRow = null;
+  _salesEditPanelOpen = false;
+}
+
+function salesMobileCancel() {
+  if (salesHasUnsaved() && !salesConfirmAbandon()) return;
+  salesMobileCancelQuiet();
+}
+
+function salesMobileSave(actualIndex) {
+  var isNew = actualIndex === null;
+  var key = isNew ? 'add' : 'edit-mobile';
+  var v = salesReadForm(key);
+  if (!v) return;
+  var err = document.getElementById(salesFieldId(key, 'err'));
+  var btn = document.getElementById('sales-mobile-save-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Saving…'; }
+  var payload = isNew
+    ? { action:'addSIPSalesRow', order: v.order, when: v.when, what: v.what, who: v.who }
+    : { action:'updateSIPSalesRow', rowIndex: salesAllRows[actualIndex]._sheetRow, order: v.order, when: v.when, what: v.what, who: v.who };
+  salesPost(payload)
+    .then(function(d){
+      if (d.status === 'ok') { salesMobileCancelQuiet(); salesLoad(true); }
+      else {
+        if (err) err.textContent = d.message || 'Save failed.';
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#128190; Save'; }
+      }
+    })
+    .catch(function(e){
+      if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
+      if (btn) { btn.disabled = false; btn.innerHTML = '&#128190; Save'; }
+    });
 }
 
 
