@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.04 -- 18 Nov 2026, 08:08
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.05 -- 18 Nov 2026, 08:58
+     Build 1.05: Readings & Bills view -- new "Date billed" card next to
+     "Reading date" (same date as the statement, the Payments summary line and
+     the button). Shows "Awaiting bill" before a quarter is billed, and a dash
+     for the 2026 Q1 baseline.
      Build 1.04: the Water Readings, Bills & Payments button now shows the
      billed date after the quarter, e.g. "2026 Q3 · billed 9 Nov 2026 · 11 of
      14 paid · 3 outstanding" (same date as the statement's "Date billed").
@@ -994,8 +998,8 @@
 /* Build number and date -- shown when the mouse rests on the header logo, so
    you can tell at a glance whether the browser has picked up the latest version. */
 var PAGE_FILE  = 'cmcwaterportal.html';
-var PAGE_BUILD = '1.04';
-var PAGE_DATE  = '18 Nov 2026, 08:08';
+var PAGE_BUILD = '1.05';
+var PAGE_DATE  = '18 Nov 2026, 08:58';
 (function() {
   var logo = document.getElementById('headerLogo');
   if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -1739,8 +1743,12 @@ function renderWaterBills() {
     var standShare = (meta.siteStanding != null) ? meta.siteStanding / 14 : null;
     var adminShare = (meta.adminTotal != null) ? meta.adminTotal / 14 : null;
     var mddShare = (meta.mdd != null) ? meta.mdd / 14 : 0;   // Build 1.01: MDD (blank = 0)
+    // Build 1.05: date the resident bills were generated (same as the statement's "Date billed")
+    var billedOnCard = '';
+    billRows.some(function(b){ if (b.generatedDate) { billedOnCard = wbillNiceDate(b.generatedDate); return true; } return false; });
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
+    h += '<div class="wbill-sumcard"><div class="lab">Date billed</div><div class="val">' + (billedOnCard || '\u2014') + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Price per m\u00b3</div><div class="val money">' + wbillRate(meta.pricePerM3) + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Standing charge per property</div><div class="val money">' + wbillMoney(standShare) + '</div></div>';
     h += '<div class="wbill-sumcard"><div class="lab">Admin per property</div><div class="val money">' + wbillMoney(adminShare) + '</div></div>';
@@ -1750,6 +1758,7 @@ function renderWaterBills() {
     var awaitTxt = baseline ? '\u2014' : 'Awaiting bill';
     h += '<div class="wbill-sumstrip">';
     h += '<div class="wbill-sumcard await"><div class="lab">Reading date</div><div class="val">' + readingDate + '</div></div>';
+    h += '<div class="wbill-sumcard await"><div class="lab">Date billed</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Price per m\u00b3</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Standing charge PER PROPERTY</div><div class="val await">' + awaitTxt + '</div></div>';
     h += '<div class="wbill-sumcard await"><div class="lab">Admin PER PROPERTY</div><div class="val await">' + awaitTxt + '</div></div>';
