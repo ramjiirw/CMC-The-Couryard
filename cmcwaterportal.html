@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.03 -- 18 Nov 2026, 07:57
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.04 -- 18 Nov 2026, 08:08
+     Build 1.04: the Water Readings, Bills & Payments button now shows the
+     billed date after the quarter, e.g. "2026 Q3 · billed 9 Nov 2026 · 11 of
+     14 paid · 3 outstanding" (same date as the statement's "Date billed").
      Build 1.03: the two "Bill date" columns are renamed so they no longer look
      like the same date. CMC -> Liscombe Park Water Account: "Liscombe bill
      date" (the date on Liscombe's invoice to CMC). Property Water Statement:
@@ -991,8 +994,8 @@
 /* Build number and date -- shown when the mouse rests on the header logo, so
    you can tell at a glance whether the browser has picked up the latest version. */
 var PAGE_FILE  = 'cmcwaterportal.html';
-var PAGE_BUILD = '1.03';
-var PAGE_DATE  = '18 Nov 2026, 07:57';
+var PAGE_BUILD = '1.04';
+var PAGE_DATE  = '18 Nov 2026, 08:08';
 (function() {
   var logo = document.getElementById('headerLogo');
   if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -1383,6 +1386,17 @@ function wbillMoney(n) { return (n === null || n === undefined || isNaN(n)) ? '\
 // Build 1.01: price per m³ only -- 3 decimal places (e.g. £2.092)
 function wbillRate(n) { return (n === null || n === undefined || isNaN(n)) ? '\u2014' : '\u00a3' + Number(n).toFixed(3); }
 
+// Build 1.04: ' · billed 9 Nov 2026' for a billed quarter (from the resident
+// bills' generated date, same as the statement's "Date billed"), or '' if none.
+function combinedBilledText(quarter) {
+  var billedOn = '';
+  ((waterBillsData && waterBillsData.bills) || []).some(function(b) {
+    if (b.quarter === quarter && b.generatedDate) { billedOn = wbillNiceDate(b.generatedDate); return true; }
+    return false;
+  });
+  return billedOn ? ' \u00b7 billed ' + billedOn : '';
+}
+
 // Adaptive smart-text for the combined button. Keyed off the latest READING
 // quarter: if that quarter has a bill, show the paid/outstanding counts; if it
 // doesn't yet, show "readings in · awaiting bill". Runs after either feed loads.
@@ -1394,7 +1408,7 @@ function populateCombinedSmart() {
     // No readings yet — fall back to latest bill quarter if we have one.
     var sm0 = (waterBillsData && waterBillsData.summary) || {};
     if (sm0.latestBillQuarter) {
-      el.textContent = '  \u00b7  ' + sm0.latestBillQuarter + ' \u00b7 ' + sm0.paidCount + ' of ' + sm0.totalProperties + ' paid \u00b7 ' + sm0.outstandingCount + ' outstanding';
+      el.textContent = '  \u00b7  ' + sm0.latestBillQuarter + combinedBilledText(sm0.latestBillQuarter) + ' \u00b7 ' + sm0.paidCount + ' of ' + sm0.totalProperties + ' paid \u00b7 ' + sm0.outstandingCount + ' outstanding';
     }
     return;
   }
@@ -1416,9 +1430,9 @@ function populateCombinedSmart() {
   rows.forEach(function(b) { if ((b.paymentStatus || 'unpaid') === 'paid') paid++; });
   var out = total - paid;
   if (out === 0) {
-    el.textContent = '  \u00b7  ' + quarter + ' \u00b7 all ' + total + ' paid \u2713';
+    el.textContent = '  \u00b7  ' + quarter + combinedBilledText(quarter) + ' \u00b7 all ' + total + ' paid \u2713';
   } else {
-    el.textContent = '  \u00b7  ' + quarter + ' \u00b7 ' + paid + ' of ' + total + ' paid \u00b7 ' + out + ' outstanding';
+    el.textContent = '  \u00b7  ' + quarter + combinedBilledText(quarter) + ' \u00b7 ' + paid + ' of ' + total + ' paid \u00b7 ' + out + ' outstanding';
   }
 }
 // Residents' outstanding for a given bill quarter, from the loaded bills feed.
