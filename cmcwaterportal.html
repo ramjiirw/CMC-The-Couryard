@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.02 -- 9 Nov 2026, 16:58
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.03 -- 18 Nov 2026, 07:57
+     Build 1.03: the two "Bill date" columns are renamed so they no longer look
+     like the same date. CMC -> Liscombe Park Water Account: "Liscombe bill
+     date" (the date on Liscombe's invoice to CMC). Property Water Statement:
+     "Date billed" (the date the resident bills were generated). Quarterly Water
+     Bills & Payments: the summary line now starts with "Billed <date>" (the
+     same generated date). Table dates are unchanged.
      Build 1.02: CMC -> Liscombe Park Water Account -- when our derived total
      and Liscombe's Amount Due differ by more than 2p, the difference is
      labelled from CMC's side: green "surplus" (residents are recharged more
@@ -985,8 +991,8 @@
 /* Build number and date -- shown when the mouse rests on the header logo, so
    you can tell at a glance whether the browser has picked up the latest version. */
 var PAGE_FILE  = 'cmcwaterportal.html';
-var PAGE_BUILD = '1.02';
-var PAGE_DATE  = '9 Nov 2026, 16:58';
+var PAGE_BUILD = '1.03';
+var PAGE_DATE  = '18 Nov 2026, 07:57';
 (function() {
   var logo = document.getElementById('headerLogo');
   if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -1679,10 +1685,14 @@ function renderWaterBills() {
     });
 
     var outstanding = Math.round((pTotBilled - pTotPaid) * 100) / 100;
+    // Build 1.03: date the resident bills were generated (same date as the statement's "Date billed")
+    var billedOn = '';
+    billRows.some(function(b){ if (b.generatedDate) { billedOn = wbillNiceDate(b.generatedDate); return true; } return false; });
+    var billedHtml = billedOn ? 'Billed ' + billedOn + ' &middot; ' : '';
     if (outstanding <= 0.001) {
-      h += '<div class="wbill-glance allpaid">' + quarter + ' &middot; \u2713 All paid</div>';
+      h += '<div class="wbill-glance allpaid">' + quarter + ' &middot; ' + billedHtml + '\u2713 All paid</div>';
     } else {
-      h += '<div class="wbill-glance">' + quarter + ' &middot; <b class="ok">' + paidN + ' of ' + billRows.length + ' paid</b> &middot; <b class="out">' + wbillMoney(outstanding) + ' outstanding</b> <span class="wb-seg"><button class="' + (wbUnpaidOnly ? '' : 'on') + '" onclick="wbToggleUnpaid(false)">All</button><button class="' + (wbUnpaidOnly ? 'on' : '') + '" onclick="wbToggleUnpaid(true)">Unpaid</button></span></div>';
+      h += '<div class="wbill-glance">' + quarter + ' &middot; ' + billedHtml + '<b class="ok">' + paidN + ' of ' + billRows.length + ' paid</b> &middot; <b class="out">' + wbillMoney(outstanding) + ' outstanding</b> <span class="wb-seg"><button class="' + (wbUnpaidOnly ? '' : 'on') + '" onclick="wbToggleUnpaid(false)">All</button><button class="' + (wbUnpaidOnly ? 'on' : '') + '" onclick="wbToggleUnpaid(true)">Unpaid</button></span></div>';
     }
 
     h += '<table class="water-rpt-table"><thead><tr>';
@@ -2186,7 +2196,7 @@ function renderLiscombeAccount(){
   h += '<p class="lq-legend"><b>Our derived</b> = what our readings and Liscombe’s rates work out to · <b>Amount Due</b> = the total Liscombe invoiced · <b>Paid by CMC</b> = what we actually paid them. <span class="tk">✓</span> our figure reconciles to Liscombe’s Amount Due · <span class="wn">⚠</span> a discrepancy to check: <span class="sur">surplus</span> = residents are recharged more than Liscombe charged · <span class="short">shortfall</span> = CMC pays Liscombe more than it recovers.</p>';
 
   h += '<div style="overflow-x:auto;"><table class="wstmt-table lq-table"><thead><tr>';
-  h += '<th class="l">Quarter</th><th class="l">Bill date</th><th>Water<br>Volume</th><th>Price<br><small>per m³</small></th><th>Our derived<br><small>what we think</small></th><th class="due-h">Amount Due<br><small>Liscombe billed</small></th><th>Paid by CMC<br><small>what we paid</small></th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
+  h += '<th class="l">Quarter</th><th class="l">Liscombe bill date</th><th>Water<br>Volume</th><th>Price<br><small>per m³</small></th><th>Our derived<br><small>what we think</small></th><th class="due-h">Amount Due<br><small>Liscombe billed</small></th><th>Paid by CMC<br><small>what we paid</small></th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
   h += '</tr></thead><tbody>';
 
   var showYears = (liscombeYearFilter==='all') ? ys : [parseInt(liscombeYearFilter,10)];
@@ -2528,7 +2538,7 @@ function renderWaterStatement() {
   }
 
   h += '<table class="wstmt-table"><thead><tr>';
-  h += '<th class="l">Quarter</th><th class="l">Bill date</th><th>Water Volume</th><th>Total billed</th><th>Paid</th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
+  h += '<th class="l">Quarter</th><th class="l">Date billed</th><th>Water Volume</th><th>Total billed</th><th>Paid</th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
   h += '</tr></thead><tbody>';
 
   showYears.forEach(function(y) {
