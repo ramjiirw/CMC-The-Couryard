@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.05 -- 18 Nov 2026, 08:58
+<!-- CMC The Courtyard -- cmcwaterportal.html -- Build 1.06 -- 18 Nov 2026, 10:58
+     Build 1.06: CMC -> Liscombe Park Water Account -- the "Liscombe bill date"
+     column heading now wraps onto two lines (Liscombe / Bill date), like
+     "Water Volume".
      Build 1.05: Readings & Bills view -- new "Date billed" card next to
      "Reading date" (same date as the statement, the Payments summary line and
      the button). Shows "Awaiting bill" before a quarter is billed, and a dash
@@ -998,8 +1001,8 @@
 /* Build number and date -- shown when the mouse rests on the header logo, so
    you can tell at a glance whether the browser has picked up the latest version. */
 var PAGE_FILE  = 'cmcwaterportal.html';
-var PAGE_BUILD = '1.05';
-var PAGE_DATE  = '18 Nov 2026, 08:58';
+var PAGE_BUILD = '1.06';
+var PAGE_DATE  = '18 Nov 2026, 10:58';
 (function() {
   var logo = document.getElementById('headerLogo');
   if (logo) logo.title = PAGE_FILE + ' \u00b7 Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -2219,7 +2222,7 @@ function renderLiscombeAccount(){
   h += '<p class="lq-legend"><b>Our derived</b> = what our readings and Liscombe’s rates work out to · <b>Amount Due</b> = the total Liscombe invoiced · <b>Paid by CMC</b> = what we actually paid them. <span class="tk">✓</span> our figure reconciles to Liscombe’s Amount Due · <span class="wn">⚠</span> a discrepancy to check: <span class="sur">surplus</span> = residents are recharged more than Liscombe charged · <span class="short">shortfall</span> = CMC pays Liscombe more than it recovers.</p>';
 
   h += '<div style="overflow-x:auto;"><table class="wstmt-table lq-table"><thead><tr>';
-  h += '<th class="l">Quarter</th><th class="l">Liscombe bill date</th><th>Water<br>Volume</th><th>Price<br><small>per m³</small></th><th>Our derived<br><small>what we think</small></th><th class="due-h">Amount Due<br><small>Liscombe billed</small></th><th>Paid by CMC<br><small>what we paid</small></th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
+  h += '<th class="l">Quarter</th><th class="l">Liscombe<br>Bill date</th><th>Water<br>Volume</th><th>Price<br><small>per m³</small></th><th>Our derived<br><small>what we think</small></th><th class="due-h">Amount Due<br><small>Liscombe billed</small></th><th>Paid by CMC<br><small>what we paid</small></th><th style="text-align:center">Status</th><th class="l">Date paid</th>';
   h += '</tr></thead><tbody>';
 
   var showYears = (liscombeYearFilter==='all') ? ys : [parseInt(liscombeYearFilter,10)];
