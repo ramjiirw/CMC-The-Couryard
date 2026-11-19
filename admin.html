@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.10 -- 19 Nov 2026, 14:41
+<!-- CMC The Courtyard -- admin.html -- Build 1.11 -- 19 Nov 2026, 16:20
+     Build 1.11: Sales in progress card. (1) Loads as quickly as the other
+     cards: it now uses the light readSalesSummary instead of the full
+     checklist read. (2) Clearer wording: each sale shows "No. 12 · completes
+     12 Dec", then "2 of 23 checklist items done" with a thin progress bar.
+     Clicking a sale before the checklist has loaded now opens it once loaded.
+     Needs code.gs Build 1.18.
      Build 1.10: (1) Sales Checklist: the saving status is now a larger
      coloured badge under the item's name -- amber "⏳ Saving…", then green
      "✓ Saved" -- and stays at full strength while the rest of the row fades.
@@ -1077,8 +1083,15 @@
   /* Sales in progress card (Build 1.10) -- the card row is widened so the four
      home cards sit side by side on a normal screen (they still wrap when narrow) */
   #panel-welcome .dash-cards { max-width:1080px; }
-  .dash-card-list li.dc-sale-line { cursor:pointer; border-radius:4px; }
+  .dash-card-list li.dc-sale-line { display:block; cursor:pointer; border-radius:4px; padding:0.35rem 0.3rem; white-space:normal; }
   .dash-card-list li.dc-sale-line:hover { background:rgba(122,92,62,0.12); }
+  #dcSalesList { max-height:190px; }
+  .dc-sale-top { display:flex; gap:0.35rem; align-items:baseline; }
+  .dc-sale-top .dcl-addr { min-width:0; }
+  .dc-sale-when { color:var(--mid); font-size:0.72rem; }
+  .dc-sale-items { color:var(--dark); font-size:0.72rem; margin-top:0.15rem; }
+  .dc-sale-bar { height:5px; background:rgba(122,92,62,0.15); border-radius:3px; overflow:hidden; margin-top:0.3rem; }
+  .dc-sale-bar > div { height:100%; background:linear-gradient(135deg,var(--accent),var(--accent2)); }
   #panel-salecheck .abtn:disabled, #panel-saletpl .abtn:disabled, #sckNewModal .abtn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
   .sck-tpl { width:100%; border-collapse:collapse; min-width:720px; }
   .sck-tpl th { background:rgba(122,92,62,0.07); padding:0.55rem 0.8rem; text-align:left; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); border-bottom:1px solid #c8bfb4; }
@@ -3485,8 +3498,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.10';
-var PAGE_DATE  = '19 Nov 2026, 14:41';
+var PAGE_BUILD = '1.11';
+var PAGE_DATE  = '19 Nov 2026, 16:20';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -5303,21 +5316,22 @@ function dcLoadNoticeboardCard() {
     });
 }
 
-// ── Sales in progress card (Build 1.10) ──────────────────────────────────────
-// One line per sale in progress: house number, items done, completion date,
-// e.g. "No. 12   3/24 done · 12 Dec".
-// Clicking a line opens that sale; clicking anywhere else on the card opens the
-// Sales Checklist list. Uses the same read as the Sales Checklist panel
-// (readSaleChecklist), so no code.gs change was needed. The fresh read is
-// shared with the Sales Checklist panel, so both always show the same figures.
+// ── Sales in progress card (Build 1.10, faster and clearer in 1.11) ─────────
+// Two lines per sale in progress, e.g.
+//   No. 12 · completes 12 Dec
+//   2 of 23 checklist items done   [progress bar]
+// Clicking a sale opens it; clicking anywhere else on the card opens the Sales
+// Checklist list. Build 1.11: the card uses the light readSalesSummary
+// (code.gs 1.18) instead of the full readSaleChecklist, so it loads as quickly
+// as the other cards. A tick in the Sales Checklist still updates it straight
+// away from the checklist's own figures.
 
 function dcLoadSalesCard() {
-  fetch(SCRIPT_URL + '?action=readSaleChecklist&_=' + Date.now(), { redirect:'follow' })
+  fetch(SCRIPT_URL + '?action=readSalesSummary&_=' + Date.now(), { redirect:'follow' })
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if (!d || d.status !== 'ok') throw new Error('load failed');
-      sckData = d;
-      dcRenderSalesCard();
+      if (!d || d.status !== 'ok' || !d.sales) throw new Error('load failed');
+      dcDrawSalesCard(d.sales);
     })
     .catch(function(){
       var countEl = document.getElementById('dcSalesCount');
@@ -5327,28 +5341,40 @@ function dcLoadSalesCard() {
     });
 }
 
-// Draws the card from the latest data held, so a tick in the Sales Checklist
-// shows on the card straight away without another read.
+// Redraws the card from the Sales Checklist's own figures (after a tick, a new
+// sale, a delete or a reload of the checklist).
 function dcRenderSalesCard() {
-  var d = sckData;
+  if (!sckData || !sckData.sales) return;
+  dcDrawSalesCard(sckData.sales
+    .filter(function(s){ return s.status !== 'Completed'; })
+    .map(function(s){
+      var c = sckCounts(s);
+      return { saleId: s.saleId, property: s.property, completion: s.completion, done: c.done, total: c.total };
+    }));
+}
+
+// lines: [{saleId, property, completion ('yyyy-MM-dd' or ''), done, total}]
+function dcDrawSalesCard(lines) {
   var countEl = document.getElementById('dcSalesCount');
   var listEl  = document.getElementById('dcSalesList');
-  if (!d || !countEl || !listEl) return;
-  var open = (d.sales || []).filter(function(s){ return s.status !== 'Completed'; });
-  open.sort(function(a, b){ return (a.completion || '9999') < (b.completion || '9999') ? -1 : 1; });
-  countEl.textContent = open.length;
-  if (!open.length) {
+  if (!countEl || !listEl) return;
+  lines = (lines || []).slice().sort(function(a, b){ return (a.completion || '9999') < (b.completion || '9999') ? -1 : 1; });
+  countEl.textContent = lines.length;
+  if (!lines.length) {
     listEl.innerHTML = '<li><span class="agm-pill agm-pill-none">No sales in progress</span></li>';
     return;
   }
-  listEl.innerHTML = open.map(function(s){
-    var c = sckCounts(s);
+  listEl.innerHTML = lines.map(function(s){
     var m = String(s.property || '').match(/^\s*(\d+)/);
     var house = m ? 'No. ' + m[1] : s.property;
-    var when = s.completion ? ' · ' + sckFmtDate(s.completion).replace(/ \d{4}$/, '') : '';
+    var when = s.completion ? 'completes ' + sckFmtDate(s.completion).replace(/ \d{4}$/, '') : '';
+    var pct = s.total ? Math.round(s.done / s.total * 100) : 0;
     return '<li class="dc-sale-line" onclick="event.stopPropagation(); dcOpenSale(\'' + escAdm(s.saleId) + '\')" title="Open the sale for ' + escAdm(s.property) + '">'
-      + '<span class="dcl-addr">' + escAdm(house) + '</span>'
-      + '<span class="dcl-name">' + c.done + '/' + c.total + ' done' + escAdm(when) + '</span></li>';
+      + '<div class="dc-sale-top"><span class="dcl-addr">' + escAdm(house) + '</span>'
+      +   (when ? '<span class="dc-sale-when">· ' + escAdm(when) + '</span>' : '') + '</div>'
+      + '<div class="dc-sale-items">' + s.done + ' of ' + s.total + ' checklist items done</div>'
+      + '<div class="dc-sale-bar"><div style="width:' + pct + '%"></div></div>'
+      + '</li>';
   }).join('');
 }
 
@@ -5359,10 +5385,14 @@ function dcOpenSalesList() {
   showPanel('salecheck');
 }
 
+// Opens one sale. If the checklist hasn't been loaded yet, it opens as soon as
+// the load (started by showPanel) finishes.
 function dcOpenSale(id) {
   if (sckDetailDirty && sckCurrentId !== id && !confirm('You have unsaved sale details. Discard them?')) return;
+  if (sckSale(id)) { showPanel('salecheck'); sckOpenSale(id); return; }
+  sckPendingOpen = id;
+  sckCurrentId = null;
   showPanel('salecheck');
-  if (sckSale(id)) sckOpenSale(id);
 }
 
 // ── Flagged for Review tile group ─────────────────────────────────────────────
@@ -10314,6 +10344,7 @@ var sckDirectors = null;     // [names] from readDirectorList
 var sckPinned = null;        // [names] of pinned SIP docs that change on a sale, or 'error'
 var sckLastWho = '';         // last Who picked, used as the default for the next tick
 var sckTplEditing = null;    // template row being edited: sheet row number, 'add', or null
+var sckPendingOpen = null;   // Build 1.11: sale to open once the checklist has loaded (from the home card)
 
 function sckPost(payload) {
   return fetch(SCRIPT_URL, {
@@ -10372,6 +10403,10 @@ function sckLoad(force) {
       if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'load failed');
       sckData = d;
       dcRenderSalesCard();
+      if (sckPendingOpen) {
+        var pend = sckPendingOpen; sckPendingOpen = null;
+        if (sckSale(pend)) sckOpenSale(pend);
+      }
       if (sckCurrentId && sckSale(sckCurrentId) && !sckDetailDirty) sckRenderSale();
       else if (sckCurrentId && !sckSale(sckCurrentId)) { sckCurrentId = null; sckShowListView(); }
       sckRenderList();
