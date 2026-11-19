@@ -1,5 +1,15 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.09 -- 19 Nov 2026, 11:45
+<!-- CMC The Courtyard -- admin.html -- Build 1.10 -- 19 Nov 2026, 14:41
+     Build 1.10: (1) Sales Checklist: the saving status is now a larger
+     coloured badge under the item's name -- amber "⏳ Saving…", then green
+     "✓ Saved" -- and stays at full strength while the rest of the row fades.
+     (2) New "Sales in progress" card on the Admin home page, after
+     Noticeboard: the number of sales in progress and one line per sale
+     (house number, items done, completion date). Click a line to open that
+     sale; click elsewhere on the card for the Sales Checklist list.
+     (3) The Sales tile added to "Flagged for review" in Build 1.08 is
+     removed; that group is back to Q&A and SIP Briefing exactly as in 1.07.
+     No code.gs change.
      Build 1.09: Sales Checklist fixes. (1) Note boxes wrap and grow downwards
      to fit the text, and show in full on a completed sale. (2) A row that is
      saving shows "Saving…", then a green "✓ Saved" for a couple of seconds.
@@ -1047,9 +1057,11 @@
   .sck-item select:disabled, .sck-item input[type=text]:disabled { background:#f5f0e8; color:var(--mid); }
   .sck-date { font-size:0.78rem; color:var(--mid); text-align:center; padding-top:0.3rem; }
   .sck-date-val { display:block; }
-  .sck-row-status { display:block; font-size:0.72rem; font-weight:700; margin-top:0.2rem; min-height:0; }
-  .sck-row-status.sck-rs-saving { color:var(--mid); font-style:italic; font-weight:400; }
-  .sck-row-status.sck-rs-saved { color:#3a6b4a; }
+  /* Build 1.10: saving badge sits under the item name, larger and coloured */
+  .sck-row-status { display:none; }
+  .sck-row-status.sck-rs-saving, .sck-row-status.sck-rs-saved { display:table; margin-top:0.4rem; font-size:0.82rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:12px; text-decoration:none; }
+  .sck-row-status.sck-rs-saving { background:#fff1d6; color:#8a5a00; border:1px solid #f0c674; }
+  .sck-row-status.sck-rs-saved { background:#e3f1e6; color:#2f6b45; border:1px solid #a9d3b5; }
   .sck-item textarea.sck-note { width:100%; padding:0.3rem 0.45rem; border:1px solid #ddd5c8; border-radius:4px; font-size:0.78rem; font-family:Arial,sans-serif; color:var(--dark); background:#fff; line-height:1.4; resize:none; overflow:hidden; min-height:1.9rem; display:block; }
   .sck-item textarea.sck-note:focus { outline:none; border-color:var(--accent2); }
   .sck-item textarea.sck-note:disabled { background:#f5f0e8; color:var(--mid); }
@@ -1060,7 +1072,13 @@
   .sck-msg { font-size:0.78rem; color:var(--mid); margin-right:auto; }
   .sck-note-line { padding:0 1.25rem 0.8rem; font-size:0.78rem; color:var(--mid); font-style:italic; }
   .sck-saving { pointer-events:none; }
-  .sck-saving > div:not(.sck-date) { opacity:0.55; }
+  .sck-saving > div:not(.sck-item-text) { opacity:0.55; }
+  .sck-saving > .sck-item-text > :not(.sck-row-status) { opacity:0.55; }
+  /* Sales in progress card (Build 1.10) -- the card row is widened so the four
+     home cards sit side by side on a normal screen (they still wrap when narrow) */
+  #panel-welcome .dash-cards { max-width:1080px; }
+  .dash-card-list li.dc-sale-line { cursor:pointer; border-radius:4px; }
+  .dash-card-list li.dc-sale-line:hover { background:rgba(122,92,62,0.12); }
   #panel-salecheck .abtn:disabled, #panel-saletpl .abtn:disabled, #sckNewModal .abtn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
   .sck-tpl { width:100%; border-collapse:collapse; min-width:720px; }
   .sck-tpl th { background:rgba(122,92,62,0.07); padding:0.55rem 0.8rem; text-align:left; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); border-bottom:1px solid #c8bfb4; }
@@ -1204,7 +1222,6 @@
               <div class="stat-domain-tiles" id="statDomainFlagTiles">
                 <div class="stat-tile stat-clickable" id="statReviewTile" onclick="showQAReviewFlagged()" title="View Q&amp;A entries flagged for review"><div class="stat-num" id="dcReviewCount">—</div><div class="stat-lbl">Q&amp;A</div></div>
                 <div class="stat-tile stat-clickable" id="statBriefReviewTile" onclick="showBriefReviewFlagged()" title="View SIP Briefing entries flagged for review"><div class="stat-num" id="dcBriefReviewCount">—</div><div class="stat-lbl">SIP Briefing</div></div>
-                <div class="stat-tile stat-clickable" id="statSalesTile" onclick="showPanel('salecheck')" title="Sales in progress: checklist items still to do" style="display:none;"><div class="stat-num" id="dcSalesCount">—</div><div class="stat-lbl">Sales</div></div>
               </div>
               <!-- All-clear placeholder (shown when nothing flagged in either) -->
               <div class="stat-allclear" id="statFlagAllClear" onclick="showPanel('sipqa')" title="Open SIP Q&amp;A" style="display:none;">
@@ -1249,6 +1266,19 @@
               <div class="dash-card-num" id="dcNoticeCount">—</div>
               <div class="dash-card-sub">Live notices</div>
               <ul class="dash-card-list" id="dcNoticeList">
+                <li><span class="dcl-empty">Loading&#8230;</span></li>
+              </ul>
+            </div>
+
+            <!-- Sales in progress card (Build 1.10) -- click a sale to open it -->
+            <div class="dash-card" onclick="dcOpenSalesList()" title="Go to Sales Checklist">
+              <div class="dash-card-header">
+                <span class="dash-card-icon">&#9989;</span>
+                <span class="dash-card-title">Sales in progress</span>
+              </div>
+              <div class="dash-card-num" id="dcSalesCount">—</div>
+              <div class="dash-card-sub">Sales in progress</div>
+              <ul class="dash-card-list" id="dcSalesList">
                 <li><span class="dcl-empty">Loading&#8230;</span></li>
               </ul>
             </div>
@@ -3455,8 +3485,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.09';
-var PAGE_DATE  = '19 Nov 2026, 11:45';
+var PAGE_BUILD = '1.10';
+var PAGE_DATE  = '19 Nov 2026, 14:41';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -5074,6 +5104,9 @@ function loadWelcomeStats() {
   // ── Noticeboard card ───────────────────────────────────────────────────
   dcLoadNoticeboardCard();
 
+  // ── Sales in progress card (Build 1.10) ───────────────────────────────
+  dcLoadSalesCard();
+
   // ── Flagged for Review tile (SIP Q&A) ───────────────────────────────────
   dcLoadReviewCount();
 
@@ -5270,6 +5303,68 @@ function dcLoadNoticeboardCard() {
     });
 }
 
+// ── Sales in progress card (Build 1.10) ──────────────────────────────────────
+// One line per sale in progress: house number, items done, completion date,
+// e.g. "No. 12   3/24 done · 12 Dec".
+// Clicking a line opens that sale; clicking anywhere else on the card opens the
+// Sales Checklist list. Uses the same read as the Sales Checklist panel
+// (readSaleChecklist), so no code.gs change was needed. The fresh read is
+// shared with the Sales Checklist panel, so both always show the same figures.
+
+function dcLoadSalesCard() {
+  fetch(SCRIPT_URL + '?action=readSaleChecklist&_=' + Date.now(), { redirect:'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || d.status !== 'ok') throw new Error('load failed');
+      sckData = d;
+      dcRenderSalesCard();
+    })
+    .catch(function(){
+      var countEl = document.getElementById('dcSalesCount');
+      var listEl  = document.getElementById('dcSalesList');
+      if (countEl) countEl.textContent = '?';
+      if (listEl)  listEl.innerHTML = '<li><span class="dcl-empty">Could not load sales</span></li>';
+    });
+}
+
+// Draws the card from the latest data held, so a tick in the Sales Checklist
+// shows on the card straight away without another read.
+function dcRenderSalesCard() {
+  var d = sckData;
+  var countEl = document.getElementById('dcSalesCount');
+  var listEl  = document.getElementById('dcSalesList');
+  if (!d || !countEl || !listEl) return;
+  var open = (d.sales || []).filter(function(s){ return s.status !== 'Completed'; });
+  open.sort(function(a, b){ return (a.completion || '9999') < (b.completion || '9999') ? -1 : 1; });
+  countEl.textContent = open.length;
+  if (!open.length) {
+    listEl.innerHTML = '<li><span class="agm-pill agm-pill-none">No sales in progress</span></li>';
+    return;
+  }
+  listEl.innerHTML = open.map(function(s){
+    var c = sckCounts(s);
+    var m = String(s.property || '').match(/^\s*(\d+)/);
+    var house = m ? 'No. ' + m[1] : s.property;
+    var when = s.completion ? ' · ' + sckFmtDate(s.completion).replace(/ \d{4}$/, '') : '';
+    return '<li class="dc-sale-line" onclick="event.stopPropagation(); dcOpenSale(\'' + escAdm(s.saleId) + '\')" title="Open the sale for ' + escAdm(s.property) + '">'
+      + '<span class="dcl-addr">' + escAdm(house) + '</span>'
+      + '<span class="dcl-name">' + c.done + '/' + c.total + ' done' + escAdm(when) + '</span></li>';
+  }).join('');
+}
+
+function dcOpenSalesList() {
+  if (sckDetailDirty && !confirm('You have unsaved sale details. Discard them?')) return;
+  sckDetailDirty = false;
+  sckCurrentId = null;
+  showPanel('salecheck');
+}
+
+function dcOpenSale(id) {
+  if (sckDetailDirty && sckCurrentId !== id && !confirm('You have unsaved sale details. Discard them?')) return;
+  showPanel('salecheck');
+  if (sckSale(id)) sckOpenSale(id);
+}
+
 // ── Flagged for Review tile group ─────────────────────────────────────────────
 // Counts entries with review === true across BOTH the SIP Q&A and SIP Briefing
 // sheets. Each gets its own clickable sub-tile within the "Flagged for review"
@@ -5277,22 +5372,13 @@ function dcLoadNoticeboardCard() {
 //   • Q&A flagged = 0       → hide the Q&A tile
 //   • SIP Briefing flagged = 0 → hide the SIP Briefing tile
 //   • Both = 0              → swap whole grid for "Nothing flagged" placeholder
-// Build 1.08: a third tile, Sales, shows checklist items still to do across
-// sales in progress (code.gs readSalesSummary). Hidden when no sale is in
-// progress; shown (even at 0) while one is.
 function dcLoadReviewCount() {
   Promise.all([
     fetch(SCRIPT_URL + '?action=readSIPQA',       { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; }),
-    fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; }),
-    fetch(SCRIPT_URL + '?action=readSalesSummary&_=' + Date.now(), { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; })
+    fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; })
   ]).then(function(results) {
     var qaData    = results[0];
     var briefData = results[1];
-    var salesSum  = results[2];
-    var salesOpen = (salesSum && salesSum.status === 'ok') ? (salesSum.inProgress || 0) : 0;
-    var salesLeft = (salesSum && salesSum.status === 'ok') ? (salesSum.outstanding || 0) : 0;
-    var salesEl   = document.getElementById('dcSalesCount');
-    if (salesEl) salesEl.textContent = salesLeft;
     var qaCount    = (qaData    && qaData.rows)    ? qaData.rows.filter(function(r){    return r.review === true; }).length : 0;
     var briefCount = (briefData && briefData.rows) ? briefData.rows.filter(function(r){ return r.review === true; }).length : 0;
 
@@ -5310,8 +5396,6 @@ function dcLoadReviewCount() {
     var cols = 0;
     if (qaTile)    { qaTile.style.display    = qaCount    > 0 ? '' : 'none'; if (qaCount    > 0) cols++; }
     if (briefTile) { briefTile.style.display = briefCount > 0 ? '' : 'none'; if (briefCount > 0) cols++; }
-    var salesTile = document.getElementById('statSalesTile');
-    if (salesTile) { salesTile.style.display = salesOpen > 0 ? '' : 'none'; if (salesOpen > 0) cols++; }
 
     if (tilesWrap && allClr) {
       if (cols === 0) {
@@ -10287,6 +10371,7 @@ function sckLoad(force) {
     .then(function(d){
       if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'load failed');
       sckData = d;
+      dcRenderSalesCard();
       if (sckCurrentId && sckSale(sckCurrentId) && !sckDetailDirty) sckRenderSale();
       else if (sckCurrentId && !sckSale(sckCurrentId)) { sckCurrentId = null; sckShowListView(); }
       sckRenderList();
@@ -10480,10 +10565,11 @@ function sckRenderSale() {
         + '<div><input type="checkbox"' + (it.done ? ' checked' : '') + (ro ? ' disabled' : '') + ' onchange="sckTick(' + i + ', this.checked)"></div>'
         + '<div class="sck-item-text"><span class="sck-item-label">' + sckEsc(it.item) + '</span>'
         +   (it.farmhouse ? '<span class="sck-farm">Farmhouse</span>' : '')
-        +   (it.hint ? '<span class="sck-hint">' + sckEsc(it.hint) + '</span>' : '') + extra + '</div>'
+        +   (it.hint ? '<span class="sck-hint">' + sckEsc(it.hint) + '</span>' : '') + extra
+        +   '<span class="sck-row-status"></span></div>'
         + '<div class="sck-c-who"><select' + (ro ? ' disabled' : '') + ' onchange="sckWhoChanged(' + i + ', this.value)">'
         +   sckWhoOptions(who) + '</select></div>'
-        + '<div class="sck-date"><span class="sck-date-val">' + sckEsc(it.dateDone || '—') + '</span><span class="sck-row-status"></span></div>'
+        + '<div class="sck-date"><span class="sck-date-val">' + sckEsc(it.dateDone || '—') + '</span></div>'
         + '<div class="sck-c-note"><textarea class="sck-note" rows="1" placeholder="Note"' + (ro ? ' disabled' : '')
         +   ' oninput="sckAutoGrow(this)" onchange="sckNoteChanged(' + i + ', this.value)">' + sckEsc(it.note) + '</textarea></div>'
         + '</div>';
@@ -10595,7 +10681,7 @@ function sckRowStatus(i, state) {
   el.classList.toggle('sck-saving', state === 'saving');
   if (!st) return;
   st.className = 'sck-row-status' + (state ? ' sck-rs-' + state : '');
-  st.textContent = state === 'saving' ? 'Saving…' : (state === 'saved' ? '✓ Saved' : '');
+  st.textContent = state === 'saving' ? '⏳ Saving…' : (state === 'saved' ? '✓ Saved' : '');
   if (state === 'saved') {
     sckStatusTimers[i] = setTimeout(function(){ sckRowStatus(i, ''); }, 2500);
   }
@@ -10625,7 +10711,7 @@ function sckSaveItem(i, changes) {
         it.dateDone = r.dateDone || '';
         if (stillHere()) { sckRefreshItemRow(i); sckRowStatus(i, 'saved'); }
         sckRenderList();
-        dcLoadReviewCount();
+        dcRenderSalesCard();
       } else {
         putBack(r.message || 'Save failed.');
       }
@@ -10677,7 +10763,7 @@ function sckCompleteSale() {
     if (r.status === 'ok') {
       sckDetailDirty = false;
       showToast('Sale marked complete', 'success');
-      sckLoad(false); dcLoadReviewCount();
+      sckLoad(false).then(dcRenderSalesCard);
     } else alert(r.message || 'Could not complete the sale.');
   }).catch(function(e){ alert('Network error: ' + (e.message || 'unknown')); });
 }
@@ -10689,7 +10775,7 @@ function sckDeleteSale() {
     if (r.status === 'ok') {
       sckDetailDirty = false; sckCurrentId = null; sckShowListView();
       showToast('Sale deleted', 'success');
-      sckLoad(false); dcLoadReviewCount();
+      sckLoad(false).then(dcRenderSalesCard);
     } else alert(r.message || 'Could not delete the sale.');
   }).catch(function(e){ alert('Network error: ' + (e.message || 'unknown')); });
 }
@@ -10745,7 +10831,7 @@ function sckCreateSale() {
       sckCloseNew();
       showToast(r.itemCount + ' items copied from the template' + (r.farmhouse ? ' (Farmhouse item included)' : ''), 'success');
       sckLoad(false).then(function(){ if (sckSale(r.saleId)) sckOpenSale(r.saleId); });
-      dcLoadReviewCount();
+      dcRenderSalesCard();
     } else {
       b.disabled = false; b.textContent = 'Start checklist';
       err.textContent = r.message || 'Could not start the sale.';
