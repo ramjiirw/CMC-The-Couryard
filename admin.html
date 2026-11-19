@@ -1,5 +1,12 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.08 -- 19 Nov 2026, 09:52
+<!-- CMC The Courtyard -- admin.html -- Build 1.09 -- 19 Nov 2026, 11:45
+     Build 1.09: Sales Checklist fixes. (1) Note boxes wrap and grow downwards
+     to fit the text, and show in full on a completed sale. (2) A row that is
+     saving shows "Saving…", then a green "✓ Saved" for a couple of seconds.
+     (3) Saving a tick, Who or note updates only that row and the counts --
+     nothing else is redrawn, so a note being typed in another row is never
+     lost. The Who lists and the pinned documents reminder also fill in place
+     when they arrive. No code.gs change.
      Build 1.08: new Sales Checklist. Sidebar section "Sales" with two panels:
      Sales Checklist (start a sale, then tick each item with who, date and a
      note; sale details include both solicitors' names and emails; a completed
@@ -1039,13 +1046,21 @@
   .sck-item select, .sck-item input[type=text] { width:100%; padding:0.3rem 0.45rem; border:1px solid #ddd5c8; border-radius:4px; font-size:0.78rem; font-family:Arial,sans-serif; color:var(--dark); background:#fff; }
   .sck-item select:disabled, .sck-item input[type=text]:disabled { background:#f5f0e8; color:var(--mid); }
   .sck-date { font-size:0.78rem; color:var(--mid); text-align:center; padding-top:0.3rem; }
+  .sck-date-val { display:block; }
+  .sck-row-status { display:block; font-size:0.72rem; font-weight:700; margin-top:0.2rem; min-height:0; }
+  .sck-row-status.sck-rs-saving { color:var(--mid); font-style:italic; font-weight:400; }
+  .sck-row-status.sck-rs-saved { color:#3a6b4a; }
+  .sck-item textarea.sck-note { width:100%; padding:0.3rem 0.45rem; border:1px solid #ddd5c8; border-radius:4px; font-size:0.78rem; font-family:Arial,sans-serif; color:var(--dark); background:#fff; line-height:1.4; resize:none; overflow:hidden; min-height:1.9rem; display:block; }
+  .sck-item textarea.sck-note:focus { outline:none; border-color:var(--accent2); }
+  .sck-item textarea.sck-note:disabled { background:#f5f0e8; color:var(--mid); }
   .sck-farm { font-size:0.72rem; background:#f3ede4; color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:4px; padding:0 0.35rem; margin-left:0.35rem; }
   .sck-reminder { margin-top:0.4rem; background:#eaf1f7; border-left:3px solid #6090b0; border-radius:4px; padding:0.4rem 0.6rem; font-size:0.78rem; color:#2d5a78; }
   .sck-reminder ul { margin:0.2rem 0 0 1.1rem; }
   .sck-foot { display:flex; gap:0.6rem; align-items:center; padding:0.9rem 1.25rem; border-top:1px solid #c8bfb4; background:#faf7f2; border-radius:0 0 10px 10px; flex-wrap:wrap; }
   .sck-msg { font-size:0.78rem; color:var(--mid); margin-right:auto; }
   .sck-note-line { padding:0 1.25rem 0.8rem; font-size:0.78rem; color:var(--mid); font-style:italic; }
-  .sck-saving { opacity:0.55; pointer-events:none; }
+  .sck-saving { pointer-events:none; }
+  .sck-saving > div:not(.sck-date) { opacity:0.55; }
   #panel-salecheck .abtn:disabled, #panel-saletpl .abtn:disabled, #sckNewModal .abtn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
   .sck-tpl { width:100%; border-collapse:collapse; min-width:720px; }
   .sck-tpl th { background:rgba(122,92,62,0.07); padding:0.55rem 0.8rem; text-align:left; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); border-bottom:1px solid #c8bfb4; }
@@ -3440,8 +3455,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.08';
-var PAGE_DATE  = '19 Nov 2026, 09:52';
+var PAGE_BUILD = '1.09';
+var PAGE_DATE  = '19 Nov 2026, 11:45';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -10291,7 +10306,7 @@ function sckLoadDirectors() {
     .then(function(r){ return r.json(); })
     .then(function(d){
       sckDirectors = (d && d.status === 'ok' && d.directors) ? d.directors.map(function(x){ return x.name; }).filter(Boolean) : [];
-      if (sckCurrentId && !sckDetailDirty) sckRenderSale();
+      sckApplyDirectors();
     })
     .catch(function(){ sckDirectors = []; });
 }
@@ -10315,9 +10330,41 @@ function sckLoadPinned() {
       });
       names.sort(function(a, b){ return a.localeCompare(b); });
       sckPinned = names;
-      if (sckCurrentId && !sckDetailDirty) sckRenderSale();
+      sckApplyPinned();
     })
-    .catch(function(){ sckPinned = 'error'; if (sckCurrentId && !sckDetailDirty) sckRenderSale(); });
+    .catch(function(){ sckPinned = 'error'; sckApplyPinned(); });
+}
+
+// Build 1.09: when the director list or the documents list arrives, only the
+// Who dropdowns or the reminder box are updated -- the sale is never redrawn,
+// so nothing being typed is lost.
+function sckWhoOptions(who) {
+  var opts = (sckDirectors || []).slice();
+  if (who && opts.indexOf(who) === -1) opts.push(who);
+  return '<option value="">—</option>' + opts.map(function(n){
+    return '<option' + (n === who ? ' selected' : '') + '>' + sckEsc(n) + '</option>';
+  }).join('');
+}
+
+function sckApplyDirectors() {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  s.items.forEach(function(it, i){
+    var sel = document.querySelector('#sck-item-' + i + ' .sck-c-who select');
+    if (sel && document.activeElement !== sel) sel.innerHTML = sckWhoOptions(it.doneBy || '');
+  });
+}
+
+function sckPinnedHtml() {
+  if (sckPinned === null) return 'Loading the pinned documents…';
+  if (sckPinned === 'error') return 'Couldn\'t read the SIP documents list just now.';
+  if (!sckPinned.length) return 'No pinned documents without a number were found.';
+  return 'Pinned documents that change on a sale:<ul>'
+    + sckPinned.map(function(n){ return '<li>' + sckEsc(n) + '</li>'; }).join('') + '</ul>';
+}
+
+function sckApplyPinned() {
+  var box = document.getElementById('sckPinnedBox');
+  if (box) box.innerHTML = sckPinnedHtml();
 }
 
 // ── List view ──
@@ -10390,7 +10437,7 @@ function sckRenderSale() {
   var ro = s.status === 'Completed';
   var c = sckCounts(s);
   var h = '<div class="sck-hdr">&#9989; ' + sckEsc(s.property)
-    + ' <span class="sck-pill">' + c.done + ' of ' + c.total + ' done</span><span style="margin-left:auto;"></span>'
+    + ' <span class="sck-pill" id="sckSalePill">' + c.done + ' of ' + c.total + ' done</span><span style="margin-left:auto;"></span>'
     + '<span class="sck-status ' + (ro ? 'sck-st-done' : 'sck-st-open') + '">' + (ro ? 'Completed ' + sckEsc(s.completedOn) : 'In progress') + '</span></div>';
 
   h += '<div class="sck-form">'
@@ -10416,36 +10463,29 @@ function sckRenderSale() {
 
   var stages = (sckData.stages || []).slice();
   s.items.forEach(function(it){ if (stages.indexOf(it.stage) === -1) stages.push(it.stage); });
-  var dirs = sckDirectors || [];
-  stages.forEach(function(st){
+  stages.forEach(function(st, k){
     var idxs = [];
     s.items.forEach(function(it, i){ if (it.stage === st) idxs.push(i); });
     if (!idxs.length) return;
     var dn = idxs.filter(function(i){ return s.items[i].done; }).length;
-    h += '<div class="sck-stage">' + sckEsc(st || 'Other') + '<span class="sck-stage-count">' + dn + ' of ' + idxs.length + '</span></div>';
+    h += '<div class="sck-stage">' + sckEsc(st || 'Other') + '<span class="sck-stage-count" id="sck-stage-count-' + k + '">' + dn + ' of ' + idxs.length + '</span></div>';
     idxs.forEach(function(i){
       var it = s.items[i];
       var who = it.doneBy || '';
-      var opts = dirs.slice();
-      if (who && opts.indexOf(who) === -1) opts.push(who);
       var extra = '';
       if (it.item === 'Pinned SIP documents updated') {
-        if (sckPinned === null) extra = '<div class="sck-reminder">Loading the pinned documents…</div>';
-        else if (sckPinned === 'error') extra = '<div class="sck-reminder">Couldn\'t read the SIP documents list just now.</div>';
-        else if (!sckPinned.length) extra = '<div class="sck-reminder">No pinned documents without a number were found.</div>';
-        else extra = '<div class="sck-reminder">Pinned documents that change on a sale:<ul>'
-          + sckPinned.map(function(n){ return '<li>' + sckEsc(n) + '</li>'; }).join('') + '</ul></div>';
+        extra = '<div class="sck-reminder" id="sckPinnedBox">' + sckPinnedHtml() + '</div>';
       }
       h += '<div class="sck-item' + (it.done ? ' sck-done' : '') + '" id="sck-item-' + i + '">'
         + '<div><input type="checkbox"' + (it.done ? ' checked' : '') + (ro ? ' disabled' : '') + ' onchange="sckTick(' + i + ', this.checked)"></div>'
         + '<div class="sck-item-text"><span class="sck-item-label">' + sckEsc(it.item) + '</span>'
         +   (it.farmhouse ? '<span class="sck-farm">Farmhouse</span>' : '')
         +   (it.hint ? '<span class="sck-hint">' + sckEsc(it.hint) + '</span>' : '') + extra + '</div>'
-        + '<div class="sck-c-who"><select' + (ro ? ' disabled' : '') + ' onchange="sckWhoChanged(' + i + ', this.value)"><option value="">—</option>'
-        +   opts.map(function(n){ return '<option' + (n === who ? ' selected' : '') + '>' + sckEsc(n) + '</option>'; }).join('') + '</select></div>'
-        + '<div class="sck-date">' + sckEsc(it.dateDone || '—') + '</div>'
-        + '<div class="sck-c-note"><input type="text" placeholder="Note" value="' + sckEsc(it.note) + '"' + (ro ? ' disabled' : '')
-        +   ' onchange="sckNoteChanged(' + i + ', this.value)"></div>'
+        + '<div class="sck-c-who"><select' + (ro ? ' disabled' : '') + ' onchange="sckWhoChanged(' + i + ', this.value)">'
+        +   sckWhoOptions(who) + '</select></div>'
+        + '<div class="sck-date"><span class="sck-date-val">' + sckEsc(it.dateDone || '—') + '</span><span class="sck-row-status"></span></div>'
+        + '<div class="sck-c-note"><textarea class="sck-note" rows="1" placeholder="Note"' + (ro ? ' disabled' : '')
+        +   ' oninput="sckAutoGrow(this)" onchange="sckNoteChanged(' + i + ', this.value)">' + sckEsc(it.note) + '</textarea></div>'
         + '</div>';
     });
   });
@@ -10454,11 +10494,47 @@ function sckRenderSale() {
   if (ro) {
     h += '<div class="sck-foot"><span class="sck-msg">This sale is complete and read-only.</span></div>';
   } else {
-    h += '<div class="sck-foot"><span class="sck-msg">' + (left ? left + ' item' + (left === 1 ? '' : 's') + ' still to do' : 'All items done') + '</span>'
+    h += '<div class="sck-foot"><span class="sck-msg" id="sckLeftMsg">' + sckLeftText(left) + '</span>'
       + '<button class="abtn abtn-danger" onclick="sckDeleteSale()">&#128465; Delete sale</button>'
-      + '<button class="abtn abtn-primary" onclick="sckCompleteSale()"' + (left ? ' disabled title="Tick every item first"' : '') + '>&#10004; Mark sale complete</button></div>';
+      + '<button class="abtn abtn-primary" id="sckCompleteBtn" onclick="sckCompleteSale()"' + (left ? ' disabled title="Tick every item first"' : '') + '>&#10004; Mark sale complete</button></div>';
   }
   card.innerHTML = h;
+  card.querySelectorAll('textarea.sck-note').forEach(sckAutoGrow);
+}
+
+function sckLeftText(left) {
+  return left ? left + ' item' + (left === 1 ? '' : 's') + ' still to do' : 'All items done';
+}
+
+// Build 1.09: note boxes wrap and grow downwards to fit what is typed.
+function sckAutoGrow(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight + 2) + 'px';
+}
+
+// Build 1.09: refresh just the counts (top pill, stage counts, footer and the
+// Mark sale complete button) after a tick, without redrawing the checklist.
+function sckUpdateCounts() {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  var c = sckCounts(s), left = c.total - c.done;
+  var pill = document.getElementById('sckSalePill');
+  if (pill) pill.textContent = c.done + ' of ' + c.total + ' done';
+  var stages = (sckData.stages || []).slice();
+  s.items.forEach(function(it){ if (stages.indexOf(it.stage) === -1) stages.push(it.stage); });
+  stages.forEach(function(st, k){
+    var el = document.getElementById('sck-stage-count-' + k);
+    if (!el) return;
+    var its = s.items.filter(function(it){ return it.stage === st; });
+    el.textContent = its.filter(function(it){ return it.done; }).length + ' of ' + its.length;
+  });
+  var msg = document.getElementById('sckLeftMsg');
+  if (msg) msg.textContent = sckLeftText(left);
+  var btn = document.getElementById('sckCompleteBtn');
+  if (btn) {
+    btn.disabled = left > 0;
+    if (left > 0) btn.title = 'Tick every item first'; else btn.removeAttribute('title');
+  }
 }
 
 function sckDetailChanged() {
@@ -10504,51 +10580,77 @@ function sckSaveDetails() {
   });
 }
 
-// Saves one item (tick, who, note). Shows the change straight away, then puts
-// it back with a message if the save fails.
+// Saves one item (tick, who, note). Build 1.09: only that row changes on
+// screen -- it fades and shows "Saving…", then "✓ Saved" for a couple of
+// seconds -- and only the counts are refreshed, so other rows (including a note
+// half-typed) are never redrawn. If the save fails the row goes back to how it
+// was and a message explains why.
+var sckStatusTimers = {};
+
+function sckRowStatus(i, state) {
+  var el = document.getElementById('sck-item-' + i);
+  if (!el) return;
+  var st = el.querySelector('.sck-row-status');
+  clearTimeout(sckStatusTimers[i]);
+  el.classList.toggle('sck-saving', state === 'saving');
+  if (!st) return;
+  st.className = 'sck-row-status' + (state ? ' sck-rs-' + state : '');
+  st.textContent = state === 'saving' ? 'Saving…' : (state === 'saved' ? '✓ Saved' : '');
+  if (state === 'saved') {
+    sckStatusTimers[i] = setTimeout(function(){ sckRowStatus(i, ''); }, 2500);
+  }
+}
+
 function sckSaveItem(i, changes) {
   var s = sckSale(sckCurrentId); if (!s) return;
+  var saleId = s.saleId;
   var it = s.items[i];
   var before = { done: it.done, doneBy: it.doneBy, note: it.note, dateDone: it.dateDone };
   Object.keys(changes).forEach(function(k){ it[k] = changes[k]; });
   if (changes.done === false) it.dateDone = '';
-  var keepDetails = sckDetailDirty ? sckReadDetails() : null;
-  if (!keepDetails) sckRenderSale();
-  var rowEl = document.getElementById('sck-item-' + i);
-  if (rowEl) rowEl.classList.add('sck-saving');
-  sckPost({ action: 'updateSaleItem', saleId: s.saleId, rowIndex: it._sheetRow, item: it.item,
+  sckRefreshItemRow(i);
+  sckUpdateCounts();
+  sckRowStatus(i, 'saving');
+  function stillHere() { return sckCurrentId === saleId; }
+  function putBack(msg) {
+    Object.keys(before).forEach(function(k){ it[k] = before[k]; });
+    if (stillHere()) { sckRowStatus(i, ''); sckRefreshItemRow(i); sckUpdateCounts(); }
+    sckRenderList();
+    alert(msg);
+  }
+  sckPost({ action: 'updateSaleItem', saleId: saleId, rowIndex: it._sheetRow, item: it.item,
             done: it.done, doneBy: it.doneBy, note: it.note })
     .then(function(r){
       if (r.status === 'ok') {
         it.dateDone = r.dateDone || '';
-        if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); }
-        else sckRenderSale();
+        if (stillHere()) { sckRefreshItemRow(i); sckRowStatus(i, 'saved'); }
         sckRenderList();
         dcLoadReviewCount();
       } else {
-        Object.keys(before).forEach(function(k){ it[k] = before[k]; });
-        if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); } else sckRenderSale();
-        alert(r.message || 'Save failed.');
+        putBack(r.message || 'Save failed.');
       }
     })
-    .catch(function(e){
-      Object.keys(before).forEach(function(k){ it[k] = before[k]; });
-      if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); } else sckRenderSale();
-      alert('Network error: ' + (e.message || 'unknown'));
-    });
+    .catch(function(e){ putBack('Network error: ' + (e.message || 'unknown')); });
 }
 
-// Updates just one item row in place (used while the details form has unsaved
-// typing, so a tick never wipes what is being typed above).
+// Updates one item row in place from the stored values. A note box you are
+// typing in is left alone.
 function sckRefreshItemRow(i) {
   var s = sckSale(sckCurrentId); if (!s) return;
   var it = s.items[i], el = document.getElementById('sck-item-' + i);
   if (!el) return;
   el.classList.toggle('sck-done', !!it.done);
   var cb = el.querySelector('input[type=checkbox]'); if (cb) cb.checked = !!it.done;
-  var sel = el.querySelector('select'); if (sel) sel.value = it.doneBy || '';
-  var dt = el.querySelector('.sck-date'); if (dt) dt.textContent = it.dateDone || '—';
-  var nt = el.querySelector('.sck-c-note input'); if (nt) nt.value = it.note || '';
+  var sel = el.querySelector('.sck-c-who select');
+  if (sel) {
+    var who = it.doneBy || '';
+    var has = Array.prototype.some.call(sel.options, function(o){ return o.value === who; });
+    if (!has) sel.innerHTML = sckWhoOptions(who);
+    sel.value = who;
+  }
+  var dt = el.querySelector('.sck-date-val'); if (dt) dt.textContent = it.dateDone || '—';
+  var nt = el.querySelector('textarea.sck-note');
+  if (nt && document.activeElement !== nt) { nt.value = it.note || ''; sckAutoGrow(nt); }
 }
 
 function sckTick(i, on) {
