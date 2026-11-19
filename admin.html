@@ -1,5 +1,15 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.07 -- 17 Nov 2026, 19:16
+<!-- CMC The Courtyard -- admin.html -- Build 1.08 -- 19 Nov 2026, 09:52
+     Build 1.08: new Sales Checklist. Sidebar section "Sales" with two panels:
+     Sales Checklist (start a sale, then tick each item with who, date and a
+     note; sale details include both solicitors' names and emails; a completed
+     sale becomes read-only history) and Checklist Template (add, edit, delete
+     and reorder the items every new sale starts with; "Farmhouse only" items
+     are copied only for 10, 12, 13 and 14). The "Pinned SIP documents
+     updated" item lists the pinned SIP documents that change on a sale
+     (PIN_ files without a number), read live from cmcdocuments/index.json.
+     New Sales tile in the dashboard's "Flagged for review" group showing
+     items still to do across sales in progress. Needs code.gs Build 1.17.
      Build 1.07: new SIP Sales Process panel (sidebar, under SIP Briefing).
      Add, edit and delete the steps shown in the CMC Sales Process dropdown on
      the SIP. Each step has Order, When, What and Who (a dropdown: Seller, CMC
@@ -983,6 +993,84 @@
     #uiRows .uif-col { display:none !important; }
     #uiRows .nb-row-actions { margin-top:0; }
   }
+
+  /* ── SALES CHECKLIST (Build 1.08) — all classes prefixed sck- ── */
+  .sck-card { background:white; border-radius:10px; border:1px solid #c8bfb4; box-shadow:0 1px 6px rgba(0,0,0,0.07); margin-bottom:1.2rem; }
+  .sck-hdr { background:#1e1a16; padding:0.75rem 1.25rem; color:#f5f0e8; font-size:0.8rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; border-radius:10px 10px 0 0; }
+  .sck-pill { background:rgba(196,149,106,0.25); color:#c4956a; border-radius:10px; font-size:0.72rem; padding:0.1rem 0.5rem; font-weight:700; text-transform:none; letter-spacing:0; }
+  .sck-hdr-btn { font-size:0.72rem; padding:0.25rem 0.7rem; white-space:nowrap; }
+  .sck-hdr-green { background:rgba(61,107,74,0.7); border:1px solid rgba(61,107,74,0.5); color:#f5f0e8; }
+  .sck-hdr-gold { background:rgba(196,149,106,0.18); border:1px solid rgba(196,149,106,0.3); color:#c4956a; }
+  .sck-sub { padding:0.7rem 1.25rem; background:#faf7f2; border-bottom:1px solid #c8bfb4; color:#7a5c3e; font-size:0.78rem; font-style:italic; }
+  .sck-empty { color:#b8ad9e; font-size:0.84rem; padding:1.25rem; font-style:italic; }
+  .sck-section { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--mid); font-weight:700; padding:0.6rem 1.25rem; background:rgba(122,92,62,0.06); border-bottom:1px solid #ede5d6; }
+  .sck-row { display:flex; align-items:center; gap:1rem; padding:0.85rem 1.25rem; border-bottom:1px solid #ede5d6; cursor:pointer; }
+  .sck-row:hover { background:#faf7f2; }
+  .sck-row-prop { font-weight:700; color:var(--dark); font-size:0.92rem; min-width:150px; }
+  .sck-row-meta { color:var(--mid); font-size:0.78rem; flex:1; }
+  .sck-prog { width:180px; }
+  .sck-bar { height:8px; background:#ede5d6; border-radius:4px; overflow:hidden; }
+  .sck-bar > div { height:100%; background:linear-gradient(135deg,var(--accent),var(--accent2)); }
+  .sck-bar-lbl { font-size:0.72rem; color:var(--mid); margin-top:0.25rem; text-align:right; }
+  .sck-status { font-size:0.72rem; border-radius:10px; padding:0.15rem 0.6rem; font-weight:700; white-space:nowrap; text-transform:none; letter-spacing:0; }
+  .sck-st-open { background:#f4d8c0; color:#8a4a18; }
+  .sck-st-done { background:#e8f0e3; color:#3a6b4a; }
+  .sck-back { display:inline-flex; gap:0.3rem; align-items:center; color:var(--accent); font-size:0.82rem; cursor:pointer; margin-bottom:0.8rem; }
+  .sck-back:hover { text-decoration:underline; }
+  .sck-form { display:grid; grid-template-columns:repeat(4, 1fr); gap:0.8rem 1rem; padding:1rem 1.25rem; }
+  .sck-fld label { display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; font-weight:700; color:var(--mid); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.25rem; }
+  .sck-fld input, .sck-fld select, .sck-fld textarea { width:100%; padding:0.4rem 0.55rem; border:1px solid #c8bfb4; border-radius:5px; font-family:Arial,sans-serif; font-size:0.85rem; background:#fff; color:var(--dark); }
+  .sck-fld input:focus, .sck-fld select:focus, .sck-fld textarea:focus { outline:none; border-color:var(--accent2); }
+  .sck-fld input:disabled, .sck-fld select:disabled, .sck-fld textarea:disabled { background:#f5f0e8; color:var(--mid); }
+  .sck-fld a.sck-mail { font-size:0.72rem; color:#3a5a70; text-transform:none; letter-spacing:0; font-weight:600; text-decoration:none; margin-left:auto; }
+  .sck-fld a.sck-mail:hover { text-decoration:underline; }
+  .sck-half { grid-column:span 2; }
+  .sck-wide { grid-column:span 4; }
+  .sck-head, .sck-item { display:grid; grid-template-columns:28px 1fr 150px 100px 1.1fr; gap:0.75rem; padding:0.6rem 1.25rem; }
+  .sck-head { padding:0.5rem 1.25rem; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); background:rgba(122,92,62,0.07); }
+  .sck-head .sck-c-date { text-align:center; }
+  .sck-stage { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1.25rem; background:#faf7f2; border-top:1px solid #ede5d6; border-bottom:1px solid #ede5d6; font-size:0.78rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
+  .sck-stage .sck-stage-count { margin-left:auto; font-size:0.72rem; color:var(--mid); font-weight:400; text-transform:none; letter-spacing:0; }
+  .sck-item { align-items:start; border-bottom:1px solid #f0ebe3; }
+  .sck-item input[type=checkbox] { width:18px; height:18px; accent-color:#3a6b4a; cursor:pointer; margin-top:0.1rem; }
+  .sck-item-text { font-size:0.88rem; color:var(--dark); line-height:1.4; }
+  .sck-item.sck-done .sck-item-label { color:var(--mid); text-decoration:line-through; text-decoration-color:rgba(107,95,82,0.4); }
+  .sck-hint { display:block; font-size:0.75rem; color:var(--mid); font-style:italic; margin-top:0.15rem; }
+  .sck-item select, .sck-item input[type=text] { width:100%; padding:0.3rem 0.45rem; border:1px solid #ddd5c8; border-radius:4px; font-size:0.78rem; font-family:Arial,sans-serif; color:var(--dark); background:#fff; }
+  .sck-item select:disabled, .sck-item input[type=text]:disabled { background:#f5f0e8; color:var(--mid); }
+  .sck-date { font-size:0.78rem; color:var(--mid); text-align:center; padding-top:0.3rem; }
+  .sck-farm { font-size:0.72rem; background:#f3ede4; color:var(--accent); border:1px solid rgba(122,92,62,0.2); border-radius:4px; padding:0 0.35rem; margin-left:0.35rem; }
+  .sck-reminder { margin-top:0.4rem; background:#eaf1f7; border-left:3px solid #6090b0; border-radius:4px; padding:0.4rem 0.6rem; font-size:0.78rem; color:#2d5a78; }
+  .sck-reminder ul { margin:0.2rem 0 0 1.1rem; }
+  .sck-foot { display:flex; gap:0.6rem; align-items:center; padding:0.9rem 1.25rem; border-top:1px solid #c8bfb4; background:#faf7f2; border-radius:0 0 10px 10px; flex-wrap:wrap; }
+  .sck-msg { font-size:0.78rem; color:var(--mid); margin-right:auto; }
+  .sck-note-line { padding:0 1.25rem 0.8rem; font-size:0.78rem; color:var(--mid); font-style:italic; }
+  .sck-saving { opacity:0.55; pointer-events:none; }
+  #panel-salecheck .abtn:disabled, #panel-saletpl .abtn:disabled, #sckNewModal .abtn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+  .sck-tpl { width:100%; border-collapse:collapse; min-width:720px; }
+  .sck-tpl th { background:rgba(122,92,62,0.07); padding:0.55rem 0.8rem; text-align:left; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); border-bottom:1px solid #c8bfb4; }
+  .sck-tpl td { padding:0.55rem 0.8rem; border-bottom:1px solid #f0ebe3; font-size:0.85rem; vertical-align:top; }
+  .sck-tpl td.sck-num { text-align:right; color:var(--mid); width:60px; }
+  .sck-tpl td.sck-ctr { text-align:center; }
+  .sck-tpl td.sck-act { white-space:nowrap; text-align:right; }
+  .sck-tpl .sck-stage-cell { color:var(--accent); font-size:0.78rem; }
+  .sck-tpl .sck-hint-cell { color:var(--mid); font-style:italic; font-size:0.8rem; }
+  .sck-tpl input, .sck-tpl select { width:100%; padding:0.3rem 0.45rem; border:1px solid #c8bfb4; border-radius:4px; font-size:0.82rem; font-family:Arial,sans-serif; }
+  .sck-link { background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.78rem; font-family:Arial,sans-serif; padding:0 0.3rem; }
+  .sck-link.sck-del { color:#b05050; }
+  .sck-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9000; align-items:flex-start; justify-content:center; padding:3rem 1rem; overflow-y:auto; }
+  .sck-modal-bg.open { display:flex; }
+  .sck-modal { background:#fff; border-radius:10px; width:100%; max-width:680px; box-shadow:0 12px 32px rgba(0,0,0,0.25); }
+  @media (max-width:800px) {
+    .sck-form { grid-template-columns:1fr 1fr; }
+    .sck-half, .sck-wide { grid-column:span 2; }
+    .sck-head { display:none; }
+    .sck-item { grid-template-columns:28px 1fr; }
+    .sck-item > .sck-c-who, .sck-item > .sck-date, .sck-item > .sck-c-note { grid-column:2; }
+    .sck-date { text-align:left; padding-top:0; }
+    .sck-row { flex-wrap:wrap; }
+    .sck-prog { width:100%; }
+  }
 </style>
 </head>
 <body>
@@ -1048,6 +1136,9 @@
       <div class="sidebar-link" data-panel="sipbriefing" id="nav-sipbriefing">&#128196; SIP Briefing</div>
       <div class="sidebar-link" data-panel="sipsales" id="nav-sipsales">&#128273; SIP Sales Process</div>
       <div class="sidebar-link sidebar-extlink" onclick="window.open('https://cmcthecourtyard.com/sip/','_blank','noopener')" title="Open the live SIP site in a new tab">&#128279; View Live SIP &#8599;</div>
+      <div class="sidebar-label">Sales</div>
+      <div class="sidebar-link" data-panel="salecheck" id="nav-salecheck">&#9989; Sales Checklist</div>
+      <div class="sidebar-link" data-panel="saletpl" id="nav-saletpl">&#128221; Checklist Template</div>
       <div class="sidebar-label">Settings</div>
       <div class="sidebar-link" data-panel="changepw" id="nav-changepw">&#128274; Admin Password</div>
       <div class="sidebar-link" data-panel="changesitepw" id="nav-changesitepw">&#127968; Site Password</div>
@@ -1098,6 +1189,7 @@
               <div class="stat-domain-tiles" id="statDomainFlagTiles">
                 <div class="stat-tile stat-clickable" id="statReviewTile" onclick="showQAReviewFlagged()" title="View Q&amp;A entries flagged for review"><div class="stat-num" id="dcReviewCount">—</div><div class="stat-lbl">Q&amp;A</div></div>
                 <div class="stat-tile stat-clickable" id="statBriefReviewTile" onclick="showBriefReviewFlagged()" title="View SIP Briefing entries flagged for review"><div class="stat-num" id="dcBriefReviewCount">—</div><div class="stat-lbl">SIP Briefing</div></div>
+                <div class="stat-tile stat-clickable" id="statSalesTile" onclick="showPanel('salecheck')" title="Sales in progress: checklist items still to do" style="display:none;"><div class="stat-num" id="dcSalesCount">—</div><div class="stat-lbl">Sales</div></div>
               </div>
               <!-- All-clear placeholder (shown when nothing flagged in either) -->
               <div class="stat-allclear" id="statFlagAllClear" onclick="showPanel('sipqa')" title="Open SIP Q&amp;A" style="display:none;">
@@ -1922,6 +2014,62 @@
         </div>
         <div id="salesTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading sales process…</div>
+        </div>
+      </div>
+
+      <!-- Sales Checklist Panel (Build 1.08) -- tabs Sales + SaleChecklistItems, code.gs Build 1.17 -->
+      <div class="admin-panel" id="panel-salecheck">
+        <!-- List view -->
+        <div id="sckListView" class="sck-card">
+          <div class="sck-hdr">&#9989; Sales Checklist
+            <span class="sck-pill" id="sckListPill">-</span>
+            <span style="margin-left:auto;"></span>
+            <button class="abtn sck-hdr-btn sck-hdr-gold" onclick="sckLoad(true)">&#8635; Refresh</button>
+            <button class="abtn sck-hdr-btn sck-hdr-green" onclick="sckOpenNew()">+ New Sale</button>
+          </div>
+          <div class="sck-sub">Each sale gets its own copy of the Checklist Template. Tick items as they're done. Completed sales stay here as read-only history.</div>
+          <div id="sckListBody"><div class="sck-empty">Loading sales…</div></div>
+        </div>
+        <!-- Sale view -->
+        <div id="sckSaleView" style="display:none;">
+          <div class="sck-back" onclick="sckBackToList()">&#8592; All sales</div>
+          <div class="sck-card" id="sckSaleCard"></div>
+        </div>
+      </div>
+
+      <!-- Checklist Template Panel (Build 1.08) -- tab SaleChecklistTemplate, code.gs Build 1.17 -->
+      <div class="admin-panel" id="panel-saletpl">
+        <div class="sck-card">
+          <div class="sck-hdr">&#128221; Checklist Template
+            <span class="sck-pill" id="sckTplPill">-</span>
+            <span style="margin-left:auto;"></span>
+            <button class="abtn sck-hdr-btn sck-hdr-gold" onclick="sckTplLoad(true)">&#8635; Refresh</button>
+            <button class="abtn sck-hdr-btn sck-hdr-green" onclick="sckTplStartAdd()">+ Add Item</button>
+          </div>
+          <div class="sck-sub">These items are copied into every new sale. Changing the template doesn't alter sales already started. "Farmhouse only" items appear only for 10, 12, 13 and 14 The Courtyard.</div>
+          <div id="sckTplBody" style="overflow-x:auto;"><div class="sck-empty">Loading template…</div></div>
+        </div>
+      </div>
+
+      <!-- New Sale pop-up (Build 1.08) -->
+      <div id="sckNewModal" class="sck-modal-bg" onclick="if(event.target===this)sckCloseNew()">
+        <div class="sck-modal">
+          <div class="sck-hdr" style="border-radius:10px 10px 0 0;">+ New Sale<span style="margin-left:auto;cursor:pointer;font-size:1.1rem;" onclick="sckCloseNew()">&times;</span></div>
+          <div class="sck-form">
+            <div class="sck-fld sck-half"><label>Property</label><select id="sckNewProp" onchange="sckNewPropChanged()"></select></div>
+            <div class="sck-fld sck-half"><label>Seller (current owner)</label><input id="sckNewSeller" type="text"></div>
+            <div class="sck-fld sck-half"><label>Buyer</label><input id="sckNewBuyer" type="text" placeholder="e.g. Jane &amp; John Smith"></div>
+            <div class="sck-fld sck-half"><label>Offer accepted</label><input id="sckNewOffer" type="date"></div>
+            <div class="sck-fld sck-half"><label>Seller's solicitor</label><input id="sckNewSellerSol" type="text"></div>
+            <div class="sck-fld sck-half"><label>Seller's solicitor email</label><input id="sckNewSellerSolEmail" type="email"></div>
+            <div class="sck-fld sck-half"><label>Buyer's solicitor</label><input id="sckNewBuyerSol" type="text"></div>
+            <div class="sck-fld sck-half"><label>Buyer's solicitor email</label><input id="sckNewBuyerSolEmail" type="email"></div>
+          </div>
+          <div class="sck-note-line">Everything except the property can be added or changed later on the sale itself.</div>
+          <div class="sck-foot"><span class="sck-msg" id="sckNewErr" style="color:#b05050;"></span>
+            <button class="abtn abtn-muted" onclick="sckCloseNew()">Cancel</button>
+            <button class="abtn abtn-primary" id="sckNewBtn" onclick="sckCreateSale()">Start checklist</button>
+          </div>
         </div>
       </div>
 
@@ -3292,8 +3440,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.07';
-var PAGE_DATE  = '17 Nov 2026, 19:16';
+var PAGE_BUILD = '1.08';
+var PAGE_DATE  = '19 Nov 2026, 09:52';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -3655,6 +3803,8 @@ function showPanel(id) {
   if (id === 'agmagenda') { agmAgendaLoad(); loadAGMReminderSuppress(); loadAgendaLock(); }
   if (id === 'wateremail') weInit();
   if (id === 'biofilter') bfLoad();
+  if (id === 'salecheck') sckOpenPanel();
+  if (id === 'saletpl') sckTplOpenPanel();
   if (id === 'maintenance') {
     if (!mntLoaded) {
       mntLoaded = true;
@@ -5112,13 +5262,22 @@ function dcLoadNoticeboardCard() {
 //   • Q&A flagged = 0       → hide the Q&A tile
 //   • SIP Briefing flagged = 0 → hide the SIP Briefing tile
 //   • Both = 0              → swap whole grid for "Nothing flagged" placeholder
+// Build 1.08: a third tile, Sales, shows checklist items still to do across
+// sales in progress (code.gs readSalesSummary). Hidden when no sale is in
+// progress; shown (even at 0) while one is.
 function dcLoadReviewCount() {
   Promise.all([
     fetch(SCRIPT_URL + '?action=readSIPQA',       { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; }),
-    fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; })
+    fetch(SCRIPT_URL + '?action=readSIPBriefing', { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; }),
+    fetch(SCRIPT_URL + '?action=readSalesSummary&_=' + Date.now(), { redirect:'follow' }).then(function(r){ return r.json(); }).catch(function(){ return null; })
   ]).then(function(results) {
     var qaData    = results[0];
     var briefData = results[1];
+    var salesSum  = results[2];
+    var salesOpen = (salesSum && salesSum.status === 'ok') ? (salesSum.inProgress || 0) : 0;
+    var salesLeft = (salesSum && salesSum.status === 'ok') ? (salesSum.outstanding || 0) : 0;
+    var salesEl   = document.getElementById('dcSalesCount');
+    if (salesEl) salesEl.textContent = salesLeft;
     var qaCount    = (qaData    && qaData.rows)    ? qaData.rows.filter(function(r){    return r.review === true; }).length : 0;
     var briefCount = (briefData && briefData.rows) ? briefData.rows.filter(function(r){ return r.review === true; }).length : 0;
 
@@ -5136,6 +5295,8 @@ function dcLoadReviewCount() {
     var cols = 0;
     if (qaTile)    { qaTile.style.display    = qaCount    > 0 ? '' : 'none'; if (qaCount    > 0) cols++; }
     if (briefTile) { briefTile.style.display = briefCount > 0 ? '' : 'none'; if (briefCount > 0) cols++; }
+    var salesTile = document.getElementById('statSalesTile');
+    if (salesTile) { salesTile.style.display = salesOpen > 0 ? '' : 'none'; if (salesOpen > 0) cols++; }
 
     if (tilesWrap && allClr) {
       if (cols === 0) {
@@ -10037,6 +10198,569 @@ function salesMobileSave(actualIndex) {
 }
 
 
+
+// ─── SALES CHECKLIST (Build 1.08) ─────────────────────────────────────────────
+// Two panels: Sales Checklist (panel-salecheck) and Checklist Template
+// (panel-saletpl). Data comes from code.gs Build 1.17 (readSaleChecklist), which
+// creates the tabs SaleChecklistTemplate, Sales and SaleChecklistItems the first
+// time it runs. Ticks, Who and Note save as soon as they change; the sale
+// details have their own Save button. All names here start with sck so they
+// never clash with the SIP Sales Process editor above (sales...).
+
+var SCK_DOCS_URL = 'https://cmcthecourtyard.com/cmcdocuments/index.json';
+var sckData = null;          // last readSaleChecklist response
+var sckCurrentId = null;     // sale open in the sale view, or null for the list
+var sckDetailDirty = false;  // unsaved changes in the sale details form
+var sckDirectors = null;     // [names] from readDirectorList
+var sckPinned = null;        // [names] of pinned SIP docs that change on a sale, or 'error'
+var sckLastWho = '';         // last Who picked, used as the default for the next tick
+var sckTplEditing = null;    // template row being edited: sheet row number, 'add', or null
+
+function sckPost(payload) {
+  return fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  }).then(function(r){ return r.json(); });
+}
+
+function sckEsc(s) { return briefEsc(s); }
+
+function sckFmtDate(v) {
+  if (!v) return '—';
+  var m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return v;
+  var d = new Date(parseInt(m[1],10), parseInt(m[2],10) - 1, parseInt(m[3],10));
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function sckEmailOk(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || '').trim()); }
+
+function sckIsFarmhouse(prop) {
+  var m = String(prop || '').match(/^\s*(\d+)/);
+  var nums = (sckData && sckData.farmhouseNums) || [10, 12, 13, 14];
+  return !!m && nums.indexOf(parseInt(m[1], 10)) !== -1;
+}
+
+function sckSale(id) {
+  if (!sckData) return null;
+  for (var i = 0; i < sckData.sales.length; i++) if (sckData.sales[i].saleId === id) return sckData.sales[i];
+  return null;
+}
+
+function sckCounts(s) {
+  var done = s.items.filter(function(it){ return it.done; }).length;
+  return { done: done, total: s.items.length };
+}
+
+// ── Loading ──
+
+function sckOpenPanel() {
+  if (!sckCurrentId) sckShowListView();
+  sckLoad(false);
+  sckLoadDirectors();
+  sckLoadPinned();
+}
+
+function sckLoad(force) {
+  if (force && sckDetailDirty && !confirm('You have unsaved sale details. Discard them?')) return;
+  if (force) sckDetailDirty = false;
+  var body = document.getElementById('sckListBody');
+  if (!sckData && body) body.innerHTML = '<div class="sck-empty">Loading sales…</div>';
+  return fetch(SCRIPT_URL + '?action=readSaleChecklist&_=' + Date.now(), { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d || d.status !== 'ok') throw new Error((d && d.message) || 'load failed');
+      sckData = d;
+      if (sckCurrentId && sckSale(sckCurrentId) && !sckDetailDirty) sckRenderSale();
+      else if (sckCurrentId && !sckSale(sckCurrentId)) { sckCurrentId = null; sckShowListView(); }
+      sckRenderList();
+      if (document.getElementById('panel-saletpl').classList.contains('active') && sckTplEditing === null) sckTplRender();
+      return d;
+    })
+    .catch(function(e){
+      if (body) body.innerHTML = '<div class="sck-empty" style="color:#b05050;font-style:normal;">Could not load the sales checklist. ' + sckEsc(e.message || '') + '</div>';
+      var tb = document.getElementById('sckTplBody');
+      if (tb && !sckData) tb.innerHTML = '<div class="sck-empty" style="color:#b05050;font-style:normal;">Could not load the template.</div>';
+    });
+}
+
+function sckLoadDirectors() {
+  if (sckDirectors) return;
+  fetch(SCRIPT_URL + '?action=readDirectorList', { redirect: 'follow' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      sckDirectors = (d && d.status === 'ok' && d.directors) ? d.directors.map(function(x){ return x.name; }).filter(Boolean) : [];
+      if (sckCurrentId && !sckDetailDirty) sckRenderSale();
+    })
+    .catch(function(){ sckDirectors = []; });
+}
+
+// Pinned SIP documents that change on a sale: PIN_ files with no number after
+// PIN_ (PIN_1_, PIN_2_, PIN_3_ are the fixed ones). Same folder rules as the SIP.
+function sckLoadPinned() {
+  if (sckPinned && sckPinned !== 'error') return;
+  fetch(SCK_DOCS_URL + '?v=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var names = [];
+      (data.folders || []).forEach(function(folder){
+        (folder.files || []).forEach(function(file){
+          var path = String(file.path || ''), name = String(file.name || '');
+          if (path.indexOf('cmcsip') === -1 || path.indexOf('cmcsipimages') !== -1) return;
+          if (name.indexOf('HIDE_') === 0) return;
+          if (name.indexOf('PIN_') !== 0 || /^PIN_\d/.test(name)) return;
+          names.push(name.replace(/^PIN_/, '').replace(/\.pdf$/i, ''));
+        });
+      });
+      names.sort(function(a, b){ return a.localeCompare(b); });
+      sckPinned = names;
+      if (sckCurrentId && !sckDetailDirty) sckRenderSale();
+    })
+    .catch(function(){ sckPinned = 'error'; if (sckCurrentId && !sckDetailDirty) sckRenderSale(); });
+}
+
+// ── List view ──
+
+function sckShowListView() {
+  document.getElementById('sckListView').style.display = '';
+  document.getElementById('sckSaleView').style.display = 'none';
+}
+
+function sckBackToList() {
+  if (sckDetailDirty && !confirm('You have unsaved sale details. Discard them?')) return;
+  sckDetailDirty = false;
+  sckCurrentId = null;
+  sckShowListView();
+  sckRenderList();
+  window.scrollTo(0, 0);
+}
+
+function sckRenderList() {
+  var body = document.getElementById('sckListBody');
+  if (!body || !sckData) return;
+  var open = sckData.sales.filter(function(s){ return s.status !== 'Completed'; });
+  var done = sckData.sales.filter(function(s){ return s.status === 'Completed'; });
+  open.sort(function(a, b){ return (a.completion || '9999') < (b.completion || '9999') ? -1 : 1; });
+  done.sort(function(a, b){ return (a.completion || '') < (b.completion || '') ? 1 : -1; });
+  var pill = document.getElementById('sckListPill');
+  if (pill) pill.textContent = open.length + ' in progress';
+  function row(s) {
+    var c = sckCounts(s), pct = c.total ? Math.round(c.done / c.total * 100) : 0;
+    var isDone = s.status === 'Completed';
+    return '<div class="sck-row" onclick="sckOpenSale(\'' + sckEsc(s.saleId) + '\')">'
+      + '<div class="sck-row-prop">' + sckEsc(s.property) + '</div>'
+      + '<div class="sck-row-meta">Buyer: ' + sckEsc(s.buyer || '—') + ' &nbsp;·&nbsp; Completion: ' + sckEsc(sckFmtDate(s.completion)) + '</div>'
+      + '<div class="sck-prog"><div class="sck-bar"><div style="width:' + pct + '%"></div></div><div class="sck-bar-lbl">' + c.done + ' of ' + c.total + ' done</div></div>'
+      + '<span class="sck-status ' + (isDone ? 'sck-st-done' : 'sck-st-open') + '">' + (isDone ? 'Completed' : 'In progress') + '</span>'
+      + '</div>';
+  }
+  var h = '<div class="sck-section">In progress</div>'
+    + (open.length ? open.map(row).join('') : '<div class="sck-empty">No sales in progress. Use + New Sale when an offer is accepted.</div>');
+  h += '<div class="sck-section">Completed (read-only)</div>'
+    + (done.length ? done.map(row).join('') : '<div class="sck-empty">None yet.</div>');
+  body.innerHTML = h;
+}
+
+// ── Sale view ──
+
+function sckOpenSale(id) {
+  sckCurrentId = id;
+  sckDetailDirty = false;
+  document.getElementById('sckListView').style.display = 'none';
+  document.getElementById('sckSaleView').style.display = '';
+  sckRenderSale();
+  window.scrollTo(0, 0);
+}
+
+function sckField(label, key, val, cls, ro, type, extra) {
+  return '<div class="sck-fld ' + (cls || '') + '"><label>' + label + (extra || '') + '</label>'
+    + '<input type="' + (type || 'text') + '" id="sck-f-' + key + '" value="' + sckEsc(val) + '"' + (ro ? ' disabled' : '')
+    + ' oninput="sckDetailChanged()"></div>';
+}
+
+function sckMailLink(email) {
+  return sckEmailOk(email) ? '<a class="sck-mail" href="mailto:' + sckEsc(String(email).trim()) + '" title="Write an email">&#9993; Email</a>' : '';
+}
+
+function sckRenderSale() {
+  var s = sckSale(sckCurrentId);
+  var card = document.getElementById('sckSaleCard');
+  if (!s || !card) return;
+  var ro = s.status === 'Completed';
+  var c = sckCounts(s);
+  var h = '<div class="sck-hdr">&#9989; ' + sckEsc(s.property)
+    + ' <span class="sck-pill">' + c.done + ' of ' + c.total + ' done</span><span style="margin-left:auto;"></span>'
+    + '<span class="sck-status ' + (ro ? 'sck-st-done' : 'sck-st-open') + '">' + (ro ? 'Completed ' + sckEsc(s.completedOn) : 'In progress') + '</span></div>';
+
+  h += '<div class="sck-form">'
+    + sckField('Seller', 'seller', s.seller, 'sck-half', ro)
+    + sckField('Buyer', 'buyer', s.buyer, 'sck-half', ro)
+    + sckField("Seller's solicitor", 'sellerSol', s.sellerSol, '', ro)
+    + sckField("Seller's solicitor email", 'sellerSolEmail', s.sellerSolEmail, '', ro, 'email', sckMailLink(s.sellerSolEmail))
+    + sckField("Buyer's solicitor", 'buyerSol', s.buyerSol, '', ro)
+    + sckField("Buyer's solicitor email", 'buyerSolEmail', s.buyerSolEmail, '', ro, 'email', sckMailLink(s.buyerSolEmail))
+    + sckField('Offer accepted', 'offer', s.offer, '', ro, 'date')
+    + sckField('Exchange', 'exchange', s.exchange, '', ro, 'date')
+    + sckField('Completion', 'completion', s.completion, '', ro, 'date')
+    + '<div class="sck-fld"><label>Farmhouse?</label><input type="text" value="' + (sckIsFarmhouse(s.property) ? 'Yes — Farmhouse item included' : 'No') + '" disabled></div>'
+    + '<div class="sck-fld sck-wide"><label>Notes</label><textarea id="sck-f-notes" rows="2"' + (ro ? ' disabled' : '') + ' oninput="sckDetailChanged()">' + sckEsc(s.notes) + '</textarea></div>'
+    + '</div>';
+  if (!ro) {
+    h += '<div class="sck-foot" style="border-radius:0;border-bottom:1px solid #c8bfb4;">'
+      + '<span class="sck-msg" id="sckDetailMsg">' + (sckDetailDirty ? 'Unsaved changes' : '') + '</span>'
+      + '<button class="abtn abtn-primary" id="sckDetailSaveBtn" onclick="sckSaveDetails()"' + (sckDetailDirty ? '' : ' disabled') + '>&#128190; Save details</button></div>';
+  }
+
+  h += '<div class="sck-head"><div></div><div>Item</div><div>Who</div><div class="sck-c-date">Date</div><div>Note</div></div>';
+
+  var stages = (sckData.stages || []).slice();
+  s.items.forEach(function(it){ if (stages.indexOf(it.stage) === -1) stages.push(it.stage); });
+  var dirs = sckDirectors || [];
+  stages.forEach(function(st){
+    var idxs = [];
+    s.items.forEach(function(it, i){ if (it.stage === st) idxs.push(i); });
+    if (!idxs.length) return;
+    var dn = idxs.filter(function(i){ return s.items[i].done; }).length;
+    h += '<div class="sck-stage">' + sckEsc(st || 'Other') + '<span class="sck-stage-count">' + dn + ' of ' + idxs.length + '</span></div>';
+    idxs.forEach(function(i){
+      var it = s.items[i];
+      var who = it.doneBy || '';
+      var opts = dirs.slice();
+      if (who && opts.indexOf(who) === -1) opts.push(who);
+      var extra = '';
+      if (it.item === 'Pinned SIP documents updated') {
+        if (sckPinned === null) extra = '<div class="sck-reminder">Loading the pinned documents…</div>';
+        else if (sckPinned === 'error') extra = '<div class="sck-reminder">Couldn\'t read the SIP documents list just now.</div>';
+        else if (!sckPinned.length) extra = '<div class="sck-reminder">No pinned documents without a number were found.</div>';
+        else extra = '<div class="sck-reminder">Pinned documents that change on a sale:<ul>'
+          + sckPinned.map(function(n){ return '<li>' + sckEsc(n) + '</li>'; }).join('') + '</ul></div>';
+      }
+      h += '<div class="sck-item' + (it.done ? ' sck-done' : '') + '" id="sck-item-' + i + '">'
+        + '<div><input type="checkbox"' + (it.done ? ' checked' : '') + (ro ? ' disabled' : '') + ' onchange="sckTick(' + i + ', this.checked)"></div>'
+        + '<div class="sck-item-text"><span class="sck-item-label">' + sckEsc(it.item) + '</span>'
+        +   (it.farmhouse ? '<span class="sck-farm">Farmhouse</span>' : '')
+        +   (it.hint ? '<span class="sck-hint">' + sckEsc(it.hint) + '</span>' : '') + extra + '</div>'
+        + '<div class="sck-c-who"><select' + (ro ? ' disabled' : '') + ' onchange="sckWhoChanged(' + i + ', this.value)"><option value="">—</option>'
+        +   opts.map(function(n){ return '<option' + (n === who ? ' selected' : '') + '>' + sckEsc(n) + '</option>'; }).join('') + '</select></div>'
+        + '<div class="sck-date">' + sckEsc(it.dateDone || '—') + '</div>'
+        + '<div class="sck-c-note"><input type="text" placeholder="Note" value="' + sckEsc(it.note) + '"' + (ro ? ' disabled' : '')
+        +   ' onchange="sckNoteChanged(' + i + ', this.value)"></div>'
+        + '</div>';
+    });
+  });
+
+  var left = c.total - c.done;
+  if (ro) {
+    h += '<div class="sck-foot"><span class="sck-msg">This sale is complete and read-only.</span></div>';
+  } else {
+    h += '<div class="sck-foot"><span class="sck-msg">' + (left ? left + ' item' + (left === 1 ? '' : 's') + ' still to do' : 'All items done') + '</span>'
+      + '<button class="abtn abtn-danger" onclick="sckDeleteSale()">&#128465; Delete sale</button>'
+      + '<button class="abtn abtn-primary" onclick="sckCompleteSale()"' + (left ? ' disabled title="Tick every item first"' : '') + '>&#10004; Mark sale complete</button></div>';
+  }
+  card.innerHTML = h;
+}
+
+function sckDetailChanged() {
+  sckDetailDirty = true;
+  var b = document.getElementById('sckDetailSaveBtn'), m = document.getElementById('sckDetailMsg');
+  if (b) b.disabled = false;
+  if (m) { m.style.color = ''; m.textContent = 'Unsaved changes'; }
+}
+
+function sckReadDetails() {
+  function v(k) { var el = document.getElementById('sck-f-' + k); return el ? el.value : ''; }
+  return {
+    seller: v('seller').trim(), buyer: v('buyer').trim(),
+    sellerSol: v('sellerSol').trim(), sellerSolEmail: v('sellerSolEmail').trim(),
+    buyerSol: v('buyerSol').trim(), buyerSolEmail: v('buyerSolEmail').trim(),
+    offer: v('offer'), exchange: v('exchange'), completion: v('completion'),
+    notes: v('notes')
+  };
+}
+
+function sckSaveDetails() {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  var d = sckReadDetails();
+  var msg = document.getElementById('sckDetailMsg');
+  if (d.sellerSolEmail && !sckEmailOk(d.sellerSolEmail)) { msg.style.color = '#b05050'; msg.textContent = "Seller's solicitor email doesn't look right."; return; }
+  if (d.buyerSolEmail && !sckEmailOk(d.buyerSolEmail))   { msg.style.color = '#b05050'; msg.textContent = "Buyer's solicitor email doesn't look right."; return; }
+  var btn = document.getElementById('sckDetailSaveBtn');
+  btn.disabled = true; btn.innerHTML = '&#128190; Saving&hellip;';
+  d.action = 'updateSale'; d.saleId = s.saleId;
+  sckPost(d).then(function(r){
+    if (r.status === 'ok') {
+      Object.keys(d).forEach(function(k){ if (k !== 'action' && k !== 'saleId') s[k] = d[k]; });
+      sckDetailDirty = false;
+      sckRenderSale(); sckRenderList();
+      showToast('Sale details saved', 'success');
+    } else {
+      btn.disabled = false; btn.innerHTML = '&#128190; Save details';
+      msg.style.color = '#b05050'; msg.textContent = r.message || 'Save failed.';
+    }
+  }).catch(function(e){
+    btn.disabled = false; btn.innerHTML = '&#128190; Save details';
+    msg.style.color = '#b05050'; msg.textContent = 'Network error: ' + (e.message || 'unknown');
+  });
+}
+
+// Saves one item (tick, who, note). Shows the change straight away, then puts
+// it back with a message if the save fails.
+function sckSaveItem(i, changes) {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  var it = s.items[i];
+  var before = { done: it.done, doneBy: it.doneBy, note: it.note, dateDone: it.dateDone };
+  Object.keys(changes).forEach(function(k){ it[k] = changes[k]; });
+  if (changes.done === false) it.dateDone = '';
+  var keepDetails = sckDetailDirty ? sckReadDetails() : null;
+  if (!keepDetails) sckRenderSale();
+  var rowEl = document.getElementById('sck-item-' + i);
+  if (rowEl) rowEl.classList.add('sck-saving');
+  sckPost({ action: 'updateSaleItem', saleId: s.saleId, rowIndex: it._sheetRow, item: it.item,
+            done: it.done, doneBy: it.doneBy, note: it.note })
+    .then(function(r){
+      if (r.status === 'ok') {
+        it.dateDone = r.dateDone || '';
+        if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); }
+        else sckRenderSale();
+        sckRenderList();
+        dcLoadReviewCount();
+      } else {
+        Object.keys(before).forEach(function(k){ it[k] = before[k]; });
+        if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); } else sckRenderSale();
+        alert(r.message || 'Save failed.');
+      }
+    })
+    .catch(function(e){
+      Object.keys(before).forEach(function(k){ it[k] = before[k]; });
+      if (keepDetails) { if (rowEl) rowEl.classList.remove('sck-saving'); sckRefreshItemRow(i); } else sckRenderSale();
+      alert('Network error: ' + (e.message || 'unknown'));
+    });
+}
+
+// Updates just one item row in place (used while the details form has unsaved
+// typing, so a tick never wipes what is being typed above).
+function sckRefreshItemRow(i) {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  var it = s.items[i], el = document.getElementById('sck-item-' + i);
+  if (!el) return;
+  el.classList.toggle('sck-done', !!it.done);
+  var cb = el.querySelector('input[type=checkbox]'); if (cb) cb.checked = !!it.done;
+  var sel = el.querySelector('select'); if (sel) sel.value = it.doneBy || '';
+  var dt = el.querySelector('.sck-date'); if (dt) dt.textContent = it.dateDone || '—';
+  var nt = el.querySelector('.sck-c-note input'); if (nt) nt.value = it.note || '';
+}
+
+function sckTick(i, on) {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  var ch = { done: !!on };
+  if (on && !s.items[i].doneBy && sckLastWho) ch.doneBy = sckLastWho;
+  sckSaveItem(i, ch);
+}
+
+function sckWhoChanged(i, val) {
+  if (val) sckLastWho = val;
+  sckSaveItem(i, { doneBy: val });
+}
+
+function sckNoteChanged(i, val) {
+  sckSaveItem(i, { note: val });
+}
+
+function sckCompleteSale() {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  if (sckDetailDirty && !confirm('You have unsaved sale details. Discard them and continue?')) return;
+  if (!confirm('Mark ' + s.property + ' as complete?\n\nThe sale becomes read-only and moves to the Completed list.')) return;
+  sckPost({ action: 'completeSale', saleId: s.saleId }).then(function(r){
+    if (r.status === 'ok') {
+      sckDetailDirty = false;
+      showToast('Sale marked complete', 'success');
+      sckLoad(false); dcLoadReviewCount();
+    } else alert(r.message || 'Could not complete the sale.');
+  }).catch(function(e){ alert('Network error: ' + (e.message || 'unknown')); });
+}
+
+function sckDeleteSale() {
+  var s = sckSale(sckCurrentId); if (!s) return;
+  if (!confirm('Delete the sale for ' + s.property + '?\n\nThis removes the sale and all its ticks and notes. It cannot be undone.')) return;
+  sckPost({ action: 'deleteSale', saleId: s.saleId }).then(function(r){
+    if (r.status === 'ok') {
+      sckDetailDirty = false; sckCurrentId = null; sckShowListView();
+      showToast('Sale deleted', 'success');
+      sckLoad(false); dcLoadReviewCount();
+    } else alert(r.message || 'Could not delete the sale.');
+  }).catch(function(e){ alert('Network error: ' + (e.message || 'unknown')); });
+}
+
+// ── New sale ──
+
+function sckOpenNew() {
+  if (!sckData) { showToast('Still loading — try again in a moment', 'error'); return; }
+  var busy = {};
+  sckData.sales.forEach(function(s){ if (s.status !== 'Completed') busy[s.property] = true; });
+  var props = (sckData.properties && sckData.properties.length) ? sckData.properties : [];
+  var sel = document.getElementById('sckNewProp');
+  sel.innerHTML = '<option value="">Choose…</option>' + props.map(function(p){
+    return '<option value="' + sckEsc(p) + '"' + (busy[p] ? ' disabled' : '') + '>' + sckEsc(p) + (busy[p] ? ' (sale in progress)' : '') + '</option>';
+  }).join('');
+  ['sckNewSeller','sckNewBuyer','sckNewSellerSol','sckNewSellerSolEmail','sckNewBuyerSol','sckNewBuyerSolEmail'].forEach(function(id){ document.getElementById(id).value = ''; });
+  var t = new Date();
+  document.getElementById('sckNewOffer').value = t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
+  document.getElementById('sckNewErr').textContent = '';
+  var b = document.getElementById('sckNewBtn'); b.disabled = false; b.textContent = 'Start checklist';
+  document.getElementById('sckNewModal').classList.add('open');
+}
+
+function sckNewPropChanged() {
+  var p = document.getElementById('sckNewProp').value;
+  var owner = (sckData && sckData.owners && sckData.owners[p]) || '';
+  document.getElementById('sckNewSeller').value = owner;
+}
+
+function sckCloseNew() { document.getElementById('sckNewModal').classList.remove('open'); }
+
+function sckCreateSale() {
+  var err = document.getElementById('sckNewErr');
+  var p = {
+    action: 'createSale',
+    property: document.getElementById('sckNewProp').value,
+    seller: document.getElementById('sckNewSeller').value.trim(),
+    buyer: document.getElementById('sckNewBuyer').value.trim(),
+    offer: document.getElementById('sckNewOffer').value,
+    sellerSol: document.getElementById('sckNewSellerSol').value.trim(),
+    sellerSolEmail: document.getElementById('sckNewSellerSolEmail').value.trim(),
+    buyerSol: document.getElementById('sckNewBuyerSol').value.trim(),
+    buyerSolEmail: document.getElementById('sckNewBuyerSolEmail').value.trim(),
+    exchange: '', completion: '', notes: ''
+  };
+  if (!p.property) { err.textContent = 'Choose the property.'; return; }
+  if (p.sellerSolEmail && !sckEmailOk(p.sellerSolEmail)) { err.textContent = "Seller's solicitor email doesn't look right."; return; }
+  if (p.buyerSolEmail && !sckEmailOk(p.buyerSolEmail))   { err.textContent = "Buyer's solicitor email doesn't look right."; return; }
+  var b = document.getElementById('sckNewBtn');
+  b.disabled = true; b.textContent = 'Starting…'; err.textContent = '';
+  sckPost(p).then(function(r){
+    if (r.status === 'ok') {
+      sckCloseNew();
+      showToast(r.itemCount + ' items copied from the template' + (r.farmhouse ? ' (Farmhouse item included)' : ''), 'success');
+      sckLoad(false).then(function(){ if (sckSale(r.saleId)) sckOpenSale(r.saleId); });
+      dcLoadReviewCount();
+    } else {
+      b.disabled = false; b.textContent = 'Start checklist';
+      err.textContent = r.message || 'Could not start the sale.';
+    }
+  }).catch(function(e){
+    b.disabled = false; b.textContent = 'Start checklist';
+    err.textContent = 'Network error: ' + (e.message || 'unknown');
+  });
+}
+
+// ── Checklist Template panel ──
+
+function sckTplOpenPanel() {
+  sckTplEditing = null;
+  if (sckData) sckTplRender();
+  sckTplLoad(false);
+}
+
+function sckTplLoad(force) {
+  if (force && sckTplEditing !== null && !confirm('You have a template item open for editing. Discard it?')) return;
+  if (force) sckTplEditing = null;
+  if (!sckData) document.getElementById('sckTplBody').innerHTML = '<div class="sck-empty">Loading template…</div>';
+  sckLoad(false);
+}
+
+function sckTplRender() {
+  var body = document.getElementById('sckTplBody');
+  if (!body || !sckData) return;
+  var tpl = sckData.template || [];
+  var stages = sckData.stages || [];
+  document.getElementById('sckTplPill').textContent = tpl.length + ' items';
+  function editRow(t, key) {
+    return '<tr id="sck-tpl-edit"><td><input id="sck-te-order" type="number" step="any" value="' + sckEsc(t.order === null || t.order === undefined ? '' : t.order) + '" style="width:70px;"></td>'
+      + '<td><select id="sck-te-stage">' + stages.map(function(s){ return '<option' + (s === t.stage ? ' selected' : '') + '>' + sckEsc(s) + '</option>'; }).join('') + '</select></td>'
+      + '<td><input id="sck-te-item" type="text" value="' + sckEsc(t.item) + '" placeholder="Item"></td>'
+      + '<td><input id="sck-te-hint" type="text" value="' + sckEsc(t.hint) + '" placeholder="Optional"></td>'
+      + '<td class="sck-ctr"><input id="sck-te-farm" type="checkbox"' + (t.farmhouse ? ' checked' : '') + ' style="width:18px;height:18px;"></td>'
+      + '<td class="sck-act"><button class="abtn abtn-primary sck-hdr-btn" id="sck-te-save" onclick="sckTplSave(' + (key === 'add' ? '\'add\'' : key) + ')">&#128190; Save</button>'
+      + ' <button class="sck-link" onclick="sckTplCancel()">Cancel</button>'
+      + '<div id="sck-te-err" style="color:#b05050;font-size:0.75rem;margin-top:0.3rem;white-space:normal;"></div></td></tr>';
+  }
+  var h = '<table class="sck-tpl"><thead><tr><th style="text-align:right;">Order</th><th>Stage</th><th>Item</th><th>Hint (optional)</th><th style="text-align:center;">Farmhouse only</th><th></th></tr></thead><tbody>';
+  if (sckTplEditing === 'add') {
+    var max = tpl.reduce(function(m, t){ return t.order !== null && t.order > m ? t.order : m; }, 0);
+    h += editRow({ order: max + 1, stage: stages[stages.length - 1], item: '', hint: '', farmhouse: false }, 'add');
+  }
+  tpl.forEach(function(t){
+    if (sckTplEditing === t._sheetRow) { h += editRow(t, t._sheetRow); return; }
+    h += '<tr><td class="sck-num">' + sckEsc(t.order === null ? '—' : t.order) + '</td>'
+      + '<td class="sck-stage-cell">' + sckEsc(t.stage) + '</td>'
+      + '<td>' + sckEsc(t.item) + '</td>'
+      + '<td class="sck-hint-cell">' + sckEsc(t.hint) + '</td>'
+      + '<td class="sck-ctr">' + (t.farmhouse ? '&#10003;' : '') + '</td>'
+      + '<td class="sck-act"><button class="sck-link" onclick="sckTplEdit(' + t._sheetRow + ')">Edit</button>'
+      + '<button class="sck-link sck-del" onclick="sckTplDelete(' + t._sheetRow + ')">Delete</button></td></tr>';
+  });
+  if (!tpl.length && sckTplEditing !== 'add') h += '<tr><td colspan="6" class="sck-empty">No template items. Use + Add Item.</td></tr>';
+  h += '</tbody></table>';
+  body.innerHTML = h;
+  var first = document.getElementById('sck-te-item');
+  if (first) first.focus();
+}
+
+function sckTplStartAdd() {
+  if (!sckData) return;
+  if (sckTplEditing !== null && !confirm('Discard the item you are editing?')) return;
+  sckTplEditing = 'add'; sckTplRender();
+}
+
+function sckTplEdit(row) {
+  if (sckTplEditing !== null && sckTplEditing !== row && !confirm('Discard the item you are editing?')) return;
+  sckTplEditing = row; sckTplRender();
+}
+
+function sckTplCancel() { sckTplEditing = null; sckTplRender(); }
+
+function sckTplSave(key) {
+  var err = document.getElementById('sck-te-err');
+  var p = {
+    order: document.getElementById('sck-te-order').value.trim(),
+    stage: document.getElementById('sck-te-stage').value,
+    item: document.getElementById('sck-te-item').value.trim(),
+    hint: document.getElementById('sck-te-hint').value.trim(),
+    farmhouse: document.getElementById('sck-te-farm').checked
+  };
+  if (!p.item) { err.textContent = 'Enter the item text.'; return; }
+  if (key === 'add') p.action = 'addSaleTemplateItem';
+  else { p.action = 'updateSaleTemplateItem'; p.rowIndex = key; }
+  var b = document.getElementById('sck-te-save');
+  b.disabled = true; b.innerHTML = '&#128190; Saving&hellip;';
+  sckPost(p).then(function(r){
+    if (r.status === 'ok') {
+      sckTplEditing = null;
+      showToast('Template saved', 'success');
+      sckLoad(false).then(function(){ sckTplRender(); });
+    } else {
+      b.disabled = false; b.innerHTML = '&#128190; Save';
+      err.textContent = r.message || 'Save failed.';
+    }
+  }).catch(function(e){
+    b.disabled = false; b.innerHTML = '&#128190; Save';
+    err.textContent = 'Network error: ' + (e.message || 'unknown');
+  });
+}
+
+function sckTplDelete(row) {
+  var t = (sckData.template || []).filter(function(x){ return x._sheetRow === row; })[0];
+  if (!t) return;
+  if (!confirm('Delete "' + t.item + '" from the template?\n\nSales already started keep their own copy.')) return;
+  sckPost({ action: 'deleteSaleTemplateItem', rowIndex: row }).then(function(r){
+    if (r.status === 'ok') {
+      sckTplEditing = null;
+      showToast('Template item deleted', 'success');
+      sckLoad(false).then(function(){ sckTplRender(); });
+    } else alert(r.message || 'Delete failed.');
+  }).catch(function(e){ alert('Network error: ' + (e.message || 'unknown')); });
+}
 </script>
 
 <!-- Noticeboard notify review modal -->
