@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.11 -- 19 Nov 2026, 16:20
+<!-- CMC The Courtyard -- admin.html -- Build 1.12 -- 19 Nov 2026, 22:32
+     Build 1.12: Sales Checklist items are numbered 1, 2, 3... straight through
+     all the stages (to 23, or 24 for a Farmhouse sale), shown to the left of
+     each tick box, so "2 of 23" on the home card matches the checklist.
+     No code.gs change.
      Build 1.11: Sales in progress card. (1) Loads as quickly as the other
      cards: it now uses the light readSalesSummary instead of the full
      checklist read. (2) Clearer wording: each sale shows "No. 12 · completes
@@ -1049,7 +1053,11 @@
   .sck-fld a.sck-mail:hover { text-decoration:underline; }
   .sck-half { grid-column:span 2; }
   .sck-wide { grid-column:span 4; }
-  .sck-head, .sck-item { display:grid; grid-template-columns:28px 1fr 150px 100px 1.1fr; gap:0.75rem; padding:0.6rem 1.25rem; }
+  .sck-head, .sck-item { display:grid; grid-template-columns:52px 1fr 150px 100px 1.1fr; gap:0.75rem; padding:0.6rem 1.25rem; }
+  /* Build 1.12: item number to the left of each tick box */
+  .sck-numcell { display:flex; align-items:flex-start; gap:0.4rem; }
+  .sck-num { width:1.4rem; text-align:right; font-size:0.82rem; font-weight:700; color:var(--accent); padding-top:0.12rem; flex-shrink:0; }
+  .sck-head .sck-c-num { text-align:left; padding-left:0.35rem; }
   .sck-head { padding:0.5rem 1.25rem; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--mid); background:rgba(122,92,62,0.07); }
   .sck-head .sck-c-date { text-align:center; }
   .sck-stage { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1.25rem; background:#faf7f2; border-top:1px solid #ede5d6; border-bottom:1px solid #ede5d6; font-size:0.78rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.06em; }
@@ -1111,7 +1119,7 @@
     .sck-form { grid-template-columns:1fr 1fr; }
     .sck-half, .sck-wide { grid-column:span 2; }
     .sck-head { display:none; }
-    .sck-item { grid-template-columns:28px 1fr; }
+    .sck-item { grid-template-columns:52px 1fr; }
     .sck-item > .sck-c-who, .sck-item > .sck-date, .sck-item > .sck-c-note { grid-column:2; }
     .sck-date { text-align:left; padding-top:0; }
     .sck-row { flex-wrap:wrap; }
@@ -3498,8 +3506,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.11';
-var PAGE_DATE  = '19 Nov 2026, 16:20';
+var PAGE_BUILD = '1.12';
+var PAGE_DATE  = '19 Nov 2026, 22:32';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -10579,7 +10587,8 @@ function sckRenderSale() {
       + '<button class="abtn abtn-primary" id="sckDetailSaveBtn" onclick="sckSaveDetails()"' + (sckDetailDirty ? '' : ' disabled') + '>&#128190; Save details</button></div>';
   }
 
-  h += '<div class="sck-head"><div></div><div>Item</div><div>Who</div><div class="sck-c-date">Date</div><div>Note</div></div>';
+  h += '<div class="sck-head"><div class="sck-c-num">#</div><div>Item</div><div>Who</div><div class="sck-c-date">Date</div><div>Note</div></div>';
+  var itemNo = 0; // Build 1.12: items numbered 1, 2, 3... straight through all stages
 
   var stages = (sckData.stages || []).slice();
   s.items.forEach(function(it){ if (stages.indexOf(it.stage) === -1) stages.push(it.stage); });
@@ -10597,7 +10606,7 @@ function sckRenderSale() {
         extra = '<div class="sck-reminder" id="sckPinnedBox">' + sckPinnedHtml() + '</div>';
       }
       h += '<div class="sck-item' + (it.done ? ' sck-done' : '') + '" id="sck-item-' + i + '">'
-        + '<div><input type="checkbox"' + (it.done ? ' checked' : '') + (ro ? ' disabled' : '') + ' onchange="sckTick(' + i + ', this.checked)"></div>'
+        + '<div class="sck-numcell"><span class="sck-num">' + (++itemNo) + '</span><input type="checkbox"' + (it.done ? ' checked' : '') + (ro ? ' disabled' : '') + ' onchange="sckTick(' + i + ', this.checked)"></div>'
         + '<div class="sck-item-text"><span class="sck-item-label">' + sckEsc(it.item) + '</span>'
         +   (it.farmhouse ? '<span class="sck-farm">Farmhouse</span>' : '')
         +   (it.hint ? '<span class="sck-hint">' + sckEsc(it.hint) + '</span>' : '') + extra
