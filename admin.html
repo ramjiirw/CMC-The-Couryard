@@ -1,5 +1,12 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.16 -- 20 Nov 2026, 19:13
+<!-- CMC The Courtyard -- admin.html -- Build 1.17 -- 20 Nov 2026, 19:32
+     Build 1.17: new "Q link" button on the toolbar of the SIP Q&A Question and
+     Answer boxes, the Briefing Body and the Sales Process What box. It opens a
+     searchable list of the Q&A questions; picking one puts a bold reference in
+     where the cursor was, e.g. "Q32 - Matters Relating to the Property Title"
+     (the question's current wording). It's ordinary text, so it can be changed
+     afterwards. On the SIP the Q-number becomes a link (index.html 1.09 onwards).
+     No index.html or code.gs change. Not on Useful Information.
      Build 1.16: SIP Q&A delete fixed. Delete (desktop and mobile) now shows
      Deleting..., locks the edit form so Save can't be pressed while it runs, then
      closes the form and shows "Question deleted" -- nothing to save afterwards.
@@ -1062,6 +1069,16 @@
   .uif-menu .sw { width:18px; height:14px; border-radius:3px; border:1px solid rgba(0,0,0,0.12); flex:none; }
   .uif-menu .sw.none { background:linear-gradient(135deg,#fff 45%,#b3261e 46%,#b3261e 54%,#fff 55%); }
   .uif-menu .swA { width:18px; text-align:center; font-weight:700; flex:none; }
+  /* Build 1.17: "Q link" picker -- choose a question to put a bold "Q32 - wording" reference in */
+  .uif-qmenu { width:440px; max-width:calc(100vw - 16px); padding:6px; }
+  .uif-qmenu input.qm-search { width:100%; box-sizing:border-box; padding:0.42rem 0.6rem; border:1px solid rgba(122,92,62,0.3); border-radius:5px; font:0.82rem Arial,sans-serif; color:var(--dark); margin-bottom:5px; outline:none; }
+  .uif-qmenu input.qm-search:focus { border-color:#c4956a; }
+  .uif-qmenu .qm-list { max-height:300px; overflow-y:auto; }
+  .uif-qmenu button { align-items:flex-start; }
+  .uif-qmenu .qm-num { font-weight:700; color:#7a5c3e; min-width:2.7rem; flex:none; }
+  .uif-qmenu .qm-txt { flex:1; line-height:1.35; }
+  .uif-qmenu .qm-topic { display:block; font-size:0.72rem; color:#8a7a65; }
+  .uif-qmenu .qm-empty { padding:0.5rem; font-size:0.8rem; color:#8a7a65; font-style:italic; }
   .uif-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--dark); color:var(--cream); padding:0.6rem 1rem; border-radius:8px; font-size:0.8rem; z-index:10001; box-shadow:0 4px 24px rgba(30,26,22,0.25); max-width:90vw; opacity:0; transition:opacity 0.2s; pointer-events:none; }
   .uif-toast.show { opacity:1; }
   @media (max-width: 600px) {
@@ -3554,8 +3571,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.16';
-var PAGE_DATE  = '20 Nov 2026, 19:13';
+var PAGE_BUILD = '1.17';
+var PAGE_DATE  = '20 Nov 2026, 19:32';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -8284,6 +8301,7 @@ function uifEditor(host, value, onChange, opt) {
     '<span class="uif-sep" aria-hidden="true"></span>' +
     (opt.noPainter ? '' : '<button type="button" data-uif="paint" class="uif-paint" title="Format painter: click in some formatted words, click this, then select the words to change. Double-click to keep it on; Esc to stop." aria-label="Format painter">' + UIF_PAINT_ICON + '</button>') +
     '<button type="button" data-uif="clear" class="uif-clear" title="Clear formatting from the selected words" aria-label="Clear formatting">Clear</button>' +
+    (opt.qLink ? '<span class="uif-sep" aria-hidden="true"></span><button type="button" data-uif="qlink" class="uif-li" title="Q link: choose a question to put a bold reference to it here, e.g. Q32 - Matters Relating to the Property Title. On the SIP it becomes a link to that question." aria-label="Insert a link to another question">Q link</button>' : '') +   // Build 1.17
     '</div>' +
     '<div class="uif-ed" contenteditable="true" spellcheck="true" data-ph="' + uifEsc(opt.ph || 'Information text') + '"></div>';   // Build 1.13: placeholder can be set
   host.appendChild(rt);
@@ -8321,6 +8339,7 @@ function uifEditor(host, value, onChange, opt) {
         if (!cs.rangeCount || cs.isCollapsed) { uifToast('Select some words first, then click Clear.'); return; }
         uifWithModel(rt, uifPaintModel([])); return;
       }
+      if (k === 'qlink') { e.stopPropagation(); uifShowQMenu(b, rt); return; }   // Build 1.17
       if (k === 'list') { uifWithModel(rt, uifToggleList('li')); return; }
       if (k === 'olist') { uifWithModel(rt, uifToggleList('ol')); return; }
       if (k === 'hpick') {
@@ -8396,7 +8415,7 @@ function uifInitBoxes(root) {
     var dash = host.getAttribute('data-dash') === '1';
     var raw = Object.prototype.hasOwnProperty.call(_uifBoxVals, host.id) ? _uifBoxVals[host.id] : '';
     delete _uifBoxVals[host.id];
-    var rt = uifEditor(host, uifFromOldMarks(raw, dash), function() {}, { ph: host.getAttribute('data-ph') || '' });
+    var rt = uifEditor(host, uifFromOldMarks(raw, dash), function() {}, { ph: host.getAttribute('data-ph') || '', qLink: true });   // Build 1.17: qLink = the Q link button
     var mh = host.getAttribute('data-minh');
     if (mh) rt.ed.style.minHeight = mh;
     var loaded = uifFromEditor(rt.ed);
@@ -8415,6 +8434,88 @@ function uifInitBoxes(root) {
 // Clicks in a toolbar colour menu (which sits outside the form) are part of editing,
 // not a click away from the form
 function uifInMenu(el) { return !!(el && el.closest && el.closest('.uif-menu')); }
+
+// ─── Build 1.17: Q LINK -- PICK A QUESTION, PUT IN A BOLD REFERENCE TO IT ───
+// Opens a list of the SIP Q&A questions (number, topic, wording) with a search box.
+// Picking one puts "Q32 - <its current wording>" in bold where the cursor was. It is
+// ordinary text, so it can be changed afterwards. On the SIP, index.html turns the
+// "Q32" into a link to that question (nothing to set up there).
+var _uifQaCache = null;
+function uifQaList(cb) {
+  if (typeof qaAllRows !== 'undefined' && qaAllRows && qaAllRows.length) { cb(qaAllRows); return; }
+  if (_uifQaCache) { cb(_uifQaCache); return; }
+  fetch(SCRIPT_URL + '?action=readSIPQA', { redirect: 'follow' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { _uifQaCache = (d && d.rows) ? d.rows : []; cb(_uifQaCache); })
+    .catch(function() { cb(null); });
+}
+function uifQWording(q) { return uifPlain(uifFromOldMarks(q || '')).replace(/\s+/g, ' ').trim(); }
+function uifShowQMenu(btn, rt) {
+  uifCloseMenu();
+  // Remember where the cursor was -- the search box is about to take the focus
+  var sel = window.getSelection();
+  var saved = (sel.rangeCount && rt.ed.contains(sel.getRangeAt(0).commonAncestorContainer)) ? sel.getRangeAt(0).cloneRange() : null;
+  var r = btn.getBoundingClientRect();
+  uifMenuEl = document.createElement('div');
+  uifMenuEl.className = 'uif-menu uif-qmenu';
+  uifMenuEl.innerHTML = '<input type="text" class="qm-search" placeholder="Search by number, topic or words…" autocomplete="off">'
+    + '<div class="qm-list"><div class="qm-empty">Loading questions…</div></div>';
+  uifMenuEl.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 456)) + 'px';
+  uifMenuEl.style.top = (r.bottom + 4) + 'px';
+  document.body.appendChild(uifMenuEl);
+  var menu = uifMenuEl, input = menu.querySelector('.qm-search'), list = menu.querySelector('.qm-list');
+  // Keep it on screen: if there isn't room below the button, open above it
+  var mh = 360;
+  if (r.bottom + 4 + mh > window.innerHeight && r.top - mh - 4 > 0) menu.style.top = (r.top - mh - 4) + 'px';
+  var rows = [];
+  function pick(row) {
+    uifCloseMenu();
+    rt.ed.focus();
+    var s2 = window.getSelection();
+    s2.removeAllRanges();
+    if (saved) s2.addRange(saved);
+    else { var rg = document.createRange(); rg.selectNodeContents(rt.ed); rg.collapse(false); s2.addRange(rg); }
+    var text = 'Q' + row.qaid + ' - ' + uifQWording(row.question);
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand('insertHTML', false, '<b>' + uifEsc(text) + '</b>');
+    if (document.queryCommandState('bold')) document.execCommand('bold');   // so typing carries on in normal text
+    rt.sync();
+  }
+  function draw() {
+    var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    var shown = rows.filter(function(row) {
+      var hay = ('q' + row.qaid + ' ' + row.qaid + ' ' + (row.topic || '') + ' ' + uifQWording(row.question)).toLowerCase();
+      return words.every(function(w) { return hay.indexOf(w) !== -1; });
+    });
+    if (!shown.length) { list.innerHTML = '<div class="qm-empty">No questions match.</div>'; return; }
+    list.innerHTML = shown.map(function(row) {
+      var w = uifQWording(row.question);
+      if (w.length > 110) w = w.slice(0, 107).replace(/\s+\S*$/, '') + '…';
+      return '<button type="button" data-q="' + row.qaid + '"><span class="qm-num">Q' + row.qaid + '</span>'
+        + '<span class="qm-txt">' + uifEsc(w) + (row.topic ? '<span class="qm-topic">' + uifEsc(row.topic) + '</span>' : '') + '</span></button>';
+    }).join('');
+    list.querySelectorAll('button[data-q]').forEach(function(b) {
+      b.addEventListener('mousedown', function(e) { e.preventDefault(); });
+      b.addEventListener('click', function() {
+        var n = parseInt(b.getAttribute('data-q'), 10);
+        for (var i = 0; i < rows.length; i++) if (Number(rows[i].qaid) === n) { pick(rows[i]); return; }
+      });
+    });
+  }
+  input.addEventListener('input', draw);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { e.preventDefault(); uifCloseMenu(); rt.ed.focus(); }
+    if (e.key === 'Enter') { e.preventDefault(); var first = list.querySelector('button[data-q]'); if (first) first.click(); }
+  });
+  input.focus();
+  uifQaList(function(all) {
+    if (uifMenuEl !== menu) return;   // closed meanwhile
+    if (!all) { list.innerHTML = '<div class="qm-empty">Could not load the questions. Please try again.</div>'; return; }
+    rows = all.filter(function(row) { return row.qaid !== null && row.qaid !== undefined && row.qaid !== ''; })
+              .slice().sort(function(a, b) { return Number(a.qaid) - Number(b.qaid); });
+    draw();
+  });
+}
 
 // Build 1.14: locks a form while it saves, so nothing can be typed or changed
 // until the save is finished (anything typed then would not be saved). Every
