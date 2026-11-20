@@ -1,5 +1,13 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.13 -- 20 Nov 2026, 14:11
+<!-- CMC The Courtyard -- admin.html -- Build 1.14 -- 20 Nov 2026, 14:32
+     Build 1.14: while a save is in progress the form is read-only and greyed
+     out -- text boxes and their toolbars, topic, tick boxes, order, when, who,
+     Cancel and Delete -- so nothing can be typed that would not be saved. If the
+     save fails, the form unlocks with the changes still in it, ready to try
+     again. Covers the SIP Q&A, SIP Briefing and SIP Sales Process (inline edit
+     rows, add forms and mobile pop-ups) and CMC Useful Information. The Briefing
+     mobile pop-up's Save button now shows Saving... too. No code.gs or
+     index.html change.
      Build 1.13: the Useful Information formatting toolbar (B, U, I, highlight,
      font colour, bullet and numbered lists, format painter, Clear) is now on the
      SIP Q&A Question and Answer boxes, the SIP Briefing Body box and the SIP Sales
@@ -1021,6 +1029,12 @@
   .nb-mobile-box .uif-ed:focus { box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
   /* Build 1.13: the same toolbar on the SIP Q&A, Briefing and Sales Process text boxes */
   .qa-mobile-box .uif-ed:focus { box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  /* Build 1.14: while a form is saving it is greyed out and can't be changed */
+  .save-locked { opacity:0.5 !important; cursor:not-allowed !important; }
+  input.save-locked:not([type=checkbox]), select.save-locked, textarea.save-locked { background:#f3efe9 !important; color:#8a8078 !important; opacity:1 !important; }
+  .form-saving .uif-ed { background:#f3efe9 !important; color:#8a8078 !important; cursor:not-allowed; }
+  .form-saving .uif-bar { opacity:0.5; pointer-events:none; }
+  .form-saving span[onclick] { opacity:0.4; pointer-events:none; }   /* the x close in the mobile pop-ups */
   body.uif-painting .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%237A5C3E' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%237A5C3E'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%237A5C3E'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
   body.uif-painting.uif-paint-sticky .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%23E9A400' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%23E9A400'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%23E9A400'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
   .uif-menu { position:fixed; z-index:10000; background:#fff; border:1px solid rgba(122,92,62,0.28); border-radius:8px; box-shadow:0 6px 20px rgba(30,26,22,0.18); padding:4px; min-width:170px; }
@@ -3522,8 +3536,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.13';
-var PAGE_DATE  = '20 Nov 2026, 14:11';
+var PAGE_BUILD = '1.14';
+var PAGE_DATE  = '20 Nov 2026, 14:32';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -7886,6 +7900,8 @@ async function uiSave() {
   // Build 1.03: both buttons say Saving… and stay full colour, and the message line shows it too
   var saveBtns = ['uiSaveBtnTop', 'uiSaveBtn'].map(function(id) { return document.getElementById(id); }).filter(Boolean);
   saveBtns.forEach(function(b) { b.disabled = true; b.classList.add('ui-saving'); b.textContent = 'Saving…'; });
+  var uiPanel = document.getElementById('panel-usefulinfo');
+  adminLockForm(uiPanel, true);   // Build 1.14: the items are read-only while saving
   clearTimeout(_uiMsgTimer);
   msg.style.color = 'var(--mid)';
   msg.innerHTML = '<span class="ui-msg-spin"></span>Saving to sheet…';
@@ -7904,6 +7920,7 @@ async function uiSave() {
     msg.style.color = '#b05050';
     msg.textContent = '✗ Could not save — ' + e.message;
   }
+  adminLockForm(uiPanel, false);   // Build 1.14: editable again (good save or failed)
   saveBtns.forEach(function(b) { b.classList.remove('ui-saving'); b.textContent = '💾 Save to Sheet'; });
   uiSyncSaveBtns();   // Build 1.02: greyed out again after a good save; stays on if it failed
   _uiMsgTimer = setTimeout(function(){ msg.textContent = ''; }, 4000);
@@ -8361,6 +8378,30 @@ function uifInitBoxes(root) {
 // Clicks in a toolbar colour menu (which sits outside the form) are part of editing,
 // not a click away from the form
 function uifInMenu(el) { return !!(el && el.closest && el.closest('.uif-menu')); }
+
+// Build 1.14: locks a form while it saves, so nothing can be typed or changed
+// until the save is finished (anything typed then would not be saved). Every
+// box, toolbar, tick box and button in the form is greyed out. Buttons that
+// were already greyed out (such as the one showing "Saving...") are left as
+// they are. adminLockForm(form, false) undoes only what it locked, so a failed
+// save hands the form back exactly as it was, with the changes still in it.
+function adminLockForm(root, locked) {
+  if (!root) return;
+  if (locked) {
+    if (uifPainter) uifStopPainter();
+    uifCloseMenu();
+    if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
+  }
+  root.classList.toggle('form-saving', !!locked);
+  root.querySelectorAll('input, select, textarea, button').forEach(function(el) {
+    if (locked) {
+      if (!el.disabled) { el.disabled = true; el.classList.add('save-locked'); }
+    } else if (el.classList.contains('save-locked')) {
+      el.disabled = false; el.classList.remove('save-locked');
+    }
+  });
+  root.querySelectorAll('.uif-ed').forEach(function(ed) { ed.setAttribute('contenteditable', locked ? 'false' : 'true'); });
+}
 
 
 // ─── FULL DIRECTORY ──────────────────────────────────────────────────────────
@@ -9371,6 +9412,8 @@ function qaSubmitAdd() {
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
+  var formEl = document.getElementById('qa-add-form');
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
     body: JSON.stringify({ action:'addSIPQARow', question:question, answer:answer, topic:topic, review:review })
   })
@@ -9381,6 +9424,7 @@ function qaSubmitAdd() {
     qaLoad(true);
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.14
     errEl.textContent = 'Error: ' + (e.message || 'network error');
     saveBtn.disabled = false; saveBtn.textContent = '&#128190; Add Entry';
   });
@@ -9399,6 +9443,8 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
+  var formEl = document.getElementById('qa-edit-row-' + uiIndex);
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
     body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, question:question, answer:answer, topic:topic, review:review })
   })
@@ -9410,6 +9456,7 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
     qaLoad(true);
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.14
     errEl.textContent = 'Error: ' + (e.message || 'network error');
     saveBtn.disabled = false; saveBtn.textContent = '&#128190; Save';
   });
@@ -9466,6 +9513,7 @@ function qaOpenMobileModal(actualIndex) {
 }
 
 function qaMobileCancel() {
+  adminLockForm(document.querySelector('#qaMobileModal .qa-mobile-box'), false);   // Build 1.14: the pop-up is reused, so it always closes unlocked
   document.getElementById('qaMobileModal').classList.remove('open');
   qaEditIndex = null;
   _qaEditingRow = null;
@@ -9483,6 +9531,8 @@ function qaMobileSave() {
   if (!answer)   { errEl.textContent = 'Answer is required.'; return; }
   errEl.textContent = '';
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
+  var formEl = document.querySelector('#qaMobileModal .qa-mobile-box');
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   var payload = qaEditIndex === null
     ? { action:'addSIPQARow',    question:question, answer:answer, topic:topic, review:review }
     : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic, review:review };
@@ -9494,6 +9544,7 @@ function qaMobileSave() {
     qaLoad(true);
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.14
     errEl.textContent = 'Error: ' + (e.message || 'network error');
     saveBtn.disabled = false; saveBtn.textContent = 'Save';
   });
@@ -9600,6 +9651,7 @@ function briefAttachOutsideListener() {
     // Inside the edit area? Do nothing.
     if (editEl.contains(e.target)) return;
     if (uifInMenu(e.target)) return;   // Build 1.13: a toolbar colour menu counts as inside
+    if (editEl.classList.contains('form-saving')) return;   // Build 1.14: it is saving -- nothing to discard
     // Mobile modal handles its own outside clicks via the overlay backdrop —
     // skip the document listener for mobile to avoid double prompts.
     if (_briefEditingRow && _briefEditingRow.uiIndex === 'mobile') return;
@@ -9849,6 +9901,8 @@ function briefSubmitAdd() {
   if (!title && !body) { err.textContent = 'Enter a title or body.'; return; }
   var btn = document.getElementById('brief-add-save-btn');
   btn.disabled = true; btn.innerHTML = 'Saving…';
+  var formEl = document.getElementById('brief-add-form');
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: {'Content-Type': 'text/plain;charset=utf-8'},
@@ -9860,11 +9914,13 @@ function briefSubmitAdd() {
       briefRemoveAddForm();
       briefLoad(true);
     } else {
+      adminLockForm(formEl, false);   // Build 1.14
       err.textContent = d.message || 'Save failed.';
       btn.disabled = false; btn.innerHTML = '&#128190; Add Section';
     }
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.14
     err.textContent = 'Network error: ' + (e.message || 'unknown');
     btn.disabled = false; btn.innerHTML = '&#128190; Add Section';
   });
@@ -9887,6 +9943,8 @@ function briefSaveRow(actualIndex, uiIndex, evt) {
     saveBtn.innerHTML = '&#128190; Saving&hellip;';
     saveBtn.disabled = true;
   }
+  var formEl = document.getElementById('brief-edit-row-' + uiIndex);
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   // Map back to sheet rowIndex by finding the row position in the unfiltered list.
   // Since readSIPBriefingFresh re-sorts, we need a true sheet rowIndex. We use a separate read endpoint via title/body match.
   // For now, send identifying fields and let the server resolve. Simplest: send original section_num/title/body so server can find the row.
@@ -9906,11 +9964,13 @@ function briefSaveRow(actualIndex, uiIndex, evt) {
       _briefEditPanelOpen = false;
       briefLoad(true);
     } else {
+      adminLockForm(formEl, false);   // Build 1.14
       if (err) err.textContent = d.message || 'Save failed.';
       if (saveBtn) { saveBtn.innerHTML = saveBtnOrigHtml; saveBtn.disabled = false; }
     }
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.14
     if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
     if (saveBtn) { saveBtn.innerHTML = saveBtnOrigHtml; saveBtn.disabled = false; }
   });
@@ -9983,6 +10043,13 @@ function briefMobileSave(actualIndex) {
   var body   = document.getElementById('brief-' + suffix + '-body').value;
   var review = document.getElementById('brief-' + suffix + '-review').checked;
   if (!title && !body) { alert('Enter a title or body.'); return; }
+  // Build 1.14: the Save button shows Saving… and the pop-up is read-only while saving
+  var formEl = document.getElementById('briefMobileModal');
+  var saveBtn = formEl ? formEl.querySelector('.abtn-primary') : null;
+  var saveBtnOrig = saveBtn ? saveBtn.innerHTML : '';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '&#128190; Saving&hellip;'; }
+  adminLockForm(formEl, true);
+  function unlock() { adminLockForm(formEl, false); if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = saveBtnOrig; } }
   var payload = isNew
     ? { action:'addSIPBriefingRow', section_num: sec, title: title, body: body, review: review }
     : { action:'updateSIPBriefingRow', rowIndex: briefResolveSheetRow(briefAllRows[actualIndex]), section_num: sec, title: title, body: body, review: review };
@@ -9994,9 +10061,9 @@ function briefMobileSave(actualIndex) {
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (d.status === 'ok') { briefMobileCancel(); briefLoad(true); }
-    else alert('Save failed: ' + (d.message || 'unknown'));
+    else { unlock(); alert('Save failed: ' + (d.message || 'unknown')); }
   })
-  .catch(function(e){ alert('Save failed: ' + (e.message || 'network error')); });
+  .catch(function(e){ unlock(); alert('Save failed: ' + (e.message || 'network error')); });
 }
 
 function briefMobileDelete(actualIndex) {
@@ -10096,6 +10163,7 @@ function salesAttachOutsideListener() {
       : document.getElementById('sales-edit-row-' + _salesEditingRow.uiIndex);
     if (!editEl || editEl.contains(e.target)) return;
     if (uifInMenu(e.target)) return;   // Build 1.13: a toolbar colour menu counts as inside
+    if (editEl.classList.contains('form-saving')) return;   // Build 1.14: it is saving -- nothing to discard
     if (!salesHasUnsaved()) return;
     e.preventDefault();
     e.stopPropagation();
@@ -10310,17 +10378,21 @@ function salesSubmitAdd() {
   var err = document.getElementById('sales-add-err');
   var btn = document.getElementById('sales-add-save-btn');
   btn.disabled = true; btn.innerHTML = 'Saving…';
+  var formEl = document.getElementById('sales-add-form');
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   salesPost({ action:'addSIPSalesRow', order: v.order, when: v.when, what: v.what, who: v.who })
     .then(function(d){
       if (d.status === 'ok') {
         salesRemoveAddForm();
         salesLoad(true);
       } else {
+        adminLockForm(formEl, false);   // Build 1.14
         err.textContent = d.message || 'Save failed.';
         btn.disabled = false; btn.innerHTML = '&#128190; Add Step';
       }
     })
     .catch(function(e){
+      adminLockForm(formEl, false);   // Build 1.14
       err.textContent = 'Network error: ' + (e.message || 'unknown');
       btn.disabled = false; btn.innerHTML = '&#128190; Add Step';
     });
@@ -10335,6 +10407,8 @@ function salesSaveRow(actualIndex, evt) {
   var saveBtn = (evt && evt.target) ? evt.target : null;
   var orig = saveBtn ? saveBtn.innerHTML : null;
   if (saveBtn) { saveBtn.innerHTML = '&#128190; Saving&hellip;'; saveBtn.disabled = true; }
+  var formEl = document.getElementById('sales-edit-row-' + actualIndex);
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   salesPost({ action:'updateSIPSalesRow', rowIndex: row._sheetRow, order: v.order, when: v.when, what: v.what, who: v.who })
     .then(function(d){
       if (d.status === 'ok') {
@@ -10342,11 +10416,13 @@ function salesSaveRow(actualIndex, evt) {
         _salesEditPanelOpen = false;
         salesLoad(true);
       } else {
+        adminLockForm(formEl, false);   // Build 1.14
         if (err) err.textContent = d.message || 'Save failed.';
         if (saveBtn) { saveBtn.innerHTML = orig; saveBtn.disabled = false; }
       }
     })
     .catch(function(e){
+      adminLockForm(formEl, false);   // Build 1.14
       if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
       if (saveBtn) { saveBtn.innerHTML = orig; saveBtn.disabled = false; }
     });
@@ -10413,6 +10489,8 @@ function salesMobileSave(actualIndex) {
   var err = document.getElementById(salesFieldId(key, 'err'));
   var btn = document.getElementById('sales-mobile-save-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = 'Saving…'; }
+  var formEl = document.getElementById('salesMobileModal');
+  adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   var payload = isNew
     ? { action:'addSIPSalesRow', order: v.order, when: v.when, what: v.what, who: v.who }
     : { action:'updateSIPSalesRow', rowIndex: salesAllRows[actualIndex]._sheetRow, order: v.order, when: v.when, what: v.what, who: v.who };
@@ -10420,11 +10498,13 @@ function salesMobileSave(actualIndex) {
     .then(function(d){
       if (d.status === 'ok') { salesMobileCancelQuiet(); salesLoad(true); }
       else {
+        adminLockForm(formEl, false);   // Build 1.14
         if (err) err.textContent = d.message || 'Save failed.';
         if (btn) { btn.disabled = false; btn.innerHTML = '&#128190; Save'; }
       }
     })
     .catch(function(e){
+      adminLockForm(formEl, false);   // Build 1.14
       if (err) err.textContent = 'Network error: ' + (e.message || 'unknown');
       if (btn) { btn.disabled = false; btn.innerHTML = '&#128190; Save'; }
     });
