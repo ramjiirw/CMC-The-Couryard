@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.15 -- 20 Nov 2026, 15:07
+<!-- CMC The Courtyard -- admin.html -- Build 1.16 -- 20 Nov 2026, 19:13
+     Build 1.16: SIP Q&A delete fixed. Delete (desktop and mobile) now shows
+     Deleting..., locks the edit form so Save can't be pressed while it runs, then
+     closes the form and shows "Question deleted" -- nothing to save afterwards.
+     Delete and Save also tell code.gs WHICH question they mean (its Q number, or
+     its wording if it has none), not just its row position, so a Save can no
+     longer write a deleted question back into the sheet. Needs code.gs Build 1.20.
      Build 1.15: the Build 1.14 save lock (form greyed out and read-only while it
      saves, handed back with the changes still in it if the save fails) now also
      covers: Noticeboard Save to Sheet; AGM Agenda Save / Save Changes (and the
@@ -3548,8 +3554,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.15';
-var PAGE_DATE  = '20 Nov 2026, 15:07';
+var PAGE_BUILD = '1.16';
+var PAGE_DATE  = '20 Nov 2026, 19:13';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -9479,8 +9485,9 @@ function qaSaveRow(actualIndex, uiIndex, evt) {
   saveBtn.disabled = true; saveBtn.textContent = 'Saving\u2026';
   var formEl = document.getElementById('qa-edit-row-' + uiIndex);
   adminLockForm(formEl, true);   // Build 1.14: read-only while saving
+  var orig = qaAllRows[actualIndex] || {};   // Build 1.16: which question this is, so code.gs saves the right one
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
-    body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, question:question, answer:answer, topic:topic, review:review })
+    body: JSON.stringify({ action:'updateSIPQARow', rowIndex: actualIndex + 2, matchQaid: orig.qaid, matchQuestion: orig.question || '', question:question, answer:answer, topic:topic, review:review })
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -9500,17 +9507,29 @@ function qaDeleteRow(actualIndex, evt) {
   if (evt) evt.stopPropagation();
   var row = qaAllRows[actualIndex];
   if (!confirm('Delete this entry: ' + (row ? uifPlain(row.question) : '') + '?')) return;   // Build 1.13: words only
+  // Build 1.16: the button shows Deleting… and the whole edit form locks, so nothing
+  // (in particular Save) can be pressed while the delete runs. When it's done the
+  // form closes -- there is nothing to save afterwards.
+  var delBtn = evt && evt.target && evt.target.closest ? evt.target.closest('button') : null;
+  var formEl = delBtn ? delBtn.closest('tr') : null;
+  var delOrig = delBtn ? delBtn.innerHTML : '';
+  if (delBtn) { delBtn.disabled = true; delBtn.innerHTML = 'Deleting\u2026'; }
+  adminLockForm(formEl, true);
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
-    body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: actualIndex + 2 })
+    body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: actualIndex + 2, qaid: row ? row.qaid : undefined, question: row ? (row.question || '') : '' })   // Build 1.16: which question, not just which row
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Delete failed');
     _qaEditingRow = null;
     _qaEditPanelOpen = false;
+    if (formEl) formEl.style.display = 'none';   // Build 1.16: the form goes straight away
+    showToast('Question deleted', 'success');
     qaLoad(true);
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.16
+    if (delBtn) { delBtn.disabled = false; delBtn.innerHTML = delOrig; }
     alert('Delete failed: ' + (e.message || 'network error'));
   });
 }
@@ -9569,7 +9588,7 @@ function qaMobileSave() {
   adminLockForm(formEl, true);   // Build 1.14: read-only while saving
   var payload = qaEditIndex === null
     ? { action:'addSIPQARow',    question:question, answer:answer, topic:topic, review:review }
-    : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, question:question, answer:answer, topic:topic, review:review };
+    : { action:'updateSIPQARow', rowIndex: qaEditIndex + 2, matchQaid: (qaAllRows[qaEditIndex] || {}).qaid, matchQuestion: (qaAllRows[qaEditIndex] || {}).question || '', question:question, answer:answer, topic:topic, review:review };   // Build 1.16: match fields
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) })
   .then(function(r){ return r.json(); })
   .then(function(d){
@@ -9590,18 +9609,23 @@ function qaMobileDelete() {
   if (!confirm('Delete this entry: ' + (row ? uifPlain(row.question) : '') + '?')) return;   // Build 1.13: words only
   var delBtn = document.getElementById('qaMobileDeleteBtn');
   delBtn.disabled = true; delBtn.textContent = 'Deleting\u2026';
+  var formEl = document.querySelector('#qaMobileModal .qa-mobile-box');
+  adminLockForm(formEl, true);   // Build 1.16: nothing can be saved while it deletes
   fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
-    body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: qaEditIndex + 2 })
+    body: JSON.stringify({ action:'deleteSIPQARow', rowIndex: qaEditIndex + 2, qaid: row ? row.qaid : undefined, question: row ? (row.question || '') : '' })   // Build 1.16: which question, not just which row
   })
   .then(function(r){ return r.json(); })
   .then(function(d){
     if (!d || d.status !== 'ok') throw new Error(d && d.message ? d.message : 'Delete failed');
     qaMobileCancel();
+    delBtn.disabled = false; delBtn.innerHTML = '&#128465; Delete';   // Build 1.16: ready for next time the pop-up opens
+    showToast('Question deleted', 'success');
     qaLoad(true);
   })
   .catch(function(e){
+    adminLockForm(formEl, false);   // Build 1.16
     alert('Delete failed: ' + (e.message || 'network error'));
-    delBtn.disabled = false; delBtn.textContent = '&#128465; Delete';
+    delBtn.disabled = false; delBtn.innerHTML = '&#128465; Delete';
   });
 }
 
