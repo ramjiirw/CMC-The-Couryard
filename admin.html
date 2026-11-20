@@ -1,5 +1,15 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.14 -- 20 Nov 2026, 14:32
+<!-- CMC The Courtyard -- admin.html -- Build 1.15 -- 20 Nov 2026, 15:07
+     Build 1.15: the Build 1.14 save lock (form greyed out and read-only while it
+     saves, handed back with the changes still in it if the save fails) now also
+     covers: Noticeboard Save to Sheet; AGM Agenda Save / Save Changes (and the
+     agenda pop-ups; the Save buttons can no longer be pressed twice); Resident
+     Map Save to Sheet; Maintenance Issues Save (desktop row and mobile pop-up),
+     Add Director Issue and the assignment email pop-up; Water Bills Input Save
+     to sheet (figures, Cancel and the Edit links); Sales Checklist Save details,
+     New Sale pop-up and the template item editor. Before this, anything typed
+     during one of these saves was lost, or in the Noticeboard, AGM Agenda and
+     Resident Map was wrongly treated as saved. No code.gs or index.html change.
      Build 1.14: while a save is in progress the form is read-only and greyed
      out -- text boxes and their toolbars, topic, tick boxes, order, when, who,
      Cancel and Delete -- so nothing can be typed that would not be saved. If the
@@ -1035,6 +1045,8 @@
   .form-saving .uif-ed { background:#f3efe9 !important; color:#8a8078 !important; cursor:not-allowed; }
   .form-saving .uif-bar { opacity:0.5; pointer-events:none; }
   .form-saving span[onclick] { opacity:0.4; pointer-events:none; }   /* the x close in the mobile pop-ups */
+  /* Build 1.15: other clickable bits that aren't buttons -- water bill Edit links, mobile category pickers */
+  .form-saving .wbi-edit, .form-saving .mob-combo { opacity:0.5; pointer-events:none; }
   body.uif-painting .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%237A5C3E' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%237A5C3E'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%237A5C3E'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
   body.uif-painting.uif-paint-sticky .uif-ed { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg stroke='white' stroke-width='3' stroke-linejoin='round' stroke-linecap='round' fill='none'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1'/%3E%3C/g%3E%3Cg stroke='%23E9A400' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Crect x='2' y='8' width='11' height='5.5' rx='1.2' fill='%23E9A400'/%3E%3Cpath d='M13 10.5h2.2v5H8.6v2.6' fill='none'/%3E%3Crect x='7.2' y='18.4' width='2.8' height='7' rx='1' fill='%23E9A400'/%3E%3C/g%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='white' stroke-width='3.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M19 5h6M22 5v22M19 27h6' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 22 16, text; }
   .uif-menu { position:fixed; z-index:10000; background:#fff; border:1px solid rgba(122,92,62,0.28); border-radius:8px; box-shadow:0 6px 20px rgba(30,26,22,0.18); padding:4px; min-width:170px; }
@@ -3536,8 +3548,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.14';
-var PAGE_DATE  = '20 Nov 2026, 14:32';
+var PAGE_BUILD = '1.15';
+var PAGE_DATE  = '20 Nov 2026, 15:07';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -4059,12 +4071,15 @@ function saveResidents() {
   if (!changed.length) { showToast('No changes to save', 'success'); return; }
   btn.textContent = 'Saving 1 of ' + changed.length;
   btn.disabled = true;
+  var resPanel = document.getElementById('panel-residents');
+  adminLockForm(resPanel, true);   // Build 1.15: no tenant can be changed while the rows save
   var saved = 0;
   function saveNext() {
     if (saved >= changed.length) {
       residents = editDraft.map(function(r){ return Object.assign({}, r); });
       document.querySelectorAll('.res-table tr.row-changed').forEach(function(tr){ tr.classList.remove('row-changed'); });
       showToast(saved + ' row' + (saved !== 1 ? 's' : '') + ' saved', 'success');
+      adminLockForm(resPanel, false);   // Build 1.15
       btn.textContent = 'Save to Sheet'; btn.disabled = false;
       resetAutoLock(); return;
     }
@@ -4084,6 +4099,7 @@ function saveResidents() {
     .catch(function(e){
       errEl.textContent = 'Save failed: ' + e.message;
       showToast('Save failed', 'error');
+      adminLockForm(resPanel, false);   // Build 1.15
       btn.textContent = 'Save to Sheet'; btn.disabled = false;
     });
   }
@@ -5054,6 +5070,8 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   }
 
   if (saveBtn) { saveBtn.textContent = 'Saving\u2026'; saveBtn.disabled = true; }
+  var mntEditEl = document.getElementById('mnt-edit-' + uiIndex);
+  adminLockForm(mntEditEl, true);   // Build 1.15: read-only while saving
 
   try {
     var res  = await fetch(SCRIPT_URL, {
@@ -5094,6 +5112,7 @@ async function saveMaintenanceRow(actualRowIndex, uiIndex) {
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
   } finally {
+    adminLockForm(mntEditEl, false);   // Build 1.15
     if (saveBtn) { saveBtn.textContent = 'Save'; saveBtn.disabled = false; }
   }
   resetAutoLock();
@@ -5942,6 +5961,8 @@ async function mntAddIssueSubmit() {
   if (!description) { err.textContent = 'Please enter a description.'; return; }
   var btn = document.getElementById('mntAddSubmitBtn');
   btn.disabled = true; btn.textContent = 'Adding…';
+  var mntAddEl = document.getElementById('mntAddModal');
+  adminLockForm(mntAddEl, true);   // Build 1.15: read-only while adding
   try {
     var res  = await fetch(SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
@@ -5956,6 +5977,7 @@ async function mntAddIssueSubmit() {
     err.textContent = 'Failed to add issue: ' + (e.message || 'network error');
     btn.disabled = false; btn.textContent = '💾 Add Director Issue';
   }
+  adminLockForm(mntAddEl, false);   // Build 1.15: the pop-up is reused, so it always ends unlocked
   resetAutoLock();
 }
 
@@ -6368,6 +6390,10 @@ function agmAgendaSetStatus(msg, isError) {
 
 async function agmAgendaSave() {
   agmAgendaSetStatus('Saving…', false);
+  // Build 1.15: the agenda (and an open agenda pop-up) is read-only while saving,
+  // and the Save buttons can't be pressed a second time
+  var agmLockEls = ['panel-agmagenda', 'agmItemModalOverlay', 'agmAobModalOverlay'].map(function(id){ return document.getElementById(id); });
+  agmLockEls.forEach(function(el){ adminLockForm(el, true); });
   try {
     var details = [];
     for (var i = 0; i < 5; i++) {
@@ -6420,6 +6446,8 @@ async function agmAgendaSave() {
   } catch(e) {
     agmAgendaSetStatus('✗ ' + e.message, true);
     throw e; // re-throw so callers (e.g. modal save) can also handle the error
+  } finally {
+    agmLockEls.forEach(function(el){ adminLockForm(el, false); });   // Build 1.15
   }
 }
 
@@ -6908,6 +6936,8 @@ async function nbSave() {
   var btn = document.getElementById('nbSaveBtn');
   var msg = document.getElementById('nbMsg');
   btn.disabled = true; btn.textContent = 'Saving…';
+  var nbPanel = document.getElementById('panel-noticeboard');
+  adminLockForm(nbPanel, true);   // Build 1.15: the notices are read-only while saving
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
@@ -6923,6 +6953,7 @@ async function nbSave() {
     msg.style.color = '#b05050';
     msg.textContent = '✗ Could not save — ' + e.message;
   }
+  adminLockForm(nbPanel, false);   // Build 1.15: editable again (good save or failed)
   btn.disabled = false; btn.textContent = '💾 Save to Sheet';
   setTimeout(function(){ msg.textContent = ''; }, 4000);
 }
@@ -8912,6 +8943,8 @@ async function mntMobSave() {
 
   var btn = document.getElementById('mntMobSaveBtn');
   if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  var mntMobEl = document.getElementById('mntMobileModal');
+  adminLockForm(mntMobEl, true);   // Build 1.15: read-only while saving
 
   try {
     var res  = await fetch(SCRIPT_URL, {
@@ -8955,6 +8988,7 @@ async function mntMobSave() {
     // Always reset the button so it can never be left stuck on "Saving…",
     // regardless of which code path we exit through (success, error, or
     // an exception thrown anywhere inside the try block).
+    adminLockForm(mntMobEl, false);   // Build 1.15
     if (btn) { btn.textContent = '\uD83D\uDCBE Save'; btn.disabled = false; }
   }
 }
@@ -10869,6 +10903,8 @@ function sckSaveDetails() {
   if (d.buyerSolEmail && !sckEmailOk(d.buyerSolEmail))   { msg.style.color = '#b05050'; msg.textContent = "Buyer's solicitor email doesn't look right."; return; }
   var btn = document.getElementById('sckDetailSaveBtn');
   btn.disabled = true; btn.innerHTML = '&#128190; Saving&hellip;';
+  var sckFormEl = document.querySelector('#sckSaleCard .sck-form');
+  adminLockForm(sckFormEl, true);   // Build 1.15: the sale details are read-only while saving
   d.action = 'updateSale'; d.saleId = s.saleId;
   sckPost(d).then(function(r){
     if (r.status === 'ok') {
@@ -10877,10 +10913,12 @@ function sckSaveDetails() {
       sckRenderSale(); sckRenderList();
       showToast('Sale details saved', 'success');
     } else {
+      adminLockForm(sckFormEl, false);   // Build 1.15
       btn.disabled = false; btn.innerHTML = '&#128190; Save details';
       msg.style.color = '#b05050'; msg.textContent = r.message || 'Save failed.';
     }
   }).catch(function(e){
+    adminLockForm(sckFormEl, false);   // Build 1.15
     btn.disabled = false; btn.innerHTML = '&#128190; Save details';
     msg.style.color = '#b05050'; msg.textContent = 'Network error: ' + (e.message || 'unknown');
   });
@@ -11046,7 +11084,10 @@ function sckCreateSale() {
   if (p.buyerSolEmail && !sckEmailOk(p.buyerSolEmail))   { err.textContent = "Buyer's solicitor email doesn't look right."; return; }
   var b = document.getElementById('sckNewBtn');
   b.disabled = true; b.textContent = 'Starting…'; err.textContent = '';
+  var sckNewEl = document.getElementById('sckNewModal');
+  adminLockForm(sckNewEl, true);   // Build 1.15: read-only while the sale is set up
   sckPost(p).then(function(r){
+    adminLockForm(sckNewEl, false);   // Build 1.15: the pop-up is reused, so it always ends unlocked
     if (r.status === 'ok') {
       sckCloseNew();
       showToast(r.itemCount + ' items copied from the template' + (r.farmhouse ? ' (Farmhouse item included)' : ''), 'success');
@@ -11057,6 +11098,7 @@ function sckCreateSale() {
       err.textContent = r.message || 'Could not start the sale.';
     }
   }).catch(function(e){
+    adminLockForm(sckNewEl, false);   // Build 1.15
     b.disabled = false; b.textContent = 'Start checklist';
     err.textContent = 'Network error: ' + (e.message || 'unknown');
   });
@@ -11142,16 +11184,20 @@ function sckTplSave(key) {
   else { p.action = 'updateSaleTemplateItem'; p.rowIndex = key; }
   var b = document.getElementById('sck-te-save');
   b.disabled = true; b.innerHTML = '&#128190; Saving&hellip;';
+  var tplRowEl = document.getElementById('sck-tpl-edit');
+  adminLockForm(tplRowEl, true);   // Build 1.15: read-only while saving
   sckPost(p).then(function(r){
     if (r.status === 'ok') {
       sckTplEditing = null;
       showToast('Template saved', 'success');
       sckLoad(false).then(function(){ sckTplRender(); });
     } else {
+      adminLockForm(tplRowEl, false);   // Build 1.15
       b.disabled = false; b.innerHTML = '&#128190; Save';
       err.textContent = r.message || 'Save failed.';
     }
   }).catch(function(e){
+    adminLockForm(tplRowEl, false);   // Build 1.15
     b.disabled = false; b.innerHTML = '&#128190; Save';
     err.textContent = 'Network error: ' + (e.message || 'unknown');
   });
@@ -13882,6 +13928,8 @@ function mntSendAssignEmail() {
   var btn = document.getElementById('mntAssignSendBtn');
   btn.disabled = true;
   btn.textContent = 'Sending\u2026';
+  var assignEl = document.querySelector('#mntAssignModal > div');
+  adminLockForm(assignEl, true);   // Build 1.15: read-only while sending
 
   fetch(SCRIPT_URL, {
     method: 'POST',
@@ -13897,6 +13945,7 @@ function mntSendAssignEmail() {
   })
   .then(function(r){ return r.json(); })
   .then(function(resp) {
+    adminLockForm(assignEl, false);   // Build 1.15: the pop-up is reused, so it always ends unlocked
     if (resp.status === 'ok') {
       mntCloseAssignModal();
       showToast('Assignment email sent \u2713');
@@ -13907,6 +13956,7 @@ function mntSendAssignEmail() {
     }
   })
   .catch(function(err) {
+    adminLockForm(assignEl, false);   // Build 1.15
     alert('Send failed: ' + err.toString());
     btn.disabled = false;
     btn.textContent = 'Send email';
@@ -14081,6 +14131,7 @@ function mntSendAssignEmail() {
       siteUsers:(q('wbiUsers').value||'').trim(), adminTotal:(q('wbiAdmin').value||'').trim(),
       amountDue:(q('wbiDue').value||'').trim(), mdd:(q('wbiMdd').value||'').trim(), notes:q('wbiNotes').value||'' };
     var btn=q('wbiSaveBtn'); btn.disabled=true; btn.style.opacity='0.6'; btn.innerHTML='Saving\u2026';
+    var wbiPanel=q('panel-waterbillsinput'); adminLockForm(wbiPanel,true);   // Build 1.15: figures, Cancel and the Edit links are locked while saving
     fetch(SCRIPT_URL,{ method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:(editing?'updateWaterBill':'saveWaterBill'), bill:bill }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
@@ -14091,7 +14142,7 @@ function mntSendAssignEmail() {
         if(q('wbiAllBody').style.display==='none'){ q('wbiAllBody').style.display='block'; q('wbiAllCaret').innerHTML='&#9662;'; }
       })
       .catch(function(e){ if(typeof showToast==='function') showToast('Error saving: '+e.message,'error'); })
-      .then(function(){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=EDIT_ID?SAVE_EDIT_LABEL:SAVE_NEW_LABEL; });
+      .then(function(){ adminLockForm(wbiPanel,false); btn.disabled=false; btn.style.opacity=''; btn.innerHTML=EDIT_ID?SAVE_EDIT_LABEL:SAVE_NEW_LABEL; });   // Build 1.15: unlock
   };
 
   function wbiInit(){
