@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<!-- CMC The Courtyard -- admin.html -- Build 1.17 -- 20 Nov 2026, 19:32
+<!-- CMC The Courtyard -- admin.html -- Build 1.18 -- 20 Nov 2026, 19:55
+     Build 1.18: on screens wider than 768px the top bars of the SIP Q&A (title bar
+     with count, Refresh and + Add Q&A; filter bar; Sort / Question / Answer
+     headings), SIP Briefing (title bar; filter bar) and SIP Sales Process (title
+     bar; note bar) stay pinned under the admin header while the list scrolls.
+     Phones unchanged. No index.html or code.gs change.
      Build 1.17: new "Q link" button on the toolbar of the SIP Q&A Question and
      Answer boxes, the Briefing Body and the Sales Process What box. It opens a
      searchable list of the Q&A questions; picking one puts a bold reference in
@@ -1052,6 +1057,17 @@
   .nb-mobile-box .uif-ed:focus { box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
   /* Build 1.13: the same toolbar on the SIP Q&A, Briefing and Sales Process text boxes */
   .qa-mobile-box .uif-ed:focus { box-shadow:0 0 0 3px rgba(196,149,106,0.15); }
+  /* Build 1.18: the top bars of the SIP Q&A, SIP Briefing and SIP Sales Process panels
+     stay pinned under the admin header while the list scrolls (screens wider than 768px).
+     The page itself scrolls, so while one of these panels is open the content area
+     stops being its own scroll box (sip-pin, set by sipPinUpdate) -- otherwise nothing
+     inside it could stay put. The Q&A column headings pin just below the bars. */
+  @media (min-width:769px) {
+    .admin-content.sip-pin { overflow-y:visible; overflow-x:clip; }
+    .admin-content.sip-pin .sip-pin-group { position:sticky; top:var(--admin-head-h, 60px); z-index:40; }
+    .admin-content.sip-pin #qaTableWrap { overflow:visible !important; }   /* !important: the box has overflow-x:auto written on it */
+    .admin-content.sip-pin #qaTableWrap thead th { position:sticky; top:var(--qa-thead-top, 170px); z-index:39; background:#faf7f2; }
+  }
   /* Build 1.14: while a form is saving it is greyed out and can't be changed */
   .save-locked { opacity:0.5 !important; cursor:not-allowed !important; }
   input.save-locked:not([type=checkbox]), select.save-locked, textarea.save-locked { background:#f3efe9 !important; color:#8a8078 !important; opacity:1 !important; }
@@ -2088,6 +2104,7 @@
 
       <!-- SIP Q&A PANEL -->
       <div class="admin-panel" id="panel-sipqa" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+        <div class="sip-pin-group"><!-- Build 1.18: these bars stay pinned while the list scrolls -->
         <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;border-radius:10px 10px 0 0;">
           &#10067; SIP Q &amp; A
           <span id="qaCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
@@ -2105,6 +2122,7 @@
           <button id="qaClearFilterBtn" onclick="qaClearFilter()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#c0622a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear</button>
           <span style="margin-left:auto;color:#7a5c3e;font-size:0.72rem;font-style:italic;">Format with the toolbar on each text box &nbsp;|&nbsp; Merge: [merge_sinking_fund], [merge_cash_total], [merge_current_management_charge]</span>
         </div>
+        </div><!-- /sip-pin-group -->
         <div id="qaTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading Q&amp;A…</div>
         </div>
@@ -2112,6 +2130,7 @@
 
       <!-- SIP Briefing Panel -->
       <div class="admin-panel" id="panel-sipbriefing" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+        <div class="sip-pin-group"><!-- Build 1.18: these bars stay pinned while the list scrolls -->
         <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;border-radius:10px 10px 0 0;">
           &#128196; SIP Briefing
           <span id="briefCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
@@ -2125,6 +2144,7 @@
           <button id="briefClearFilterBtn" onclick="briefClearFilter()" style="padding:0.3rem 0.9rem;border-radius:5px;border:none;background:#c0622a;color:white;font-family:Arial,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;display:none;">&#x2715; Clear</button>
           <span style="margin-left:auto;color:#7a5c3e;font-size:0.72rem;font-style:italic;">Format with the toolbar on the Body box &nbsp;|&nbsp; Merge: [merge_sinking_fund], [merge_cash_total], [merge_sip_password], [merge_current_management_charge]</span>
         </div>
+        </div><!-- /sip-pin-group -->
         <div id="briefTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading briefing…</div>
         </div>
@@ -2132,6 +2152,7 @@
 
       <!-- SIP Sales Process Panel (Build 1.07) -->
       <div class="admin-panel" id="panel-sipsales" style="padding:0;border-radius:10px;border:1px solid #c8bfb4;box-shadow:0 1px 6px rgba(0,0,0,0.07);">
+        <div class="sip-pin-group"><!-- Build 1.18: these bars stay pinned while the list scrolls -->
         <div style="background:#1e1a16;padding:0.75rem 1.25rem;color:#f5f0e8;font-size:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;border-radius:10px 10px 0 0;">
           &#128273; SIP Sales Process
           <span id="salesCountPill" style="background:rgba(196,149,106,0.25);color:#c4956a;border-radius:10px;font-size:0.7rem;padding:0.1rem 0.5rem;font-weight:700;">-</span>
@@ -2143,6 +2164,7 @@
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;padding:0.7rem 1.25rem;background:#faf7f2;border-bottom:1px solid #c8bfb4;">
           <span style="color:#7a5c3e;font-size:0.72rem;font-style:italic;">Format with the toolbar on the What box (&bull; List for bullet points) &nbsp;|&nbsp; Steps show on the SIP in Order number order</span>
         </div>
+        </div><!-- /sip-pin-group -->
         <div id="salesTableWrap" style="overflow-x:auto;background:white;border-radius:0 0 10px 10px;">
           <div style="color:#b8ad9e;font-size:0.84rem;padding:1.5rem;font-style:italic;">Loading sales process…</div>
         </div>
@@ -3571,8 +3593,8 @@ If you wish to discuss this further, please contact [Actioner name] directly. A 
    the header, so you can tell at a glance whether the browser has picked up the
    latest version. */
 var PAGE_FILE  = 'admin.html';
-var PAGE_BUILD = '1.17';
-var PAGE_DATE  = '20 Nov 2026, 19:32';
+var PAGE_BUILD = '1.18';
+var PAGE_DATE  = '20 Nov 2026, 19:55';
 (function() {
   var logo = document.querySelector('.admin-logo');
   if (logo) logo.title = PAGE_FILE + ' · Build ' + PAGE_BUILD + '\n' + PAGE_DATE;
@@ -3922,12 +3944,27 @@ function bfSave() {
   });
 }
 
+// Build 1.18: keeps the SIP Q&A / Briefing / Sales Process top bars pinned (see the CSS note)
+function sipPinUpdate() {
+  var content = document.querySelector('.admin-content');
+  var active = document.querySelector('.admin-panel.active');
+  var on = !!(active && /^panel-sip(qa|briefing|sales)$/.test(active.id));
+  if (content) content.classList.toggle('sip-pin', on);
+  var hd = document.querySelector('.admin-header');
+  var hh = hd ? hd.offsetHeight : 0;
+  document.documentElement.style.setProperty('--admin-head-h', hh + 'px');
+  var g = document.querySelector('#panel-sipqa .sip-pin-group');
+  if (g && g.offsetHeight) document.documentElement.style.setProperty('--qa-thead-top', (hh + g.offsetHeight) + 'px');
+}
+window.addEventListener('resize', sipPinUpdate);
+
 function showPanel(id) {
   if (id === 'contacttools') ctPreload();
   document.querySelectorAll('.admin-panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
   document.getElementById('panel-' + id).classList.add('active');
   document.getElementById('nav-' + id).classList.add('active');
+  sipPinUpdate();   // Build 1.18
   if (id === 'welcome' && typeof dcMaybeShakeSmoke === 'function') dcMaybeShakeSmoke();
   if (id === 'agmsubmissions') loadAgmSubmissions();
   if (id === 'agmminutes') adminLoadAGMMinutes();
